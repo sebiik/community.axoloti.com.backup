@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304/27 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 17:12:40 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>[GPIO I/O] Example ADC MCP3208 &amp; SPI - Patching - Axoloti Community</title>
+    <meta name="description" content="Hi everyone, this example should show, how a MCP3208 can be used to read eight analog sources. The MCP3208 is connected to axoloti SPI port. This ADC method is much faster then the 4051 method and the MCP3208 has an inpu&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="../3044658.html?page=2" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;[GPIO I/O] Example ADC MCP3208 &amp; SPI&#39;" href="../304.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/johannes/200/8_1.png" />
+<meta property="og:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/johannes/200/8_1.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304/27" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304/27" />
+<meta property="og:title" content="[GPIO I/O] Example ADC MCP3208 &amp; SPI" />
+<meta name="twitter:title" content="[GPIO I/O] Example ADC MCP3208 &amp; SPI" />
+<meta property="og:description" content="Sorry, it is not possible to move the pin assignments for MOSI, MISO and SCK.      I have not studied those, I guess it will be the same or very similar.      yeah, use the same." />
+<meta name="twitter:description" content="Sorry, it is not possible to move the pin assignments for MOSI, MISO and SCK.      I have not studied those, I guess it will be the same or very similar.      yeah, use the same." />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../../index.html"><img src="../../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="../304.html">[GPIO I/O] Example ADC MCP3208 &amp; SPI</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../../c/patching.html" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/kaos.html'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T19:06:02Z' itemprop='datePublished'>
+             2016-01-19 19:06:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ok I'm hoping this is a software problem. I get accurate readings on 16 pots using 2 MCP3208 if, and here's the catch...</p>
+
+<p>I always get accurate readings from MCP3208 #1, the one connected to axoloti PA4<br>I only get accurate readings from MCP3208 #2, connected to PA3 if the pot on the same pin number on the other MCP3208 is turned to the maximum, otherwise I get some sort of average. If I turn the pot down, I get no reading at all..<br>I'm guessing somewhere in my script I multiply the values, <br>- but I reinitialised the vars,<br>- I increased the sleeptime between polling (thought it was some overflow)<br>- I renamed the z var in the second loop</p>
+
+<p>It took me quite a while to figure out why everything was dancing and then not, I thought it was hardware, so I resoldered a lot of things... apparently for nothing, or not? a bit puzzled.</p>
+
+<p>below is my version of the script</p>
+
+<pre><code>/*
+MCP3208 script2 code
+by paul
+adapted by kaos, this script is not working, there is problem...
+
+Connect the MCP3208 CS pin to the NSS(PA4) or any other digital out pin of axoloti.
+In this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.
+
+If you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. 
+*/
+
+uint8_t *txbuf;
+uint8_t *rxbuf;
+const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4
+const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3
+
+
+
+
+void setup(void){
+	static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+	static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+	rxbuf = _rxbuf;
+
+	palSetPadMode(GPIOA,4,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	palSetPadMode(GPIOA,3,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	//changes
+	palWritePad(GPIOA,4,1);								// pull high to disable first MCP3208
+	palWritePad(GPIOA,3,1);								// pull high to disable second MCP3208
+}
+
+void loop(void){
+	// txtbuf[0] = txtbuf[1] = txtbuf[2] = 0b00000000;
+   	txbuf[2] = 0b00000000;
+ 	
+    	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+			
+
+		palWritePad(GPIOA,4,0);		// enable MCP3208 #1
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,4,1);		// disable MCP3208 #1
+				
+		int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c0_value],z,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c1_value],z,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c2_value],z,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c3_value],z,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c4_value],z,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c5_value],z,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c6_value],z,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c7_value],z,0xFFFD);
+		}
+	
+	}
+	chThdSleepMilliseconds(10);
+	txbuf[2] = 0b00000000;
+
+	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+
+		palWritePad(GPIOA,3,0);		// enable MCP3208  #2
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,3,1);		// disable MCP3208 #2
+				
+		int zz = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d0_value],zz,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d1_value],zz,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d2_value],zz,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d3_value],zz,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d4_value],zz,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d5_value],zz,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d6_value],zz,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d7_value],zz,0xFFFD);
+		}	
+	}
+	chThdSleepMilliseconds(10);
+}</code></pre>
+
+<p>Kaos</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-01-19T19:19:27Z' itemprop='datePublished'>
+             2016-01-19 19:19:27 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="13" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>I only get accurate readings from MCP3208 #2, connected to PA3 if the pot on the same pin number on the other MCP3208 is turned to the maximum, otherwise I get some sort of average. If I turn the pot down, I get no reading at all..</p></blockquote></aside>
+
+<p>Sounds like #1 is replying too when you try to address only #2, and you get a "bitwise and" of the two pots as a result...<br>Looks like you're not using spicfg_a/spicfg_b configs, and you should...</p>
+
+<p>Let me also suggest to try sending and receiving all channel data in a single spiExchange() call, way more efficient...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/kaos.html'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T19:32:27Z' itemprop='datePublished'>
+             2016-01-19 19:32:27 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="14" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/johannes/40/8_1.html" class="avatar">johannes:</div>
+<blockquote><p>spicfg_a/spicfg_b configs, and you should...</p></blockquote></aside>
+
+<p>I am, in the script it says<br></p>
+
+<aside class="quote" data-post="13" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4<br>const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3</p></blockquote></aside>
+
+<p>I guess I have to reset the rxbuf somewhere? It just gets copied over<br></p>
+
+<aside class="quote" data-post="13" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>int zz = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;</p></blockquote></aside>
+
+<p>I'll google the spiExchange, makes sense to me to make it more efficient, not done adding stuff here <img src="../../../images/emoji/emoji_one/smilea4f0.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>K</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-01-19T19:37:19Z' itemprop='datePublished'>
+             2016-01-19 19:37:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="15" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>I am</p></blockquote></aside>
+
+<p>err, no, that's only the declaration.<br>spiStart() takes it as an argument.<br>No need to reset rxbuf.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/kaos.html'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T20:29:19Z' itemprop='datePublished'>
+             2016-01-19 20:29:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>right, so I call it in the setup routine as something like this:</p>
+
+<blockquote>
+<pre><code>palWritePad(GPIOA,4,0);		// enable MCP3208 #1</code></pre>
+<p><strong>&gt;     	spiStart(&amp;spicfg_a);</strong><br>    	spiSelect(&amp;SPID1);			// START SPI<br>    	spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]<br>    	spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208<br>    	spiUnselect(&amp;SPID1);		// STOP SPI<br>    	palWritePad(GPIOA,4,1);		// disable MCP3208 #1</p>
+</blockquote>
+
+<p>but that fails. looking in the SPI<a href="http://chibios.sourceforge.net/html/group___s_p_i.html#ga6752c9f736f8de774a5bef6dfe2aae2e" rel="nofollow"> Chibios Docs</a> i need to call it as</p>
+
+<pre><code>void spiStart	(	
+   SPIDriver * 	spip,
+const SPIConfig * 	config 
+)</code></pre>
+
+<p> but I have no clue on the SPIdriver, no pointers defined in the example code...</p>
+
+<p>K</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-01-19T20:33:11Z' itemprop='datePublished'>
+             2016-01-19 20:33:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>scroll up a bit here<br><aside class="quote" data-topic="304" data-slug="gpio-i-o-example-adc-mcp3208-spi" data-post="3"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/matthewcieplak/40/280_1.html" class="avatar">matthewcieplak:</div>
+<blockquote><p>I had a closer look at some of the code used for SPI configuration and it seems like this would be theoretically possible, but maybe not with the provided objects. For example, the gpio/spi/config object initializes a named static "spicfg" constant that would conflict other config objects.     Nonetheless, ChibiOS does support sequential spiStart() calls with different config objects, according to this thread: <a href="http://forum.chibios.org/phpbb/viewtopic.php?f=2&amp;t=676" class="onebox" target="_blank" rel="nofollow"></a><a href="http://forum.chibios.org/phpbb/viewtopic.php?f=2&amp;amp;t=676" rel="nofollow">http://forum.chibios.org/phpbb/viewtopic.php?f=2&amp;t=676</a>   An example is given as:   if …</p></blockquote></aside></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/kaos.html'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T20:42:56Z' itemprop='datePublished'>
+             2016-01-19 20:42:56 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>OK it works!</p>
+
+<p><code>&gt; spiStart(&amp;SPID1, &amp;spicfg_b);</code></p>
+
+<p>16 pots using only 5 pins...optimising will be for some other time!<br>onto the next challenge <img src="../../../images/emoji/emoji_one/smilea4f0.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>Thanks!</p>
+
+<pre><code>/*
+MCP3208 script2 code
+by paul
+adapted by kaos, this script is not optimized, but it works!
+Connect the MCP3208 CS pin to the NSS(PA4) or any other digital out pin of axoloti.
+In this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.
+
+If you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. 
+*/
+
+uint8_t *txbuf;
+uint8_t *rxbuf;
+const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4
+const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3
+
+
+
+
+void setup(void){
+	static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+	static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+	rxbuf = _rxbuf;
+
+	palSetPadMode(GPIOA,4,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	palSetPadMode(GPIOA,3,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	//changes
+	palWritePad(GPIOA,4,1);								// pull high to disable first MCP3208
+	palWritePad(GPIOA,3,1);								// pull high to disable second MCP3208
+}
+
+void loop(void){
+	// txtbuf[0] = txtbuf[1] = txtbuf[2] = 0b00000000;
+   	txbuf[2] = 0b00000000;
+ 	
+    	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+			
+
+		palWritePad(GPIOA,4,0);		// enable MCP3208 #1
+		spiStart(&amp;SPID1, &amp;spicfg_a);
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,4,1);		// disable MCP3208 #1
+				
+		int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c0_value],z,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c1_value],z,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c2_value],z,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c3_value],z,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c4_value],z,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c5_value],z,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c6_value],z,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c7_value],z,0xFFFD);
+		}
+	
+	}
+	chThdSleepMilliseconds(10);
+	txbuf[2] = 0b00000000;
+
+	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+
+		palWritePad(GPIOA,3,0);		// enable MCP3208  #2
+		spiStart(&amp;SPID1, &amp;spicfg_b);
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,3,1);		// disable MCP3208 #2
+				
+		int zz = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d0_value],zz,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d1_value],zz,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d2_value],zz,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d3_value],zz,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d4_value],zz,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d5_value],zz,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d6_value],zz,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d7_value],zz,0xFFFD);
+		}	
+	}
+	chThdSleepMilliseconds(10);
+}</code></pre>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:5'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/gagarin.html'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-09-14T07:00:34Z' itemprop='datePublished'>
+             2016-09-14 07:00:34 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>How many MCP3208 devices is possible to use with axoloti or what is the max number of pots is posible to connect to axoloti using mcp chips? Do they intorduce aditional cpu load?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-09-16T07:54:28Z' itemprop='datePublished'>
+             2016-09-16 07:54:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#21</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>My not the best to answer this BUT I think the max is 8 per 3208 , so that gives 128<br>Load I'd assume with increase linearly per 3208, as each is streated separately </p>
+
+<p>Note: if not tried this, as I don't have any 3208s, this is based on the code and circuits I've seen here</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-09-19T14:55:49Z' itemprop='datePublished'>
+             2016-09-19 14:55:49 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#22</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Yes, 8 MCP3208 devices is the maximum that can be addressed.<br>The main concern is not CPU load, but the update rate. If a single conversion is scheduled every millisecond, at 128 channels that gets you 8 samples per second. Scheduling conversions at 3kHz (control rate), gets you 24 samples per second. Scheduling faster gets tricky, as it will start to interfere with control rate.<br>The MCP3208 protocol requires to setup a data transaction for each conversion, it would be much nicer if it could read out its 8 channels in a single data transaction. Perhaps some other converter exists that can do this, but don't know a widely available cheap part number that can do this, but I have not searched extensively.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+            <a href="../../the-xylobox-wavetable-synthesizer-hardware-patches/1353/35.html">The Xylobox Wavetable Synthesizer (hardware + patches)</a>
+            <hr>
+            <a href="../../which-potentiometers-should-i-buy/3777/18.html">Which potentiometers should I buy?</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-09-19T15:35:28Z' itemprop='datePublished'>
+             2016-09-19 15:35:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#23</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="22" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/johannes/40/8_1.html" class="avatar">johannes:</div>
+<blockquote><p>the update rate. If a single conversion is scheduled every millisecond, at 128 channels that gets you 8 samples per second. Scheduling conversions at 3kHz (control rate), gets you 24 samples per second.</p></blockquote></aside>
+
+<p>can I just understand this correctly?<br>so basically, because they share the same spi port, you can only address one 3208 (and one pin of it) on each cycle, and you have to issue the send and receive on different cycles. </p>
+
+<p>also quick wiring question...<br>on the above diagram the first 3208 has a cap between pins  2 and 3, is this also required for the second (and subsequent) 3208s?</p>
+
+<p>(I'll note for my usage I'm not planning on that many pots ...  but thought I might have some analogue inputs that I want a high sample rates, e.g. ribbon but a fews pots that could be lower if necessary)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-09-19T18:49:51Z' itemprop='datePublished'>
+             2016-09-19 18:49:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#24</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>After setup, for every transaction, you need these calls:</p>
+
+<p><code>		spiSelect(&amp;SPID1);			// START SPI<br>		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]<br>		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208<br>		spiUnselect(&amp;SPID1);</code></p>
+
+<p>I think <code>spiSend()</code> and <code>spiReceive()</code> can be merged in one call of <code>spiExchange</code>. But the chip select input must see a high pulse between transactions. The data sheet shows DIN is "don't care" after the first transaction.</p>
+
+<p>The <code>spiSend()</code>, <code>spiReceive()</code> and <code>spiExchange()</code> function calls setup the transaction (using DMA), suspends the current thread so other threads can do useful work in the meantime, and when the transaction is finished, it resumes the original thread.</p>
+
+<p>There are several option to schedule the transactions:</p>
+
+<ul>
+<li>Making a thread with a tight loop with <code>spiX..()</code> is a bit too aggressive, perhaps with the spi bitrate set to the slowest possible. I would not recommend.</li>
+<li>Creating a thread with chThdSleepMilliseconds() in the loop is fine, but has a 1 millisecond timing granularity (as configured in firmware: chconfig.h). This is what I'd recommend</li>
+<li>Calling <code>spiX..()</code> at k-rate (from the dsp thread), I would not recommend as that makes the time during the transaction unavailable for audio processing... It is possible to do SPI without the <code>spiX..()</code> calls, by manipulating the memory-mapped IO registers defined in stm32fxxx.h, within k-rate and poll for the result at the next k-rate interval. But such an implementation is very unportable.</li>
+</ul>
+
+<p>The capacitor between pin 2 and 3, I think you're referring to pin 14 and 15. Pin numbering start at a "mark", often a dot, then go around counter-clock-wise. As a starting point I'd suggest a 100nF capacitor across every GND/VDD pair of pins of every chip, close to each pin pair. In this case, pin 15 is the voltage reference input, I'd give it a 100nF capacitor too on each chip. The <a href="http://ww1.microchip.com/downloads/en/DeviceDoc/21298c.pdf" rel="nofollow">mcp3208 datasheet</a> has a chapter on Layout Considerations, they recommend a 1uF capacitor "placed as close as possible to the device pin". Such layout considerations are not supercritical to get it to work, but certainly useful to reach best possible performance. But I would not be surprised if it also works fine without any respect for the layout recommendations.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/gagarin.html'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-10-04T06:43:06Z' itemprop='datePublished'>
+             2016-10-04 06:43:06 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#25</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>What potentiometer values I should use with MCP3208? The same as for axoloti analog inputs?<br>Can I use 74HC4051 or 74HC4067 multiplexer, wil the script code wil be the same?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/gagarin.html'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-11-25T09:11:32Z' itemprop='datePublished'>
+             2016-11-25 09:11:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#26</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Can I connect MOSI, MISO, SCK, NSS/CS of MCP3208 to pins PB6-PB9?<br>Then it will be possible to use all 15 analog inputs of axoloti and 8 additional from MCP3208, so in total 23 ins?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-11-25T14:25:58Z' itemprop='datePublished'>
+             2016-11-25 14:25:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#27</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Sorry, it is not possible to move the pin assignments for MOSI, MISO and SCK.<br></p>
+
+<aside class="quote" data-post="25" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/g/e9a140/40.html" class="avatar">gagarin:</div>
+<blockquote><p>Can I use 74HC4051 or 74HC4067 multiplexer, wil the script code wil be the same?</p></blockquote></aside>
+
+<p>I have not studied those, I guess it will be the same or very similar.<br></p>
+
+<aside class="quote" data-post="25" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/g/e9a140/40.html" class="avatar">gagarin:</div>
+<blockquote><p>potentiometer values</p></blockquote></aside>
+
+<p>yeah, use the same.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+            <a href="../../input-resistance-impedance-of-gpios-in-analogin-mode/7860/6.html">Input resistance/impedance of GPIOs in AnalogIn Mode?</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/gagarin.html'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-11-26T10:39:24Z' itemprop='datePublished'>
+             2016-11-26 10:39:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#28</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thank you Johannes.</p>
+
+<p>I have one more question:</p>
+
+<p>In this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.</p>
+
+<p>If you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. <br>*/</p>
+
+<p>uint8_t *txbuf;<br>uint8_t *rxbuf;<br>const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4<br>const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3</p>
+
+<p>Does this mean that second mcp3208 CS pin connected to PA3, but not to B0(GPIOB,0) pin? Or there is somewhere mismatch in axoloti labels?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/gagarin.html'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2017-01-05T20:06:24Z' itemprop='datePublished'>
+             2017-01-05 20:06:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#30</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Somehow I find the answer</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/MC_DETH.html'><b itemprop='author'>MC_DETH</b></a>
+           
+           <time datetime='2017-10-01T17:10:00Z' itemprop='datePublished'>
+             2017-10-01 17:10:00 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#31</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Does that mean 8 mpc3208's can be connected directly to axoloti? Or do they need to be chained? I am building an enclosure with 48 pots, 6 tact buttons, 6 leds, a 4 digit LCD display and a rotary encoder and I am trying to find out the best strategy to approach this.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/Ac-tone.html'><b itemprop='author'>Ac-tone</b></a>
+           
+           <time datetime='2019-10-12T16:55:08Z' itemprop='datePublished'>
+             2019-10-12 16:55:08 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#32</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hello ! <br>I've wired my MCP3008 and seem to get an accurate reading, but like matthewcleplak a few post earlier, I can't get a value more than 3.97 and cannot figure out why..<br>I'm not that good with coding so i'm having troubles figuring out if it is in the script or due to the 10-bit depth of the MCP3008,  or if it's a VREF problem...<br>I've used a 100nf cap beetwen pin 2 and 3 and a 100uf beetween the main Vdda and GND, it seem to work as there is almost no jitter. I'm using 100k pot, that works fine when connected into the Axo's DAC. <br>Any ideas ? I couldn't find a simple answer in that post, even though I think matthewcleplak figured it out...</p>
+
+<p>EDIT : SOMEHOW, I FOUND THE ANSWER WHILE TRYING TO FIGURE OUT THE CODE; YOU NEED TO CHANGE THIS LINE, that is in the first example script : <br> int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16; <br>to<br> int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 20;</p>
+
+<p>The value now goes to 63.50... that'll do it for me, although I did It kinda randomly, if somebody could explain a little bit how this work and get that last 0.50...</p>
+
+<p>Hope this will be useful to someone <img src="../../../images/emoji/twitter/slight_smileae52.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/Keeze101.html'><b itemprop='author'>Keeze101</b></a>
+           
+           <time datetime='2020-05-04T13:07:46Z' itemprop='datePublished'>
+             2020-05-04 13:07:46 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#33</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi all,</p>
+
+<p>I cascaded 3 MCP3008's and added some series resistors  (47Ohm) in the CLK/MISO and MOSI lines to get the reading stable. This seems to work, but now the readings are fine till a potmeter passes half the range. Where am I missing a point...</p>
+
+<div class="lazyYT" data-youtube-id="0w140a2NcQ0" data-youtube-title="" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+
+<p>BTW, when lowering the potmeter below the half-point, readings get stable again...</p>
+
+<p>Patch used: <a class="attachment" href="../../../uploads/default/original/2X/6/mcp3208%20tripple%20channel%20example.axp">mcp3208 tripple channel example.axp</a> (13.2 KB)</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/79bf79b750d4b76c3d5f6332d0f67c062252f42e" href="../../../uploads/default/original/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e.jpg" class="lightbox" title="3mcp3008-2.jpg"><img src="../../../uploads/default/optimized/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e_1_550x500.jpg" width="550" height="500"><div class="meta">
+<span class="filename">3mcp3008-2.jpg</span><span class="informations">550x1200 206 KB</span><span class="expand"></span>
+</div></a></div><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/7f040ee9926d6484e4262ea50d88bbacde198161" href="../../../uploads/default/original/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161.jpg" class="lightbox" title="3mcp3008-1.jpg"><img src="../../../uploads/default/optimized/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161_1_550x500.jpg" width="550" height="500"><div class="meta">
+<span class="filename">3mcp3008-1.jpg</span><span class="informations">550x1200 241 KB</span><span class="expand"></span>
+</div></a></div></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+            <a href="../../spi-problems-with-mcp3008-and-mcp23s17/6614.html">SPI Problems with MCP3008 and MCP23s17</a>
+            <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../../index.html'>Home</a>
+        <a href="../../../categories.html">Categories</a>
+        <a href="../../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../../tos.html">Terms of Service</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304/27 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 17:12:40 GMT -->
+</html>

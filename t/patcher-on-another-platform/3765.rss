@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Patcher on another platform?</title>
+    <link>http://community.axoloti.com/t/patcher-on-another-platform/3765</link>
+    <description>Hello,
+I&#39;m a software developer and musician and a question came to my mind, just for curiosity: does the patcher communicate with the core as a service consumer or is it linked and use it as an external library?
+(I didn&#39;t take a look at the code yet)
+So, could be possible porting the patcher to a js platform an distribute it with electron? Does it make sense?</description>
+    
+    <lastBuildDate>Thu, 05 Oct 2017 21:19:01 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="19" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lodevalm/40/4514_1.png" class="avatar">lodevalm:</div>
+<blockquote><p>I've tried to fix a bug on the UI on the experimental branch: If you click the label to change name of an object then you drag the object itself, the editing field doesn't disappear.</p></blockquote></aside>
+
+<p>Two things seemed to cause this issue: dragging the object title bar didn't pull the focus away from the object instance name edit field, and removing the edit field component did not trigger a repaint.<br>I (think) I have addressed both in this <a href="https://github.com/axoloti/axoloti/commit/32bbc50429cb5dc2e1993b2964e68e208197138d">commit</a>. <br>Project structure... yes there is room for improvement. Two conventions are mixed:<br>xxxDefinition/xxx<br>xxx/xxxInstance<br>the first corresponds with something that belongs to the definition of an object, the 2nd to something of an instance of an object in a patch.<br>Further, everything referring to piccolo is currently broken.<br>A reorganization of packages and class names would make sense but I think I prefer to wait with this as it will make it hard to track code changes over such a reorganization.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/20</link>
+        <pubDate>Thu, 05 Oct 2017 21:19:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-20</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@lodevalm daniele pagliero]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lodevalm">@lodevalm</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/johannes">@johannes</a> I completely agree. <br>Reading the code, I answered to myself that porting to a java API service with an electron client is too late (and maybe useless) considering the state of the project.<br>I'm not against java <em>but</em> swing hurts a bit myself <img src="//community.axoloti.com/images/emoji/twitter/smiley.png?v=5" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p>I've tried to fix a bug on the UI on the experimental branch: If you click the label to change name of an object then you drag the object itself, the editing field doesn't disappear.<br>I didn't solve it yet, while I found the place where it loose the focus and didn't get notified on the AxoObjectInstanceViewAbstract.</p>
+
+<p>I'm a bit lost in the project structure...so solve this kind of things is useful for me to understand how you organized and named the classes...</p>
+
+<p>Let's see if I will get some results...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/19</link>
+        <pubDate>Tue, 03 Oct 2017 11:03:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-19</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lodevalm/40/4514_1.png" class="avatar">lodevalm:</div>
+<blockquote><p>So, could be possible porting the patcher to a js platform an distribute it with electron? Does it make sense?</p></blockquote></aside>
+
+<p>I'm not against such a move, but I believe it is most important to do such step by step.</p>
+
+<p>The first step is separating program logic from the GUI code, so other GUI's can be "plugged in". The experimental branch has this largely in place.<br>Next, transitioning from a Swing GUI to a HTML5 GUI, I believe there are two options, using JFXPanel or chromium via <a href="https://www.teamdev.com/jxbrowser">jxbrowser</a>, while still keeping the program logic in java. <br>Eventually the program logic could be converted to JS too, using Electron, but I'm not sure there is a substantial benefit here.</p>
+
+<p>Perhaps one "toy" area where a html5/js-based gui could be integrated and explored is the "memory viewer" (in the experimental branch). A user-editable script could visualize memory data in arbitrary ways (like graphing). </p>
+
+<p>My first concern however is turning the experimental branch into a stable 2.0 release.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/18</link>
+        <pubDate>Thu, 28 Sep 2017 20:54:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-18</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="15" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lodevalm/40/4514_1.png" class="avatar">lodevalm:</div>
+<blockquote><p>for instace puredata is more ugly...</p></blockquote></aside>
+
+<p>It's absolutely hideous, so yes the Axoloti Patcher is excellent in comparison!</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/17</link>
+        <pubDate>Wed, 20 Sep 2017 16:10:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-17</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Yes, the move towards MVC (or rather something like it) , is about separating UI code from other 'functions', this abstraction will help in lots of different ways.</p>
+
+<p>I was not trying, at all,  to defend what the UI looks like, nor debating if the looks put people off (or not) ... it definitely could be improved, and you may be correct about being off-putting.... </p>
+
+<p>Im only trying to give an indication into the complications of writing a new UI... since I'm not sure how many here, have really looked at the code in depth.</p>
+
+<aside class="quote" data-post="10" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/strum/40/4469_1.png" class="avatar">strum:</div>
+<blockquote><p>not trivial at all I had thought, but a control interface that could load patches and have a GUI for exposed parameters doesn't seem to difficult.</p></blockquote></aside>
+
+<p>you mean like a control surface... this will hopefully become easier soon, for axoloti control there is a necessity that the parameters can be self describing and so used without the patch file. this will also be useful for other controllers. ... this is a direction I will be exploring <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>(reading the axp file is actually quite involved, and not something i would undertake lightly... its not so much parsing it, but then 'understanding' it, and getting all related information.. and some information is just not there e.g. how types get parsed from an int32, into something like frequency)</p>
+
+<aside class="quote" data-post="11" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/orbitbot/40/3391_1.png" class="avatar">orbitbot:</div>
+<blockquote><p>Java itself is not really a problem as I see it, my personal problem is that I have low interest and realistically less time to invest in learning Swing or whatever else the UI framework is to solve some usability issues.</p></blockquote></aside>
+
+<p>This I totally understand... Ive a preference for C++, but I still contribute to java based projects to solve issues/improve things, because its a lot quicker than rewriting everything,  even to get to feature parity would be (many) months of work, which I don't have time for. so I go with the flow, and try to incrementally improve things <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> <br>( a bit different professionally where I'm responsible for the design) </p>
+
+<p>but hey, I'm not discouraging anyone, dive in... Im sure you have a clear vision of what exactly you want to achieve, and how you plan to do it... often the case is, we only know by trying, and learn along the way.</p>
+
+<p>as for me. too many projects, too little time ... so I'll just continue to help Johannes.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/16</link>
+        <pubDate>Wed, 20 Sep 2017 16:05:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-16</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@lodevalm daniele pagliero]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lodevalm">@lodevalm</a> wrote:</p>
+          <blockquote>
+              <p>My first post in this thread was about changing UI code and eventually change language/GUI framework.<br>But I also think that Java is good (easily portable over operating systems, for instance I've installed the app on a linux  on my job machine and on a mac that I use to play).</p>
+
+<p>I agree with everything you wrote and to be a little OT, this conversation with you guys is more than welcome in a world full of haters, trollers and so on (even in the opensource community...)</p>
+
+<p>Back to the topic, I can say that the interface is really not too bad (for instace puredata is more ugly...). </p>
+
+<p>My primay job right now is making back-ends and front-ends working together but I did a lot of interaction design in the past so I know how UI works.<br>Please keep posting, because I'm very intrested in being involved in the project!<br><img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/15</link>
+        <pubDate>Wed, 20 Sep 2017 14:29:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-15</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>I realise I've effectively trolled this thread, and I apologise for that.</p>
+
+<p>My intention was not to hurt the feeling of the fine people who make and contribute to this software, and I'm not saying that the UI as it stands is in any way unusable. It's just it looks.. basic.. and there are a few long-standing glitches in terms of the way common functions work that niggle while using the Patcher.</p>
+
+<p>Any changes to the code that would help separate the back-end code from the display parts, and facilitate tweaks to the Patcher UI, without risking screwing up other parts of the code has got to be a good thing.</p>
+
+<p>Also, if anyone with design and UI (but not necessarily low-level coding) experience wants to get involved in redesigning or re-skinning the Patcher UI in the future, the above would help enormously.</p>
+
+<p>It looks like this is being worked on, anyway, and I can only applaud that effort. I think in the long run it will pay off in terms of usability, and user-satisfaction.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/14</link>
+        <pubDate>Wed, 20 Sep 2017 13:39:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-14</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@strum]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/strum">@strum</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="12" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">toneburst:</div>
+<blockquote><p>if the code is structured in such a way that changes to the UI cannot be made easily and quickly, based on user feedback, then it doesn't reflect well on the whole project, unfortunately.</p></blockquote></aside>
+
+<p>I'm afraid I have to agree.</p>
+
+<p>Regardless of the rightness or otherwise of the attitude people do judge software on how it looks.</p>
+
+<p>I would argue that the appearance and layout of the GUI has a lot to do with usability of the software as well.</p>
+
+<p>I think people are probably put off Axoloti by how the gui looks.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/13</link>
+        <pubDate>Wed, 20 Sep 2017 12:58:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-13</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>I really think, from a useability standpoint, it's the GUI that's holding things back. That's understandable, but a shame.</p>
+
+<p>Most users will have no interest in the underpinnings of the whole application, but if the code is structured in such a way that changes to the UI cannot be made easily and quickly, based on user feedback, then it doesn't reflect well on the whole project, unfortunately.</p>
+
+<p>I'm sorry if this sounds harsh, but I think it's fair.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/12</link>
+        <pubDate>Wed, 20 Sep 2017 12:53:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-12</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@orbitbot Patrik Johnson]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/orbitbot">@orbitbot</a> wrote:</p>
+          <blockquote>
+              <p>MVC stands for Model-View-Controller (wikipedia has a decent overview), and depending on the context may imply something very specific or something a bit more abstract, as there are some permutations on the acronym that imply other implementations. In any case, it's probably an indicator of improved architecture, modularisation and single responsibility for the classes involved.</p>
+
+<p>Java itself is not really a problem as I see it, my personal problem is that I have low interest and realistically less time to invest in learning Swing or whatever else the UI framework is to solve some usability issues. F.e. on mac new floating windows always open really small and need to be enlarged, when searching in the object selector pressing down won't switch focus to the filtered list to go through the options, the object selector window cannot be resized so you need to scroll a lot to read the full descriptions etc.</p>
+
+<aside class="quote" data-post="10" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/strum/40/4469_1.png" class="avatar">strum:</div>
+<blockquote><p>not trivial at all I had thought, but a control interface that could load patches and have a GUI for exposed parameters doesn't seem to difficult.</p></blockquote></aside>
+
+<p>Agree.</p>
+
+<p>I don't have an understanding of the correlation between the UI elements, the axp files (that seem to be XML and not the binaries to load to the board), but the alternative UI would essentially do the above and then start child processes to compile and install etc.</p>
+
+<p>So, if a CLI exists or can be made available to control the runtime parameters on the board, compile and install patches and whatever else exists, the building blocks for alternative UIs are already available.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/11</link>
+        <pubDate>Wed, 20 Sep 2017 11:56:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-11</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@strum]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/strum">@strum</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="9" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>USB protocol - check USBBulkConnection.java on patcher side, on the firmware side, its in a few places, but look for writing to BDU1. .. no there is no API.</p></blockquote></aside>
+
+<p>Thanks, that gives me a place to start.</p>
+
+<aside class="quote" data-post="9" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>not really, this would only cover one (or two) aspects of the problem space. it still doesn't over code generation/ compilation. <br>anyway, i think creating an alternative editor that is integrated is far from trivial.</p></blockquote></aside>
+
+<p>not trivial at all I had thought, but a control interface that could load patches and have a GUI for exposed parameters doesn't seem to difficult.</p>
+
+<aside class="quote" data-post="9" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>often its the underlying representation, or how we want things to be represented to the user - or to produce efficient code for the MCU... all pretty independent of implementation language.</p></blockquote></aside>
+
+<p>This is what I had thought also.</p>
+
+<aside class="quote" data-post="9" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>as for 'faster development' , it was decided to have a longer 'development phase' to deal with some of the code issues that build up (technical debt in agile terms) , so the next version is much better structured, which hopefully allows changes to be made quicker (without fear to other bits breaking)</p></blockquote></aside>
+
+<p>Very sensible, better to take time and design a system that works efficiently and allows for more flexibility for further development and expansion than just tinker with small details in a rapid cycle within the existing structure.</p>
+
+<p>what is MVC?</p>
+
+<aside class="quote" data-post="9" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>Id urge developers to collaborate in the current development.<br>build an understanding of what is there, and why... then you can influence its direction.</p></blockquote></aside>
+
+<p>I'm getting started on this but it's going to take at least a few months given my time availability and the complexity of the project. This gives me a good place to start anyway cheers.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/10</link>
+        <pubDate>Wed, 20 Sep 2017 11:30:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-10</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>USB protocol - check USBBulkConnection.java on patcher side, on the firmware side, its in a few places, but look for writing to BDU1. .. no there is no API. </p>
+
+<aside class="quote" data-post="8" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/orbitbot/40/3391_1.png" class="avatar">orbitbot:</div>
+<blockquote><p>Yeah, this is exactly the kind of interface that would be needed to be exposed for f.e. standalone CLI usage and therefore also other programs. FWICT an alternative editor would have the responsibility of generating the patch XML files and matching those to some kind of UI.</p></blockquote></aside>
+
+<p>not really, this would only cover one (or two) aspects of the problem space. it still doesn't over code generation/ compilation. <br>anyway, i think creating an alternative editor that is integrated is far from trivial.</p>
+
+<p>I don't think that Java is really the 'bottleneck' (for JS etc to 'solve') for user requests - often its the underlying representation, or how we want things to be represented to the user - or to produce efficient code for the MCU... all pretty independent of implementation language.</p>
+
+<p>as for 'faster development' , it was decided to have a longer 'development phase' to deal with some of the code issues that build up (technical debt in agile terms) , so the next version is much better structured, which hopefully allows changes to be made quicker (without fear to other bits breaking) </p>
+
+<p>personally, Id urge developers to collaborate in the current development.<br>build an understanding of what is there, and why... then you can influence its direction.<br>e.g. part of the reason for moving to MVC is to allow an alternative view... so perhaps once that effort is complete, you'll be in a position to realise a JS type interface - if you still think thats a good idea - but thats only practical once you have a deeper understanding of the code base ... and like all programming, thats achieved by 'doing' <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:">  </p>
+
+<p>(as an open source developer, this is generally the approach I take, and also advise...  even if I spin off projects later) </p>
+
+<p>however, one aspect of open source is aiding alternative implementations, visions and ideas. so I look forward to seeing  what you guys can produce.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/9</link>
+        <pubDate>Wed, 20 Sep 2017 11:10:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-9</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@orbitbot Patrik Johnson]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/orbitbot">@orbitbot</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>personally, Ive more interest in exposing some functionality which is useful for interacting with the boards... e.g. uploading patches, parameter interaction etc, which could be done the binary protocol that is used for the usb connection, and so is language independent.</p></blockquote></aside>
+
+<p>Yeah, this is exactly the kind of interface that would be needed to be exposed for f.e. standalone CLI usage and therefore also other programs. FWICT an alternative editor would have the responsibility of generating the patch XML files and matching those to some kind of UI.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/8</link>
+        <pubDate>Wed, 20 Sep 2017 05:57:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-8</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@strum]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/strum">@strum</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>interest in exposing some functionality which is useful for interacting with the boards... e.g. uploading patches, parameter interaction etc, which could be done the binary protocol that is used for the usb connection, and so is language independent.</p></blockquote></aside>
+
+<p>This was my thinking also.</p>
+
+<p>How does the USB connection work and is there a sort of API for it?</p>
+
+<p>What files in the firmware code deal with the USB communications?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/7</link>
+        <pubDate>Wed, 20 Sep 2017 03:39:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-7</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="5" data-topic="3765"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lodevalm/40/4514_1.png" class="avatar">lodevalm:</div>
+<blockquote><p>I could be wrong but all the c code for firmware and os specific shell task are on the axoloti runtime while the java code for the patcher is on the app.</p></blockquote></aside>
+
+<p>not quite sure what you mean by that... <br>the Axoloti runtime only contains the GCC cross compiler, and a few other 'tools', to create a build environment, nothing else... its not related to the patcher really, and you could install these separately ... is really just a packing of stuff, that 'normal' users don't have installed on their computers. (e.g. MinGW for windows)</p>
+
+<p><aside class="quote"><blockquote>
+<p>So the app is responsble not only of the UI but also for the communication to the device and compilation of the patches and firmware.</p>
+<p>Finally I think it is not possible to separate UI from serial operations and firmware compilations without a huge amount of refactoring...</p>
+</blockquote></aside></p>
+
+<p>the patcher java code has (kind of) five separate functions:<br>- the patcher you see, which builds a 'model' (called patch)<br>- the code generator, which goes thru the model, taking each object, extracting the c code, and then following the wires to make a call chain , writes out xpatch.cpp<br>- run the build .. this is pretty simple, just calls make (various flavours for each platform)<br>- upload patch... sends patch via usb over a wire protocol<br>- live mode, which gets/sends messages via wire protocol about the parameter values changing</p>
+
+<p>obviously this is a gross simplification, but that's basically what the patch does.<br>(and yes, the devil is in the detail)</p>
+
+<p>hopefully with the MVC model these will be better abstracted, so it will be a cleaner division between these elements.</p>
+
+<p>as it uses xml for patches/objects, and a binary protocol between the board, these are the most obvious entry points into doing something 'standalone' from the patcher code.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/6</link>
+        <pubDate>Tue, 19 Sep 2017 20:48:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-6</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@lodevalm daniele pagliero]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lodevalm">@lodevalm</a> wrote:</p>
+          <blockquote>
+              <p>I've cloned the axoloti repo and did a super fast sight on it.<br>I understand the java part while I did only read some part of the firmware (actually I've never worked on firmwares and I know nothing about them, the only thing I can say is that Johannes Taelman is a sort of half-god fallen on heart and his code looks beautifull and self explained).</p>
+
+<p>I could be wrong but all the c code for firmware and os specific shell task are on the axoloti runtime while the java code for the patcher is on the app.</p>
+
+<p>So the app is responsble not only of the UI but also for the communication to the device and compilation of the patches and firmware.</p>
+
+<p>Finally I think it is not possible to separate UI from serial operations and firmware compilations without a huge amount of refactoring...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/5</link>
+        <pubDate>Tue, 19 Sep 2017 20:38:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-5</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>the current development is moving toward MVC, which will help separate the UI code from the core functionality, this could make it easier for someone to develop a 'service based' interface, though you'd still need to have the 'server' running java.</p>
+
+<p>personally, Ive more interest in exposing some functionality which is useful for interacting with the boards... e.g. uploading patches, parameter interaction etc, which could be done the binary protocol that is used for the usb connection, and so is language independent.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/4</link>
+        <pubDate>Tue, 19 Sep 2017 20:32:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-4</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@orbitbot Patrik Johnson]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/orbitbot">@orbitbot</a> wrote:</p>
+          <blockquote>
+              <p>Although I don't have an exact answer, I've been thinking about something similar to be able to improve the patcher UI in a significantly faster manner. Documentation regarding the source code isn't really up to date AFAICT, so it's difficult to determine how anything works without digging in and reading through stuff, which therefore has taken lower priority b/c of other RL concerns.</p>
+
+<p>From a feasibility standpoint, if at all possible, I wouldn't (at least initially) spend time trying to port any of the fundamental code to another language, rather just run uploading/patching commands from child processes. If a CLI-compatible interface doesn't already exist, it can probably be written faster than reimplementing the whole thing.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/3</link>
+        <pubDate>Tue, 19 Sep 2017 19:17:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-3</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>I'd love to see a JavaScript/CSS UI for the Axoloti Patcher, as I think it would solve a lot of the layout issues with the current implementation, but I have a feeling the code wouldn't be easy portable from Java.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/2</link>
+        <pubDate>Tue, 19 Sep 2017 19:12:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-2</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+      <item>
+        <title>Patcher on another platform?</title>
+        <dc:creator><![CDATA[@lodevalm daniele pagliero]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lodevalm">@lodevalm</a> wrote:</p>
+          <blockquote>
+              <p>Hello,<br>I'm a software developer and musician and a question came to my mind, just for curiosity: does the patcher communicate with the core as a service consumer or is it linked and use it as an external library?<br>(I didn't take a look at the code yet)<br>So, could be possible porting the patcher to a js platform an distribute it with electron? Does it make sense?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-on-another-platform/3765/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-on-another-platform/3765/1</link>
+        <pubDate>Tue, 19 Sep 2017 18:50:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3765-1</guid>
+        <source url="http://community.axoloti.com/t/patcher-on-another-platform/3765.rss">Patcher on another platform?</source>
+      </item>
+  </channel>
+</rss>

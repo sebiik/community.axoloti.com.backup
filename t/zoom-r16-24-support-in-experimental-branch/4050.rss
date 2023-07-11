@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>ZOOM R16/24 support in experimental branch</title>
+    <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050</link>
+    <description>Hi,
+
+I am trying to include ZOOM R16/24 USB host support for axoloti experimental branch.
+Object file can be build, but I think it is not linked.
+Which switch do I need to enable during build to have HAL_USE_USBH := TRUE and HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS := TRUE?
+The changes in firmware/axoloti_defines.h doesn&#39;t seems to work.
+What am I doing wrong?
+
+I have done the following changes:
+
+firmware/Makefile:
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -234,6 +234,7 @@ CSRC = $(STARTUPSRC) \
+        ${FIRMWARE}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c \
+        ${FIRMWARE}/usbh_midi_class.c \
+        ${FIRMWARE}/usbh_virus_class.c \
++       ${FIRMWARE}/usbh_zoom_class.c \
+        ${FIRMWARE}/usbh_conf.c \
+        ${FIRMWARE}/serial_midi.c \
+        ${FIRMWARE}/spilink.c \
+~
+
+
+----------
+
+firmware/axoloti_defines.h
+--- a/firmware/axoloti_defines.h                                                                                                                                                                                                            
++++ b/firmware/axoloti_defines.h                                                                                                                                                                                                            
+@@ -34,4 +34,7 @@ typedef int32_t int32buffer[BUFSIZE];
+ #define FWVERSION3 0
+ #define FWVERSION4 1
+ 
++#define HAL_USE_USBH TRUE
++#define HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS TRUE
++
+ #endif
+
+
+----------
+
+firmware/usbh_additional_class_drivers.h
+--- a/firmware/usbh_additional_class_drivers.h
++++ b/firmware/usbh_additional_class_drivers.h
+@@ -18,19 +18,20 @@
+ #include &quot;hal_usbh.h&quot;
+ #include &quot;usbh_midi_class.h&quot;
+ 
+-#if HAL_USE_USBH &amp;&amp; HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS
++/*#if HAL_USE_USBH &amp;&amp; HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS*/
+ 
+ /* Declarations */
+ extern const usbh_classdriverinfo_t usbhMidiClassDriverInfo;
+ extern const usbh_classdriverinfo_t usbhVirusClassDriverInfo;
++extern const usbh_classdriverinfo_t usbhZoomClassDriverInfo;
+
+ /* Comma separated list of additional class drivers */
+ #define HAL_USBH_ADDITIONAL_CLASS_DRIVERS \
+-       &amp;usbhMidiClassDriverInfo, &amp;usbhVirusClassDriverInfo, 
++       &amp;usbhMidiClassDriverInfo, &amp;usbhVirusClassDriverInfo, &amp;usbhZoomClassDriverInfo, 
+ 
+ 
+-#endif
++/*#endif*/
+ 
+ #endif /* USBH_ADDITIONAL_H_ */
+
+
+----------
+
+and added
+firmware/usbh_zoom_class.c
+looks quite like the virus one.
+
+Thanks.</description>
+    
+    <lastBuildDate>Fri, 22 Dec 2017 18:48:49 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>yes, 115200 8N1, transmitting on PA2</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/10</link>
+        <pubDate>Fri, 22 Dec 2017 18:48:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-10</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@Ch1r0n]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ch1r0n">@Ch1r0n</a> wrote:</p>
+          <blockquote>
+              <p>Ah, that is why I can't see anything in axoloti main window. 115200 8N1 for serial communication?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/9</link>
+        <pubDate>Fri, 22 Dec 2017 16:31:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-9</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>uinfof() is currently outputting in serial on gpio PA2, you need a TTL-serial cable to read it.<br>Modifying the usb-host code to dump diagnostics to the axoloti main window over USB is pretty high on my todo list.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/8</link>
+        <pubDate>Thu, 21 Dec 2017 21:07:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-8</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@Ch1r0n]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ch1r0n">@Ch1r0n</a> wrote:</p>
+          <blockquote>
+              <p>Unfortunately, I don't have access to a real debugger. I am using uinfof().</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/7</link>
+        <pubDate>Thu, 21 Dec 2017 19:09:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-7</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>IIRC there were quite a few warnings. <br>What i would do first, is check the firmware is working as you expect with a usb class compliant device ..: just in case it’s something unrelated to your code<br>Are you using an stlink? It’s the most reliable way to get the trace output etc.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/6</link>
+        <pubDate>Thu, 21 Dec 2017 18:59:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-6</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@Ch1r0n]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ch1r0n">@Ch1r0n</a> wrote:</p>
+          <blockquote>
+              <p>I added debug outputs in several stages, where I thought the code would be called. But nothing had been printed out.<br>To be able to build the code successfully it was a long way on Ubuntu Studio. I have to double check the compiler messages...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/5</link>
+        <pubDate>Thu, 21 Dec 2017 18:44:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-5</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="4050"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/c/3ec8ea/40.png" class="avatar">Ch1r0n:</div>
+<blockquote><p>Is there a kind of make menuconfig to configure Axoloti firmware?</p></blockquote></aside>
+
+<p>nope...</p>
+
+<p>you should just need to add to the firmware makefile, then you add you 'driver class' to that list, then the load function gets called which provides the various ids to find the device.</p>
+
+<p>what makes you think its not linked? <br>is your init/load not getting called? (that'd be the first thing id check) </p>
+
+<p>sorry, cant get to a machine with axo at the moment.... but assuming nothing odd has change since when I last tried, it should be fairly straightforward (as far as i remember <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> )</p>
+
+<p>EDIT: just one important note... as you have seen the framework is completely different to 1.0.12, so dont assume because something worked in 1.0.12 it will work here... we actually found quite a few (low level) oddities back in September, which caused some odd issues with some devices, but others were perfectly fine.<br>I think in the end it was pretty stable, but it was not all plain sailing <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/4</link>
+        <pubDate>Thu, 21 Dec 2017 18:36:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-4</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@Ch1r0n]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ch1r0n">@Ch1r0n</a> wrote:</p>
+          <blockquote>
+              <p>Hi <a class="mention" href="/u/thetechnobear">@thetechnobear</a>,</p>
+
+<p>thank you for fast reply. May be I am doing s.th. other wrong. Is there a kind of make menuconfig to configure Axoloti firmware?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/3</link>
+        <pubDate>Thu, 21 Dec 2017 18:30:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-3</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>you dont need to define it, its already defined as true in halconf_community.h</p>
+
+<p>note: ive not had time to spend on this recently, but back in September, I got the virus working successfully.<br>so id hope/assume that has not changed... i.e. you will not need to 'enable' anything, just add your class.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/2</link>
+        <pubDate>Thu, 21 Dec 2017 18:24:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-2</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+      <item>
+        <title>ZOOM R16/24 support in experimental branch</title>
+        <dc:creator><![CDATA[@Ch1r0n]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ch1r0n">@Ch1r0n</a> wrote:</p>
+          <blockquote>
+              <p>Hi,</p>
+
+<p>I am trying to include ZOOM R16/24 USB host support for axoloti experimental branch.<br>Object file can be build, but I think it is not linked.<br>Which switch do I need to enable during build to have HAL_USE_USBH := TRUE and HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS := TRUE?<br>The changes in firmware/axoloti_defines.h doesn't seems to work.<br>What am I doing wrong?</p>
+
+<p>I have done the following changes:</p>
+
+<p>firmware/Makefile:<br>--- a/firmware/Makefile<br>+++ b/firmware/Makefile<br>@@ -234,6 +234,7 @@ CSRC = $(STARTUPSRC) \<br>        ${FIRMWARE}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c \<br>        ${FIRMWARE}/usbh_midi_class.c \<br>        ${FIRMWARE}/usbh_virus_class.c \<br>+       ${FIRMWARE}/usbh_zoom_class.c \<br>        ${FIRMWARE}/usbh_conf.c \<br>        ${FIRMWARE}/serial_midi.c \<br>        ${FIRMWARE}/spilink.c \<br>~</p>
+
+<hr>
+
+<p>firmware/axoloti_defines.h<br>--- a/firmware/axoloti_defines.h                                                                                                                                                                                                          <br>+++ b/firmware/axoloti_defines.h                                                                                                                                                                                                          <br>@@ -34,4 +34,7 @@ typedef int32_t int32buffer[BUFSIZE];<br> <span class="hashtag">#define</span> FWVERSION3 0<br> <span class="hashtag">#define</span> FWVERSION4 1</p>
+
+<p>+#define HAL_USE_USBH TRUE<br>+#define HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS TRUE<br>+<br> <span class="hashtag">#endif</span></p>
+
+<hr>
+
+<p>firmware/usbh_additional_class_drivers.h<br>--- a/firmware/usbh_additional_class_drivers.h<br>+++ b/firmware/usbh_additional_class_drivers.h<br>@@ -18,19 +18,20 @@<br> <span class="hashtag">#include</span> "hal_usbh.h"<br> <span class="hashtag">#include</span> "usbh_midi_class.h"</p>
+
+<p>-#if HAL_USE_USBH &amp;&amp; HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS<br>+/*#if HAL_USE_USBH &amp;&amp; HAL_USBH_USE_ADDITIONAL_CLASS_DRIVERS*/</p>
+
+<p> /* Declarations */<br> extern const usbh_classdriverinfo_t usbhMidiClassDriverInfo;<br> extern const usbh_classdriverinfo_t usbhVirusClassDriverInfo;<br>+extern const usbh_classdriverinfo_t usbhZoomClassDriverInfo;</p>
+
+<p> /* Comma separated list of additional class drivers */<br> <span class="hashtag">#define</span> HAL_USBH_ADDITIONAL_CLASS_DRIVERS \<br>-       &amp;usbhMidiClassDriverInfo, &amp;usbhVirusClassDriverInfo, <br>+       &amp;usbhMidiClassDriverInfo, &amp;usbhVirusClassDriverInfo, &amp;usbhZoomClassDriverInfo, </p>
+
+<p>-#endif<br>+/*#endif*/</p>
+
+<p> <span class="hashtag">#endif</span> /* USBH_ADDITIONAL_H_ */</p>
+
+<hr>
+
+<p>and added<br>firmware/usbh_zoom_class.c<br>looks quite like the virus one.</p>
+
+<p>Thanks.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050/1</link>
+        <pubDate>Thu, 21 Dec 2017 17:42:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4050-1</guid>
+        <source url="http://community.axoloti.com/t/zoom-r16-24-support-in-experimental-branch/4050.rss">ZOOM R16/24 support in experimental branch</source>
+      </item>
+  </channel>
+</rss>

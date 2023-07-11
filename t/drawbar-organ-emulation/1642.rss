@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Drawbar organ emulation</title>
+    <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642</link>
+    <description>Continuing discussion from http://community.axoloti.com/t/best-approach-for-additive-organ-patch/1638
+
+http://electricdruid.net/technical-aspects-of-the-hammond-organ/
+http://www.goodeveca.net/RotorOrgan/ToneWheelSpec.html
+
+Say, we put a loops of every tonewheel oscillator into sdram, if we &#39;d use 128 oscillators, divided over 8MB sdram, that &#39;d be 64kB data per oscillator, or 32kSamples at 16bit. 
+If 48kHz samplerate is used for all oscillators, the loop length is 0.66 seconds, and all frequencies would need to be rounded to multiples of 1.5 Hz.That is not really long enough, the periodicity would be noticeable, and the frequency resolution not good enough for the bass tones. But the advantage is that interpolation is not needed, and when all the waves are interleaved in memory, transfer to SRAM can be done with DMA (12MB/s required, while the SDRAM bus allows 184MB/s bursts), the per-audio-sample workload is really multiplying each oscillator output with the corresponding amplitude and summing the results. 
+
+So with SDRAM we bump into a capacity limit while bandwidth is plenty. Some compromises are possible to reduce the size, like reducing the resolution to 8bit/sample, or reducing the samplerate. Samplerate could be reduced selectively, for instance running 
+- the top 16 oscillators at 48kHz samplerate
+- the next 16 at 24KHz samplerate (1.33s loops)
+- the next 16 at 12kHz (2.66s loops)
+- the next 16 at 6kHz (5.33s loops)
+- the remaining 64 at 3kHz (10.66s loops)
+that adds a few interpolation filters to the workload, but this is not so much since this can be done after the tonewheel group summing.
+
+Another option... sdcard streaming? Less bandwidth, but huge capacity...
+Unlike current wave streaming objects, far larger buffers can be used, and only single buffers need to be read, containing all oscillator streams, interleaved... 
+Hmmmm that &#39;d also be useful in other contexts than drawbar organs.
+For 128 streams at 48kHz/16bit the required bandwidth is 12228 kB/s, I haven&#39;t seen benchmark results that support this... Lowering the resolution to 48kHz/8bit requires 6114kB/s, close to what benchmarks with large buffer size indicate.
+The quality reduction of 8bit may not be as bad as it looks, if proper dithering is used, this sort of samples does not need a significant dynamic range or any headroom. Still requires a bit too much bandwidth.
+Reducing to 24kHz/8bit samplerate looks possible on paper, but that&#39;s a bit too aggressive, will lack presence in the sound. 
+Applying some other lightweight compression schemes could get it there, 4bit DPCM at 48kHz? Or reducing the oscillator count from 128 voices to 96 voices at 48kHz/8bit (4.6MB/s), benchmarks seem to support this bandwidth...
+
+So how could it be partitioned in a patch and objects?
+I think the 128 oscillators, vca&#39;s and summing should be one &quot;monophonic&quot; object, that accesses a table with the 128 amplitudes. The a polyphonic subpatch should add his weights to the amplitude table on note-on, remove his weights from the amplitude table on note-off...
+
+Anyone interested to collaborate on this?</description>
+    
+    <lastBuildDate>Tue, 24 Jan 2017 00:45:31 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/janifr">@janifr</a> <a class="mention" href="/users/johannes">@johannes</a> I have experimented with multirate processing for my String machines, but this is not a good way to gain CPU in this particular case. The oscillators have lots of harmonics - even at low frequencies - so even with 14 tap interpolators I still have imaging/aliasing <img src="//community.axoloti.com/images/emoji/emoji_one/angry.png?v=3" title=":angry:" class="emoji" alt=":angry:"></p>
+
+<hr>
+
+<p>The good news is that I think this can be useful for sine based oscillators:</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/0/0946ccd351d38010665d2871b24e7072ba8f1384.axp">MultipleDownTest.axp</a> (8.4 KB) 15%CPU</p>
+
+<ul>
+<li>4 1/2 lower octaves (32 to 740Hz) are 16 x downsampled</li>
+<li>the octave above is 8 x downsampled</li>
+<li>the octave above is 4 x downsampled</li>
+<li>the highest octave is 2 x downsampled</li>
+</ul>
+
+<p>Each stage consists in a 2x interpolator.<br>Linear interpolators are not good enough, they induce strong imaging (i.e. images of the signals above the interpolator's cutoff frequency).<br>The 2x interpolators are based on a 14 tap FIR (for steep transition zone) and two one pole LPF (to remove high frequency imaging, it can be enhanced to a better IIR).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/39">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/39</link>
+        <pubDate>Mon, 23 Jan 2017 23:56:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-39</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>You guessed well <a class="mention" href="/users/lokki">@lokki</a> the Dark Strings patch is based on the selfpm oscillator.<br>I'm working on a DPW waveform generator (see objects\tiar\osc\Osc_Bnk_I ), and i will certainly make a mono version of these ones too.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/38">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/38</link>
+        <pubDate>Mon, 23 Jan 2017 23:34:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-38</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/janifr">@janifr</a> and <a class="mention" href="/users/smashedtransistors">@SmashedTransistors</a></p>
+
+<p>it would be great, although very unintuitively for you <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> if you could release a mono version of your tone wheel organ and string machine stuff. i mean something like a one-voice hammond sound or a one-voice string sound oscillator that one can then easily control in a modular way. (midi control is external, with pitch input)</p>
+
+<p>for <a class="mention" href="/users/smashedtransistors">@SmashedTransistors</a> stuff i am not sure if his selfpm oscillators covers already the sounds coming from the string machine (minus the effects of course).</p>
+
+<p>hope this makes some sense.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/37">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/37</link>
+        <pubDate>Fri, 20 Jan 2017 23:34:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-37</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Fake reverb idea:</p>
+
+<p>The gain envelope for each oscillator is the superposition of two AR envelopes:</p>
+
+<ul>
+<li>a fast AR : anti click</li>
+<li>a slow AR : pseudo reverberation</li>
+</ul>
+
+<p>This is a nice way to get free reverb and use those 91 oscillators.</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/d/d2ac43bfdc34ce93305aba285264e0d9613e6a15.axp">FakeReverbTest.axp</a> (9.2 KB) 48%CPU with triple vibrato</p>
+
+<p>Here is a patch that uses this tricks plus a triple vibrato and some allpass filters to get a smooth vibrato. You can connect the object directly to the output (bypass the vibrato effect) to get an idea of how the fake reverb sounds.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/36">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/36</link>
+        <pubDate>Thu, 19 Jan 2017 22:17:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-36</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="11" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/e79b87/40.png" class="avatar">janifr:</div>
+<blockquote><p>I've implemented the 91 tonewheels using recursive sine-cosine oscillator in integer math.</p></blockquote></aside>
+
+<p>Hi <a class="mention" href="/users/janifr">@janifr</a> it's great to see this project evolve so fast.</p>
+
+<p>About the sinewave generation, i've just tested an old trick:<br>cos(2*x) = 2 * (cos(x)^2 - 0.5)</p>
+
+<p>this is frequency doubling by waveshaping.</p>
+
+<p>The direct application consists in generating the 12 lowest tones and to create the higher octaves by iterating this simple formula.</p>
+
+<p>Here is the code for the frequency doubling of "y" a q30 sinewave:</p>
+
+<pre><code>y = __SMMLA(y,  y, 0xF8000000 ) &lt;&lt; 3;
+q30        q30 q30 - 0.5_q28       * 2  and q28-&gt;q30</code></pre>
+
+<p>Here is a small patch with a 91 osc object :<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/c/c2acd4283ee1564ee870e312f5ff14f8bf988624.axp">FreqDoublerTest.axp</a> (6.0 KB) 35% CPU</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/35">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/35</link>
+        <pubDate>Thu, 19 Jan 2017 21:43:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-35</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="29" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>May I also suggest to consider splitting your hammond/pipe organs into tuning, drawbars, and tonewheels like I did in jt/tuning/... etc, and moving the chorus/vibrato effect into a separate object so it becomes more modular?</p></blockquote></aside>
+
+<p>I'm still in an "explorative"/"experimentative" phase, but yes, it would be great to have re usable modules for paraphonic organs and other string machines.</p>
+
+<ul>
+<li>paraphonic keyboard</li>
+<li>drawbar/mixture/register : to derive multiple controls from the keyboard to oscillator bank(s)</li>
+<li>tuning bank : tables and/or vibratos/fluctuations (ex: slight pitch variation during attack...)</li>
+<li>envelope bank</li>
+<li>oscillator bank</li>
+</ul>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/34">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/34</link>
+        <pubDate>Thu, 12 Jan 2017 23:15:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-34</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Just uploaded 2 manual version with a bit more modular design. Does anyone have 2 keyboard setup to test it?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/33">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/33</link>
+        <pubDate>Thu, 12 Jan 2017 15:26:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-33</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Thanks, that way I got it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/32">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/32</link>
+        <pubDate>Thu, 12 Jan 2017 13:13:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-32</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="30" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/e79b87/40.png" class="avatar">janifr:</div>
+<blockquote><p>I personally think it is too costly for cpu.</p></blockquote></aside>
+
+<p>not necessarily, the trick in <code>jt/drawbars/switched</code> actually reduces the cpu load by a factor of 8!</p>
+
+<aside class="quote" data-post="30" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/e79b87/40.png" class="avatar">janifr:</div>
+<blockquote><p>but found no way to create new empty object.</p></blockquote></aside>
+
+<p>Create a <code>patch/object</code> object, that creates an embedded object (saved inside the patch), and when ready, selelect "copy to library" in the file menu of the object editor to turn it into a library object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/31">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/31</link>
+        <pubDate>Thu, 12 Jan 2017 12:58:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-31</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>While spreading switching in time would probably be the best way for a realistick click I personally think it is too costly for cpu. Since I try to save as many cpu cycles as i can I'm not going this way. I made some research with the famous GSi's VB3-plugin and found out that raw generator output (it has configurable output for this) produces quite loud clicks at the beginning and ending of a tone. It gets filtered a lot in the rotary speaker stage, though it is still there. As far as I have understood this clicky sound is part of the famous organ sound.</p>
+
+<p>I was about to create a separate module for the vibrato scanner, but found no way to create new empty object. I probably need some advice.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/30">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/30</link>
+        <pubDate>Thu, 12 Jan 2017 12:50:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-30</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="27" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lokki/40/2882_1.png" class="avatar">lokki:</div>
+<blockquote><p>the click at the beginning is a little prominent</p></blockquote></aside>
+
+<p>one subtle approach to reduce the clickyness is not to close all (virtual) key switches simultaneously but spread them a little in time. Mechanical switches will also not close simultaneously and even bounce a bit. <br>In <code>jt/drawbars/switched</code> this is achieved by not evaluating all tonewheel gains at k-rate but only evaluating 1/8th of the tonewheel gains so all tonewheel gains are effectively updated at 1/8th of k-rate. While this is not an accurate model of the keyswitch timing, I think it helps a bit to "decorrelate" the click, and also reduces the computation load.</p>
+
+<p>May I also suggest to consider splitting your hammond/pipe organs into tuning, drawbars, and tonewheels like I did in <code>jt/tuning/...</code> etc, and moving the chorus/vibrato effect into a separate object so it becomes more modular?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/29">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/29</link>
+        <pubDate>Thu, 12 Jan 2017 11:27:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-29</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Added tone generator coil pair leakage.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/28">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/28</link>
+        <pubDate>Thu, 12 Jan 2017 10:40:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-28</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>nice! it sounds very good i think. the click at the beginning is a little prominent, at least to my ears. (you cannot remove it i know)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/27">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/27</link>
+        <pubDate>Wed, 11 Jan 2017 21:11:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-27</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Converted my floating point vibrato scanner from my other project to fixed point and rewrote it for my axo patch. Comments appreciated.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/26">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/26</link>
+        <pubDate>Wed, 11 Jan 2017 20:37:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-26</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Well, i didn't planned at all to do that with the Axoloti... got distracted. I have to refocus on my psyché synth project...</p>
+
+<p>Your work is impressive, the Ham'organ is such a classic.<br>After that, you'll have to add a scanner chorus or/and a rotary speaker effect <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/25</link>
+        <pubDate>Tue, 10 Jan 2017 23:52:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-25</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Very impressive SmashedTransistors! I wish our neighbouring church had hear of Axo before of spending 620 000 € for new pipe organ <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>In mean time I have been fulfilling my Ham^H^H^H Drawbar organ fetish and done slight improvements. Manual tapering and foldback are now working as they should.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/24</link>
+        <pubDate>Tue, 10 Jan 2017 20:38:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-24</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Hi Janifr,</p>
+
+<p>I played with some of your code and with some of Johannes to go in another direction</p>
+
+<p>Here is an experiment to get some paraphonic pipe organ:</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/9/9c3bd71454997043fd8b5515e2391a222131c952.axp">test_PipeOrgan.axp</a> (20.7 KB)<br>Updated: corrected tuning!</p>
+
+<p>Here is a short audio demo: <a href="https://soundcloud.com/thierry-rochebois-1/axoloti-testpipeorgan" rel="nofollow">excerpt of toccata and fugue on an Axoloti</a> </p>
+
+<p>To get something more like pipe organs i tried some tricks:</p>
+
+<ul>
+<li>I use self phase modulated oscillators. (pipes do not generate sine waves)</li>
+<li>Slight random detune</li>
+<li>Smoother Attack for the lower oscillators (bigger pipes take more time to oscillate).</li>
+<li>Reverb</li>
+</ul>
+
+<p>I'll get some documentation to get a more accurate idea of how stops work in a pipe organ.<br>I think that using self PM osc can be useful for a simple model of basic pipe types (reed/flute).</p>
+
+<hr>
+
+<p><strong>Update:</strong> <br>I added an updated version in the <strong>library/community/tiar/organs/020-ChurchOrgan-tiar.axp</strong><br>It is more widely polyphonic (from MIDI note 5 (F) to MIDI note 114 (F#))<br>It is based on 91 oscillators.<br>It uses different kinds of oscillators depending on the frequency:</p>
+
+<ul>
+<li>pure sine<ul>
+<li>for low freq oscillators to avoid muddy beatings in the basses</li>
+<li>for high freq oscillators</li>
+</ul>
+</li>
+<li>self phase modulated sine oscs (they generate even and odd harmonics).<ul><li>used in for the mid to obtain a full sound.</li></ul>
+</li>
+<li>self square phase modulated (they only have odd harmonics).<ul><li>used in the high mid to have a clear/woody character.<br>These generators roughly simulates the different organ pipes.</li></ul>
+</li>
+</ul>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/23</link>
+        <pubDate>Mon, 09 Jan 2017 22:01:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-23</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Just uploaded a new version. Applied tone generator calibration curve for a 1935-1940 organ which I found from the web. I also figured out that I have a fundamental error in my percussion code which I haven't fixed yet.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/22</link>
+        <pubDate>Sun, 08 Jan 2017 19:37:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-22</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>yeah, it's there. thanks</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/21</link>
+        <pubDate>Sat, 07 Jan 2017 18:33:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-21</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Now my patch seems to be synced.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/20</link>
+        <pubDate>Sat, 07 Jan 2017 18:29:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-20</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>You're welcome.</p>
+
+<p>I seem have problem with sync. Can anyone figure out what's wrong?</p>
+
+<p>Sync Successful : factory (1.0.11,anon)<br>Sync Successful : community (1.0.11,janifr)<br>search path : /home/jani/axoloti/axoloti-factory/objects<br>search path : /home/jani/axoloti/objects<br>search path : /home/jani/axoloti/axoloti-contrib/objects<br>finished loading objects<br>Sync Successful : community (1.0.11,janifr)<br>Status: factory (1.0.11,anon) : OK  ( 1.0.11,clean )<br>Status : home : OK<br>Status: community (1.0.11,janifr) : OK  ( 1.0.11,clean )</p>
+
+<p>The patch is located at ~/axoloti/axoloti-contrib/patches/janifr/drawbar_organ.axp</p>
+
+<p>In fact I have a sort of a scanner in my earlier work. I'm going to port it here someday.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/19</link>
+        <pubDate>Sat, 07 Jan 2017 16:38:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-19</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Hi <a class="mention" href="/users/janifr">@janifr</a><br>Thanks for this new year gift <img src="//community.axoloti.com/images/emoji/emoji_one/smiley.png?v=3" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p> I synched the libraries but i do not have a janifr directory.</p>
+
+<p>I downloaded it from this thread and, it is really impressive.</p>
+
+<p>Do you plan to implement a scanner chorus ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/18</link>
+        <pubDate>Sat, 07 Jan 2017 16:03:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-18</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>Thank you for feedback. There's already an updated patch in Library-&gt;Commynity-&gt;janifr. Don't know if it's any better but at least a bit different. I'm going to keep on tweaking it to get closer a real B3. A big difficulty is I don't have access to a real one, so I have to compare my work against a clone, maybe VB3.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/17</link>
+        <pubDate>Sat, 07 Jan 2017 15:35:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-17</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@stepan.dvoracek Štěpán Dvořáček]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/stepan.dvoracek">@stepan.dvoracek</a> wrote:</p>
+          <blockquote>
+              <p>Yes, my bad. I played for a while and it's quite good. Also the precussion sounds rather nice, but when I tried it with  no drawbars pulled in it was obvious it needs more crisp and pescussive attack, also it would be great if you could also swich it off (like on original Hammond). It also doesn't eat too much cpu so it leaves room for a decent leslie simulation (chorus sounds ok for only a slow speed) Anyways thank you, this seems to be the best patch so far <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/16</link>
+        <pubDate>Sat, 07 Jan 2017 10:59:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-16</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+      <item>
+        <title>Drawbar organ emulation</title>
+        <dc:creator><![CDATA[@janifr]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janifr">@janifr</a> wrote:</p>
+          <blockquote>
+              <p>No need for separate midi/in object. It should work by just loadin the patch.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/drawbar-organ-emulation/1642/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/drawbar-organ-emulation/1642/15</link>
+        <pubDate>Fri, 06 Jan 2017 10:14:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1642-15</guid>
+        <source url="http://community.axoloti.com/t/drawbar-organ-emulation/1642.rss">Drawbar organ emulation</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,209 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="37ff4e67-3e69-4919-b426-9bfb581b8a76" name="preset_manager_2" x="182" y="210">
+      <params>
+         <int32 name="select" value="7"/>
+         <frac32.u.map name="mod" value="0.0"/>
+         <bool32.tgl name="set" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="37ff4e67-3e69-4919-b426-9bfb581b8a76">
+         <sDescription>Preset save/load manager
+    </sDescription>
+         <author>Are Leistad</author>
+         <license>BSD</license>
+         <inlets/>
+         <outlets/>
+         <displays>
+            <bool32 name="useSetToggle"/>
+            <int32.label name="current  "/>
+            <int32.label name="params"/>
+            <int32.label name="value"/>
+            <int32.label name="max"/>
+            <int32.label name="min"/>
+            <int32.label name="param"/>
+            <int32.label name="pex"/>
+            <int32.label name="length1"/>
+            <int32.label name="d1"/>
+            <int32.label name="d2"/>
+            <int32.label name="d3"/>
+         </displays>
+         <params>
+            <int32 name="select">
+               <MinValue i="0"/>
+               <MaxValue i="16"/>
+            </int32>
+            <frac32.u.map name="mod"/>
+            <bool32.tgl name="set"/>
+         </params>
+         <attribs/>
+         <includes>
+            <include>codec.h</include>
+         </includes>
+         <depends>
+            <depend>fatfs</depend>
+         </depends>
+         <code.declaration><![CDATA[int sel,mod,stp,max,min;]]></code.declaration>
+         <code.krate><![CDATA[extern struct KeyValuePair *ObjectKvpRoot;
+extern struct KeyValuePair *ObjectKvps[];
+
+disp_params=ObjectKvpRoot->apvp.length;
+disp_value=(int)ObjectKvps[param_select]->ipvp.PEx->value;//disp value
+disp_min=(int)ObjectKvps[param_select]->ipvp.minvalue;//disp min
+disp_max=(int)ObjectKvps[param_select]->ipvp.maxvalue;//disp max
+max=(int)ObjectKvps[param_select]->ipvp.maxvalue;//disp max
+min=(int)ObjectKvps[param_select]->ipvp.minvalue;//disp min
+disp_length1=(int)ObjectKvps[param_select]->ivp.maxvalue;//disp length
+//disp_d2=(int)ObjectKvps[param_select]->ipvp.PEx.maxvalue;//disp length
+disp_param=(int)ObjectKvps[param_select]->apvp.current;//disp param
+disp_pex=parent->NPEXCH;
+
+if(!(param_select==sel))
+{
+		int32_t val=(int)ObjectKvps[param_select]->ipvp.PEx->value;
+	  if(min<0)
+	  {
+	  	val=val+(1<<27)>>1;
+	  }
+	  if(max==134217728)
+	  {
+  		PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_mod],val,0xFFFD);
+	  }
+	  else
+	  {
+	  	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_mod],0,0xFFFD);
+	  	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_set],((uint32_t)(int)ObjectKvps[param_select]->ipvp.PEx->value>>(param_mod>>22))&1,0xFFFF);
+	  }
+  LogTextMessage(ObjectKvps[param_select]->keyname, 0);
+
+  
+  
+ sel=param_select;
+}
+else
+{
+	
+	if(max==134217728)
+	{
+		disp_useSetToggle=0;
+	 PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_select+param_select+1],(int)ObjectKvps[param_select]->ivp.minvalue+___SMMUL(param_mod<<4,(int)ObjectKvps[param_select]->ivp.maxvalue-(int)ObjectKvps[param_select]->ivp.minvalue<<1),0xFFFD);
+	}
+	else if(max>0)
+	{
+		disp_useSetToggle=1;
+	 uint32_t val=(int)ObjectKvps[param_select]->ipvp.PEx->finalvalue;
+	 uint32_t tmp=0;
+	 if(!((param_mod>>22)==stp))
+	 {
+		 PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_set],((uint32_t)val>>(param_mod>>22))&1,0xFFFF);
+	 }
+	 if(param_set>0)
+	 {
+	 	tmp=(uint32_t)1<<(param_mod>>22);
+	 	val=tmp|val;
+	 	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_select+param_select+1],val,0xFFFF);
+	 }
+	 else
+	 {
+	 	tmp=(uint32_t)((1<<31)-1)-((uint32_t)1<<(param_mod>>22));
+	 	val=val&tmp;
+	 	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_select+param_select+1],val,0xFFFF);
+	 }
+	}
+	else if (ObjectKvps[param_select]->kvptype == KVP_TYPE_IVP)
+	{
+		PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_select+param_select+1],(int)ObjectKvps[param_select]->ivp.minvalue+___SMMUL(param_mod<<4,(int)ObjectKvps[param_select]->avp.length-(int)ObjectKvps[param_select]->ivp.minvalue<<1),0xFFFD);
+	}
+}
+
+if(!(param_mod==mod))
+{
+	mod=param_mod;
+	float32_t md=(float32_t)mod/(1<<21);
+	char value[9];
+	int i = md*1000000;   int i0 = i/10;
+   value[8] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   value[7] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   value[6] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   value[5] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   value[4] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   value[3] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   value[2] = ',';
+   value[1] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   value[0] = '0'+i-10*i0;
+	LogTextMessage(ObjectKvps[param_select]->keyname);
+	LogTextMessage((&value[0]));
+}
+
+stp=param_mod>>22;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="f18caa5f-6a5a-4d03-8b74-fe2d6b543f04" name="module_1" x="336" y="336">
+      <params>
+         <frac32.u.map name="unifrac1" value="42.5"/>
+         <frac32.s.map name="bipfrac" value="-26.0"/>
+         <frac32.u.map name="unifrac2" value="35.0"/>
+         <bool32.tgl name="toggle" value="8"/>
+         <bin16 name="seq1" value="0"/>
+         <bin32 name="seq2" value="0"/>
+         <bin12 name="seq3" value="0"/>
+         <bool32.mom name="button" value="0"/>
+         <int32.hradio name="sel1" value="0"/>
+         <int32.small name="sel2" value="99"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="f18caa5f-6a5a-4d03-8b74-fe2d6b543f04">
+         <sDescription>positive constant value dial</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>ctrl.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32.positive name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="unifrac1" noLabel="true"/>
+            <frac32.s.map name="bipfrac"/>
+            <frac32.u.map.gain name="unifrac2"/>
+            <bool32.tgl name="toggle"/>
+            <bin16 name="seq1"/>
+            <bin32 name="seq2"/>
+            <bin12 name="seq3"/>
+            <bool32.mom name="button"/>
+            <int32.hradio name="sel1">
+               <MaxValue i="12"/>
+            </int32.hradio>
+            <int32.mini name="sel2">
+               <MinValue i="0"/>
+               <MaxValue i="99"/>
+            </int32.mini>
+         </params>
+         <attribs/>
+         <includes/>
+      </object>
+   </patchobj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>0</NPresets>
+      <NPresetEntries>0</NPresetEntries>
+      <NModulationSources>0</NModulationSources>
+      <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+      <Author></Author>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>514</x>
+      <y>1</y>
+      <width>1328</width>
+      <height>859</height>
+   </windowPos>
+</patch-1.0>

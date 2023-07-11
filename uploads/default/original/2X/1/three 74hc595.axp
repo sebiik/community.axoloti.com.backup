@@ -1,0 +1,67 @@
+<patch-1.0>
+   <comment type="patch/comment" x="28" y="56" text="THREE 74HC595 SHIFT REGISTERS via SPI"/>
+   <obj type="gpio/spi/config" sha="62af644b09e7f654b36d66533da8ea5971ddb351" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="28" y="84">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=0"/>
+         <combo attributeName="clock_phase" selection="CPHA=0"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="182" y="112" text="PA4 = Pin12 (74hc595)"/>
+   <comment type="patch/comment" x="182" y="126" text="PA5 = Pin11 (74hc595)"/>
+   <comment type="patch/comment" x="182" y="140" text="PA7 = Pin14 (74hc595 IC1 only)"/>
+   <comment type="patch/comment" x="28" y="196" text="1.BIT = Q0"/>
+   <comment type="patch/comment" x="28" y="210" text="2.BIT = Q1"/>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="SHIFTREG" x="196" y="210">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[// THREE 74HC595 SHIFT REGISTERS
+// by paul
+
+uint8_t *txbuf;
+
+void setup(void){
+	
+	static uint8_t _txbuf[32] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+
+}
+
+void loop(void){
+
+	txbuf[0] = (in1>>16); 	// SHIFTREGISTER 1
+	txbuf[1] = (in1>>8);	// SHIFTREGISTER 2
+	txbuf[2] = (in1);		// SHIFTREGISTER 3
+
+	
+	spiSelect(&SPID1);
+	spiSend(&SPID1,3,txbuf);
+  	spiUnselect(&SPID1);
+  	
+	chThdSleepMilliseconds(1);
+}
+]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="28" y="224" text="3.BIT = Q2"/>
+   <comment type="patch/comment" x="28" y="238" text="4.BIT = Q3"/>
+   <comment type="patch/comment" x="28" y="252" text="5.BIT = Q4"/>
+   <comment type="patch/comment" x="28" y="266" text="6.BIT = Q5"/>
+   <comment type="patch/comment" x="28" y="280" text="7.BIT = Q6"/>
+   <comment type="patch/comment" x="28" y="294" text="8.BIT = Q7"/>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>773</x>
+      <y>63</y>
+      <width>872</width>
+      <height>897</height>
+   </windowPos>
+</patch-1.0>

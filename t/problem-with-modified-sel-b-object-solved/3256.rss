@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Problem with modified sel b object - SOLVED</title>
+    <link>http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256</link>
+    <description>Hi
+I&#39;m trying to modify a sel b object so that is sends out sequenced midi note-on&#39;s and note-off&#39;s (both internally to control a poly synth patch and also externally (but I haven&#39;t tried that yet). The idea is that a counter advances through the horizontal grid; if a cell is highlighted then a midi-note-on is output for a specific note allocated to that row. A non-highlighted cells sends a midi-note-off. If two highlighted (or non-highlighted) cells are next to each other then repeat messages are suppressed.... meaning a midi-off must always follow a midi-on. I put 8 of these rows together with note selector fields to produce a simple polyphonic step sequencer. So here&#39;s the code for one such row:
+
+bool m1; (in &quot;local data&quot;)
+m1=0; (in &quot;Init Code&quot;)
+
+if (  bool((param_1&gt;&gt;inlet_step)&amp;1)  != m1  ){
+      PatchMidiInHandler(MIDI_DEVICE_INTERNAL,0,MIDI_NOTE_ON,param_note1,m1*127);
+      m1=!m1;
+}
+
+((param_1&gt;&gt;inlet_step)&amp;1) is to read each step and returns a TRUE when the step cell is highlighted. I had to add a bool cast as it wouldn&#39;t work otherwise. m1 is a flag to remember whether the last command was a midi-on or midi-off...detecting when a cell state changes. If consecutive cells are the same then repeat midi messages are prevented. I&#39;m using a midi-note-on with velocity zero (m1==0) to achieve a midi-note-off.
+So here&#39;s the problem:  it works, but the non-highlighted cells produce the midi-on!! This doesn&#39;t make sense to me. Bizarrely changing the  != to == produces the correct effect, but not on the first cycle. Nothing happens on the first run through the row then all starts working correctly.
+Can anyone help explain what I&#39;m doing wrong?
+Cheers!
+Paul
+PS. Absolutely love Axoloti</description>
+    
+    <lastBuildDate>Sat, 29 Apr 2017 10:46:48 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Problem with modified sel b object - SOLVED</title>
+        <dc:creator><![CDATA[@smithoid Paul Smith]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smithoid">@smithoid</a> wrote:</p>
+          <blockquote>
+              <p>Got it. Two probs...<br>1. m1=!m1 should be before midi statement and this explains "inverted" behaviour<br>2. I was using square wave LFO as clock source and this commences with a leading +ve edge effectively skipping zero in the counter I was using to drive the sequencer. Applied a logic invert and I now have a leading logic low and behaviour is as expected (though that first low seems shorter than subsequent pulses)<br>Cheers<br>Paul</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256/2</link>
+        <pubDate>Sat, 29 Apr 2017 10:46:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3256-2</guid>
+        <source url="http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256.rss">Problem with modified sel b object - SOLVED</source>
+      </item>
+      <item>
+        <title>Problem with modified sel b object - SOLVED</title>
+        <dc:creator><![CDATA[@smithoid Paul Smith]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smithoid">@smithoid</a> wrote:</p>
+          <blockquote>
+              <p>Hi<br>I'm trying to modify a sel b object so that is sends out sequenced midi note-on's and note-off's (both internally to control a poly synth patch and also externally (but I haven't tried that yet). The idea is that a counter advances through the horizontal grid; if a cell is highlighted then a midi-note-on is output for a specific note allocated to that row. A non-highlighted cells sends a midi-note-off. If two highlighted (or non-highlighted) cells are next to each other then repeat messages are suppressed.... meaning a midi-off must always follow a midi-on. I put 8 of these rows together with note selector fields to produce a simple polyphonic step sequencer. So here's the code for one such row:</p>
+
+<p>bool m1; (in "local data")<br>m1=0; (in "Init Code")</p>
+
+<p>if (  bool((param_1&gt;&gt;inlet_step)&amp;1)  != m1  ){<br>      PatchMidiInHandler(MIDI_DEVICE_INTERNAL,0,MIDI_NOTE_ON,param_note1,m1*127);<br>      m1=!m1;<br>}</p>
+
+<p>((param_1&gt;&gt;inlet_step)&amp;1) is to read each step and returns a TRUE when the step cell is highlighted. I had to add a bool cast as it wouldn't work otherwise. m1 is a flag to remember whether the last command was a midi-on or midi-off...detecting when a cell state changes. If consecutive cells are the same then repeat midi messages are prevented. I'm using a midi-note-on with velocity zero (m1==0) to achieve a midi-note-off.<br>So here's the problem:  it works, but the non-highlighted cells produce the midi-on!! This doesn't make sense to me. Bizarrely changing the  != to == produces the correct effect, but not on the first cycle. Nothing happens on the first run through the row then all starts working correctly.<br>Can anyone help explain what I'm doing wrong?<br>Cheers!<br>Paul<br>PS. Absolutely love Axoloti</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256/1</link>
+        <pubDate>Wed, 26 Apr 2017 17:08:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3256-1</guid>
+        <source url="http://community.axoloti.com/t/problem-with-modified-sel-b-object-solved/3256.rss">Problem with modified sel b object - SOLVED</source>
+      </item>
+  </channel>
+</rss>

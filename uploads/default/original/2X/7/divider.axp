@@ -1,0 +1,188 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="e2296cc8-f5ce-4944-92e5-277ef5d78eea" name="square_1" x="98" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="-19.0"/>
+         <frac32.u.map name="pw" value="51.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e2296cc8-f5ce-4944-92e5-277ef5d78eea">
+         <sDescription>Unipolar LFO with phase, pwm and reset inputs</sDescription>
+         <author>Are Leistad, modified by burek</author>
+         <license>BSD</license>
+         <inlets/>
+         <outlets>
+            <bool32 name="pwm"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.lfopitch name="pitch" description="Pitch"/>
+            <frac32.u.map.ratio name="pw" description="Pulse width"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t  phase;]]></code.declaration>
+         <code.init><![CDATA[phase     = 0;]]></code.init>
+         <code.krate><![CDATA[int32_t   pulsewidth;
+
+        {
+          int32_t freq;
+          MTOFEXTENDED( param_pitch , freq );
+          phase += freq>>2;
+        }
+
+
+      pulsewidth = param_pw ;
+      if( pulsewidth > (1<<27) )
+        {
+          pulsewidth = (1<<27);
+        }
+      else if( pulsewidth < 0 )
+        {
+          pulsewidth = 0;
+        }
+
+      //phase2 = phase ;
+     outlet_pwm = ( (phase>>5) > pulsewidth )?0:1;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="fbae5fc7-d7f3-4d51-bbd3-e92da0b0b21f" name="triple_1" x="308" y="42">
+      <params/>
+      <attribs>
+         <table attributeName="factors" table="1,2,3"/>
+      </attribs>
+      <object id="patch/object" uuid="fbae5fc7-d7f3-4d51-bbd3-e92da0b0b21f">
+         <sDescription>Enter 3 integers separated by commas in &quot;factors&quot;, e.g. 2,3,10
+
+For the first, call it factor1, c1 will count from 0 to factor1 - 1;
+o1 will be positive when c1 equals 0, i.e. give you every factor1-th trigger on the input.
+
+Analogous for the second and third factor. This can be useful in sequencer/drum machine type patches, if you want to get regular patterns, or in combination with Euclidian triggers.
+
+The length of each pulse at o1-o3 is the same as on the input.</sDescription>
+         <author>burek</author>
+         <license>GPL</license>
+         <inlets>
+            <bool32 name="i1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o1"/>
+            <bool32 name="o2"/>
+            <bool32 name="o3"/>
+            <int32.positive name="c1"/>
+            <int32.positive name="c2"/>
+            <int32.positive name="c3"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <table name="factors"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int factors[3] = {attr_factors};
+int ctr = 0;
+bool ntrig = 0;
+
+int ggt(int z1, int z2){
+	for (;;){
+	if (z2==0){
+		return z1;
+	}
+	int temp = z1;
+	z1 = z2;
+	z2 = temp%z1;
+	}
+}
+
+int kgv(int z1, int z2){
+	return (z1*z2)/ggt(z1,z2);
+}]]></code.declaration>
+         <code.init><![CDATA[//LogTextMessage("Factore 1-3: %d,%d,%d",factors[0],factors[1],factors[2]);]]></code.init>
+         <code.krate><![CDATA[if (inlet_i1){
+	if (!ntrig){
+		ntrig = 1;
+		ctr++;
+		if (ctr == kgv(factors[0],kgv(factors[1],factors[2]))) {
+			ctr = 0;
+		}
+		
+	}
+	
+	//LogTextMessage("Ctr: %d",ctr);
+
+	outlet_o1 = ctr%factors[0]==0;	
+	outlet_o2 = ctr%factors[1]==0;	
+	outlet_o3 = ctr%factors[2]==0;	
+	
+}
+else if (inlet_i1==0) ntrig = 0;
+
+outlet_c1 = ctr%factors[0];
+outlet_c2 = ctr%factors[1];
+outlet_c3 = ctr%factors[2];]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="532" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="602" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="532" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="602" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_3" x="532" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_3" x="602" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="square_1" outlet="pwm"/>
+         <dest obj="triple_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="triple_1" outlet="o1"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="triple_1" outlet="o2"/>
+         <dest obj="bool_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="triple_1" outlet="o3"/>
+         <dest obj="bool_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="triple_1" outlet="c1"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="triple_1" outlet="c2"/>
+         <dest obj="i_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="triple_1" outlet="c3"/>
+         <dest obj="i_3" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>969</width>
+      <height>606</height>
+   </windowPos>
+</patch-1.0>

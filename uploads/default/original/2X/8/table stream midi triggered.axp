@@ -1,0 +1,3230 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="14" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="16.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_4" x="112" y="14">
+      <params>
+         <int32 name="maximum" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_4" x="210" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_5" x="280" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="timer/delayedpulse" uuid="3f05ee534ca67755fb20c7437f9e4de3d4c2f73d" name="delayedpulse_1" x="392" y="28">
+      <params>
+         <frac32.s.map name="delay" value="-45.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="43d5c0c3-ca7a-491d-ba99-9d7e5b926a74" name="counter2_1" x="686" y="42">
+      <params>
+         <int32 name="banks" value="4"/>
+         <int32 name="variations" value="8"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="43d5c0c3-ca7a-491d-ba99-9d7e5b926a74">
+         <sDescription>cyclic up/down counter</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>logic.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="load" description="increment trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="bank"/>
+            <int32 name="variation" description="output"/>
+            <bool32.pulse name="c" description="carry pulse"/>
+            <bool32 name="finished"/>
+         </outlets>
+         <displays>
+            <bool32 name="loading"/>
+         </displays>
+         <params>
+            <int32 name="banks">
+               <MinValue i="1"/>
+               <MaxValue i="64"/>
+            </int32>
+            <int32 name="variations">
+               <MinValue i="1"/>
+               <MaxValue i="64"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int trig;
+   int count;
+int DO=1;]]></code.declaration>
+         <code.init><![CDATA[count=0;
+   trig = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_c=0;
+if(((inlet_load>0)&&!trig)&&DO){
+	trig=1;
+	outlet_c=1;
+	int tmp=param_variations*param_banks;
+	int cnt1=count/param_variations;
+	outlet_variation=count-cnt1*param_variations;
+	outlet_bank=cnt1;
+	count+=1;
+	if(count==tmp){DO=0;}
+}
+else if(inlet_load<1){trig=0;}
+outlet_finished=!DO;
+disp_loading=DO;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="910" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="load" x="14" y="126">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="rnd bank" x="294" y="126">
+      <params>
+         <int32 name="max" value="4"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="rnd variation" x="378" y="126">
+      <params>
+         <int32 name="max" value="8"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_7" x="462" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_6" x="532" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="f6f55296-f92a-49f4-b084-e0b290d14182" name="+_1" x="602" y="126">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="f6f55296-f92a-49f4-b084-e0b290d14182">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <int32 name="in1" description="in1"/>
+            <int32 name="in2" description="in2"/>
+         </inlets>
+         <outlets>
+            <int32 name="out" description="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= (inlet_in1<<3)+inlet_in2 ;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="rand/uniform i" uuid="9b1f945f346af0165ed99b8e19136cdbf744e594" name="uniform_9" x="882" y="588">
+      <params>
+         <int32 name="max" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform i" uuid="9b1f945f346af0165ed99b8e19136cdbf744e594" name="uniform_8" x="434" y="644">
+      <params>
+         <int32 name="max" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_5" x="518" y="644">
+      <params>
+         <int32 name="max" value="798"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_5" x="602" y="644">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/BD"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_14" x="882" y="644">
+      <params>
+         <int32 name="max" value="127"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_6" x="966" y="644">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/SN"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_20" x="518" y="742">
+      <params>
+         <int32 name="max" value="768"/>
+         <int32 name="offset" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_18" x="602" y="742">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drumsamples/BD/bd"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+   </obj>
+   <obj type="mux/mux 2" uuid="777491e645978e331fcbab6610f52c1aaa5ade0e" name="mux_3" x="770" y="742">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_19" x="882" y="742">
+      <params>
+         <int32 name="max" value="561"/>
+         <int32 name="offset" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_17" x="966" y="742">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drumsamples/SN/sn"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+   </obj>
+   <obj type="mux/mux 2" uuid="777491e645978e331fcbab6610f52c1aaa5ade0e" name="mux_4" x="1134" y="742">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/keyb note" uuid="ac0cd98e6c0373b7be73d25900342a62ebcf5f" name="keyb_1" x="42" y="798">
+      <params/>
+      <attribs>
+         <spinner attributeName="note" value="36"/>
+      </attribs>
+   </obj>
+   <obj type="midi/in/keyb note" uuid="ac0cd98e6c0373b7be73d25900342a62ebcf5f" name="keyb_2" x="140" y="798">
+      <params/>
+      <attribs>
+         <spinner attributeName="note" value="37"/>
+      </attribs>
+   </obj>
+   <obj type="midi/in/keyb note" uuid="ac0cd98e6c0373b7be73d25900342a62ebcf5f" name="keyb_3" x="238" y="798">
+      <params/>
+      <attribs>
+         <spinner attributeName="note" value="38"/>
+      </attribs>
+   </obj>
+   <obj type="midi/in/keyb note" uuid="ac0cd98e6c0373b7be73d25900342a62ebcf5f" name="keyb_4" x="336" y="798">
+      <params/>
+      <attribs>
+         <spinner attributeName="note" value="39"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_13" x="882" y="840">
+      <params>
+         <int32 name="max" value="163"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_14" x="966" y="840">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/GL"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="42" y="882">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sel/sel b 16 4t pulse" uuid="888c8955ae75a9e7e3ed641fa9084d6b52e9fee9" name="sel_1" x="126" y="882">
+      <params>
+         <bin16 name="p1" value="17425"/>
+         <bin16 name="p2" value="4356"/>
+         <bin16 name="p3" value="22346"/>
+         <bin16 name="p4" value="257"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform i" uuid="9b1f945f346af0165ed99b8e19136cdbf744e594" name="uniform_17" x="448" y="924">
+      <params>
+         <int32 name="max" value="3"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_18" x="532" y="924">
+      <params>
+         <int32 name="max" value="376"/>
+         <int32 name="offset" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_16" x="616" y="924">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drumsamples/HH/hh"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+   </obj>
+   <obj type="rand/uniform i" uuid="9b1f945f346af0165ed99b8e19136cdbf744e594" name="uniform_21" x="798" y="938">
+      <params>
+         <int32 name="max" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_11" x="882" y="938">
+      <params>
+         <int32 name="max" value="128"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_12" x="966" y="938">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/CC"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_10" x="532" y="1022">
+      <params>
+         <int32 name="max" value="127"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_7" x="616" y="1022">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/HH"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_22" x="56" y="1036">
+      <params>
+         <int32 name="max" value="66"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_23" x="140" y="1036">
+      <params>
+         <int32 name="max" value="54"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_24" x="224" y="1036">
+      <params>
+         <int32 name="max" value="57"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_25" x="308" y="1036">
+      <params>
+         <int32 name="max" value="73"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_12" x="882" y="1036">
+      <params>
+         <int32 name="max" value="128"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_13" x="966" y="1036">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/CY"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_15" x="532" y="1120">
+      <params>
+         <int32 name="max" value="127"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_15" x="616" y="1120">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/OH"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <obj type="mux/mux 3" uuid="b371527101f081f3715997908b7ae6f90840faad" name="mux_5" x="784" y="1120">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_26" x="56" y="1134">
+      <params>
+         <int32 name="max" value="42"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_27" x="140" y="1134">
+      <params>
+         <int32 name="max" value="12"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_28" x="224" y="1134">
+      <params>
+         <int32 name="max" value="8"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_29" x="308" y="1134">
+      <params>
+         <int32 name="max" value="10"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_16" x="882" y="1134">
+      <params>
+         <int32 name="max" value="130"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_11" x="966" y="1134">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/drums/PC"/>
+         <table attributeName="suffix" table=".wav"/>
+      </attribs>
+   </obj>
+   <obj type="mux/mux 4" uuid="4629dfad262ff68419d12ab3fcd96e5e2e9f4190" name="mux_2" x="1134" y="1134">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_30" x="56" y="1232">
+      <params>
+         <int32 name="max" value="32"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_31" x="140" y="1232">
+      <params>
+         <int32 name="max" value="51"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_32" x="224" y="1232">
+      <params>
+         <int32 name="max" value="50"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_33" x="308" y="1232">
+      <params>
+         <int32 name="max" value="43"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="mux/mux 4" uuid="4629dfad262ff68419d12ab3fcd96e5e2e9f4190" name="mux_1" x="1260" y="1246">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/wave/tablestream" uuid="cebec4e4-6235-4296-b65b-f46b88674518" name="tablestream_1" x="1330" y="1246">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="32768 (682ms)"/>
+         <combo attributeName="samples" selection="32"/>
+         <combo attributeName="init" selection="rst"/>
+      </attribs>
+   </obj>
+   <patcher type="patch/patcher" uuid="456c6caa-0591-45b0-a171-f352f1413418" name="patcher_1" x="350" y="1274">
+      <params>
+         <frac32.s.map name="pulselengthm_1" value="-10.0"/>
+         <frac32.u.map name="ahd_1:a" value="0.0"/>
+         <frac32.u.map name="ahd_1:d" value="5.0"/>
+      </params>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="trg" x="14" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="length" x="14" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="a" x="14" y="126">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="d" x="14" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="timer/pulselengthm" uuid="62560cedc7cebe84778bc1bb4fc6c2122074a4ab" name="pulselengthm_1" x="84" y="168">
+            <params>
+               <frac32.s.map name="delay" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="env/ahd m" uuid="26310a6ba00395d4adb87ebf9db0de38d53d23da" name="ahd_1" x="196" y="168">
+            <params>
+               <frac32.u.map name="a" onParent="true" value="0.0"/>
+               <frac32.u.map name="d" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_1" x="308" y="182">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="trg" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="pulselengthm_1" outlet="pulse"/>
+               <dest obj="ahd_1" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="length" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="delay"/>
+            </net>
+            <net>
+               <source obj="a" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="d" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="d"/>
+            </net>
+            <net>
+               <source obj="ahd_1" outlet="env"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>0</y>
+            <width>400</width>
+            <height>400</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="5ece6e6c-d8d0-46cc-bd28-a135917a1241" name="patcher_2" x="532" y="1274">
+      <params>
+         <frac32.s.map name="pulselengthm_1" value="-18.0"/>
+         <frac32.u.map name="ahd_1:a" value="0.0"/>
+         <frac32.u.map name="ahd_1:d" value="12.0"/>
+      </params>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="trg" x="14" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="length" x="14" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="a" x="14" y="126">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="d" x="14" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="timer/pulselengthm" uuid="62560cedc7cebe84778bc1bb4fc6c2122074a4ab" name="pulselengthm_1" x="84" y="168">
+            <params>
+               <frac32.s.map name="delay" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="env/ahd m" uuid="26310a6ba00395d4adb87ebf9db0de38d53d23da" name="ahd_1" x="196" y="168">
+            <params>
+               <frac32.u.map name="a" onParent="true" value="0.0"/>
+               <frac32.u.map name="d" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_1" x="308" y="182">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="trg" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="pulselengthm_1" outlet="pulse"/>
+               <dest obj="ahd_1" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="length" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="delay"/>
+            </net>
+            <net>
+               <source obj="a" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="d" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="d"/>
+            </net>
+            <net>
+               <source obj="ahd_1" outlet="env"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>0</y>
+            <width>400</width>
+            <height>400</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="b7060b77-8fc7-42c0-87a9-660ed425aaf3" name="patcher_3" x="714" y="1274">
+      <params>
+         <frac32.s.map name="pulselengthm_1" value="-34.0"/>
+         <frac32.u.map name="ahd_1:a" value="0.0"/>
+         <frac32.u.map name="ahd_1:d" value="5.0"/>
+      </params>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="trg" x="14" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="length" x="14" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="a" x="14" y="126">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="d" x="14" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="timer/pulselengthm" uuid="62560cedc7cebe84778bc1bb4fc6c2122074a4ab" name="pulselengthm_1" x="84" y="168">
+            <params>
+               <frac32.s.map name="delay" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="env/ahd m" uuid="26310a6ba00395d4adb87ebf9db0de38d53d23da" name="ahd_1" x="196" y="168">
+            <params>
+               <frac32.u.map name="a" onParent="true" value="0.0"/>
+               <frac32.u.map name="d" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_1" x="308" y="182">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="trg" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="pulselengthm_1" outlet="pulse"/>
+               <dest obj="ahd_1" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="length" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="delay"/>
+            </net>
+            <net>
+               <source obj="a" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="d" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="d"/>
+            </net>
+            <net>
+               <source obj="ahd_1" outlet="env"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>0</y>
+            <width>400</width>
+            <height>400</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="da65d999-4fe9-4230-97d2-832eba36d613" name="patcher_4" x="896" y="1274">
+      <params>
+         <frac32.s.map name="pulselengthm_1" value="-32.0"/>
+         <frac32.u.map name="ahd_1:a" value="0.0"/>
+         <frac32.u.map name="ahd_1:d" value="11.5"/>
+      </params>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="trg" x="14" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="length" x="14" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="a" x="14" y="126">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="d" x="14" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="timer/pulselengthm" uuid="62560cedc7cebe84778bc1bb4fc6c2122074a4ab" name="pulselengthm_1" x="84" y="168">
+            <params>
+               <frac32.s.map name="delay" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="env/ahd m" uuid="26310a6ba00395d4adb87ebf9db0de38d53d23da" name="ahd_1" x="196" y="168">
+            <params>
+               <frac32.u.map name="a" onParent="true" value="0.0"/>
+               <frac32.u.map name="d" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_1" x="308" y="182">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="trg" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="pulselengthm_1" outlet="pulse"/>
+               <dest obj="ahd_1" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="length" outlet="inlet"/>
+               <dest obj="pulselengthm_1" inlet="delay"/>
+            </net>
+            <net>
+               <source obj="a" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="d" outlet="inlet"/>
+               <dest obj="ahd_1" inlet="d"/>
+            </net>
+            <net>
+               <source obj="ahd_1" outlet="env"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>0</y>
+            <width>400</width>
+            <height>400</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patchobj type="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf" name="ABchance_1" x="56" y="1330">
+      <params>
+         <frac32.u.map name="Bchance" value="6.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf">
+         <sDescription>uniform distributed (white) noise, triggered generation. Range -64..64</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <frac32 name="chance"/>
+         </inlets>
+         <outlets>
+            <bool32 name="A"/>
+            <bool32 name="B"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="Bchance" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = (int32_t)(GenerateRandomNumber())>>4;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) { 
+   	val = ((uint32_t)(GenerateRandomNumber())>>5)>(param_Bchance+inlet_chance)?1:0; 
+   	ntrig=1;}
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_A= val>0?inlet_trig:0;
+   outlet_B=val==0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf" name="ABchance_2" x="154" y="1330">
+      <params>
+         <frac32.u.map name="Bchance" value="13.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf">
+         <sDescription>uniform distributed (white) noise, triggered generation. Range -64..64</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <frac32 name="chance"/>
+         </inlets>
+         <outlets>
+            <bool32 name="A"/>
+            <bool32 name="B"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="Bchance" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = (int32_t)(GenerateRandomNumber())>>4;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) { 
+   	val = ((uint32_t)(GenerateRandomNumber())>>5)>(param_Bchance+inlet_chance)?1:0; 
+   	ntrig=1;}
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_A= val>0?inlet_trig:0;
+   outlet_B=val==0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf" name="ABchance_5" x="1092" y="1400">
+      <params>
+         <frac32.u.map name="Bchance" value="52.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf">
+         <sDescription>uniform distributed (white) noise, triggered generation. Range -64..64</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <frac32 name="chance"/>
+         </inlets>
+         <outlets>
+            <bool32 name="A"/>
+            <bool32 name="B"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="Bchance" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = (int32_t)(GenerateRandomNumber())>>4;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) { 
+   	val = ((uint32_t)(GenerateRandomNumber())>>5)>(param_Bchance+inlet_chance)?1:0; 
+   	ntrig=1;}
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_A= val>0?inlet_trig:0;
+   outlet_B=val==0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_2" x="1190" y="1400">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf" name="ABchance_3" x="56" y="1442">
+      <params>
+         <frac32.u.map name="Bchance" value="16.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf">
+         <sDescription>uniform distributed (white) noise, triggered generation. Range -64..64</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <frac32 name="chance"/>
+         </inlets>
+         <outlets>
+            <bool32 name="A"/>
+            <bool32 name="B"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="Bchance" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = (int32_t)(GenerateRandomNumber())>>4;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) { 
+   	val = ((uint32_t)(GenerateRandomNumber())>>5)>(param_Bchance+inlet_chance)?1:0; 
+   	ntrig=1;}
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_A= val>0?1:0;
+   outlet_B=val==0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf" name="ABchance_4" x="154" y="1442">
+      <params>
+         <frac32.u.map name="Bchance" value="13.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="45211a0a-8d6c-4175-90af-2fec1c3aa1bf">
+         <sDescription>uniform distributed (white) noise, triggered generation. Range -64..64</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <frac32 name="chance"/>
+         </inlets>
+         <outlets>
+            <bool32 name="A"/>
+            <bool32 name="B"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="Bchance" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = (int32_t)(GenerateRandomNumber())>>4;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) { 
+   	val = ((uint32_t)(GenerateRandomNumber())>>5)>(param_Bchance+inlet_chance)?1:0; 
+   	ntrig=1;}
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_A= val>0?inlet_trig:0;
+   outlet_B=val==0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="1190" y="1456">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_3" x="1330" y="1456">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_2" x="350" y="1512">
+      <params>
+         <int32 name="max" value="8"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_1" x="532" y="1512">
+      <params>
+         <int32 name="max" value="8"/>
+         <int32 name="offset" value="8"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_3" x="714" y="1512">
+      <params>
+         <int32 name="max" value="8"/>
+         <int32 name="offset" value="16"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_4" x="896" y="1512">
+      <params>
+         <int32 name="max" value="8"/>
+         <int32 name="offset" value="24"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_34" x="0" y="1554">
+      <params>
+         <int32 name="max" value="43"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_35" x="84" y="1554">
+      <params>
+         <int32 name="max" value="25"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_36" x="168" y="1554">
+      <params>
+         <int32 name="max" value="20"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_37" x="252" y="1554">
+      <params>
+         <int32 name="max" value="23"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad" name="play_2" x="350" y="1610">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="tablestream_1"/>
+      </attribs>
+      <object id="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad">
+         <sDescription>plays audio from the tablestream module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="pos" description="start position in table"/>
+            <bool32.rising name="start" description="start playback"/>
+            <bool32.rising name="stop" description="stop playback"/>
+            <int32 name="sample"/>
+            <bool32 name="direction"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="wave" description="wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map name="pitch"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int pstart;
+   int pstop;
+   int pos;
+   int32_t phs;
+   int32_t prv;
+   int32_t stp;
+   int32_t vi30=(1<<30)-1;]]></code.declaration>
+         <code.init><![CDATA[pos = 0;
+pstart = 0;
+pstop = 1;]]></code.init>
+         <code.krate><![CDATA[bool dir=inlet_direction;
+
+   	int32_t pitch;
+   	int32_t base;
+   	MTOFEXTENDED(0,base)
+   	MTOFEXTENDED(param_pitch+inlet_pitch,pitch)
+   	pitch-=base;
+if ((inlet_start>0) && !pstart) {
+      pstart = 1;
+      pstop = 0;
+      uint32_t asat = __USAT(inlet_pos,27);
+      if(dir){asat=(1<<27)-asat-1;}
+      pos = (asat>>(27-attr_table.LENGTHPOW));
+   } else if (!(inlet_start>0)) {
+      pstart = 0;
+   }
+  if ((inlet_stop>0) && !pstop) {
+      pstop = 1;
+      pstart = 0;
+   } 
+
+   	int32_t sample=inlet_sample&(attr_table.SAMPLES-1);
+   	sample*=attr_table.LENGTH;]]></code.krate>
+         <code.srate><![CDATA[if (!pstop) {
+
+       if ((pos< attr_table.LENGTH)&&(pos>=0)){
+       phs+=pitch;
+       int32_t p1=phs&vi30;
+       stp=p1>>25;
+       p1=p1-(stp<<25)<<5;
+       if(!(stp==prv)){
+       	if(pitch>0){
+       		(pos++);
+       	}
+       	else{(pos--);}
+       }
+       pos-=pos>=attr_table.LENGTH?2:0;
+       pos+=pos<=0?1:0;
+       if(dir>0){(pos--);}else{(pos++);}
+       int32_t tmp1=attr_table.array[__USAT(pos,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       int32_t tmp2=attr_table.array[__USAT(pos+1,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       outlet_wave = tmp1+(___SMMUL(tmp2-tmp1,p1)<<2);
+       prv=stp;
+   }	else outlet_wave = 0;
+   } else outlet_wave = 0;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad" name="play_3" x="532" y="1610">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="tablestream_1"/>
+      </attribs>
+      <object id="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad">
+         <sDescription>play audio from table (non-transposed), starting from position</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="pos" description="start position in table"/>
+            <bool32.rising name="start" description="start playback"/>
+            <bool32.rising name="stop" description="stop playback"/>
+            <int32 name="sample"/>
+            <bool32 name="direction"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="wave" description="wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map name="pitch"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int pstart;
+   int pstop;
+   int pos;
+   int32_t phs;
+   int32_t prv;
+   int32_t stp;
+   int32_t vi30=(1<<30)-1;]]></code.declaration>
+         <code.init><![CDATA[pos = 0;
+pstart = 0;
+pstop = 1;]]></code.init>
+         <code.krate><![CDATA[bool dir=inlet_direction;
+
+   	int32_t pitch;
+   	int32_t base;
+   	MTOFEXTENDED(0,base)
+   	MTOFEXTENDED(param_pitch+inlet_pitch,pitch)
+   	pitch-=base;
+if ((inlet_start>0) && !pstart) {
+      pstart = 1;
+      pstop = 0;
+      uint32_t asat = __USAT(inlet_pos,27);
+      if(dir){asat=(1<<27)-asat-1;}
+      pos = (asat>>(27-attr_table.LENGTHPOW));
+   } else if (!(inlet_start>0)) {
+      pstart = 0;
+   }
+  if ((inlet_stop>0) && !pstop) {
+      pstop = 1;
+      pstart = 0;
+   } 
+
+   	int32_t sample=inlet_sample&(attr_table.SAMPLES-1);
+   	sample*=attr_table.LENGTH;]]></code.krate>
+         <code.srate><![CDATA[if (!pstop) {
+
+       if ((pos< attr_table.LENGTH)&&(pos>=0)){
+       phs+=pitch;
+       int32_t p1=phs&vi30;
+       stp=p1>>25;
+       p1=p1-(stp<<25)<<5;
+       if(!(stp==prv)){
+       	if(pitch>0){
+       		(pos++);
+       	}
+       	else{(pos--);}
+       }
+       pos-=pos>=attr_table.LENGTH?2:0;
+       pos+=pos<=0?1:0;
+       if(dir>0){(pos--);}else{(pos++);}
+       int32_t tmp1=attr_table.array[__USAT(pos,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       int32_t tmp2=attr_table.array[__USAT(pos+1,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       outlet_wave = tmp1+(___SMMUL(tmp2-tmp1,p1)<<2);
+       prv=stp;
+   }	else outlet_wave = 0;
+   } else outlet_wave = 0;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad" name="play_4" x="714" y="1610">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="tablestream_1"/>
+      </attribs>
+      <object id="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad">
+         <sDescription>play audio from table (non-transposed), starting from position</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="pos" description="start position in table"/>
+            <bool32.rising name="start" description="start playback"/>
+            <bool32.rising name="stop" description="stop playback"/>
+            <int32 name="sample"/>
+            <bool32 name="direction"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="wave" description="wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map name="pitch"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int pstart;
+   int pstop;
+   int pos;
+   int32_t phs;
+   int32_t prv;
+   int32_t stp;
+   int32_t vi30=(1<<30)-1;]]></code.declaration>
+         <code.init><![CDATA[pos = 0;
+pstart = 0;
+pstop = 1;]]></code.init>
+         <code.krate><![CDATA[bool dir=inlet_direction;
+
+   	int32_t pitch;
+   	int32_t base;
+   	MTOFEXTENDED(0,base)
+   	MTOFEXTENDED(param_pitch+inlet_pitch,pitch)
+   	pitch-=base;
+if ((inlet_start>0) && !pstart) {
+      pstart = 1;
+      pstop = 0;
+      uint32_t asat = __USAT(inlet_pos,27);
+      if(dir){asat=(1<<27)-asat-1;}
+      pos = (asat>>(27-attr_table.LENGTHPOW));
+   } else if (!(inlet_start>0)) {
+      pstart = 0;
+   }
+  if ((inlet_stop>0) && !pstop) {
+      pstop = 1;
+      pstart = 0;
+   } 
+
+   	int32_t sample=inlet_sample&(attr_table.SAMPLES-1);
+   	sample*=attr_table.LENGTH;]]></code.krate>
+         <code.srate><![CDATA[if (!pstop) {
+
+       if ((pos< attr_table.LENGTH)&&(pos>=0)){
+       phs+=pitch;
+       int32_t p1=phs&vi30;
+       stp=p1>>25;
+       p1=p1-(stp<<25)<<5;
+       if(!(stp==prv)){
+       	if(pitch>0){
+       		(pos++);
+       	}
+       	else{(pos--);}
+       }
+       pos-=pos>=attr_table.LENGTH?2:0;
+       pos+=pos<=0?1:0;
+       if(dir>0){(pos--);}else{(pos++);}
+       int32_t tmp1=attr_table.array[__USAT(pos,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       int32_t tmp2=attr_table.array[__USAT(pos+1,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       outlet_wave = tmp1+(___SMMUL(tmp2-tmp1,p1)<<2);
+       prv=stp;
+   }	else outlet_wave = 0;
+   } else outlet_wave = 0;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad" name="play_5" x="896" y="1610">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="tablestream_1"/>
+      </attribs>
+      <object id="patch/object" uuid="178148aa-b983-466e-92ab-b4d1249fc6ad">
+         <sDescription>play audio from table (non-transposed), starting from position</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="pos" description="start position in table"/>
+            <bool32.rising name="start" description="start playback"/>
+            <bool32.rising name="stop" description="stop playback"/>
+            <int32 name="sample"/>
+            <bool32 name="direction"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="wave" description="wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map name="pitch"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int pstart;
+   int pstop;
+   int pos;
+   int32_t phs;
+   int32_t prv;
+   int32_t stp;
+   int32_t vi30=(1<<30)-1;]]></code.declaration>
+         <code.init><![CDATA[pos = 0;
+pstart = 0;
+pstop = 1;]]></code.init>
+         <code.krate><![CDATA[bool dir=inlet_direction;
+
+   	int32_t pitch;
+   	int32_t base;
+   	MTOFEXTENDED(0,base)
+   	MTOFEXTENDED(param_pitch+inlet_pitch,pitch)
+   	pitch-=base;
+if ((inlet_start>0) && !pstart) {
+      pstart = 1;
+      pstop = 0;
+      uint32_t asat = __USAT(inlet_pos,27);
+      if(dir){asat=(1<<27)-asat-1;}
+      pos = (asat>>(27-attr_table.LENGTHPOW));
+   } else if (!(inlet_start>0)) {
+      pstart = 0;
+   }
+  if ((inlet_stop>0) && !pstop) {
+      pstop = 1;
+      pstart = 0;
+   } 
+
+   	int32_t sample=inlet_sample&(attr_table.SAMPLES-1);
+   	sample*=attr_table.LENGTH;]]></code.krate>
+         <code.srate><![CDATA[if (!pstop) {
+
+       if ((pos< attr_table.LENGTH)&&(pos>=0)){
+       phs+=pitch;
+       int32_t p1=phs&vi30;
+       stp=p1>>25;
+       p1=p1-(stp<<25)<<5;
+       if(!(stp==prv)){
+       	if(pitch>0){
+       		(pos++);
+       	}
+       	else{(pos--);}
+       }
+       pos-=pos>=attr_table.LENGTH?2:0;
+       pos+=pos<=0?1:0;
+       if(dir>0){(pos--);}else{(pos++);}
+       int32_t tmp1=attr_table.array[__USAT(pos,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       int32_t tmp2=attr_table.array[__USAT(pos+1,attr_table.LENGTHPOW)+sample]<<attr_table.GAIN;
+       outlet_wave = tmp1+(___SMMUL(tmp2-tmp1,p1)<<2);
+       prv=stp;
+   }	else outlet_wave = 0;
+   } else outlet_wave = 0;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="1022" y="1918">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_39" x="280" y="1988">
+      <params>
+         <int32 name="max" value="112"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_40" x="434" y="1988">
+      <params>
+         <int32 name="max" value="76"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f" name="uniform_38" x="532" y="1988">
+      <params>
+         <int32 name="max" value="24"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="bec8d670-bab4-460c-95bd-eb260d41285f">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = (int32_t)(GenerateRandomNumber()% (param_max))+param_offset;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="700" y="2002">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="756" y="2002">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_3" x="812" y="2002">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_4" x="868" y="2002">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 4 sq" uuid="f107ee8ee1e69e4443b27ddf7eb7d72e9b9cc9ba" name="mix_1" x="994" y="2002">
+      <params>
+         <frac32.u.map name="gain1" value="44.0"/>
+         <frac32.u.map name="gain2" value="35.5"/>
+         <frac32.u.map name="gain3" value="35.5"/>
+         <frac32.u.map name="gain4" value="36.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/dyn/compander" uuid="4a709004-666d-401a-b174-0201aee45a0b" name="compander_1" x="1092" y="2002">
+      <params>
+         <frac32.u.map name="gainIn" value="23.0"/>
+         <frac32.u.map name="tresh" value="38.0"/>
+         <frac32.u.map name="ratio" value="64.0"/>
+         <frac32.u.map name="expand" value="64.0"/>
+         <frac32.u.map name="slope" value="39.0"/>
+         <frac32.s.map name="release" value="-28.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/MI/FX/multifx" uuid="86d76784-3b74-44c8-9ad3-b31a74bfbb75" name="multifx_1" x="1204" y="2002">
+      <params>
+         <frac32.u.map name="Cmix" value="6.0"/>
+         <frac32.u.map name="Pmix" value="9.0"/>
+         <frac32.u.map name="Emix" value="5.0"/>
+         <frac32.u.map name="Rmix" value="6.5"/>
+         <int32 name="order" value="0"/>
+         <frac32.u.map name="Camount" value="22.5"/>
+         <frac32.u.map name="Cdepth" value="22.0"/>
+         <frac32.s.map name="Pfrequency" value="-48.0"/>
+         <frac32.s.map name="Pshift" value="-38.0"/>
+         <frac32.u.map name="Pfeedback" value="45.0"/>
+         <frac32.u.map name="Eamount" value="24.5"/>
+         <frac32.u.map name="Edepth" value="47.5"/>
+         <frac32.u.map name="Ramount" value="25.0"/>
+         <frac32.u.map name="Rtime" value="49.0"/>
+         <frac32.u.map name="Rdiffusion" value="57.5"/>
+         <frac32.u.map name="Rgain" value="40.5"/>
+         <frac32.u.map name="Rlowpass" value="56.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="262144 (5.46s)"/>
+      </attribs>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1316" y="2002">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="indexed_5" outlet="out"/>
+         <dest obj="mux_3" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="uniform_5" inlet="trig"/>
+         <dest obj="rnd bank" inlet="trig"/>
+         <dest obj="rnd variation" inlet="trig"/>
+         <dest obj="uniform_10" inlet="trig"/>
+         <dest obj="uniform_14" inlet="trig"/>
+         <dest obj="uniform_8" inlet="trig"/>
+         <dest obj="uniform_20" inlet="trig"/>
+         <dest obj="uniform_9" inlet="trig"/>
+         <dest obj="uniform_19" inlet="trig"/>
+         <dest obj="uniform_13" inlet="trig"/>
+         <dest obj="uniform_18" inlet="trig"/>
+         <dest obj="uniform_15" inlet="trig"/>
+         <dest obj="uniform_11" inlet="trig"/>
+         <dest obj="uniform_12" inlet="trig"/>
+         <dest obj="uniform_16" inlet="trig"/>
+         <dest obj="uniform_21" inlet="trig"/>
+         <dest obj="uniform_17" inlet="trig"/>
+         <dest obj="tablestream_1" inlet="load"/>
+      </net>
+      <net>
+         <source obj="play_2" outlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="counter_1" inlet="trig"/>
+         <dest obj="counter_4" inlet="trig"/>
+         <dest obj="ABchance_5" inlet="trig"/>
+         <dest obj="and_4" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="keyb_2" outlet="gate"/>
+         <dest obj="uniform_1" inlet="trig"/>
+         <dest obj="patcher_2" inlet="trg"/>
+         <dest obj="uniform_23" inlet="trig"/>
+         <dest obj="uniform_31" inlet="trig"/>
+         <dest obj="uniform_27" inlet="trig"/>
+         <dest obj="ABchance_2" inlet="trig"/>
+         <dest obj="uniform_35" inlet="trig"/>
+         <dest obj="play_3" inlet="start"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="sel_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate"/>
+         <dest obj="uniform_2" inlet="trig"/>
+         <dest obj="patcher_1" inlet="trg"/>
+         <dest obj="uniform_22" inlet="trig"/>
+         <dest obj="uniform_26" inlet="trig"/>
+         <dest obj="uniform_30" inlet="trig"/>
+         <dest obj="ABchance_1" inlet="trig"/>
+         <dest obj="uniform_34" inlet="trig"/>
+         <dest obj="play_2" inlet="start"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="tablestream_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="indexed_7" outlet="out"/>
+         <dest obj="mux_5" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="keyb_4" outlet="gate"/>
+         <dest obj="uniform_4" inlet="trig"/>
+         <dest obj="patcher_4" inlet="trg"/>
+         <dest obj="uniform_25" inlet="trig"/>
+         <dest obj="uniform_33" inlet="trig"/>
+         <dest obj="uniform_29" inlet="trig"/>
+         <dest obj="ABchance_4" inlet="trig"/>
+         <dest obj="uniform_37" inlet="trig"/>
+         <dest obj="play_5" inlet="start"/>
+      </net>
+      <net>
+         <source obj="keyb_3" outlet="gate"/>
+         <dest obj="uniform_3" inlet="trig"/>
+         <dest obj="patcher_3" inlet="trg"/>
+         <dest obj="uniform_24" inlet="trig"/>
+         <dest obj="uniform_28" inlet="trig"/>
+         <dest obj="uniform_32" inlet="trig"/>
+         <dest obj="uniform_36" inlet="trig"/>
+         <dest obj="ABchance_3" inlet="trig"/>
+         <dest obj="play_4" inlet="start"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="tablestream_1" inlet="sample"/>
+      </net>
+      <net>
+         <source obj="uniform_1" outlet="v"/>
+         <dest obj="play_3" inlet="sample"/>
+      </net>
+      <net>
+         <source obj="uniform_2" outlet="v"/>
+         <dest obj="play_2" inlet="sample"/>
+      </net>
+      <net>
+         <source obj="uniform_3" outlet="v"/>
+         <dest obj="play_4" inlet="sample"/>
+      </net>
+      <net>
+         <source obj="uniform_4" outlet="v"/>
+         <dest obj="play_5" inlet="sample"/>
+      </net>
+      <net>
+         <source obj="uniform_5" outlet="v"/>
+         <dest obj="indexed_5" inlet="index"/>
+      </net>
+      <net>
+         <source obj="counter_4" outlet="c"/>
+         <dest obj="uniform_38" inlet="trig"/>
+         <dest obj="uniform_39" inlet="trig"/>
+         <dest obj="uniform_40" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="rnd bank" outlet="v"/>
+         <dest obj="mux_1" inlet="s"/>
+         <dest obj="mux_7" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="rnd variation" outlet="v"/>
+         <dest obj="mux_6" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="indexed_11" outlet="out"/>
+         <dest obj="mux_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="uniform_10" outlet="v"/>
+         <dest obj="indexed_7" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_11" outlet="v"/>
+         <dest obj="indexed_12" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_12" outlet="v"/>
+         <dest obj="indexed_13" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_13" outlet="v"/>
+         <dest obj="indexed_14" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_14" outlet="v"/>
+         <dest obj="indexed_6" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_15" outlet="v"/>
+         <dest obj="indexed_15" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_16" outlet="v"/>
+         <dest obj="indexed_11" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_18" outlet="v"/>
+         <dest obj="indexed_16" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_19" outlet="v"/>
+         <dest obj="indexed_17" inlet="index"/>
+      </net>
+      <net>
+         <source obj="uniform_20" outlet="v"/>
+         <dest obj="indexed_18" inlet="index"/>
+      </net>
+      <net>
+         <source obj="indexed_18" outlet="out"/>
+         <dest obj="mux_3" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="uniform_8" outlet="v"/>
+         <dest obj="mux_3" inlet="s"/>
+      </net>
+      <net>
+         <source obj="indexed_14" outlet="out"/>
+         <dest obj="mux_2" inlet="i3"/>
+      </net>
+      <net>
+         <source obj="uniform_9" outlet="v"/>
+         <dest obj="mux_4" inlet="s"/>
+      </net>
+      <net>
+         <source obj="indexed_16" outlet="out"/>
+         <dest obj="mux_5" inlet="i0"/>
+      </net>
+      <net>
+         <source obj="indexed_15" outlet="out"/>
+         <dest obj="mux_5" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="uniform_17" outlet="v"/>
+         <dest obj="mux_5" inlet="s"/>
+      </net>
+      <net>
+         <source obj="indexed_12" outlet="out"/>
+         <dest obj="mux_2" inlet="i0"/>
+      </net>
+      <net>
+         <source obj="indexed_13" outlet="out"/>
+         <dest obj="mux_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mux_3" outlet="o"/>
+         <dest obj="mux_1" inlet="i0"/>
+      </net>
+      <net>
+         <source obj="mux_4" outlet="o"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mux_5" outlet="o"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="mux_2" outlet="o"/>
+         <dest obj="mux_1" inlet="i3"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="compander_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="indexed_6" outlet="out"/>
+         <dest obj="mux_4" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="indexed_17" outlet="out"/>
+         <dest obj="mux_4" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="patcher_2" outlet="outlet_1"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="patcher_1" outlet="outlet_1"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="patcher_3" outlet="outlet_1"/>
+         <dest obj="vca_3" inlet="v"/>
+      </net>
+      <net>
+         <source obj="patcher_4" outlet="outlet_1"/>
+         <dest obj="vca_4" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="mix_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="vca_3" outlet="o"/>
+         <dest obj="mix_1" inlet="in3"/>
+      </net>
+      <net>
+         <source obj="vca_4" outlet="o"/>
+         <dest obj="mix_1" inlet="in4"/>
+      </net>
+      <net>
+         <source obj="uniform_22" outlet="v"/>
+         <dest obj="patcher_1" inlet="length"/>
+      </net>
+      <net>
+         <source obj="uniform_23" outlet="v"/>
+         <dest obj="patcher_2" inlet="length"/>
+      </net>
+      <net>
+         <source obj="uniform_24" outlet="v"/>
+         <dest obj="patcher_3" inlet="length"/>
+      </net>
+      <net>
+         <source obj="uniform_25" outlet="v"/>
+         <dest obj="patcher_4" inlet="length"/>
+      </net>
+      <net>
+         <source obj="uniform_30" outlet="v"/>
+         <dest obj="patcher_1" inlet="d"/>
+      </net>
+      <net>
+         <source obj="uniform_27" outlet="v"/>
+         <dest obj="patcher_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="uniform_31" outlet="v"/>
+         <dest obj="patcher_2" inlet="d"/>
+      </net>
+      <net>
+         <source obj="uniform_28" outlet="v"/>
+         <dest obj="patcher_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="uniform_32" outlet="v"/>
+         <dest obj="patcher_3" inlet="d"/>
+      </net>
+      <net>
+         <source obj="uniform_29" outlet="v"/>
+         <dest obj="patcher_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="uniform_33" outlet="v"/>
+         <dest obj="patcher_4" inlet="d"/>
+      </net>
+      <net>
+         <source obj="ABchance_1" outlet="B"/>
+         <dest obj="play_2" inlet="direction"/>
+      </net>
+      <net>
+         <source obj="ABchance_2" outlet="B"/>
+         <dest obj="and_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="ABchance_3" outlet="B"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="play_3" outlet="wave"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="play_4" outlet="wave"/>
+         <dest obj="vca_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="play_5" outlet="wave"/>
+         <dest obj="vca_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="uniform_34" outlet="v"/>
+         <dest obj="play_2" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="uniform_35" outlet="v"/>
+         <dest obj="play_3" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="uniform_36" outlet="v"/>
+         <dest obj="play_4" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="uniform_37" outlet="v"/>
+         <dest obj="play_5" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="ABchance_5" outlet="B"/>
+         <dest obj="and_1" inlet="i2"/>
+         <dest obj="and_2" inlet="i2"/>
+         <dest obj="and_3" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="play_4" inlet="direction"/>
+      </net>
+      <net>
+         <source obj="and_2" outlet="o"/>
+         <dest obj="play_3" inlet="direction"/>
+      </net>
+      <net>
+         <source obj="ABchance_4" outlet="B"/>
+         <dest obj="and_3" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="and_3" outlet="o"/>
+         <dest obj="play_5" inlet="direction"/>
+      </net>
+      <net>
+         <source obj="multifx_1" outlet="l"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="multifx_1" outlet="r"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="compander_1" outlet="out"/>
+         <dest obj="multifx_1" inlet="l"/>
+         <dest obj="multifx_1" inlet="r"/>
+      </net>
+      <net>
+         <source obj="uniform_38" outlet="v"/>
+         <dest obj="multifx_1" inlet="order"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="multifx_1" inlet="Cmix"/>
+         <dest obj="multifx_1" inlet="Pmix"/>
+         <dest obj="multifx_1" inlet="Emix"/>
+         <dest obj="multifx_1" inlet="Rmix"/>
+      </net>
+      <net>
+         <source obj="uniform_39" outlet="v"/>
+         <dest obj="multifx_1" inlet="Pfrequency"/>
+      </net>
+      <net>
+         <source obj="uniform_40" outlet="v"/>
+         <dest obj="multifx_1" inlet="Pshift"/>
+      </net>
+      <net>
+         <source obj="tablestream_1" outlet="ended"/>
+         <dest obj="and_4" inlet="i1"/>
+         <dest obj="counter2_1" inlet="load"/>
+      </net>
+      <net>
+         <source obj="and_4" outlet="o"/>
+         <dest obj="and_5" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="delayedpulse_1" outlet="pulse"/>
+         <dest obj="or_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="counter2_1" outlet="finished"/>
+         <dest obj="and_5" inlet="i2"/>
+         <dest obj="mux_6" inlet="s"/>
+         <dest obj="mux_7" inlet="s"/>
+      </net>
+      <net>
+         <source obj="and_5" outlet="o"/>
+         <dest obj="delayedpulse_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter2_1" outlet="c"/>
+         <dest obj="or_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="counter2_1" outlet="variation"/>
+         <dest obj="mux_6" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="counter2_1" outlet="bank"/>
+         <dest obj="mux_7" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mux_6" outlet="o"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="mux_7" outlet="o"/>
+         <dest obj="+_1" inlet="in1"/>
+         <dest obj="mux_2" inlet="s"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1858</width>
+      <height>1096</height>
+   </windowPos>
+</patch-1.0>

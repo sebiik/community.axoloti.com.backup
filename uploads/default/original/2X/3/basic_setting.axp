@@ -1,0 +1,260 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="gpio/spi/config" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="14" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=1"/>
+         <combo attributeName="clock_phase" selection="CPHA=1"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <obj type="table/alloc 16b" uuid="597fcaac36aa638ba120b0fbdcadcde4ad405a7e" name="DAC_INPUT" x="294" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="64"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="06729976-b7fd-49a2-a00c-9ecbb8ae89c3" name="AD5370 16-bit 40Ch  DAC OUTPUT" x="392" y="14">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+      </attribs>
+      <object id="patch/object" uuid="06729976-b7fd-49a2-a00c-9ecbb8ae89c3">
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t *txbuf;
+uint8_t *rxbuf;
+
+const uint8_t RESET = 0;
+const uint8_t CLR = 2;
+const uint8_t BUSY = 1;
+const uint8_t LDAC = 3;
+const uint8_t SYNC = 4;
+
+// SPI 
+const uint8_t CLK = 5;
+const uint8_t MOSI = 7;
+
+enum { X, M, C };
+uint16_t DACLevels[40];
+
+uint8_t busyPad = palReadPad(GPIOA, BUSY);
+void pulseLDAC(void) {
+	palWritePad(GPIOA,LDAC,0);palWritePad(GPIOA,LDAC,0);palWritePad(GPIOA,LDAC,0);
+	palWritePad(GPIOA,LDAC,1);
+}
+void setDAC(uint8_t output, uint8_t reg,  uint16_t value) {
+	txbuf[2] = 0x00; // compose 24bit word out of three bytes
+	
+	// output 0 - 39
+	// group = (output >> 3)+1); // group (0-4) + 1 => 1-5
+	// channel = output % 8; // 0-7 0-7 0-7 0-7 0-7
+	 
+	// mode 	adress 	dac value	
+	// 00 	001000 	1111 1111 1111 111
+	if (reg == X) { // X Register -> M1,M0 = 11
+		txbuf[0] = 0b11000000;
+	} else if (reg == M) { // M register -> M1,M0 = 01
+		txbuf[0] = 0b01000000;
+	} else if (reg == C) { // C register -> M1,M0 = 10
+		txbuf[0] = 0b10000000;
+	}
+	txbuf[0] = txbuf[0] | (((output >> 3)+1) << 3) | (output % 8);
+	txbuf[1] = value >> 8; 
+	txbuf[2] = value;
+
+	//while ((busyPad = palReadPad(GPIOA, BUSY)) == 0) {}
+	// Write Sequence
+	spiSelect(&SPID1); 
+	palWritePad(GPIOA,LDAC,1);palWritePad(GPIOA,LDAC,1);palWritePad(GPIOA,LDAC,1);
+	spiSend(&SPID1,3,txbuf);  
+	palWritePad(GPIOA,LDAC,1);palWritePad(GPIOA,LDAC,1);palWritePad(GPIOA,LDAC,1);
+	spiUnselect(&SPID1);
+}
+void setDACOffset(uint8_t number, uint16_t value) {
+	palWritePad(GPIOA,CLR,0); // disconnect outputs while setting Offset to avoid glitches
+	txbuf[2] = 0x00; // compose 24bit word out of three bytes
+	if (number == 0) { // Set DAC Offset for Group 0 only (OFS0)
+		txbuf[0] = 0b00000010;
+	} else { // set DAC Offset for Group 1-4 (OFS1)
+		txbuf[0] = 0b00000011;
+	}
+	txbuf[1] = value >> 8; 
+	txbuf[2] = value;
+	
+	// Write Sequence
+	spiSelect(&SPID1); 
+	spiSend(&SPID1,3,txbuf);       
+	spiUnselect(&SPID1);
+
+	palWritePad(GPIOA,CLR,1); // reconnect outputs after setting Offset
+	
+	pulseLDAC();
+	chThdSleepMilliseconds(1);
+}]]></code.declaration>
+         <code.init><![CDATA[static uint8_t _txbuf[3] __attribute__ ((section (".sram2")));
+static uint8_t _rxbuf[3] __attribute__ ((section (".sram2")));
+
+txbuf = _txbuf;
+rxbuf = _rxbuf;
+
+/* DA5370 - Axoloti Connection 
+DIN   -  PA7
+SCLK  -  PA5
+SYNC  -  PA4
+LDAC  -  PA3
+CLR   -  PA2
+BUSY  -  PA1 
+RESET -  PA0
+*/
+
+// Axolit Pin setup 
+/* PAL MODES:
+PAL_MODE_RESET
+PAL_MODE_UNCONNECTED
+PAL_MODE_INPUT
+PAL_MODE_INPUT_PULLUP
+PAL_MODE_INPUT_PULLDOWN
+PAL_MODE_INPUT_ANALOG,
+PAL_MODE_OUTPUT_PUSHPULL
+PAL_MODE_OUTPUT_OPENDRAIN
+*/
+
+// x=palReadPad(GPIOA,1) // Read the Pad
+
+/* Pin setup
+--------------------------------------------------------------------- */
+palSetPadMode(GPIOA,RESET,PAL_MODE_OUTPUT_PUSHPULL);
+palSetPadMode(GPIOA,CLR,PAL_MODE_OUTPUT_PUSHPULL);
+palSetPadMode(GPIOA,BUSY,PAL_MODE_INPUT_PULLDOWN);
+palSetPadMode(GPIOA,LDAC,PAL_MODE_OUTPUT_PUSHPULL);
+
+
+/* Initialisiation steps
+--------------------------------------------------------------------- */
+// set RESET Pin to HIGH (rising Edge triggered) to load Defaults
+palWritePad(GPIOA,RESET,1);
+// Set CLR to HIGH // to enable Outputs
+palWritePad(GPIOA,CLR,1);
+// Set SYNC to HIGH. On falling Edge it will start the write operation.
+palWritePad(GPIOA,SYNC,1);
+// Set LDAC to HIGH because it is falling Edge triggered
+palWritePad(GPIOA,LDAC,1);
+chThdSleepMilliseconds(1);
+
+// Setup Control Register
+txbuf[2] = 0x00; 
+txbuf[0] = 0b00000001; // Write the control register
+txbuf[2] = 0x00 | 0b00000010; // F2 = 0 -> X1A is selected, F1 = 1 -> Enable Temperature shutdown at 130Â°
+spiSelect(&SPID1); 
+spiSend(&SPID1,3,txbuf);        
+spiUnselect(&SPID1);
+
+/* Calibration init values for registers M and C 
+--------------------------------------------------------------------- */
+// DAC Offset Setting (default value is 1555 => X = 0 -> -4V
+setDACOffset(0, 0x18);
+setDACOffset(1, 0x18);
+// M(multiplier) is always 6A9F => range of 5.0V, â€­D53Eâ€¬ => range of 10.0V
+// C(offset) is individually measured per channel 
+// The individual Values for the zero offset error are measured calculated 
+// using the methods described on page 18 in the AD5370 datasheet
+unsigned int zeroOffset[40] = {
+	0x805D,0x805F,0x8065,0x8042,0x804B,0x8067,0x8083,0x8080, // Group 0
+	0x8047,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000, // Group 1
+	0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000, // Group 2
+	0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000, // Group 3
+	0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000 // Group 4 
+};
+for (uint8_t i = 0; i < 40; i++) {
+	setDAC(i, M, 0x6A9F);
+	pulseLDAC();
+	chThdSleepMilliseconds(1);
+	
+	//setDAC(i, C, 0x805D);
+	setDAC(i, C, zeroOffset[i]);
+	pulseLDAC();
+	chThdSleepMilliseconds(1);
+}]]></code.init>
+         <code.dispose><![CDATA[palSetPadMode(GPIOA, RESET, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, CLR, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, BUSY, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, LDAC, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, SYNC, PAL_MODE_INPUT_ANALOG);
+
+palSetPadMode(GPIOA, CLK, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, MOSI, PAL_MODE_INPUT_ANALOG);]]></code.dispose>
+         <code.krate><![CDATA[//setDAC(0, X, (inlet_i1 >> 11));
+for (uint8_t i = 0; i < 40; i++) {
+	if (attr_table.array[i] != DACLevels[i]) {
+		setDAC(i, X, attr_table.array[i]);
+		DACLevels[i] = attr_table.array[i];
+	}
+}
+pulseLDAC();]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="126" y="28" text="CONNECTION AD5370"/>
+   <comment type="patch/comment" x="126" y="42" text="PA4 = NSS/CS (MCP4x22: Pin2)"/>
+   <comment type="patch/comment" x="126" y="56" text="PA5 = SCK (MCP4x22: Pin3)"/>
+   <comment type="patch/comment" x="126" y="70" text="PA7 = MOSI (MCP4x22: Pin4)"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_7" x="14" y="126">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT__" x="98" y="126">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 12;]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="dial_7" outlet="out"/>
+         <dest obj="DAC CHANNEL INPUT__" inlet="i1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+      <Author>Florian Deeg</Author>
+      <License>LGPL</License>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1936</width>
+      <height>1176</height>
+   </windowPos>
+</patch-1.0>

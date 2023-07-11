@@ -1,0 +1,124 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="On/Off" x="182" y="42">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/+-" uuid="5dcf602725d425281c958dbf81982b48a1f3aaea" name="+-_1" x="266" y="42">
+      <params>
+         <int32 name="value" value="22"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a" name="note_3" x="336" y="42">
+      <params>
+         <bin12 name="p1" value="273"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a">
+         <sDescription>note to a scale</sDescription>
+         <author>Mark Harris</author>
+         <license>BSD</license>
+         <helpPatch>note scale.axh</helpPatch>
+         <inlets>
+            <int32 name="note"/>
+            <bool32 name="on"/>
+         </inlets>
+         <outlets>
+            <int32 name="sc"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin12 name="p1" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t hold;]]></code.declaration>
+         <code.init><![CDATA[hold = 0;]]></code.init>
+         <code.krate><![CDATA[/*
+ * Pitched up +72 to make a simple solution for pitch down.
+ * THis gives a range of -5 octave in the low range and infinite in the top range.
+ * It's scaled back at the end of the algorithm, by adding -72(Offsetval).
+ */
+
+int OffsetVal	= 72; // The LOW range of scale object is -72
+int NoteIn	= inlet_note+OffsetVal; 
+int Step 		= NoteIn % 12;
+int StepOct	= (NoteIn / 12) * 12;
+
+/*
+ * Use -1 for "off" sample and hold value, cause 0 is used for the first step, so needed
+ * to offset the "off" setting, to -1 to make 0 available.
+ */
+
+int Scaled = ((param_p1 & (1 << (Step))) ? Step+StepOct :-OffsetVal-1)   -OffsetVal;
+
+if 	(inlet_on){
+if 	(Scaled>=-(OffsetVal-1))
+   	hold = Scaled;
+	outlet_sc = hold;	}
+else {outlet_sc = inlet_note;	}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="504" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="602" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mx/out" uuid="8dd6723f-d2c0-4bb8-a80a-e73aa4b02b97" name="out_1" x="714" y="42">
+      <params>
+         <frac32.u.map name="volume" value="7.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="336" y="182" text="Issue:"/>
+   <comment type="patch/comment" x="336" y="196" text="When I start the patch the  value that is send to the scale, is not initialized correctly."/>
+   <comment type="patch/comment" x="336" y="224" text="Explanation:"/>
+   <comment type="patch/comment" x="336" y="238" text="The values that are on for the scale, the black ones, sends out a a value between 0-11. Note 0 send out 0, note 1 send out 1 etc."/>
+   <comment type="patch/comment" x="336" y="252" text="Together all 12 notes makes up for an octave. Only the black notes are inlcuded in the scale."/>
+   <comment type="patch/comment" x="336" y="294" text="The white ones, the notes that ARE note part of the scale sends out a -1, whic triggers a sample and hold function."/>
+   <comment type="patch/comment" x="336" y="308" text="Thats why the sample and holf function is offset to -1, so that value is hold at -1 instead of 0, I needed 0 for the scale."/>
+   <comment type="patch/comment" x="336" y="322" text="So when the input actualle selects one of the white notes, it sends outs a -1 which activates the sample and hold function"/>
+   <comment type="patch/comment" x="336" y="336" text="that then holds THE LAST SELECTED BLACK NOTE."/>
+   <comment type="patch/comment" x="335" y="368" text="BUT....."/>
+   <comment type="patch/comment" x="336" y="392" text="The problem is that when the patch is initialized and the input has one of the WHITE notes selected, the output of the "/>
+   <comment type="patch/comment" x="336" y="406" text="scale will be set to 0. I think it is because the sample and hold function has NOT yet been send a function to actually hold, so it just"/>
+   <comment type="patch/comment" x="336" y="420" text="sends out a 0 instead."/>
+   <comment type="patch/comment" x="336" y="448" text="- I would love for the output of the scale to be initialised to the right value when the patch is load. Any suggestions?"/>
+   <nets>
+      <net>
+         <source obj="note_3" outlet="sc"/>
+         <dest obj="i_2" inlet="in"/>
+         <dest obj="sine_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="+-_1" outlet="out7"/>
+         <dest obj="note_3" inlet="note"/>
+      </net>
+      <net>
+         <source obj="On/Off" outlet="o"/>
+         <dest obj="note_3" inlet="on"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-271</x>
+      <y>184</y>
+      <width>1078</width>
+      <height>638</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/maximum-patch-size/1483/26 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 17:19:08 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Maximum patch size? - Developer - Axoloti Community</title>
+    <meta name="description" content="What is the maximum size for the binary image for a patch? I&amp;#39;m having a problem where I have a patch where the resulting binary is 7484 bytes in size which runs fine, but when I add some code and the size increases to 76&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="../14834658.html?page=2" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Maximum patch size?&#39;" href="../1483.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/ricard/200/163_1.png" />
+<meta property="og:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/ricard/200/163_1.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/maximum-patch-size/1483/26" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/maximum-patch-size/1483/26" />
+<meta property="og:title" content="Maximum patch size?" />
+<meta name="twitter:title" content="Maximum patch size?" />
+<meta property="og:description" content="A quick note to anyone reading this thread: as noted in another thread      a fix for this has now been merged to the Axoloti firmware master  branch." />
+<meta name="twitter:description" content="A quick note to anyone reading this thread: as noted in another thread      a fix for this has now been merged to the Axoloti firmware master  branch." />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../../index.html"><img src="../../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="../1483.html">Maximum patch size?</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../../c/developer.html" itemprop="url">
+        <span itemprop="title">Developer</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-12T21:28:58Z' itemprop='datePublished'>
+             2016-04-12 21:28:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>More research.</p>
+
+<p>I put a line the start of the PatchProcess() function to turn on the red LED (by adding code in src/main/java/axoloti/Patch.java so that it is inserted at the start of PatchProcess() when the Patcher creates xpatch.cpp . When the patch binary is short and start properly, the LED comes on, when it's long, it doesn't. Also tried to toggle the LED with 10 Hz, with the same result. Disassembling xpatch.elf verifies that the LED code is at the very start of PatchProcess(), so even if things go awry further on, the LED should still come on.</p>
+
+<p>Hm, perhaps PatchProcess() is never called? Added a printout at the end of xpatch_init2() (at the end of xpatch.cpp), to print out the value of PatchProcess() (= patchMeta.fptr_dsp_process in patch.c in the firmware). It prints out the same value both when the patch is ok and when it is not. So the function pointer to call the patch dsp() code is the same in both cases.</p>
+
+<p>Then took away the code to light / flash the LED from xpatch.cpp, and put in code to flash the LED in the ThreadDSP() function in patch.c, which in turn calls PatchProcess(). This LED flashes at all times, whether there is a patch loaded or not, but most importantly it shows that the thread runs also when the patch doesn't run properly, so it's not that the firmware dsp() thread dies or stops for some reason.</p>
+
+<p>Finally verified by disassmembling xpatch.bin that the code in PatchProcess() is actually there (so the linker hasn't goofed up and for instance left a lot of the function empty).</p>
+
+<p>Furthermore, PatchProcess() is rather short, and in turn calls the main root.dsp() function in xpatch.cpp which does the real work, which in turn contains all the (presumably inlined) dsp() functions of the various objects. I could imagine something going wrong in root.dsp() if it gets too large, but things seem to go wrong even before we get that far.</p>
+
+<p>So I'm at a loss to explain this. When the patch fails to run, all the code seems to be there, but even code at the very start of PatchProcess() isn't executed, although the dsp thread is running as it should and the function pointer seems to be in place.</p>
+
+<aside class="quote" data-post="6" data-topic="1483" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/thetechnobear/40/6_1.html" class="avatar">thetechnobear:</div>
+<blockquote><p>try changing number of presets/modulations etc to 0 on the patch, and subpatches.<br>sometimes, too much data also causes issue with the patch starting.. rather than the normal compile error.<br>(though you mentioned the noinline , made it work... so it didnt seem like this was the issue)</p></blockquote></aside>
+
+<p>I'll have a look at this, although I have very little data in my patch.<br></p>
+
+<p><aside class="quote"><blockquote><p>does the patch disconnect the UI? </p></blockquote></aside></p>
+
+<p>No, the UI looks just as usual : the background goes dark and there's a tick in the Live box.<br></p>
+
+<p><aside class="quote"><blockquote><p>also if you put an oscillator attached directly to the output, does it also sound?<br>(sometimes, the patch can be running on the board, but just not connected to the UI... hence why i check with sound, so I can hear if its running or not)</p></blockquote></aside></p>
+
+<p>I should try this, although since I've verified that the PatchProcess() function in the patch doesn't seem to be running I'm not hopeful that this will do anything. I've also tried other things like connecting a push button to a LED, and that doesn't work either when the patch doesn't seem to run.</p>
+
+<p>EDIT: Dumped the memory location where PatchProcess() is supposed to reside. When the patch is ok, it contains the expected data, which corresponds to the objdump of the .elf or .bin file. When the patch fails, it's all zeros. Not good.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-12T22:32:20Z' itemprop='datePublished'>
+             2016-04-12 22:32:20 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>hmm, zeros, that sound suspicious... is it zero even if a previous patch has already successfully run?</p>
+
+<p>there is code run, before anything else, when the patch is loaded, that is responsible for zeroing out memory, to initialise, static variables etc... I wonder, if this perhaps tripping over itself, in some situations...</p>
+
+<p>also as you say, perhaps its not so much the patch size as something else...<br>it could be worth comparing the sizes of the different regions of memory, between your 7k patch and tybett (which you said was 12k), perhaps that will reveal that something is bigger in your patch.</p>
+
+<p>perhaps if you post your patch here, I can also take a look, and it might also interest <a class="mention" href="../../../users/johannes.html">@johannes</a></p>
+
+<p>EDIT: btw, if you don't want to public share the patch, you can pm it to myself and johannes.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-13T09:44:59Z' itemprop='datePublished'>
+             2016-04-13 09:44:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Actually, in my latest debugging section, I discovered that the data is actually intact, but that the function pointer in patchMeta.fptr_dsp_process (which is what I was using as a starting point for my memory dump) seems to have a bogus value, and the data at that address was zero.</p>
+
+<p>The symptoms seem to be slightly arbitary, during one of my sessions yesterday the symptom was that the Axoloti Core timed out when starting the patch, the log said Starting Patch, then nothing happened for a while, and the Patcher then concluded that 'taking too long to start patch'. It didn't seem to have lost contact with the Core though, as I could attempt it again which worked fine up to the same point. So perhaps something did in fact crash under those specific circumstances.</p>
+
+<p>Like you're on to, I've been suspecting that the problem is not the patch size per se, but that something in my patch is larger than in most others. For instance, I have several local functions in my objects, which is rather unusual - although your Push object seems to have that too.</p>
+
+<p>I don't mind sharing the patch, either publically or via PM but as it is it contains lots of custom objects so it's a bit cumbersome at this point.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-13T09:57:02Z' itemprop='datePublished'>
+             2016-04-13 09:57:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="9" data-topic="1483"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/ricard/40/163_1.html" class="avatar">ricard:</div>
+<blockquote><p>For instance, I have several local functions in my objects, which is rather unusual - although your Push object seems to have that too.</p></blockquote></aside>
+
+<p>exactly, thats why mine are all declared no-inline.<br>the issue is, normally for axoloti objects, there functions are not called very often, so there is not a huge bloat.<br>but in my push objects, some functions are called lots, of times, and in loop.... and these all get expanded by the compiler.</p>
+
+<p>before I added this, I could only have my push object, plus about 3 or 4 other objects <img src="../../../images/emoji/emoji_one/smilea4f0.png?v=0" title=":smile:" class="emoji" alt=":smile:"> <br>once i did this, I could comfortable run it, with even big patches like tybett..... it made a huge difference!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-13T10:01:29Z' itemprop='datePublished'>
+             2016-04-13 10:01:29 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>BTW, for the record, I experimented with changing -O3 to -O2 in Makefile.patch . I had a simple 6 voice polysynth patch which used 41% DSP with -O3, but used 51% with -O2. So the difference in optimization level definitely makes a difference.</p>
+
+<p>Also for the record, my problem patch ran fine with -O2.</p>
+
+<p>I agree I should add noinline to my local functions, but for now while I have the problem staring me in the face I want to try and figure out what is causing it, because I'm sure it will come back and bite me (or someone else) later anyway.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-13T11:09:35Z' itemprop='datePublished'>
+             2016-04-13 11:09:35 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ive moved this to developer... as its something Id like to explore and come to some resolution...<br>then once we have the 'facts' then we can include something in the user guide section, to help other users understand where the limitations are, and what they can do about it.</p>
+
+<p>yes, thats why I suggested looking at the -O flags, the reason is -O3 inlines everything -O2 does not. (can remember exact details, but its in the GCC manual .. this is how  first identified that inlining was my issue) <br>as you say , -02 though is too blunt a tool.... we need to be in more control.</p>
+
+<p>for me the other issues is, xpatch.cpp is compiled as one unit, this is partly what causes the issues. as methods all in one compile unit are treated differently to those in different compile units.</p>
+
+<p>I do agree, it would be good to document this a bit, and get to the root of it... as frankly, I now cant remember if I worked out exactly what was going on, or just knew how to solve it ,because i didnt write any notes, other than an email i set to johannes at the time...(hmm, I should dig that out!) ... i vaguely remember, it being the .text section that grows out of control... </p>
+
+<p>oh one other thing I remember, which made an <strong>massive</strong> difference... at one stage I was rending my controls to the display using sprintf using a float ... this caused an explosion in code size, (sprintf is enormous) , so I changed this to chsnprintf (chibios) and used ints, and bang problem solved.</p>
+
+<p>... actually, now I have a sneaking suspicion, the order of events was... <br>I added (unknowingly) sprintf to format the display... a few days later, i noticed I couldn't load more complex patches, <br>as i didn't know it was sprintf, i started inlining, which seemed to solve issues... and only later (can't remember why/how), I found sprintf to be the underlying cause, and then suddenly my object was pretty lightweight.</p>
+
+<p>moral is, be careful which stdlib functions you use, some appear to be fine (I use things like strncmp), but some of the more complicated ones, might be 'off limits'. I guess, now, id probably steer clear of stdlib, and use chibios methods wherever I can.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+            <a href="../../patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.html">Patches fail to init due to malplaced data at start of patch binary</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-13T22:03:32Z' itemprop='datePublished'>
+             2016-04-13 22:03:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="12" data-topic="1483" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/thetechnobear/40/6_1.html" class="avatar">thetechnobear:</div>
+<blockquote><p>Ive moved this to developer... as its something Id like to explore and come to some resolution...<br>then once we have the 'facts' then we can include something in the user guide section, to help other users understand where the limitations are, and what they can do about it.</p></blockquote></aside>
+
+<p>Sure, no problem ... got a bit of a shock at first when I couldn't find the thread in its original location, for an instance I thought I'd been banned from the forum or something...</p>
+
+<p>Anyway, I've done some more research by instrumenting the Axoloti Core code and also xpatch.cpp .</p>
+
+<p>Now, without knowing the exact instrumentation, this might not be too meaningful, but here's an excerpt from the run when the patch is ok. Basically it just prints out where the code is at various times, together with some key variables:</p>
+
+<pre><code>Axoloti says: Init Start: dsp() is 0x00011851/0x00000000, patchMeta is 0x20009DFC
+Axoloti says: To start root.Init()
+Axoloti says: Here i am!
+Axoloti says: # params at init time: 6
+
+Axoloti says: Done root.Init()
+Axoloti says: Init Done: dsp() is 0x00011851/0x00011851, patchMeta is 0x20009DFC
+Axoloti says: Just got back from patch init
+Axoloti says: fptr_dsp_process = 0x00011851, patchMeta 0x20009DFC
+Axoloti says: fptr_dsp_process real address 0x00011850
+Axoloti says: Start Patch done
+Axoloti says: # params at run time: 7</code></pre>
+
+<p>Here's an occasion when it fails:</p>
+
+<pre><code>Axoloti says: Init Start: dsp() is 0x00011851/0x00000000, patchMeta is 0x20009DFC
+Axoloti says: To start root.Init()
+Axoloti says: Here i am!
+Axoloti says: # params at init time: 6
+
+Axoloti says: Done root.Init()
+Axoloti says: Init Done: dsp() is 0x00011851/0x00011851, patchMeta is 0x20009DFC
+Axoloti says: Just got back from patch init
+Axoloti says: fptr_dsp_process = 0x11080003, patchMeta 0x00000041
+Axoloti says: fptr_dsp_process real address 0x11080000
+Axoloti says: Start Patch done
+Axoloti says: # params at run time: 7</code></pre>
+
+<p>The interesting thing here is how the address for patchMeta is all wrong, and consequently patchMeta.fptr_dsp_process too. Now, patchMeta is not a pointer, it's a struct allocated in memory, and looking at the assembly code, it appears that the compiler keeps the address of patchMeta in r4, which is why the value can become wrong. It appears to happen across the call to (patchMeta.fptr_patch_init)(). So my guess would be that something is thrashing r4 in this function ... if it wasn't for the fact that r4 is saved on the stack at the start and restored at the end ... so, is something within the function thrashing the stack then?</p>
+
+<p>Comparing the code between the ok and bad patches reveals that the only changes to the xpatch_init2() function (which is what patchMeta.fptr_patch_init points to) are a number of constants, mostly addresses to various bits of data that is accessed in the init code. I have not scrutinized the list, but there was nothing there that struck me as being completely wacko, most things just move on 0x70 bytes or so which would seem to correspond well to the amount of extra code that is included in the longer patch (as part of the dsp() function).</p>
+
+<p>There are some things which are larger numbers which seem to skip quite a bit too, like from 0xf8200000 to 0xf8300000. I have not attempted to figure what these figures represent.</p>
+
+<p>One thing that is nagging at me is that the stack might be too small. The xpatch_init2() is called from patch.c:StartPatch() in the Axoloti Core firmware, which in turn is called from pconnection.c:PExReceiveByte(), which in turn is called from the ui.c:ThreadUI() thread function. According to the corresponding WORKING_AREA definition, the function has a stack size of 1142 bytes. I haven't tried increasing the size, but it would seem strange that the stack were too small as I would expect it failing every time then. One thing though is that bss area for the patch itself (see ramlink.ld) is in the CCM RAM, in the first 48k, and the Core stacks are above that, so an initialization bug in the patch itself could conflict with the stacks. However, again, the only difference between the good and bad patches are additional dsp code, which shouldn't affect the amount of bss data.</p>
+
+<p>Ah well, just speculation and mystery at this point.</p>
+
+<p>(I'm including the actual patch and associated objects, most of which are custom at this point, so perhaps not too easy to follow. Basically, the patch is a lab bench for a UI using the P6 2x24 character LCD, with objects that read the P6 I/O expander (using 74HC165 chips), extract the encoder bits, do quadrature decoding, and feed an edit object (which is embedded) which basically adjusts 6 parameters specified in the ids list, using an LCD controller object. This is probably not the optimal way to implement it, that would probaly be using a single object for everything, but it does allow me to experiment and get everything working before creating a monster object, and also, the individual objects might be useful to others, I plan on adding them to the contributions area once they seem stable enough.)</p>
+
+<p>The actual change in code size is accomplished by changing the #if 0's in the k-rate code in the embedded patch/object. The behaviour has been different depending on changes in the code; most often if one #if 0 is changed to #if 1, the code runs, but i get the second dump above, i.e. something messes up r4 or the stack during the call to xpatch_init2() as described above. If both #if 0's are changed to #if 1, depending on what other code I've got in there (i.e. adding and removing various debug printouts) i either get the same behavior as with one #1, or the Core crashes completely and reboots (the red LED starts flashing as it does when booted, and the Patcher times out, but after the Core has rebooted and the Patcher timed out, I can reconnect and continue from there.)</p>
+
+<p>One more note: the lcdctrl.axo object has a pin allocated that is normally not a GPIO pin on the Axoloti Core, but is used for the LCD in the P6. So I don't know what would happen if the patch is run as it stands on the core (apart from the obvious lack functionality due to the missing hardware).</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/0/paramtest6.axp">paramtest6.axp</a> (13.6 KB)</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/e/lcdctrl.axo">lcdctrl.axo</a> (18.1 KB)</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/3/165ctrl%20s.axo">165ctrl s.axo</a> (8.9 KB)</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/3/165in.axo">165in.axo</a> (669 Bytes)</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/3/qdecode.axo">qdecode.axo</a> (1.5 KB)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-14T19:55:53Z' itemprop='datePublished'>
+             2016-04-14 19:55:53 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>More research, for the records...</p>
+
+<p>The real core of the problem seems to be somewhere in StartPatch(). I've been instrumenting the code with LogTextMessages() in various shapes and sizes, but a common problem has been that register r4 gets clobbered. At one point r4 contained the address to patchMeta, in the code I have running now, it is set to zero early in the routine, but when subsequently used to zero patchStatus() it happens to be 17 so of course the patch doesn't start properly.</p>
+
+<p>r4 is pushed on the stack when StartPatch() calls patchMeta.fptr_patch_init() = xpatch:c:xpatch_init() (-&gt; xpatch_init2()and I've added a printout at the start of xpatch_init2() printing out the value of the saved r4 on the stack. Already here it is 17, which is bewildering as if it were a stack overwrite there's not much time from the point where it is set to 0 in StartPatch() until I read it in xpatch_init2().</p>
+
+<p>The good news though is that it doesn't seem to be something in xpatch.cpp, e.g. a buggy object, which causes the problem, the actual problem occurs before the patch is initialized. It still seems to be related to the size of the patch, currently I have to remove more of the patch to get it to run, but it's the same symptom apart from that - over a certain size, it doesn't run, in various ways, which depend on exactly how the firmware looks in the incarnation that's running at that time. </p>
+
+<p>There is a consistency in that when a bogus value is found in r4, it is the same even if the patch is reloaded over and over again.</p>
+
+<p>Also consistent with previous runs, Library -&gt; demos -&gt; youtube -&gt; tybett (almost twice the size of my patch) still runs fine.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-04-14T21:16:05Z' itemprop='datePublished'>
+             2016-04-14 21:16:05 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I <em>think</em> you're getting a stack overflow, possibly triggered by the LogTextMessage() calls.<br>I'd first try increasing the stack size.</p>
+
+<p>Do you have a in-circuit debug setup? <br>Enabling some checks in chibios may also be helpful to get to the source of the issue, like<br>CH_DBG_FILL_THREADS<br>and CH_DBG_ENABLE_STACK_CHECK<br>in firmware/chconf.h</p>
+
+<p>It seems that calling xpatch_init() with ample stack space would be a good improvement. Now it is called from different contexts depending on how a patch is started - through GUI, sdcard or flash on startup, sdcard hotplug or load object...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-15T04:48:13Z' itemprop='datePublished'>
+             2016-04-15 04:48:13 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="15" data-topic="1483" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/johannes/40/8_1.html" class="avatar">johannes:</div>
+<blockquote><p>I <em>think</em> you're getting a stack overflow, possibly triggered by the LogTextMessage() calls.<br>I'd first try increasing the stack size.</p></blockquote></aside>
+
+<p>Thanks for responding!</p>
+
+<p>Yeah, I've been thinking about the stack size, but the symptoms so far don't ring true with an ordinary stack overwrite, as my impression is that it is a couple of bytes that are overwritten, not something plowing into the stack from the top or bottom. My current impression is that there's a function which allocates a variable on the stack, and hands its address over to someone else, which subsequently updates the variable long after it has ceased to exist. I did a cursory look through pconnection.c as it allocates a lot of stuff on the stack for the data sent back via the USB transmit routines; if one of these for some reason made some change to the data it would explain what's happening. But that particular case seems highly unlikely, especially since the data areas are considered <code>const</code> by Chibios as evidenced by the casts in those calls.</p>
+
+<p>The thing is, that I started having problems long before I started sprinkling the code with LogTextMessage()s. I did have some in the objects in my patch, but the problem seems to occur before any xpatch code is called. And removing those calls from the patch will make the code smaller again so it could start working for that reason.</p>
+
+<p>Of course, it could be a complex chain of events, i.e. a stack overwrite which subsequently leads to a wild pointer, which is causing the problem.</p>
+
+<p>Which stack size are you thinking of, the ThreadUI stack size (currently at 1142 bytes) (that would be the one in the call sequence that I'm using as I always load the patch via the Patcher)?</p>
+
+<p>Then there's <code>__main_stack__size__</code> and <code>__process_stack_size__</code> in STM32F407xG.ld. Hm, those two are only specified as 0x400 each, but I suppose they are not the ones used for the dynamic thread stack allocation? Finally, there's the CCRAMEND area in STM32F407xG.ld (which only seems to allocate 10k of the potential 16k available above 0x1000C000).<br></p>
+
+<p><aside class="quote"><blockquote><p>Do you have a in-circuit debug setup? </p></blockquote></aside></p>
+
+<p>No, sorry. If things get really hairy perhaps I could move this to an STM32F4DISCOVERY board which I have lying around, and use the ST-LINK on that one.<br></p>
+
+<p><aside class="quote"><blockquote><p>Enabling some checks in chibios may also be helpful to get to the source of the issue, like<br>CH_DBG_FILL_THREADS<br>and CH_DBG_ENABLE_STACK_CHECK<br>in firmware/chconf.h</p></blockquote></aside></p>
+
+<p>I'll definitely have a look at that, that seems like it might be worth while.<br></p>
+
+<p><aside class="quote"><blockquote><p>It seems that calling xpatch_init() with ample stack space would be a good improvement. Now it is called from different contexts depending on how a patch is started - through GUI, sdcard or flash on startup, sdcard hotplug or load object...</p></blockquote></aside></p>
+
+<p>So it is a question of increasing the stack size for several threads then. Is the stack for main (where StartPatch is called from on startup) the <code>__main_stack_size__</code> in STM32F407xG.ld ?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-16T05:37:34Z' itemprop='datePublished'>
+             2016-04-16 05:37:34 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ok, so after having spent some time debugging and thinking about this (my code looks like swiss cheese now with LogTextMessages() sprinkled all over the place, intermixed with lots of #if 0 and #if 1 to switch things off, and the DSP thread has been converted into a realtime polling stack monitor) I finally figured out what the problem is. As a side effect I know more about the Axoloti code, Chibios and ARM assembler than I was actually hoping for at this point.</p>
+
+<p>To start with, with the setup I have right now, the problem I'm seeing is that when StartPatch() calls the patch loaded at PATCHMAINLOC in RAM, register r4 gets clobbered, and for this particular incarnation, it is loaded with 0 and used to zero things, incluing setting <code>patchStatus</code> to 0 after loading and initializing the patch. r4 is saved together with a lot of other processor registers when <code>xpatch_init()</code> is called, so it's saved on the stack for the duration of the init call. The problem is that upon return, r4 doesn't contain 0 anymore, it happens to contain 1, so the patch never gets started.</p>
+
+<p>I added code to xpatch.cpp to print out the memory location where r4 is saved, and sure enough, that location contains 1. So I naturally assumed there was some sort of stack overwrite or wild pointer which was overwriting the stack. However, I was bewildered by the fact that there was actually very little going wrong in the code, a stack overwrite I would have thought would have had more disastrous consequences (especially if another stack hit the current one). Also, the bug has been fairly resilient to changing the firmware code, which moves things around in the flash, and also fairly consistent as to behaving differently when the size of the patch is changed.</p>
+
+<p>(By the way, I tried enabling the stack checks in Chibios, including patching in some hooks so that i would get a printout or system hang if a stack overflow was detected, but it never triggered.)</p>
+
+<p>As usual, the answer has been staring me in the face for some time. I've looked at numerous disassembly dumps of various parts of the code to see where things are put and what the processor actually does, but i hadn't noticed this:</p>
+
+<pre><code>build/xpatch.elf:     file format elf32-littlearm
+Disassembly of section .text:
+00011010 &lt;xpatch_init&gt;:
+   11010:       4b04            ldr     r3, [pc, #16]   ; (11024 &lt;xpatch_init+0x14&gt;)
+   11012:       4298            cmp     r0, r3
+   11014:       d003            beq.n   1101e &lt;xpatch_init+0xe&gt;
+   11016:       4b04            ldr     r3, [pc, #16]   ; (11028 &lt;xpatch_init+0x18&gt;)</code></pre>
+
+<p>xpatch_init actually starts at 0x11010, not at PATCHMAINLOC=0x11000 (disregarding the high bit as the RAM is doubly mapped to address 0), which is where StartPatch() calls it. If we now move to reality, which is the xpatch.bin file, we have:</p>
+
+<pre><code>build/xpatch.bin:     file format binary
+Disassembly of section .data:
+00000000 &lt;.data&gt;:
+       0:       2401            movs    r4, #1
+       2:       0001            movs    r1, r0
+        ...
+      10:       4b04            ldr     r3, [pc, #16]   ; (0x24)
+      12:       4298            cmp     r0, r3
+      14:       d003            beq.n   0x1e</code></pre>
+
+<p>So yes, <code>xpatch_init()</code> starts at an offset of 0x10, and furthermore, the first thing executed when calling offset 0x00 is <code>movs r4, #1</code> ... which explains why I have observed that r4 changes to 1 (in this case). So it wasn't the stack getting overwritten, it was the register actually being clobbered!</p>
+
+<p>No doubt the data at that address is not code, but something else, like a header, 0x00012401 looking like some form of length or highest address specifier, which explains why the behavior changes when the size of the patch changes.</p>
+
+<p>So, got to figure out what the actual fix is here, just calling PATCHMAINLOC with a 16 byte offset will do it of course, but a question is if the header is in fact intentional and if not if it can be removed. Perhaps <a class="mention" href="../../../users/johannes.html">@johannes</a> knows, otherwise I'll have a look at it next time I have a chance.</p>
+
+<p>EDIT: It looks as if the 'header' is actually the constructor and destructor init arrays, with padding. I'm not sure if it has to be at the start of the binary like this, I'll experiment a bit with it when I get the chance.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-16T10:01:59Z' itemprop='datePublished'>
+             2016-04-16 10:01:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Cool stuff</p>
+
+<p>I assume you found the code which calls the static constructors. </p>
+
+<p>Also with this new knowledge are you able to create small patches that don't work? <br>Seems to me the key to the problem is determining why some patches work and others not - since your hypothesis  appears to be its not size related?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-16T10:57:59Z' itemprop='datePublished'>
+             2016-04-16 10:57:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm convinced the key to the problem is this seciton in ramlink.ld</p>
+
+<pre><code>SECTIONS {
+
+    constructors : ALIGN(4) SUBALIGN(4)
+    {
+        PROVIDE(__ctor_array_start = .);
+        KEEP(*(SORT(.init_array.*)))
+        KEEP(*(.init_array))
+        PROVIDE(__ctor_array_end = .);
+    } &gt; SRAM
+
+    destructors : ALIGN(4) SUBALIGN(4)
+    {
+        PROVIDE(__dtor_array_start = .);
+        KEEP(*(.fini_array))
+        KEEP(*(SORT(.fini_array.*)))
+        PROVIDE(__dtor_array_end = .);
+    } &gt; SRAM
+
+    .text : ALIGN(16) SUBALIGN(16)
+    {
+        * (.boot);
+        * (.text);
+        etext = .;
+    } &gt; SRAM</code></pre>
+
+<p>Here init_array and fini_array for the constructors and destructors precede the .text segment, thus xpatch_init() will not be at the start xpatch.bin, but a multiple of 16 bytes further on. Thus when calling PATCHMAINLOC the first code that is executed are the pointers in the init_array and fini_array. Since the actual values in those arrays are function pointers, their address and thus the resulting code depends on the size of the patch. So it's a question of creating a patch which results in values for the function pointers which correspond to ARM assembly codes which will do no harm ...</p>
+
+<p>Right now I don't have access to the hardware for testing, but I'm going to try moving the constructors and destructors segments to after the text segment, as soon as I get the chance.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-16T14:41:36Z' itemprop='datePublished'>
+             2016-04-16 14:41:36 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>just had a look, yeah I think you are on to something.... as you say PATCHMAINLOC seems to expect the code is the first thing in SRAM.   <a class="mention" href="../../../users/johannes.html">@johannes</a> thoughts?</p>
+
+<p>but, if this is the case, Im quite surprised, we are not seeing more failures... as there must be quite a few static constructors... and it appears if any of these create some kind of call op, then bang...</p>
+
+<p>so... as for reproducing (important, so we can test the 'fix') </p>
+
+<p>I guess, if we create a  custom object, with LOTS of static constructor, there is a high chance it will crash...<br>we don't need a large patch, just lots of opportunities, for the code to trip up ... no?</p>
+
+<p>I can't see any harm in moving the ctor/dtor and will give it a go, but it would be nice to prove this is the case, somehow with a 'destructive test'....</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-16T17:52:01Z' itemprop='datePublished'>
+             2016-04-16 17:52:01 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#21</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="20" data-topic="1483" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/thetechnobear/40/6_1.html" class="avatar">thetechnobear:</div>
+<blockquote>
+<p>just had a look, yeah I think you are on to something.... as you say PATCHMAINLOC seems to expect the code is the first thing in SRAM.   <a class="mention" href="../../../users/johannes.html">@johannes</a> thoughts?</p>
+<p>but, if this is the case, Im quite surprised, we are not seeing more failures... as there must be quite a few static constructors... and it appears if any of these create some kind of call op, then bang...</p>
+</blockquote></aside>
+
+<p>i agree, it is a bit surprising that this has not been hit more. However, it seems that what's in this section in practice is a pointer to a list of function pointers, which thus corresponds to at most two instructions.</p>
+
+<p>Another way of looking at it is that if the problem had caused more problems, it would have been fixed earlier as it would have been more obvious that something waas wrong. By sheer luck, the instructions resulting from the pointers have in most cases been harmless, if that hadn't been the case, the system would have crashed and misbehaved so often that someone would have needed to have a lok at it a long time ago.</p>
+
+<p><aside class="quote"><blockquote><p>I can't see any harm in moving the ctor/dtor and will give it a go, but it would be nice to prove this is the case, somehow with a 'destructive test'....</p></blockquote></aside></p>
+
+<p>To me, it's quite obvious that the constructor/destructor arrays should not be called as code ... and it wasn't always that way, those sections were introduced in commit <br>203580f5... on 2015-08-04, thus it wasn't part of the original design. The constructor list is explicitly traversed in xpatch_init2(), so there's no way it can be meant to be executed directly.</p>
+
+<p>It all ties in with the symptoms too: the dependence on the patch size, especially that it is not a linear correspondance, i.e. patches don't necessarily break over a certain size, the relative independence of the firmware code, the fact that the constructor code in my case equates to setting r4 to 1 which is the behavior I've observed, not to mention the disassembly of the code actually executed when calling PATCHMAINLOC.</p>
+
+<p>Anyhow, I tested my 'problem patch' with the constructor and destructor sections moved to after the text section in xpatch.bin, and it works fine now, in all configurations of it (I have been testing by remove one, two or three calls to my printpar() local function, with the the constructors list at the start of xpatch.bin, removing all three has always worked, and depending on the rest of the code removing one or two has sometimes worked, wheras leaving all three there has never worked.)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-16T21:08:18Z' itemprop='datePublished'>
+             2016-04-16 21:08:18 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#22</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="21" data-topic="1483"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/ricard/40/163_1.html" class="avatar">ricard:</div>
+<blockquote><p>203580f5... on 2015-08-04, thus it wasn't part of the original design. The constructor list is explicitly traversed in xpatch_init2(), so there's no way it can be meant to be executed directly.</p></blockquote></aside>
+
+<p>oops, my bad <img src="../../../images/emoji/emoji_one/frowninga4f0.png?v=0" title=":frowning:" class="emoji" alt=":frowning:"> </p>
+
+<p>was quite some time back... I did it to fix issue with static dtor/ctor not being called... which worked,<br>and I placed it in the same 'relative' place as is done in the STM32.ld file... <br>but it didn't occur to me that of course, the patch start point is consider to be at the beginning...</p>
+
+<p>I'll move it now... </p>
+
+<p>BUT... <br>I suspect the correct implementation is to change .text to ...</p>
+
+<pre><code>.text : ALIGN(16) SUBALIGN(16)
+{
+    PROVIDE(__code_start = .);
+    * (.boot);
+    * (.text);
+    etext = .;
+} &gt; SRAM</code></pre>
+
+<p>such that the start of the code, is not hardcoded but derived from the ld file... <br>(so if it moves , changes, then this will move with it)</p>
+
+<p>thoughts?</p>
+
+<p>EDIT: forgot to say <strong>very cool bit of debugging... thanks for putting the effort into this</strong>  <img src="../../../images/emoji/emoji_one/booma4f0.png?v=0" title=":boom:" class="emoji" alt=":boom:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-16T21:31:06Z' itemprop='datePublished'>
+             2016-04-16 21:31:06 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#23</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="22" data-topic="1483" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/thetechnobear/40/6_1.html" class="avatar">thetechnobear:</div>
+<blockquote>
+<p>I suspect the correct implementation is to change .text to ...<br>[ ... ]<br>such that the start of the code, is not hardcoded but derived from the ld file... <br>(so if it moves , changes, then this will move with it)</p>
+<p>thoughts?</p>
+</blockquote></aside>
+
+<p>I'm assuming you mean in addition to moving the constructors/destructors segment? Otherwise there will still be an offset from the start of the binary to the xpatch_init() function.</p>
+
+<p>I must say I'm not sure what <code>PROVIDE(__code_start = .);</code> actually does. Does it guarantee that the start of the code is at the start of the .text segment? Or is there some form of attribute one can give to a specific function so that the linker puts it at the address specified by <code>__code_start</code>?</p>
+
+<p>Actually, looking at xpatch.cpp, this is actually done already: the code for xpatch_init() is as follows (from xpatch.cpp):</p>
+
+<pre><code>extern "C" __attribute__ ((section(".boot"))) void xpatch_init(int fwid){
+  xpatch_init2(fwid);
+}</code></pre>
+
+<p>and the <code>__attribute__((section(".boot"))</code> puts it in the .boot section which is before the .text section in the .text segment. But maybe I'm misunderstaning you as I don't really know what PROVIDES really does.</p>
+
+<p><aside class="quote"><blockquote><p>EDIT: forgot to say <strong>very cool bit of debugging... thanks for putting the effort into this</strong>  <img src="../../../images/emoji/emoji_one/booma4f0.png?v=0" title=":boom:" class="emoji" alt=":boom:"></p></blockquote></aside></p>
+
+<p>Thanks. I just couldn't walk away from this (and I figured if I couldn't fix it I wouldn't be able to get any further with the patch I was working on...).</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-16T22:26:21Z' itemprop='datePublished'>
+             2016-04-16 22:26:21 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#24</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>provide gives you a variable initialised to the actually position allocated by the linker.</p>
+
+<p>yes, i meant in addition.</p>
+
+<p>but I realised, it doesn't actually help... as the pointer is needed in patch.c, not in xpatch.<br>I guess something could be defined in STM32F407.ld, but it doesnt really help, as its just having to trust that the binary sent, really does have the code at the beginning.<br>(the section code, you show above forces this, assuming .boot is at the start)</p>
+
+<p>still amazed, we haven't seen more issues... guess the wind has been blowing in the right direction.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-16T22:55:27Z' itemprop='datePublished'>
+             2016-04-16 22:55:27 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#25</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="24" data-topic="1483" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/thetechnobear/40/6_1.html" class="avatar">thetechnobear:</div>
+<blockquote><p>provide gives you a variable initialised to the actually position allocated by the linker.</p></blockquote></aside>
+
+<p>Ah. That simple. I should have guessed...</p>
+
+<p><aside class="quote"><blockquote><p>but I realised, it doesn't actually help... as the pointer is needed in patch.c, not in xpatch.<br>I guess something could be defined in STM32F407.ld, but it doesnt really help, as its just having to trust that the binary sent, really does have the code at the beginning.<br>(the section code, you show above forces this, assuming .boot is at the start)</p></blockquote></aside></p>
+
+<p>In ramlink.ld, .boot is before .text, so yes. Perhaps there should be a comment there that it really needs to be first so no one misses it in the fuure.</p>
+
+<p><aside class="quote"><blockquote><p>still amazed, we haven't seen more issues... guess the wind has been blowing in the right direction.</p></blockquote></aside></p>
+
+<p>The funny thing is that I have had various issues, i.e. things misbehaving, but I always assumed I'd done something wrong in the patch so I changed someting and voila, it would work again. So probably there have been a few hickups which people have passed off as other errors.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-17T17:23:09Z' itemprop='datePublished'>
+             2016-04-17 17:23:09 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#26</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>A quick note to anyone reading this thread: as noted in another thread</p>
+
+<aside class="quote" data-post="1" data-topic="1513">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/ricard/40/163_1.html" class="avatar">
+    <a href="../../patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.html">Patches fail to init due to malplaced data at start of patch binary</a> <a class="badge-wrapper  bullet" href="../../../c/helpdesk.html"><span class="badge-category-bg" style="background-color: #9EB83B;"></span><span style="color: #FFFFFF;" data-drop-close="true" class="badge-category clear-badge" title='This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or "how to?"'>Helpdesk</span></a>
+  </div>
+  <blockquote>This thread: <a href="12.html">http://community.axoloti.com/t/maximum-patch-size/1483/12</a> started out as a question about the maximum size of a patch, but in the end I determined that there is bug in ramlink.ld, which puts a couple of arrays before the patch init function. The net result is that when the firmware calls PATCHMAINLOC to initialize the patch, the data in the arrays (pointers) are interpreted as code, which is then run before the actual init function, which can potentially wreck havoc with patch initi…
+    <div class="topic-info">
+    </div>
+  </blockquote>
+</aside>
+
+
+<p>a fix for this has now been merged to the Axoloti firmware master  branch.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Maximum patch size?'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../../index.html'>Home</a>
+        <a href="../../../categories.html">Categories</a>
+        <a href="../../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../../tos.html">Terms of Service</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/maximum-patch-size/1483/26 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 17:19:08 GMT -->
+</html>

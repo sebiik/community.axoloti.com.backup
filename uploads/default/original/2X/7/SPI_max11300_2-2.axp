@@ -1,0 +1,718 @@
+<patch-1.0 appVersion="1.0.10">
+   <comment type="patch/comment" x="42" y="28" text="CONNECTION MAX11300"/>
+   <comment type="patch/comment" x="42" y="56" text="PA4 = NSS/CS "/>
+   <comment type="patch/comment" x="42" y="70" text="PA5 = SCK "/>
+   <obj type="disp/kscope 128 b trig" uuid="b24afecdaf757006c3a4bb578f0aea1d7441153e" name="kscope_1" x="378" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="42" y="84" text="PA7 = MISO"/>
+   <obj type="disp/kscope 128 b trig" uuid="b24afecdaf757006c3a4bb578f0aea1d7441153e" name="kscope_2" x="602" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="42" y="98" text="PA7 = MOSI"/>
+   <obj type="gpio/spi/config" sha="62af644b09e7f654b36d66533da8ea5971ddb351" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="42" y="140">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=0"/>
+         <combo attributeName="clock_phase" selection="CPHA=0"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="168" y="140" text="SPI Config"/>
+   <comment type="patch/comment" x="168" y="168" text="CPOL = 0"/>
+   <comment type="patch/comment" x="168" y="182" text="CPHA = 0"/>
+   <comment type="patch/comment" x="168" y="196" text="FPCLK/4"/>
+   <comment type="patch/comment" x="168" y="210" text="MSBfirst"/>
+   <obj type="lfo/sine" sha="a2851b3d62ed0faceefc98038d9571422f0ce260" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_1" x="56" y="294">
+      <params>
+         <frac32.s.map name="pitch" value="31.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/bipolar2unipolar" sha="93baeaf78c9a228f23225186d21e61abc921c3d6" uuid="f6f63d71053d572d3c795f83c7ec11dfbbce82dd" name="bipolar2unipolar_1" x="182" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="max11300" x="336" y="294">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[/*
+  Script for the max11300 by mnskll, may-16
+  Many thanks to Wolfgang Friedrich. This script is based on his
+  Arduino Library for PIXI Analog shield with Maxim PIXI A/D chip.
+  The script also contains parts from the axolotl MCP4x22 script by paul,
+  so thanks to him too.
+  Released into the public domain.
+*/
+
+#define PIXI_READ                  0x01
+#define PIXI_WRITE                 0x00
+// Register Table (each register is 16 bit wide)
+#define PIXI_DEVICE_ID                  0x00
+#define PIXI_INTERRUPT                  0x01
+#define PIXI_ADC_DATA_STATUS_0_15       0x02
+#define PIXI_ADC_DATA_STATUS_16_19      0x03
+#define PIXI_OVERCURRENT_STATUS_0_15    0x04
+#define PIXI_OVERCURRENT_STATUS_16_19   0x05
+#define PIXI_GPI_STATUS_0_15            0x06
+#define PIXI_GPI_STATUS_16_19           0x07
+#define PIXI_INT_TEMP_DATA              0x08
+#define PIXI_EXT1_TEMP_DATA             0x09
+#define PIXI_EXT2_TEMP_DATA             0x0A
+#define PIXI_GPI_DATA_0_15              0x0B
+#define PIXI_GPI_DATA_16_19             0x0C
+#define PIXI_GPO_DATA_0_15              0x0D
+#define PIXI_GPO_DATA_16_19             0x0E
+#define PIXI_DEVICE_CTRL                0x10
+#define PIXI_INTERRUPT_MASK             0x11
+#define PIXI_GPI_IRQ_MODE_0_7           0x12
+#define PIXI_GPI_IRQ_MODE_8_15          0x13
+#define PIXI_GPI_IRQ_MODE_16_19         0x14
+#define PIXI_DAC_PRESET_DATA1           0x16
+#define PIXI_DAC_PRESET_DATA2           0x17
+#define PIXI_TEMP_MON_CONFIG            0x18
+#define PIXI_TEMP_INT_HIGH_THRESHOLD    0x19
+#define PIXI_TEMP_INT_LOW_THRESHOLD     0x1A
+#define PIXI_TEMP_EXT1_HIGH_THRESHOLD   0x1B
+#define PIXI_TEMP_EXT1_LOW_THRESHOLD    0x1C
+#define PIXI_TEMP_EXT2_HIGH_THRESHOLD   0x1D
+#define PIXI_TEMP_EXT2_LOW_THRESHOLD    0x1E
+
+#define PIXI_PORT_CONFIG                0x20
+#define PIXI_PORT0_CONFIG               0x20
+#define PIXI_PORT1_CONFIG               0x21
+#define PIXI_PORT2_CONFIG               0x22
+#define PIXI_PORT3_CONFIG               0x23
+#define PIXI_PORT4_CONFIG               0x24
+#define PIXI_PORT5_CONFIG               0x25
+#define PIXI_PORT6_CONFIG               0x26
+#define PIXI_PORT7_CONFIG               0x27
+#define PIXI_PORT8_CONFIG               0x28
+#define PIXI_PORT9_CONFIG               0x29
+#define PIXI_PORT10_CONFIG              0x2A
+#define PIXI_PORT11_CONFIG              0x2B
+#define PIXI_PORT12_CONFIG              0x2C
+#define PIXI_PORT13_CONFIG              0x2D
+#define PIXI_PORT14_CONFIG              0x2E
+#define PIXI_PORT15_CONFIG              0x2F
+#define PIXI_PORT16_CONFIG              0x30
+#define PIXI_PORT17_CONFIG              0x31
+#define PIXI_PORT18_CONFIG              0x32
+#define PIXI_PORT19_CONFIG              0x33
+
+#define PIXI_ADC_DATA                   0x40
+#define PIXI_PORT0_ADC_DATA             0x40
+#define PIXI_PORT1_ADC_DATA             0x41
+#define PIXI_PORT2_ADC_DATA             0x42
+#define PIXI_PORT3_ADC_DATA             0x43
+#define PIXI_PORT4_ADC_DATA             0x44
+#define PIXI_PORT5_ADC_DATA             0x45
+#define PIXI_PORT6_ADC_DATA             0x46
+#define PIXI_PORT7_ADC_DATA             0x47
+#define PIXI_PORT8_ADC_DATA             0x48
+#define PIXI_PORT9_ADC_DATA             0x49
+#define PIXI_PORT10_ADC_DATA            0x4A
+#define PIXI_PORT11_ADC_DATA            0x4B
+#define PIXI_PORT12_ADC_DATA            0x4C
+#define PIXI_PORT13_ADC_DATA            0x4D
+#define PIXI_PORT14_ADC_DATA            0x4E
+#define PIXI_PORT15_ADC_DATA            0x4F
+#define PIXI_PORT16_ADC_DATA            0x50
+#define PIXI_PORT17_ADC_DATA            0x51
+#define PIXI_PORT18_ADC_DATA            0x52
+#define PIXI_PORT19_ADC_DATA            0x53
+
+#define PIXI_DAC_DATA                   0x60
+#define PIXI_PORT0_DAC_DATA             0x60
+#define PIXI_PORT1_DAC_DATA             0x61
+#define PIXI_PORT2_DAC_DATA             0x62
+#define PIXI_PORT3_DAC_DATA             0x63
+#define PIXI_PORT4_DAC_DATA             0x64
+#define PIXI_PORT5_DAC_DATA             0x65
+#define PIXI_PORT6_DAC_DATA             0x66
+#define PIXI_PORT7_DAC_DATA             0x67
+#define PIXI_PORT8_DAC_DATA             0x68
+#define PIXI_PORT9_DAC_DATA             0x69
+#define PIXI_PORT10_DAC_DATA            0x6A
+#define PIXI_PORT11_DAC_DATA            0x6B
+#define PIXI_PORT12_DAC_DATA            0x6C
+#define PIXI_PORT13_DAC_DATA            0x6D
+#define PIXI_PORT14_DAC_DATA            0x6E
+#define PIXI_PORT15_DAC_DATA            0x6F
+#define PIXI_PORT16_DAC_DATA            0x70
+#define PIXI_PORT17_DAC_DATA            0x71
+#define PIXI_PORT18_DAC_DATA            0x72
+#define PIXI_PORT19_DAC_DATA            0x73
+
+// Detailed register content map
+// reg 0x00 Device ID
+#define DEVID           0xFFFF
+// reg00x10 Device control
+#define ADCCTL          0x0003
+#define DACCTL    0x000C
+#define ADCCONV 0x0030
+#define DACREF    0x0040
+#define THSHDN    0x0080
+#define TMPCTL    0x0700
+#define TMPCTLINT 0x0100
+#define TMPCTLEXT1  0x0200
+#define TMPCTLEXT2  0x0400
+#define TMPPER    0x0800
+#define RS_CANCEL 0x1000
+#define LPEN    0x2000
+#define BRST    0x4000
+#define RESET   0x8000
+//ADCCTL values
+#define ADC_MODE_IDLE   0x0
+#define ADC_MODE_SWEEP  0x1
+#define ADC_MODE_CONV   0x2
+#define ADC_MODE_CONT   0x3
+
+
+// reg 0x18 Temperature monitor config
+#define TMPINTMONCFG    0x0003
+#define TMPEXT1MONCFG   0x000C
+#define TMPEXT2MONCFG   0x0030
+// reg 0x19-1E Temperature monitor threshold high and low
+#define TMPINTHI        0x0FFF
+#define TMPINTLO        0x0FFF
+#define TMPEXT1HI       0x0FFF
+#define TMPEXT1LO       0x0FFF
+#define TMPEXT2HI       0x0FFF
+#define TMPEXT2LO       0x0FFF
+
+// reg 0x20-33 Port Configuration
+#define FUNCPRM         0x0FFF
+#define FUNCID          0xF000
+// Port Configuration register bits
+#define FUNCPRM_ASSOCIATED_PORT    0x001F
+#define FUNCPRM_NR_OF_SAMPLES      0x00E0
+#define FUNCPRM_RANGE              0x0700
+#define FUNCPRM_AVR_INV            0x0800
+#define FUNCID_MODE0_HIGHZ         0x0000
+
+
+
+// reg 0x40-53  ADC data
+#define ADCDAT          0x0FFF
+// reg 0x60-73  DAC data
+#define DACDAT          0x0FFF
+
+// Channel placeholder
+#define CHANNEL_0       0x00
+#define CHANNEL_1       0x01
+#define CHANNEL_2       0x02
+#define CHANNEL_3       0x03
+#define CHANNEL_4       0x04
+#define CHANNEL_5       0x05
+#define CHANNEL_6       0x06
+#define CHANNEL_7       0x07
+#define CHANNEL_8       0x08
+#define CHANNEL_9       0x09
+#define CHANNEL_10      0x0a
+#define CHANNEL_11      0x0b
+#define CHANNEL_12      0x0c
+#define CHANNEL_13      0x0d
+#define CHANNEL_14      0x0e
+#define CHANNEL_15      0x0f
+#define CHANNEL_16      0x10
+#define CHANNEL_17      0x11
+#define CHANNEL_18      0x12
+#define CHANNEL_19      0x13
+
+// Channel mode placeholder
+#define CH_MODE_0               0x00
+#define CH_MODE_HIZ             0x00
+#define CH_MODE_1               0x01
+#define CH_MODE_GPI             0x01
+#define CH_MODE_2               0x02
+#define CH_MODE_DIDIR_LT_TERM   0x02
+#define CH_MODE_3               0x03
+#define CH_MODE_GPO_REG         0x03
+#define CH_MODE_4               0x04
+#define CH_MODE_GPO_UNI         0x04
+#define CH_MODE_5               0x05
+#define CH_MODE_DAC             0x05
+#define CH_MODE_6               0x06
+#define CH_MODE_DAC_ADC_MON     0x06
+#define CH_MODE_7               0x07
+#define CH_MODE_ADC_P           0x07
+#define CH_MODE_8               0x08
+#define CH_MODE_ADC_DIFF_P      0x08
+#define CH_MODE_9               0x09
+#define CH_MODE_ADC_DIFF_N      0x09
+#define CH_MODE_10              0x0a
+#define CH_MODE_DAC_ADC_DIFF_N  0x0a
+#define CH_MODE_11              0x0b
+#define CH_MODE_TERM_GPI_SW     0x0b
+#define CH_MODE_12              0x0c
+#define CH_MODE_TERM_REG_SW     0x0c
+
+// Channel range
+#define CH_NO_RANGE              0x0000
+#define CH_0_TO_10P              0x0001
+#define CH_5N_TO_5P              0x0002
+#define CH_10N_TO_0              0x0003
+#define CH_0_TO_2P5_5N_TO_5P     0x0004
+#define CH_RES                   0x0005
+#define CH_0_TO_2P5_0_TO_10P     0x0006
+#define CH_RES                   0x0007
+
+
+#define TEMP_CHANNEL_INT  0x0
+#define TEMP_CHANNEL_EXT0 0x1
+#define TEMP_CHANNEL_EXT1 0x2
+uint8_t *txbuf;
+uint8_t *rxbuf;
+
+uint16_t info = 0;
+uint16_t read = 0;
+
+void WriteRegister(uint8_t address, uint16_t value)
+{
+
+  spiSelect(&SPID1);
+  txbuf[0] = ( (address) << 1) | PIXI_WRITE; //write
+  txbuf[1] = (value) >> 8; //value H
+  txbuf[2] = (value) & 0xFF; //valueL
+  spiSend(&SPID1, 3, txbuf);
+  spiUnselect(&SPID1);
+  //chThdSleepMilliseconds(5);
+}
+
+uint16_t ReadRegister(uint8_t address, bool debug = false)
+{
+  uint16_t resultat = 0;
+  spiSelect(&SPID1);
+  txbuf[0] = ( (address) << 1) | PIXI_READ; //write
+  spiSend(&SPID1, 1, txbuf);
+  spiReceive(&SPID1, 2, rxbuf);
+  resultat = rxbuf[0] << 8 | rxbuf[1];
+  spiUnselect(&SPID1);
+  return resultat;
+}
+
+uint16_t ReadAnalog(uint8_t channel)
+{
+  uint16_t resultat = 0;
+  spiSelect(&SPID1);
+  txbuf[0] = ( (PIXI_ADC_DATA + channel) << 1) | PIXI_READ; //write
+  spiSend(&SPID1, 1, txbuf);
+  spiReceive(&SPID1, 2, rxbuf);
+  resultat = rxbuf[0] << 8 | rxbuf[1];
+  spiUnselect(&SPID1);
+  return resultat;
+}
+
+uint16_t  configChannel( uint8_t channel, uint8_t channel_mode,  uint16_t dac_dat,  uint16_t range, uint8_t adc_ctl,  uint8_t adc_smp )
+{
+  uint16_t result = 0;
+  uint16_t info = 0;
+
+  if ( ( channel <= 19 ) && ( channel_mode <= 12 ) )
+  {
+
+    if (channel_mode == CH_MODE_1  ||
+        channel_mode == CH_MODE_3  ||
+        channel_mode == CH_MODE_4  ||
+        channel_mode == CH_MODE_5  ||
+        channel_mode == CH_MODE_6  ||
+        channel_mode == CH_MODE_10 )
+    {
+      // config DACREF (internal reference),DACCTL (sequential update)
+      info = ReadRegister ( PIXI_DEVICE_CTRL, true );
+      WriteRegister (PIXI_DEVICE_CTRL, info | DACREF | !DACCTL );
+      chThdSleepMilliseconds(1);
+      info = ReadRegister ( PIXI_DEVICE_CTRL, true );
+      // Enter DACDAT
+      WriteRegister ( PIXI_DAC_DATA + channel, dac_dat);
+      // Mode1: config FUNCID, FUNCPRM (non-inverted default)
+      if (channel_mode == CH_MODE_1)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (CH_MODE_1 << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE ) ) );
+
+      };
+      chThdSleepMilliseconds(1);
+      // Mode3: config GPO_DAT, leave channel at logic level 0
+      if (channel_mode == CH_MODE_3)
+      {
+        if ( channel <= 15 )
+        {
+          WriteRegister ( PIXI_GPO_DATA_0_15, 0x00);
+        }
+        else if (channel >= 16 )
+        {
+          WriteRegister ( PIXI_GPO_DATA_16_19, ( 0x00 )  );
+        };
+      }
+      // Mode3,4,5,6,10: config FUNCID, FUNCPRM (non-inverted default)
+      if (channel_mode == CH_MODE_3  ||
+          channel_mode == CH_MODE_5  ||
+          channel_mode == CH_MODE_6  ||
+          channel_mode == CH_MODE_10)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE ) ) );
+
+      }
+      else if (channel_mode == CH_MODE_4  )
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE )
+                        // assoc port & FUNCPRM_ASSOCIATED_PORT
+                                                    ) );
+
+      };
+      chThdSleepMilliseconds(1);
+      // Mode1: config GPIMD (leave at default uint8_t never asserted
+      if (channel_mode == CH_MODE_1)
+      {
+        //        WriteRegister ( PIXI_GPI_IRQ_MODE_0_7, 0 );
+
+      };
+      chThdSleepMilliseconds(1);
+
+    }
+
+    else if (channel_mode == CH_MODE_7  ||
+             channel_mode == CH_MODE_8  ||
+             channel_mode == CH_MODE_9  ) {
+
+      // Mode9: config FUNCID, FUNCPRM
+      if (channel_mode == CH_MODE_9)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE )
+                                                    ) );
+      }
+      chThdSleepMilliseconds(1);
+      if (channel_mode == CH_MODE_7  ||
+          channel_mode == CH_MODE_8)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE | ((adc_smp<<5)&FUNCPRM_NR_OF_SAMPLES)
+                                                   ) ) );
+      }
+      chThdSleepMilliseconds(1);
+
+      // config ADCCTL
+      info = ReadRegister ( PIXI_DEVICE_CTRL, false );
+      WriteRegister (PIXI_DEVICE_CTRL, info | ( adc_ctl & ADCCTL ) );
+      chThdSleepMilliseconds(1);
+
+    }
+    else if (channel_mode == CH_MODE_2  ||
+             channel_mode == CH_MODE_11 ||
+             channel_mode == CH_MODE_12 ) {
+
+      WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                      ( (range << 8 ) & FUNCPRM_RANGE )
+                                                  ) );
+
+
+
+    };
+
+  }
+  return (result);
+};
+
+
+uint16_t  configChannel( uint8_t channel, uint8_t channel_mode,  uint16_t dac_dat,  uint16_t range, uint8_t adc_ctl )
+{
+  uint16_t result = 0;
+  uint16_t info = 0;
+
+  if ( ( channel <= 19 ) && ( channel_mode <= 12 ) )
+  {
+
+    if (channel_mode == CH_MODE_1  ||
+        channel_mode == CH_MODE_3  ||
+        channel_mode == CH_MODE_4  ||
+        channel_mode == CH_MODE_5  ||
+        channel_mode == CH_MODE_6  ||
+        channel_mode == CH_MODE_10 )
+    {
+      // config DACREF (internal reference),DACCTL (sequential update)
+      info = ReadRegister ( PIXI_DEVICE_CTRL, true );
+      WriteRegister (PIXI_DEVICE_CTRL, info | DACREF | !DACCTL );
+      chThdSleepMilliseconds(1);
+      info = ReadRegister ( PIXI_DEVICE_CTRL, true );
+      // Enter DACDAT
+      WriteRegister ( PIXI_DAC_DATA + channel, dac_dat);
+      // Mode1: config FUNCID, FUNCPRM (non-inverted default)
+      if (channel_mode == CH_MODE_1)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (CH_MODE_1 << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE ) ) );
+
+      };
+      chThdSleepMilliseconds(1);
+      // Mode3: config GPO_DAT, leave channel at logic level 0
+      if (channel_mode == CH_MODE_3)
+      {
+        if ( channel <= 15 )
+        {
+          WriteRegister ( PIXI_GPO_DATA_0_15, 0x00);
+        }
+        else if (channel >= 16 )
+        {
+          WriteRegister ( PIXI_GPO_DATA_16_19, ( 0x00 )  );
+        };
+      }
+      // Mode3,4,5,6,10: config FUNCID, FUNCPRM (non-inverted default)
+      if (channel_mode == CH_MODE_3  ||
+          channel_mode == CH_MODE_5  ||
+          channel_mode == CH_MODE_6  ||
+          channel_mode == CH_MODE_10)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE ) ) );
+
+      }
+      else if (channel_mode == CH_MODE_4  )
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE )
+                        // assoc port & FUNCPRM_ASSOCIATED_PORT
+                                                    ) );
+
+      };
+      chThdSleepMilliseconds(1);
+      // Mode1: config GPIMD (leave at default uint8_t never asserted
+      if (channel_mode == CH_MODE_1)
+      {
+        //        WriteRegister ( PIXI_GPI_IRQ_MODE_0_7, 0 );
+
+      };
+      chThdSleepMilliseconds(1);
+
+    }
+
+    else if (channel_mode == CH_MODE_7  ||
+             channel_mode == CH_MODE_8  ||
+             channel_mode == CH_MODE_9  ) {
+
+      // Mode9: config FUNCID, FUNCPRM
+      if (channel_mode == CH_MODE_9)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE )
+                                                    ) );
+      }
+      chThdSleepMilliseconds(1);
+      if (channel_mode == CH_MODE_7  ||
+          channel_mode == CH_MODE_8)
+      {
+        WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                        ( (range << 8 ) & FUNCPRM_RANGE )
+                                                    ) );
+      }
+      chThdSleepMilliseconds(1);
+
+      // config ADCCTL
+      info = ReadRegister ( PIXI_DEVICE_CTRL, false );
+      WriteRegister (PIXI_DEVICE_CTRL, info | ( adc_ctl & ADCCTL ) );
+      chThdSleepMilliseconds(1);
+
+    }
+    else if (channel_mode == CH_MODE_2  ||
+             channel_mode == CH_MODE_11 ||
+             channel_mode == CH_MODE_12 ) {
+
+      WriteRegister ( PIXI_PORT_CONFIG + channel, ( ( (channel_mode << 12 ) & FUNCID ) |
+                      ( (range << 8 ) & FUNCPRM_RANGE )
+                                                  ) );
+
+
+
+    };
+
+  }
+  return (result);
+};
+
+uint8_t Maxconfig(void)
+{
+  uint16_t result = 0;
+  uint16_t info = 0;
+
+  result = ReadRegister( PIXI_DEVICE_ID, true );
+
+  if (result == 0x0424) {
+    // enable default burst, thermal shutdown, leave conversion rate at 200k
+    WriteRegister (PIXI_DEVICE_CTRL, !BRST | THSHDN ); // ADCCONV = 00 default.
+    // enable internal temp sensor
+    // disable series resistor cancelation
+    info = ReadRegister ( PIXI_DEVICE_CTRL, false );
+    WriteRegister (PIXI_DEVICE_CTRL, info | !RS_CANCEL );
+    // keep TMPINTMONCFG at default 4 samples
+
+    // Set int temp hi threshold
+    WriteRegister (PIXI_TEMP_INT_HIGH_THRESHOLD, 0x0230 );    // 70 deg C in .125 steps
+    // Keep int temp lo threshold at 0 deg C, negative values need function to write a two's complement number.
+    // enable internal and both external temp sensors
+    info = ReadRegister ( PIXI_DEVICE_CTRL, false );
+    WriteRegister (PIXI_DEVICE_CTRL, info | TMPCTLINT | TMPCTLEXT1 | TMPCTLEXT2 );
+
+  }
+
+
+  return (result);
+
+}
+
+
+void WriteAnalog(uint8_t channel, uint16_t value)
+{
+
+  spiSelect(&SPID1);
+  txbuf[0] = ( (PIXI_DAC_DATA + channel)<<1)|PIXI_WRITE;  //write
+  txbuf[1] = (value) >> 8; //value H
+  txbuf[2] = (value) & 0xFF; //valueL
+  spiSend(&SPID1, 3, txbuf);
+  spiUnselect(&SPID1);
+  //chThdSleepMilliseconds(5);
+}
+
+void setup(void) {
+  static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+  static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));
+  txbuf = _txbuf;
+  rxbuf = _rxbuf;
+
+  //palSetPadMode(GPIOA, 0, PAL_MODE_OUTPUT_PUSHPULL); // MCP3208
+  //palWritePad(GPIOA, 0, 1);             // pull high to disable first MCP3208
+
+  Maxconfig();
+  chThdSleepMilliseconds(1);
+  configChannel( CHANNEL_0, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  configChannel( CHANNEL_1, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_2, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_3, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_4, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_5, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_6, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_7, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  configChannel( CHANNEL_8, CH_MODE_ADC_P, 0, CH_0_TO_10P, ADC_MODE_CONT,2 );
+  configChannel( CHANNEL_9, CH_MODE_ADC_P, 0, CH_0_TO_10P, ADC_MODE_CONT,2 );
+  //configChannel( CHANNEL_10, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_11, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_12, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_13, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_14, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_15, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_16, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_17, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_18, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+  //configChannel( CHANNEL_19, CH_MODE_DAC, 0, CH_0_TO_10P, 0 );
+}
+
+void loop(void) {
+  //MCP4922 DAC (MCP4822: Bit 14 is ignored)
+  // dacA: 0x7 (Bits: 0111)= select output A, Buffer enable, Gain *1, SHDN (active mode operation) + 12bit Value of in1
+  // dacB: 0xF (Bits: 1111)= select output A, Buffer enable, Gain *1, SHDN (active mode operation) + 12bit Value of in2
+
+  uint16_t dacOutA = ( in1 >> 15 );
+  uint16_t dacOutB = ( in2 >> 15 );
+  //uint16_t dacOutC = ( in3 >> 15 );
+  //uint16_t dacOutD = ( in4 >> 15 );
+  //uint16_t dacOutE = ( in5 >> 15 );
+  //uint16_t dacOutF = ( in6 >> 15 );
+  //uint16_t dacOutG =  ( in7 >> 15 );
+  //uint16_t dacOutH = ( in8 >> 15 );
+  //uint16_t dacOutI = ( in9 >> 15 );
+  //uint16_t dacOutJ = ( in10 >> 15 );
+  //uint16_t dacOutK = ( in11 >> 15 );
+  //uint16_t dacOutL = ( in12 >> 15 );
+  //uint16_t dacOutM = ( in13 >> 15 );
+  //uint16_t dacOutN = ( in14 >> 15 );
+  //uint16_t dacOutO = ( in15 >> 15 );
+  //uint16_t dacOutP = ( in16 >> 15 );
+  //uint16_t dacOutQ = ( in17 >> 15 );
+  //uint16_t dacOutR =  ( in18 >> 15 );
+  //uint16_t dacOutS = ( in19 >> 15 );
+  //uint16_t dacOutT =  ( in20 >> 15 );
+
+  WriteAnalog (0, dacOutA );
+  WriteAnalog (1, dacOutB );
+  //WriteAnalog (2, dacOutC );
+  //WriteAnalog (3, dacOutD );
+  //WriteAnalog (4, dacOutE );
+  //WriteAnalog (5, dacOutF );
+  //WriteAnalog (6, dacOutG );
+  //WriteAnalog (7, dacOutH );
+  //WriteAnalog (8, dacOutI );
+  //WriteAnalog (9, dacOutJ );
+  //WriteAnalog (10, dacOutK );
+  //WriteAnalog (11, dacOutL );
+  //WriteAnalog (12, dacOutM );
+  //WriteAnalog (13, dacOutN );
+  //WriteAnalog (14, dacOutO );
+  //WriteAnalog (15, dacOutP );
+  //WriteAnalog (16, dacOutQ );
+  //WriteAnalog (17, dacOutR );
+  //WriteAnalog (18, dacOutS );
+  //WriteAnalog (19, dacOutT );
+  out1=ReadAnalog (8)<<15;
+  out2=ReadAnalog (9)<<15;
+
+
+}
+
+
+
+
+]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="lfo/sine" sha="a2851b3d62ed0faceefc98038d9571422f0ce260" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_2" x="56" y="406">
+      <params>
+         <frac32.s.map name="pitch" value="12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/bipolar2unipolar" sha="93baeaf78c9a228f23225186d21e61abc921c3d6" uuid="f6f63d71053d572d3c795f83c7ec11dfbbce82dd" name="bipolar2unipolar_2" x="182" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="bipolar2unipolar_1" outlet="o"/>
+         <dest obj="max11300" inlet="in1_"/>
+         <dest obj="kscope_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="bipolar2unipolar_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="sine_2" outlet="wave"/>
+         <dest obj="bipolar2unipolar_2" inlet="i"/>
+      </net>
+      <net>
+         <source obj="bipolar2unipolar_2" outlet="o"/>
+         <dest obj="max11300" inlet="in2_"/>
+      </net>
+      <net>
+         <source obj="max11300" outlet="out1_"/>
+         <dest obj="kscope_2" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>85</x>
+      <y>55</y>
+      <width>1203</width>
+      <height>698</height>
+   </windowPos>
+</patch-1.0>

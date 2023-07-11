@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Coding modulators</title>
+    <link>http://community.axoloti.com/t/coding-modulators/2523</link>
+    <description>I was asked (in an PM) by @SirSickSik if it was possible to have multiple modulators on an object.
+
+I have to admit I dont use modulators (I prefer inlets) much so I needed to go have a check..
+
+as always the first step to finding out how something is done, is to check the factory objects. 
+(something Ive suggested many times as a tip)
+in this particular case I could see it was possible since, midi/in/keyb mod does exactly what we are asking
+
+the trick to adding modulators is you need to add a modulator sources section in your object code.
+now we have 2 restrictions (which Ive raised github requests on
+- the object editor does not feature this, so you will need to add by editing the xml
+- embedded objects don&#39;t appear to support.
+
+so with this we need to add:
+
+[code]
+      &lt;ModulationSources&gt;
+         &lt;string&gt;i1&lt;/string&gt;
+         &lt;string&gt;i2&lt;/string&gt;
+      &lt;/ModulationSources&gt;
+[/code]
+
+the next part is we need to change the sources value where needed, this is done as follows:
+
+[code]
+    	PExModulationSourceChange(
+ 		&amp;parent-&gt;GetModulationTable()[parent-&gt;MODULATOR_attr_name_i1*NMODULATIONTARGETS],
+    		NMODULATIONTARGETS,
+    		&amp;parent-&gt;PExch[0],
+    		&amp;parent-&gt;PExModulationPrevVal[parent-&gt;polyIndex][parent-&gt;MODULATOR_attr_name_i1],
+    		inlet_i1);	
+
+[/code]
+
+the interesting part is:
+MODULATOR_attr_name_i1
+
+MODULATOR_attr_name_ you always leave the same, as this is substituted with the name of the object instance when the patch is compiled, so you simply add your mod source as the suffix.
+
+note: you can use whatever you like as a mod source name , it doesn&#39;t have to match any inlet/outlet etc... its just what you want to call it.
+
+so here is my example:
+&lt;img src=&quot;/uploads/default/original/2X/e/edebe1997ebb78d721da9798e79cb7a9aac30629.png&quot; width=&quot;574&quot; height=&quot;500&quot;&gt;
+
+(ive saved the following object in test/mods.axo)
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/a/a20e730e7ec2566454d05d2a3f5384f408eb39db.axo&quot;&gt;mods.axo&lt;/a&gt; (1.4 KB)
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/1/1eaf2e5202d8c3e38a98460376380590f8bb28b1.axp&quot;&gt;modtest.axp&lt;/a&gt; (3.2 KB)
+
+
+
+anyway, easy really , as is usually the case with axoloti :) 
+
+enjoy 
+TB
+
+btw: Id recommend all questions etc are created as forum topics, so that the info is shared widely... 
+I tend to reserve PMs for personal questions or matters regarding forum moderation</description>
+    
+    <lastBuildDate>Tue, 15 Nov 2016 07:22:18 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/coding-modulators/2523.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Modulation sources...... Argh....</p>
+
+<p>Be careful with them.... They take a bunch of sram.... They are the first thing I remove from a patch, when I want to save ressources.... Or if a patch have reached limit... Then remove mod sources and it will work again.. BUt i guess is some cases they are useful... Following what you come up with next <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/8</link>
+        <pubDate>Tue, 15 Nov 2016 07:22:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-8</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>it makes sense to me, I was just wondering.<br>I did some modules of which I thought it would save quite some space if I could just index them somehow... like, can't they just be a number with an in/out prefix and then just use their names as pointers? (don't know if I'm using the right names.. "pointers" sound like they're pointing to something else..I just got a philosophy background and a quite overdriven synthesis-sequencing-bla-designing-what-ever obsession.....)</p>
+
+<p>but I do see some extra light shining through... you say it's possible to enumerate parameters? so I could automatically call (eg) 8 parameters to 8 values in an array within a for-loop?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/7</link>
+        <pubDate>Tue, 15 Nov 2016 00:23:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-7</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>its not possible to enumerate outlets (or inlets), as they are variables in the object created.</p>
+
+<p>it is possible enumerate modulation sources and parameters BUT only for certain 'library calls' i.e. they may or may not provide what you need - I'd also caution you, this might be considered 'implementation' details of the generator i.e. a future version of axoloti might not allow it.  (not saying it will change, just it we reserve the right)</p>
+
+<p>on a 'side-note' that we do see a 'requirement' in the future for objects with variable numbers of inlets/outlets, (obviously example is a mixer object which can have N inlets). fulfilling this is likely part of a larger change/idea.</p>
+
+<p>not sure if that answers your question, but hope so <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/6</link>
+        <pubDate>Mon, 14 Nov 2016 13:17:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-6</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>just a small question<br>so, this modulation source is working now, though I'm wondering if I could do this adding-parts-to-names also to outputs.<br>for example, I got 8 outputs (output_o0 to output_o7) and an array of 8 values. Would it be possible to create a for-loop where I use the for loop to select from the array AND provide the number-index of the output, so I don't need to write out the function for all the outputs seperately?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/5</link>
+        <pubDate>Mon, 14 Nov 2016 11:19:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-5</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>the particular bug I'm talking about , no is not related ... Ive not looked at what your talking about nor investigated it.</p>
+
+<p>but the issue Ive seen with modulators, is they are not shown as modulator sources on other UI elements. rather than not sending values (I don't get that far) ... so this bug/lack of feature in the UI code not knowing to scan the embedded objects for modulator sources.</p>
+
+<p>(the generator code seems fine, as the modulators are generators and the change code compiles ... I cant tell if it works though due to the above issue)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/4</link>
+        <pubDate>Sun, 13 Nov 2016 12:47:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-4</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>"Issue: allow embedded objects to have modulator sources"<br>is this the same problem that arises when you use a ctrl/hook module inside an embedded patch?<br>that the "PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_attr_legal_name_value],inlet_in,0xFFFD);"<br>won't work anymore?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/3</link>
+        <pubDate>Sun, 13 Nov 2016 12:41:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-3</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>fyi<br><aside class="onebox githubissue">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti/issues/375" target="_blank">
+      github.com/axoloti/axoloti
+      
+    </a>
+  </header>
+  <article class="onebox-body">
+    <a href="https://github.com/TheTechnobear">
+<img src="https://avatars1.githubusercontent.com/u/4019664?v=2&amp;s=96" class="thumbnail onebox-avatar" width="90" height="90">
+</a>
+
+<h4><a href="https://github.com/axoloti/axoloti/issues/375" target="_blank">Issue: add modulation sources to object editor</a></h4>
+
+<div class="date" style="margin-top:10px;">
+	<div class="user" style="margin-top:10px;">
+	opened by <a href="https://github.com/TheTechnobear" target="_blank">TheTechnobear</a>
+	on <a href="https://github.com/axoloti/axoloti/issues/375" target="_blank">2016-11-12</a>
+	</div>
+	<div class="user">
+	</div>
+</div>
+
+<pre class="content" style="white-space: pre-wrap;">allow modulation sources to be edited via object editor
+e.g.
+&lt;ModulationSources&gt;
+&lt;string&gt;note&lt;/string&gt;
+&lt;string&gt;velocity&lt;/string&gt;
+&lt;string&gt;releasevelocity&lt;/string&gt;
+&lt;/ModulationSources&gt;</pre>
+
+<div class="labels">
+</div>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<aside class="onebox githubissue">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti/issues/376" target="_blank">
+      github.com/axoloti/axoloti
+      
+    </a>
+  </header>
+  <article class="onebox-body">
+    <a href="https://github.com/TheTechnobear">
+<img src="https://avatars1.githubusercontent.com/u/4019664?v=2&amp;s=96" class="thumbnail onebox-avatar" width="90" height="90">
+</a>
+
+<h4><a href="https://github.com/axoloti/axoloti/issues/376" target="_blank">Issue: allow embedded objects to have modulator sources</a></h4>
+
+<div class="date" style="margin-top:10px;">
+	<div class="user" style="margin-top:10px;">
+	opened by <a href="https://github.com/TheTechnobear" target="_blank">TheTechnobear</a>
+	on <a href="https://github.com/axoloti/axoloti/issues/376" target="_blank">2016-11-13</a>
+	</div>
+	<div class="user">
+	</div>
+</div>
+
+<pre class="content" style="white-space: pre-wrap;">ModulatorSources section appears to be ignored on embedded objects.</pre>
+
+<div class="labels">
+</div>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/2</link>
+        <pubDate>Sun, 13 Nov 2016 12:38:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-2</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+      <item>
+        <title>Coding modulators</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>I was asked (in an PM) by <a class="mention" href="/users/sirsicksik">@SirSickSik</a> if it was possible to have multiple modulators on an object.</p>
+
+<p>I have to admit I dont use modulators (I prefer inlets) much so I needed to go have a check..</p>
+
+<p>as always the first step to finding out how something is done, is to check the factory objects. <br>(something Ive suggested many times as a tip)<br>in this particular case I could see it was possible since, midi/in/keyb mod does exactly what we are asking</p>
+
+<p>the trick to adding modulators is you need to add a modulator sources section in your object code.<br>now we have 2 restrictions (which Ive raised github requests on<br>- the object editor does not feature this, so you will need to add by editing the xml<br>- embedded objects don't appear to support.</p>
+
+<p>so with this we need to add:</p>
+
+<p></p><pre><code class="lang-auto">      &lt;ModulationSources&gt;
+         &lt;string&gt;i1&lt;/string&gt;
+         &lt;string&gt;i2&lt;/string&gt;
+      &lt;/ModulationSources&gt;</code></pre>
+
+<p>the next part is we need to change the sources value where needed, this is done as follows:</p>
+
+<p></p><pre><code class="lang-auto">    	PExModulationSourceChange(
+ 		&amp;parent-&gt;GetModulationTable()[parent-&gt;MODULATOR_attr_name_i1*NMODULATIONTARGETS],
+    		NMODULATIONTARGETS,
+    		&amp;parent-&gt;PExch[0],
+    		&amp;parent-&gt;PExModulationPrevVal[parent-&gt;polyIndex][parent-&gt;MODULATOR_attr_name_i1],
+    		inlet_i1);	</code></pre>
+
+<p>the interesting part is:<br>MODULATOR_attr_name_i1</p>
+
+<p>MODULATOR_attr_name_ you always leave the same, as this is substituted with the name of the object instance when the patch is compiled, so you simply add your mod source as the suffix.</p>
+
+<p>note: you can use whatever you like as a mod source name , it doesn't have to match any inlet/outlet etc... its just what you want to call it.</p>
+
+<p>so here is my example:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/edebe1997ebb78d721da9798e79cb7a9aac30629" href="//community.axoloti.com/uploads/default/original/2X/e/edebe1997ebb78d721da9798e79cb7a9aac30629.png" class="lightbox" title="Screen Shot 2016-11-13 at 13.40.23.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/e/edebe1997ebb78d721da9798e79cb7a9aac30629_1_574x500.png" width="574" height="500"><div class="meta">
+<span class="filename">Screen Shot 2016-11-13 at 13.40.23.png</span><span class="informations">1004x874 35.5 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>(ive saved the following object in test/mods.axo)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/a/a20e730e7ec2566454d05d2a3f5384f408eb39db.axo">mods.axo</a> (1.4 KB)</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/1/1eaf2e5202d8c3e38a98460376380590f8bb28b1.axp">modtest.axp</a> (3.2 KB)</p>
+
+<p>anyway, easy really , as is usually the case with axoloti <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>enjoy <br>TB</p>
+
+<p>btw: Id recommend all questions etc are created as forum topics, so that the info is shared widely... <br>I tend to reserve PMs for personal questions or matters regarding forum moderation</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/coding-modulators/2523/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/coding-modulators/2523/1</link>
+        <pubDate>Sun, 13 Nov 2016 12:34:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2523-1</guid>
+        <source url="http://community.axoloti.com/t/coding-modulators/2523.rss">Coding modulators</source>
+      </item>
+  </channel>
+</rss>

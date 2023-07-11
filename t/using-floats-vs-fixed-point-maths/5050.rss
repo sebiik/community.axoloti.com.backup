@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Using floats vs fixed point maths</title>
+    <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050</link>
+    <description>there&#39;s been a few interesting posts on this, and perhaps deserves a post of its own :)</description>
+    
+    <lastBuildDate>Sat, 13 Oct 2018 09:29:39 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Thus most of the time it's better to code</p>
+
+<pre><code>x = y * (1.0f / 3.0f);</code></pre>
+
+<p>than</p>
+
+<pre><code>x = y / 3.0f;</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/8</link>
+        <pubDate>Sat, 13 Oct 2018 09:29:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-8</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>I see Johannes also did some testing on floats in his jt folder library&gt;community&gt;jt&gt;devel.</p>
+
+<p>I dont know what to make of it though..... :=)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/7</link>
+        <pubDate>Sat, 13 Oct 2018 00:40:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-7</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p>I like to do an "objdump -d" on the produced binary. ie- see what the compiler is actually doing rather than what I think it is doing. You can learn some interesting things:</p>
+
+<pre><code>float foo1(float x) {
+  return x / 2.f;
+}
+
+float foo2(float x) {
+  return x / 10.f;
+}</code></pre>
+
+<p>is compiled to...</p>
+
+<pre><code>foo1:
+ 320:   eef6 7a00       vmov.f32        s15, #96        ; 0x3f000000  0.5
+ 324:   ee20 0a27       vmul.f32        s0, s0, s15
+ 328:   4770            bx      lr
+ 32a:   bf00            nop
+
+foo2:
+ 32c:   eef2 7a04       vmov.f32        s15, #36        ; 0x41200000  10.0
+ 330:   ee80 0a27       vdiv.f32        s0, s0, s15
+ 334:   4770            bx      lr
+ 336:   bf00            nop</code></pre>
+
+<p>So in the first case /2 gets optimized to multiply by 0.5 - good.<br>In the second case /10 doesn't get optimized to multiply by 0.1 - why?</p>
+
+<p>Answer: Because 0.1 does not have an exact FP representation, and so it has to be left as / 10 to properly represent the will of the programmer. </p>
+
+<p>So if you thought that /k (constant) would always get optimized to * 1/k you'd be wrong- and you'd get undesired div operations in your code.</p>
+
+<blockquote><p>24.0f rather than 24.0</p></blockquote>
+
+<pre><code>float foo3(float x) {
+  return x * 0.1;
+}
+
+foo3:
+ 338:   b508            push    {r3, lr}
+ 33a:   ee10 0a10       vmov    r0, s0
+ 33e:   f7ff fffe       bl      0 &lt;__aeabi_f2d&gt;
+ 342:   a305            add     r3, pc, #20     ; (adr r3, 358 &lt;foo3+0x20&gt;)
+ 344:   e9d3 2300       ldrd    r2, r3, [r3]
+ 348:   f7ff fffe       bl      0 &lt;__aeabi_dmul&gt;
+ 34c:   f7ff fffe       bl      0 &lt;__aeabi_d2f&gt;
+ 350:   ee00 0a10       vmov    s0, r0
+ 354:   bd08            pop     {r3, pc}
+ 356:   bf00            nop
+ 358:   9999999a        .word   0x9999999a
+ 35c:   3fb99999        .word   0x3fb99999</code></pre>
+
+<p>Whoah. Soft emulation....</p>
+
+<pre><code>float foo4(float x) {
+  return x * 0.1f;
+}
+
+foo4:
+ 360:   eddf 7a02       vldr    s15, [pc, #8]   ; 36c &lt;foo4+0xc&gt;
+ 364:   ee20 0a27       vmul.f32        s0, s0, s15
+ 368:   4770            bx      lr
+ 36a:   bf00            nop
+ 36c:   3dcccccd        .word   0x3dcccccd</code></pre>
+
+<p>That's better....</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/6</link>
+        <pubDate>Thu, 11 Oct 2018 15:22:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-6</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>thanks <a class="mention" href="/u/deadsy">@deadsy</a> and <a class="mention" href="/u/smashedtransistors">@SmashedTransistors</a> some really interesting points.  </p>
+
+<p><a href="//community.axoloti.com/t/frac32-vs-float/4600">this post</a> was kind of related...</p>
+
+<p>in particular:<br></p>
+
+<aside class="quote" data-post="1" data-topic="4600"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/deadsy/40/5105_1.png" class="avatar"><a href="//community.axoloti.com/t/frac32-vs-float/4600/1">Frac32 vs Float</a>
+</div>
+<blockquote><p>Then there's the interesting case of the mutable modules where Q5.27s are converted to and from a float on either side of the call to the mutable code.</p></blockquote></aside>
+
+<p>yes this is a case in point...</p>
+
+<p>so, as mentioned in the link above, Olivier from MI (pinchenettes in post above), stated that he uses float because he saw little advantage of fixed point maths, due to the FPU present on the chips (, and his experiments with converting the elements resonator reinforced this for him) , and i think we can all agree, MI modules are very efficient in their use of the CPU - so show with proper use, floats can be efficient.(*)</p>
+
+<p>so when we moved the MI code to axoloti, we weren't going to 'convert' the code to fixed point (that would be a complete re-write), so wrapped it with conversion calls in/out.<br>generally i'll say ive been happy with the performance of the MI objects.... esp. baring in mnd clouds/elements are run on the same chip as axoloti.</p>
+
+<p>so its does seem a valid conclusion that using floats can yield good performance - i think so.</p>
+
+<p>however, seems they do need to be used with the same care as int32.<br>you will see the MI also use tables rather than float point operations for things like exp, and im sure he has many other optimisations.</p>
+
+<p>so perhaps the take-away, is floats are not intrinsically 'bad', but be careful what operations/functions you use... its very easy with floats to start using std functions that are costly.</p>
+
+<hr>
+
+<p>also I think for clarity we need to remember to to stay with float, and do not use doubles as this I'm assuming are 64 bit, and so very expensive... aren't there times when floats get automatically coerced in to doubles... do we need to take care to avoid this?</p>
+
+<p>also float constants.... i think we use the compiler options to assume floats, but we should really be explicit e.g. use <strong>24.0f</strong> rather than 24.0</p>
+
+<hr>
+
+<p>(*) as a complete aside, I think the MI code, also shows that if used 'intelligently' C++ can also be used for audio code, you just have to know what to use, and what not too.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/5</link>
+        <pubDate>Thu, 11 Oct 2018 09:36:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-5</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>there's been a few interesting posts on this, and perhaps deserves a post of its own <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/1</link>
+        <pubDate>Thu, 11 Oct 2018 09:16:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-1</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Some nice features from the STM32F4:</p>
+
+<ul>
+<li>The intrinsic functions for conversion from float to fixed point (and reciprocally) take <strong>1</strong> cycle. So it is not a problem to use both q27 integers and floats in an object.</li>
+<li>The FPU includes <strong>32</strong>... yes, <strong><em>32</em></strong> float registers. These 32 registers are not used for anything else than your math/dsp while many integer registers are already used for <a href="https://www.ele.uva.es/~jesus/hardware_empotrado/ARM_calling.pdf" rel="nofollow noopener">specific purposes</a>.</li>
+<li>the float division - that takes 14 cycles - can be executed in <strong>parallel</strong> with integer instructions.</li>
+</ul>
+
+<p>So, in some cases, it is a good idea to mix fixed point and floats !</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/4</link>
+        <pubDate>Wed, 10 Oct 2018 17:18:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-4</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>The only ‘justification’ and refute I’ve seen is here<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://forum.mutable-instruments.net/t/axoloti/6330" target="_blank" rel="nofollow noopener">forum.mutable-instruments.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://forum.mutable-instruments.net/uploads/mutable_instruments1/original/2X/a/a0e702875777af36cb6cae4e68fac46e0f7390b2.png" width="" height="" class="thumbnail">
+
+<h3><a href="https://forum.mutable-instruments.net/t/axoloti/6330" target="_blank" rel="nofollow noopener">Axoloti</a></h3>
+
+<p>This looks really interesting. STM32F4-based engine, PC-based Java GUI that emits C++, compiled by gcc and uploaded to run standalone on the engine. Plus an STM32F1-based knobs-n-buttons controller. Software all open-source. Not sure about the...</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>So not entirely clear, and certainly closer than I’d have thought - as long as your careful.  </p>
+
+<p>And for sure, doing everything in float would make things much easier to read and write <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/3</link>
+        <pubDate>Tue, 09 Oct 2018 14:34:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-3</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+      <item>
+        <title>Using floats vs fixed point maths</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/thetechnobear">@thetechnobear</a> writes:</p>
+
+<blockquote><p>using floats and float functions (like powf) are expensive in terms of cpu cycles</p></blockquote>
+
+<p>Hmmm...</p>
+
+<p>Cortex M4 clock cycles:</p>
+
+<p>integer operations:</p>
+
+<p>ADD - 1 clock cycle<br>SUB - 1 clock cycle<br>MUL - 1 clock cycle<br>SDIV- 2-12 clock cycles</p>
+
+<p>Single precision float operations:</p>
+
+<p>VADD.F32 - 1 clock cycle<br>VMUL.F32 - 1 clock cycle<br>VDIV.F32 - 14 clock cyles</p>
+
+<p>Conclusion: single precision float operations on the cortex M4 are just as fast as integer operations. Division is costly for both ints and floats and should be avoided.</p>
+
+<p>I got the impression that axoloti's use of fixed point was more about the re-use of legacy code from prior platforms which didn't have FPU support- which is a pity (IMO) because DSP code written with floats is a lot easier to read.</p>
+
+<p>As for powf- yeah it's slow. I've benchmarked some of my lookup table based code as being about 10x faster, while being within 5e-5 of the standard library result- which is good enough for most audio dsp.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050/2</link>
+        <pubDate>Tue, 09 Oct 2018 13:48:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5050-2</guid>
+        <source url="http://community.axoloti.com/t/using-floats-vs-fixed-point-maths/5050.rss">Using floats vs fixed point maths</source>
+      </item>
+  </channel>
+</rss>

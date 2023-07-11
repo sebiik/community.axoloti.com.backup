@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Doubts about fixed point representation and operations</title>
+    <link>http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800</link>
+    <description>Hi all, santa brought me an axoloti, and since I&#39;d like to use it to &quot;stay fit&quot; on dsp programming, after assembling a few effects for my bass using the (amazing) patcher, I ventured into coding custom objects.
+
+I tought that axoloti would work in floating point, but I happily discovered it doesn&#39;t, I say &quot;happily&quot; because I thought this will force me to finally come to terms with real world fixed point dsp issues.
+
+Now I&#39;m trying to get my head around some basic stuff, after gathering all the info I could find in the docs, the forum and looking into the &quot;standard&quot; objects.
+
+I read that the range for the fractional numbers is:
+
+`-0x08000000 to 0x07FFFFFF`
+
+which represents -64.0 to 64.0 (actually 63.9999...)
+
+This means that the fractional point should be between the bits 20 and 21 (where the first bit&#39;s index is &quot;0&quot;), and that we are using 28 of the 32 available bits to represent our fractional values.
+
+Then, I had a look at the code in [math/*], and found how a multiplication between fractional values is done:
+
+`outlet_result= ___SMMUL(inlet_a&lt;&lt;3,inlet_b&lt;&lt;2);`
+
+I learned that SMMUL multiplies two 32-bit registers and discards the 32 least-significant bits.
+
+In a way - as I understand it - this is like considering the 32-bit values in the operands belonging to the [-1.0, 1.0[ interval, so that any product between two values still belongs to such interval, and the product never overflows. Basically, SMMUL implicitly &quot;sets&quot; the fractional point to be between bits 31 and 30.
+
+Shifting the operands to the left before the SMMUL operation means that the operands may overflow during the shift, but since we are already limiting ourselves to the first 28 bits, we are actually recovering resolution in the least-significant bits. It can also be seen as moving the fractional point to the right.
+
+What I find strange is that the SMMUL preceded by the 2 and 3 bits shifts for the operands, actually corresponds to setting the fractional point between the bits 27 and 26. It&#39;s like saying that 0x07FFFFFF is 1.0 (actually 0.999...)
+
+And in fact, if create a patch with two [ctrl/dial b] going to a [math/*], going to a [disp/dial b], I can see that 64.0*64.0 = 64.0 (and, for example, 63.0*63.0=62.02).
+
+So, the [64.0,64.0[ range &quot;behaves&quot; as it is a [-1.0,1.0[ range.
+
+Even though this is just a representation of the values for the sake of our human eyes, I find this a bit counterintuitive, especially for patching purposes, but considering how bad I am with binary operations and fixed point math (not to mention the two&#39;s complements!), I guess there&#39;s something (big) I&#39;m missing here: is there anyone willing shed some light on my doubts?
+
+An (maybe not so much) unrelated question: how the 32-bit fractional values are truncated to fit into the 24 bit of the DAC output? I&#39;d say that the 4 most significant bits (that should be kept empty anyway) and the 4 least significant bits are discarded, but this is just a wild guess.
+
+Sorry for the long post and my clunky approach to the matter, hope this makes some sense.</description>
+    
+    <lastBuildDate>Thu, 31 Dec 2015 13:56:52 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Doubts about fixed point representation and operations</title>
+        <dc:creator><![CDATA[@sonicdebris athos]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sonicdebris">@sonicdebris</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="800" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Using the [-64.0..64.0] convention to represent unity range results in many cases in round numbers.<br>Think of it as an analog modular with +-64V power supply and 1V/semitone calibration.<br>This choice is inspired by the Nord Modular, I don't remember significant complaints about this convention in that community. It promotes connecting anything to anything, with gentle scaling.</p></blockquote></aside>
+
+<p>Ok, I never used a nord modular or any analog modular synth, so I didn't know. Seems fair anyway, I will just keep this in mind when coding my objects. I'm actually glad to know I didn't get the math wrong!</p>
+
+<p>Keep up the great work and thanks for creating axoloti! <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800/3</link>
+        <pubDate>Thu, 31 Dec 2015 13:56:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-800-3</guid>
+        <source url="http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800.rss">Doubts about fixed point representation and operations</source>
+      </item>
+      <item>
+        <title>Doubts about fixed point representation and operations</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="800"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sonicdebris/40/1044_1.png" class="avatar">sonicdebris:</div>
+<blockquote><p>So, the [64.0,64.0[ range "behaves" as it is a [-1.0,1.0[ range.</p></blockquote></aside>
+
+<p>Correct, and intentional.</p>
+
+<p>Using the [-64.0..64.0] convention to represent unity range results in many cases in round numbers.<br>Think of it as an analog modular with +-64V power supply and 1V/semitone calibration.<br>This choice is inspired by the Nord Modular, I don't remember significant complaints about this convention in that community. It promotes connecting anything to anything, with gentle scaling.</p>
+
+<aside class="quote" data-post="1" data-topic="800"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sonicdebris/40/1044_1.png" class="avatar">sonicdebris:</div>
+<blockquote><p>An (maybe not so much) unrelated question: how the 32-bit fractional values are truncated to fit into the 24 bit of the DAC output? I'd say that the 4 most significant bits (that should be kept empty anyway) and the 4 least significant bits are discarded, but this is just a wild guess.</p></blockquote></aside>
+
+<p>The 4 most significant bits are saturated rather than discarded, but yeah.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800/2</link>
+        <pubDate>Wed, 30 Dec 2015 15:43:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-800-2</guid>
+        <source url="http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800.rss">Doubts about fixed point representation and operations</source>
+      </item>
+      <item>
+        <title>Doubts about fixed point representation and operations</title>
+        <dc:creator><![CDATA[@sonicdebris athos]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sonicdebris">@sonicdebris</a> wrote:</p>
+          <blockquote>
+              <p>Hi all, santa brought me an axoloti, and since I'd like to use it to "stay fit" on dsp programming, after assembling a few effects for my bass using the (amazing) patcher, I ventured into coding custom objects.</p>
+
+<p>I tought that axoloti would work in floating point, but I happily discovered it doesn't, I say "happily" because I thought this will force me to finally come to terms with real world fixed point dsp issues.</p>
+
+<p>Now I'm trying to get my head around some basic stuff, after gathering all the info I could find in the docs, the forum and looking into the "standard" objects.</p>
+
+<p>I read that the range for the fractional numbers is:</p>
+
+<p><code>-0x08000000 to 0x07FFFFFF</code></p>
+
+<p>which represents -64.0 to 64.0 (actually 63.9999...)</p>
+
+<p>This means that the fractional point should be between the bits 20 and 21 (where the first bit's index is "0"), and that we are using 28 of the 32 available bits to represent our fractional values.</p>
+
+<p>Then, I had a look at the code in [math/*], and found how a multiplication between fractional values is done:</p>
+
+<p><code>outlet_result= ___SMMUL(inlet_a&lt;&lt;3,inlet_b&lt;&lt;2);</code></p>
+
+<p>I learned that SMMUL multiplies two 32-bit registers and discards the 32 least-significant bits.</p>
+
+<p>In a way - as I understand it - this is like considering the 32-bit values in the operands belonging to the [-1.0, 1.0[ interval, so that any product between two values still belongs to such interval, and the product never overflows. Basically, SMMUL implicitly "sets" the fractional point to be between bits 31 and 30.</p>
+
+<p>Shifting the operands to the left before the SMMUL operation means that the operands may overflow during the shift, but since we are already limiting ourselves to the first 28 bits, we are actually recovering resolution in the least-significant bits. It can also be seen as moving the fractional point to the right.</p>
+
+<p>What I find strange is that the SMMUL preceded by the 2 and 3 bits shifts for the operands, actually corresponds to setting the fractional point between the bits 27 and 26. It's like saying that 0x07FFFFFF is 1.0 (actually 0.999...)</p>
+
+<p>And in fact, if create a patch with two [ctrl/dial b] going to a [math/*], going to a [disp/dial b], I can see that 64.0*64.0 = 64.0 (and, for example, 63.0*63.0=62.02).</p>
+
+<p>So, the [64.0,64.0[ range "behaves" as it is a [-1.0,1.0[ range.</p>
+
+<p>Even though this is just a representation of the values for the sake of our human eyes, I find this a bit counterintuitive, especially for patching purposes, but considering how bad I am with binary operations and fixed point math (not to mention the two's complements!), I guess there's something (big) I'm missing here: is there anyone willing shed some light on my doubts?</p>
+
+<p>An (maybe not so much) unrelated question: how the 32-bit fractional values are truncated to fit into the 24 bit of the DAC output? I'd say that the 4 most significant bits (that should be kept empty anyway) and the 4 least significant bits are discarded, but this is just a wild guess.</p>
+
+<p>Sorry for the long post and my clunky approach to the matter, hope this makes some sense.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800/1</link>
+        <pubDate>Wed, 30 Dec 2015 00:45:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-800-1</guid>
+        <source url="http://community.axoloti.com/t/doubts-about-fixed-point-representation-and-operations/800.rss">Doubts about fixed point representation and operations</source>
+      </item>
+  </channel>
+</rss>

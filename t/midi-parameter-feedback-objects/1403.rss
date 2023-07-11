@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>MIDI parameter feedback objects</title>
+    <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403</link>
+    <description>Hey.
+
+I made two objects for integrating Axoloti and the Behringer BCF2000 controller.
+
+The BCF has flying faders and illuminated knobs and buttons that you can control with MIDI parameter feedback. Basically that just means sending the same CC that&#39;s assigned to a control back to it. If your fader sends CC #20, send CC #20 back to it and it jumps to the value you sent. You can control the LEDs in the buttons and around the encoders in the same way. I think a lot of controllers do this now but I only have the BCF.
+
+There are two objects:
+
+1) MIDI radio buttons
+
+This object has four attributes. You select a MIDI channel and an output port for providing feedback (this is USB Host port 1 if you connect via USB). You then select a minimum and maximum MIDI CC number. The idea is that you assign a group of buttons to consecutive CCs, so four buttons will be e.g. 30, 31, 32, 33. The object keeps track of which one was last pressed, and outputs the number relative to zero - so if you&#39;re using CCs 30-33 and the last one pressed was 32, you get a 2 at the output.
+
+The select input, when low, disables writing to the internal register for this particular instance. However, the most recently stored value is always present at the output. A rising edge on the select input outputs a 0 for the unselected CCs and 127 for the selected one, allowing you to restore the state saved in this instance.
+
+By decoding the output of one set of buttons set to one range of controllers and using it to select one of a number of other instances set to the another range of controllers, you can get something like bank/page switching:
+
+&lt;img src=&quot;/uploads/default/original/2X/6/69c81809894de5acefa9d523680680f39d11cd1c.png&quot; width=&quot;530&quot; height=&quot;500&quot;&gt;
+
+The buttons that send CC 30-33 select four &quot;pages&quot; which store the selections made with the buttons that send CC 34-37.
+
+2) Octal CC register
+
+This stores incoming CC values for eight consecutive CCs starting from the one set by the attribute &#39;min&#39;.
+
+Like the other object, values are only written when the select input is high, and a rising edge restores the state, allowing you to make multiple banks of physical controls. This works with faders, button LEDs, and the LED rings around the encoders on the BCF. Just programme the controller to send eight consecutive CCs.
+
+&lt;img src=&quot;/uploads/default/original/2X/8/87618f900043010a5cbf9d87af75aa41edb49e38.png&quot; width=&quot;589&quot; height=&quot;463&quot;&gt;
+
+Again, the latched values are always present on the output, the select input only controls which instance to write to when CCs in the right range come in.
+
+I&#39;m going to try to make a few actual things with these to see if more/less features are needed, and then add them to the library with Git and that. Comments are welcome in this thread.
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/8/835c93010c19816a85e61662e10ce2bf563fbb32.axo&quot;&gt;midi_radio_buttons.axo&lt;/a&gt; (2.8 KB)
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/e/ed4dbd19f1e8e79b58e01557379b6aba4c996316.axo&quot;&gt;octal_cc_register.axo&lt;/a&gt; (3.1 KB)</description>
+    
+    <lastBuildDate>Thu, 16 Mar 2017 14:59:33 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@Ersatzplanet James Husted]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ersatzplanet">@Ersatzplanet</a> wrote:</p>
+          <blockquote>
+              <p>I remember a very old MAX implementation done by NOTAM years ago but it is no longer around. The C4 has all those LCD strips above the 24 encoders so that adds a lot to the ergonomics. It does just spit out MIDI but writing to the LCD strips is the tricky bit.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/15</link>
+        <pubDate>Thu, 16 Mar 2017 14:59:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-15</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rvense]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rvense">@rvense</a> wrote:</p>
+          <blockquote>
+              <p>Oh yeah, I think I remember what the issue is - I didn't want a table per object for some reason (I think there was a reason!). So the MIDI objects were connected to one table object which would allocate slots in the table without the MIDI objects knowing.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/14</link>
+        <pubDate>Thu, 16 Mar 2017 14:53:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-14</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rbrt]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rbrt">@rbrt</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="11" data-topic="1403"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/r/f475e1/40.png" class="avatar">rvense:</div>
+<blockquote><p>but if you come up with something that does the same</p></blockquote></aside>
+
+<p>...guess I already did so some time ago <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"> but that doesn't really matter</p>
+
+<aside class="quote" data-post="11" data-topic="1403"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/r/f475e1/40.png" class="avatar">rvense:</div>
+<blockquote><p>One thing I really wanted to do was objects that persisted state across restarts,</p></blockquote></aside>
+
+<p>...try with writing the states to a table, saving the table to SD-card and auto-load that table on restart<br>check out rbrt/midi/in/table store <br>and rbrt/midi/out/table send cc<br>...I guess they could work in a scenario like this</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/13</link>
+        <pubDate>Thu, 16 Mar 2017 14:17:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-13</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rvense]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rvense">@rvense</a> wrote:</p>
+          <blockquote>
+              <p>I don't know the C4, but it's just MIDI so it might work. There's nothing BCF specific here.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/12</link>
+        <pubDate>Thu, 16 Mar 2017 13:42:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-12</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rvense]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rvense">@rvense</a> wrote:</p>
+          <blockquote>
+              <p>I haven't actually looked at this at all since I posted it, you're welcome to nick any ideas or code but if you come up with something that does the same, these should be considered deprecated since I'm unlikely to work on it again at least in the near term.</p>
+
+<p>One thing I really wanted to do was objects that persisted state across restarts, but I found that hard to implement when I last tried.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/11</link>
+        <pubDate>Thu, 16 Mar 2017 13:41:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-11</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rbrt]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rbrt">@rbrt</a> wrote:</p>
+          <blockquote>
+              <p>hey <a class="mention" href="/users/rvense">@rvense</a> , seems like  we are working in the same direction...I also did some objects aimed at midi-feedback...<br>and as far as can see from looking at your code,some of them are functionally quite similar..<br>(I think I have to document what I'm doing a bit more often because just a week ago, <a class="mention" href="/users/theslowgrowth">@TheSlowGrowth</a> also released some stuff that I had already done some time before.. )</p>
+
+<p>anyway,they are under rbrt/midi/in and rbrt/midi/out ....<br>I'll add help files as soon as I get the time and post here again...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/10</link>
+        <pubDate>Thu, 16 Mar 2017 12:51:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-10</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@Ersatzplanet James Husted]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ersatzplanet">@Ersatzplanet</a> wrote:</p>
+          <blockquote>
+              <p>I wish you had made this for a Mackie C4 controller. I have one that has been collecting dust and a Axo board may even fit inside. sigh.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/9</link>
+        <pubDate>Thu, 16 Mar 2017 00:09:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-9</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@mongrol]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mongrol">@mongrol</a> wrote:</p>
+          <blockquote>
+              <p>Got it. The BCF itself can't store the state so the Axo has to.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/8</link>
+        <pubDate>Wed, 25 May 2016 03:31:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-8</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rvense]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rvense">@rvense</a> wrote:</p>
+          <blockquote>
+              <p>The idea is just the paging. That you can store a set of values, move to a different set of values, and then come back and see those values you set before. So the object has to resend the values when it's reactivated.</p>
+
+<p>The idea is not preset switching, but to be able to control more parameters than you have physical controls. Think of a synth with different menu pages and a couple of encoders beneath a display.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/7</link>
+        <pubDate>Tue, 24 May 2016 20:54:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-7</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@mongrol]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mongrol">@mongrol</a> wrote:</p>
+          <blockquote>
+              <p>Hmm, I don't get it. If the BCF is setting <span class="hashtag">#20</span>, why doesn't it set it's own LED's to 20? Or is this used to confirm that the destination really did get the message AND switch to 20?</p>
+
+<p>Also on state. What is the intention here? Some kind of preset switching?</p>
+
+<p>(Interested to know if I need this in my build or not <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/6</link>
+        <pubDate>Mon, 23 May 2016 11:47:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-6</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rvense]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rvense">@rvense</a> wrote:</p>
+          <blockquote>
+              <p>Eh, users! That's ace.</p>
+
+<p>What this really needs is storing state to SD card and I'm thinking about ways to do that.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/5</link>
+        <pubDate>Thu, 31 Mar 2016 17:16:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-5</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@keyman Antonio Machado]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/keyman">@keyman</a> wrote:</p>
+          <blockquote>
+              <p>Works great! I did set this up but using Lemur and BCF template.<br>Keep up patching <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"> will be nice to see it in Community Contrib.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/4</link>
+        <pubDate>Thu, 31 Mar 2016 14:22:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-4</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rvense]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rvense">@rvense</a> wrote:</p>
+          <blockquote>
+              <p>I made a video about these. (Mostly because I wanted to try making a video.)</p>
+
+<iframe src="https://player.vimeo.com/video/161022227" width="695" height="390" frameborder="0" title="MIDI parameter feedback &amp; stateful UIs on Axoloti" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/3</link>
+        <pubDate>Thu, 31 Mar 2016 11:56:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-3</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Ive moved this post,as the community library has a very specific format/aim... (see sticky in category)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/2</link>
+        <pubDate>Wed, 30 Mar 2016 09:10:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-2</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+      <item>
+        <title>MIDI parameter feedback objects</title>
+        <dc:creator><![CDATA[@rvense]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rvense">@rvense</a> wrote:</p>
+          <blockquote>
+              <p>Hey.</p>
+
+<p>I made two objects for integrating Axoloti and the Behringer BCF2000 controller.</p>
+
+<p>The BCF has flying faders and illuminated knobs and buttons that you can control with MIDI parameter feedback. Basically that just means sending the same CC that's assigned to a control back to it. If your fader sends CC #20, send CC #20 back to it and it jumps to the value you sent. You can control the LEDs in the buttons and around the encoders in the same way. I think a lot of controllers do this now but I only have the BCF.</p>
+
+<p>There are two objects:</p>
+
+<p>1) MIDI radio buttons</p>
+
+<p>This object has four attributes. You select a MIDI channel and an output port for providing feedback (this is USB Host port 1 if you connect via USB). You then select a minimum and maximum MIDI CC number. The idea is that you assign a group of buttons to consecutive CCs, so four buttons will be e.g. 30, 31, 32, 33. The object keeps track of which one was last pressed, and outputs the number relative to zero - so if you're using CCs 30-33 and the last one pressed was 32, you get a 2 at the output.</p>
+
+<p>The select input, when low, disables writing to the internal register for this particular instance. However, the most recently stored value is always present at the output. A rising edge on the select input outputs a 0 for the unselected CCs and 127 for the selected one, allowing you to restore the state saved in this instance.</p>
+
+<p>By decoding the output of one set of buttons set to one range of controllers and using it to select one of a number of other instances set to the another range of controllers, you can get something like bank/page switching:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/69c81809894de5acefa9d523680680f39d11cd1c" href="//community.axoloti.com/uploads/default/original/2X/6/69c81809894de5acefa9d523680680f39d11cd1c.png" class="lightbox" title="radiobuttons.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/6/69c81809894de5acefa9d523680680f39d11cd1c_1_530x500.png" width="530" height="500"><div class="meta">
+<span class="filename">radiobuttons.png</span><span class="informations">570x537 13.9 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>The buttons that send CC 30-33 select four "pages" which store the selections made with the buttons that send CC 34-37.</p>
+
+<p>2) Octal CC register</p>
+
+<p>This stores incoming CC values for eight consecutive CCs starting from the one set by the attribute 'min'.</p>
+
+<p>Like the other object, values are only written when the select input is high, and a rising edge restores the state, allowing you to make multiple banks of physical controls. This works with faders, button LEDs, and the LED rings around the encoders on the BCF. Just programme the controller to send eight consecutive CCs.</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/8/87618f900043010a5cbf9d87af75aa41edb49e38.png" width="589" height="463"></p>
+
+<p>Again, the latched values are always present on the output, the select input only controls which instance to write to when CCs in the right range come in.</p>
+
+<p>I'm going to try to make a few actual things with these to see if more/less features are needed, and then add them to the library with Git and that. Comments are welcome in this thread.</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/8/835c93010c19816a85e61662e10ce2bf563fbb32.axo">midi_radio_buttons.axo</a> (2.8 KB)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/e/ed4dbd19f1e8e79b58e01557379b6aba4c996316.axo">octal_cc_register.axo</a> (3.1 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-parameter-feedback-objects/1403/1</link>
+        <pubDate>Wed, 30 Mar 2016 08:08:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1403-1</guid>
+        <source url="http://community.axoloti.com/t/midi-parameter-feedback-objects/1403.rss">MIDI parameter feedback objects</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,164 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="start/stop" x="28" y="28">
+      <params>
+         <bool32.tgl name="b" MidiCC="117" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c0fe1d35-f703-4423-8536-b7f6baf38a3a" name="object_1" x="126" y="28">
+      <params>
+         <frac32.u.map name="cycle" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="c0fe1d35-f703-4423-8536-b7f6baf38a3a">
+         <inlets>
+            <int32 name="ticks"/>
+         </inlets>
+         <outlets>
+            <bool32 name="trigger"/>
+         </outlets>
+         <displays>
+            <int32.label name="ticks"/>
+            <int32.label name="count"/>
+            <int32.label name="scaled"/>
+         </displays>
+         <params>
+            <frac32.u.map name="cycle"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t local_current_tick;
+int32_t local_ticks_length;
+int32_t local_cycle_length;
+int32_t local_count;]]></code.declaration>
+         <code.init><![CDATA[local_current_tick = 0;
+local_ticks_length = 0;
+local_cycle_length = 1;
+local_count = 0;]]></code.init>
+         <code.krate><![CDATA[/*int32_t fixed_mul_16(int32_t x, int32_t y) {
+ return ((int64_t)x * (int64_t)y) / (1 << 16);
+}
+
+int32_t fixed_div_16(int32_t x, int32_t y) {
+  return ((int64_t)x * (1 << 16)) / y;
+}*/
+
+//reset when updating cycle length
+if (local_ticks_length != inlet_ticks) {
+  local_ticks_length = inlet_ticks;
+  local_current_tick = 0;
+  local_count = 0;
+}
+
+//do nothing if length is zero
+if (local_ticks_length == 0) {
+  outlet_trigger = false;
+  return;
+}
+
+disp_ticks = local_ticks_length;
+disp_count = local_count;
+
+if (param_cycle > 0) {
+
+  // please help me! :-)
+  // I need to convert this to correct types and round it before the % operator!
+  //local_cycle_length = local_ticks_length * (param_cycle / max);
+	
+  // first attempt to scale:
+  int32_t max = 0x07FFFFFF;
+  int32_t perc = ((int64_t)param_cycle * (int64_t)max) / (1 << 16);
+  local_cycle_length = ((int64_t)local_ticks_length * (1 << 16)) / perc;
+
+  disp_scaled = local_cycle_length;
+  
+  //increase current tick
+  local_current_tick = (local_current_tick + 1) % local_cycle_length;
+} else {
+  //increase current tick
+  local_current_tick = (local_current_tick + 1) % local_ticks_length;
+}
+
+//increase current tick
+// local_current_tick = (local_current_tick + 1) % local_ticks_length;
+
+if (local_current_tick == 0) {
+  local_count ++;
+  outlet_trigger = 1;
+} else {
+  outlet_trigger = 0;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="osc/tri" uuid="905879afa8256b0ca207557d656949e476ca6f16" name="tri_1" x="224" y="28">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="336" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="406" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="42" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="224" y="126">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-10.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="timer/timeri" uuid="11c19ad8fb3f9451d29984ba5dc7ebf8c30cdbfd" name="timeri_1" x="28" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="start/stop" outlet="o"/>
+         <dest obj="timeri_1" inlet="start"/>
+         <dest obj="inv_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="o"/>
+         <dest obj="timeri_1" inlet="stop"/>
+      </net>
+      <net>
+         <source obj="timeri_1" outlet="t"/>
+         <dest obj="object_1" inlet="ticks"/>
+      </net>
+      <net>
+         <source obj="tri_1" outlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="trigger"/>
+         <dest obj="ad_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="ad_1" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>502</x>
+      <y>25</y>
+      <width>629</width>
+      <height>618</height>
+   </windowPos>
+</patch-1.0>

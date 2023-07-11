@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Moog One oscillator</title>
+    <link>http://community.axoloti.com/t/moog-one-oscillator/6443</link>
+    <description>Hello there,
+thank you @johannes and community folks for this wonderful toy!
+
+I&#39;m trying to make a kind of Moog One oscillator for axoloti.
+It is a mix of:
+- triangle osc, with dial to change the angle into saw + or -.
+- and a square osc that can be xfaded into the first triangle osc. dial for Pw should go narrow like the lfo example in the image.
+&lt;img src=&quot;/uploads/default/original/2X/b/bd97dd9923b66a87449faf796f84117997df4506.png&quot; width=&quot;545&quot; height=&quot;500&quot;&gt;
+I have no skill in coding, so I did something with @SirSickSik sss/osc/trisaw, (thank you Sir for all the crazy sounds!) and osc/brds/square.
+Is it possible to make square pwm as narrow as the image of the lfo I put as example? does it make sense?
+
+Moog One has oled screens for each osc, showing fixed waveforms morphing with parameter changes. I&#39;m not shure if it shows the real waveform we hear actually, but curves look similar in my patch, except for the pw that doesn&#39;t go so thin when dial is close to zero. 
+
+Maybe someone in the community already did something close to that?
+I guess it would be more cpu efficient in a single object, interesting for bigger patches with a few of these oscillators...
+So,
+I would use from sss/osc/trisaw: pitch, FM with sync inlet, Slope (the 1st one) with dedicated inlet.
+and xfade or smux for square osc merging, with Timbre dial: pwm.
+I tried to modify these objects code without success.
+
+Let me know if anyone interested with this!</description>
+    
+    <lastBuildDate>Thu, 27 Feb 2020 14:58:15 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/moog-one-oscillator/6443.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Moog One oscillator</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>I also made a couple of extra modules like a kind of random lfo modulator and multistage envelope, which can morph from any wave to any other wave in the table (1-&gt;33-&gt;16-&gt;24-&gt;etc) alongside each stage, without the need to pass other waveforms (as in one linear morph through all the waveforms 1-&gt;2-&gt;3-&gt;4-&gt;5-&gt;etc)<br>The morph input just takes a normal phasor-lfo/osc and S&amp;H the incoming wave selection when it wraps, then uses the ramp to mix from the former to the new wave. As they're all at audio rate, there is hardly any alliasing (at least haven't noticed it yet) and it sounds really clear.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/moog-one-oscillator/6443/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/moog-one-oscillator/6443/7</link>
+        <pubDate>Thu, 27 Feb 2020 14:58:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6443-7</guid>
+        <source url="http://community.axoloti.com/t/moog-one-oscillator/6443.rss">Moog One oscillator</source>
+      </item>
+      <item>
+        <title>Moog One oscillator</title>
+        <dc:creator><![CDATA[@cire Eric]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/cire">@cire</a> wrote:</p>
+          <blockquote>
+              <p>Very interesting, especially for precise control over frequencies. <br>I like the randomize option, maybe possibility to assign different values to a single pot for easy morphing?<br>I'll keep an eye on your next modules. <br>For shure a help patch will...help!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/moog-one-oscillator/6443/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/moog-one-oscillator/6443/6</link>
+        <pubDate>Thu, 27 Feb 2020 14:51:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6443-6</guid>
+        <source url="http://community.axoloti.com/t/moog-one-oscillator/6443.rss">Moog One oscillator</source>
+      </item>
+      <item>
+        <title>Moog One oscillator</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>yes, here and there are some improvements in memory/cpu but not always noticable, sometimes it does save a lot.<br>Btw, not sure, but it might be that the trisaw is oversampled and filtered to prevent foldback frequencies, which also causes it to take double the cpu.</p>
+
+<p>I've been working on some wavetable modules that might be more useful for this, in which case you could make a wavetable where you could mix between tri/saw/pulse. The current non-modulated oscillator only uses 3%, but as soon as wave-morphing comes into play, it's more like 5/6%, as you're basically doubling/quadrubbling(?) the oscillator and cross-fade between them. But, the nice thing is that it can have any timbre you like ánd make sure there are no high harmonics in the waveform that is selected by the pitch.<br>But I'm still busy on these modules as I'm making multiple wavetable generators and players that should all be able to work together and be more or less interchangable.<br>As for the table generators, I know have several options:<br>-randomly "fill" a fft-table and convert it to a waveform.<br>-internally generate some randomised waveform, take the fft and turn it back into a set of waves (11 variations for pitch-&gt; 1 per octave)<br>-manually set the volume of each harmonic using sliders (and an option to randomise)<br>-take an incoming sound, create the fft and turn it to a set of waves (like nr2, but then with external input). With this one it should be pretty easy to make a tri/saw/pulse wavetable generator by just mixing and modulating the oscillators using the "wavetable-position" so each waveform has other settings.<br>Almost all of them have some extra controls to set the harmonic dampening factor or harmonic thinning.<br>Taken together with my "unused filename" module, you can create a set of wavetables pretty fast and then use these wavetables in a project using the oscillators.<br>But I can't yet say when I bring these out.. I made a small change in the later ones using an external array, so you could use different generators alongside each other, so I need to fix this in the earlier ones. I'll also need to make a good "demo" patch of them for generating&amp;combining wavetables as it might be a bit difficult to understand how to make use of the inputs/controls and put it all together.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/moog-one-oscillator/6443/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/moog-one-oscillator/6443/5</link>
+        <pubDate>Tue, 25 Feb 2020 23:08:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6443-5</guid>
+        <source url="http://community.axoloti.com/t/moog-one-oscillator/6443.rss">Moog One oscillator</source>
+      </item>
+      <item>
+        <title>Moog One oscillator</title>
+        <dc:creator><![CDATA[@cire Eric]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/cire">@cire</a> wrote:</p>
+          <blockquote>
+              <p>thank you for your explanations.<br>I had not noticed the trisaw module isn't anti-alliased...My use would be polyphonic synth, so not so much bass.<br>I made another version, image in message above, that is close to it, still cpu around 5%. You're right about modulations, I guess I have to deal with it.<br>I wonder if there are significant changes on cpu load by coding vs patching existing modules. I suppose there is but maybe not so much?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/moog-one-oscillator/6443/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/moog-one-oscillator/6443/4</link>
+        <pubDate>Tue, 25 Feb 2020 20:11:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6443-4</guid>
+        <source url="http://community.axoloti.com/t/moog-one-oscillator/6443.rss">Moog One oscillator</source>
+      </item>
+      <item>
+        <title>Moog One oscillator</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>you won't get it a lot lighter on cpu, the lightest oscillator possible will be around 3/4%, but this also means not many modulations.<br>Also, know that this trisaw module isn't anti-alliased, so a high pitch will generate foldover frequencies, so best use is for bass sounds.<br>You can easily add a low-cpu pulse-waveform (also not anti-alliased) by adding:<br>pulse=((int32_t)Phase&gt;&gt;4)&gt;inlet_pw?(1&lt;&lt;27):-(1&lt;&lt;27);<br>then crossfade between the the trisaw output and the pulse.</p>
+
+<p>adding fm can easily be done with the trisaw by adjusting the "phase+=freq;"  part:</p>
+
+<p>phase+=freq+(<em>__SMMUL(freq,inlet</em>fm)&lt;&lt;8); (note that there are some "_" missing thanks to this website)</p>
+
+<p>also note that I multiply the fm input with the current frequency of the oscillator. This is something that is missing in the native oscillators, but should actually be done before adding it to the freq.</p>
+
+<p>Though, adding these functions will probably force it back to around 6% cpu again..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/moog-one-oscillator/6443/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/moog-one-oscillator/6443/3</link>
+        <pubDate>Tue, 25 Feb 2020 12:26:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6443-3</guid>
+        <source url="http://community.axoloti.com/t/moog-one-oscillator/6443.rss">Moog One oscillator</source>
+      </item>
+      <item>
+        <title>Moog One oscillator</title>
+        <dc:creator><![CDATA[@cire Eric]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/cire">@cire</a> wrote:</p>
+          <blockquote>
+              <p>I found something closer with <a class="mention" href="/u/ricard">@ricard</a> oscillators, and a bit lighter on DSP load.<br>it is now 5% without scope, I wish I could make it twice lighter for polyphonic patches.<br>Any ideas welcome!<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/f3a6137515361c03d5a46d274ebae17f961b6488" href="//community.axoloti.com/uploads/default/original/2X/f/f3a6137515361c03d5a46d274ebae17f961b6488.png" class="lightbox" title="Capture d’écran 2020-02-25 à 10.51.53.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/f3a6137515361c03d5a46d274ebae17f961b6488_1_566x500.png" width="566" height="500"><div class="meta">
+<span class="filename">Capture d’écran 2020-02-25 à 10.51.53.png</span><span class="informations">847x747 36.4 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/moog-one-oscillator/6443/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/moog-one-oscillator/6443/2</link>
+        <pubDate>Tue, 25 Feb 2020 10:00:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6443-2</guid>
+        <source url="http://community.axoloti.com/t/moog-one-oscillator/6443.rss">Moog One oscillator</source>
+      </item>
+      <item>
+        <title>Moog One oscillator</title>
+        <dc:creator><![CDATA[@cire Eric]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/cire">@cire</a> wrote:</p>
+          <blockquote>
+              <p>Hello there,<br>thank you <a class="mention" href="/u/johannes">@johannes</a> and community folks for this wonderful toy!</p>
+
+<p>I'm trying to make a kind of Moog One oscillator for axoloti.<br>It is a mix of:<br>- triangle osc, with dial to change the angle into saw + or -.<br>- and a square osc that can be xfaded into the first triangle osc. dial for Pw should go narrow like the lfo example in the image.<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/bd97dd9923b66a87449faf796f84117997df4506" href="//community.axoloti.com/uploads/default/original/2X/b/bd97dd9923b66a87449faf796f84117997df4506.png" class="lightbox" title="Capture d’écran 2020-02-25 à 00.37.03.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/b/bd97dd9923b66a87449faf796f84117997df4506_1_545x500.png" width="545" height="500"><div class="meta">
+<span class="filename">Capture d’écran 2020-02-25 à 00.37.03.png</span><span class="informations">852x781 66.9 KB</span><span class="expand"></span>
+</div></a></div><br>I have no skill in coding, so I did something with <a class="mention" href="/u/sirsicksik">@SirSickSik</a> sss/osc/trisaw, (thank you Sir for all the crazy sounds!) and osc/brds/square.<br>Is it possible to make square pwm as narrow as the image of the lfo I put as example? does it make sense?</p>
+
+<p>Moog One has oled screens for each osc, showing fixed waveforms morphing with parameter changes. I'm not shure if it shows the real waveform we hear actually, but curves look similar in my patch, except for the pw that doesn't go so thin when dial is close to zero. </p>
+
+<p>Maybe someone in the community already did something close to that?<br>I guess it would be more cpu efficient in a single object, interesting for bigger patches with a few of these oscillators...<br>So,<br>I would use from sss/osc/trisaw: pitch, FM with sync inlet, Slope (the 1st one) with dedicated inlet.<br>and xfade or smux for square osc merging, with Timbre dial: pwm.<br>I tried to modify these objects code without success.</p>
+
+<p>Let me know if anyone interested with this!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/moog-one-oscillator/6443/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/moog-one-oscillator/6443/1</link>
+        <pubDate>Mon, 24 Feb 2020 23:43:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6443-1</guid>
+        <source url="http://community.axoloti.com/t/moog-one-oscillator/6443.rss">Moog One oscillator</source>
+      </item>
+  </channel>
+</rss>

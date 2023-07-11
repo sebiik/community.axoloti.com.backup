@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/oscillator-feedback/1582 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:50:35 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Oscillator feedback - AxoObject coding - Axoloti Community</title>
+    <meta name="description" content="One thing missing is a proper oscillator feedback function (meaning fm feedback). I tried to implement it the brute way inside the code of osc/sine, but the result is no different than connecting the osc object back to i&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="1582.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Oscillator feedback&#39;" href="1582.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/oscillator-feedback/1582" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/oscillator-feedback/1582" />
+<meta property="og:title" content="Oscillator feedback" />
+<meta name="twitter:title" content="Oscillator feedback" />
+<meta property="og:description" content="One thing missing is a proper oscillator feedback function (meaning fm feedback). I tried to implement it the brute way inside the code of osc/sine, but the result is no different than connecting the osc object back to itself (and this is due to the buffer size i guess). Is there some way to bypass the problem?  I was thinking about deriving the equation and then integrating it back, but is it a feasible route for a naive programmer?   Also, since we&#39;re talking about feedback loops: would it be ..." />
+<meta name="twitter:description" content="One thing missing is a proper oscillator feedback function (meaning fm feedback). I tried to implement it the brute way inside the code of osc/sine, but the result is no different than connecting the osc object back to itself (and this is due to the buffer size i guess). Is there some way to bypass the problem?  I was thinking about deriving the equation and then integrating it back, but is it a feasible route for a naive programmer?   Also, since we&#39;re talking about feedback loops: would it be ..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="3 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="10 ❤" />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../index.html"><img src="../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="1582.html">Oscillator feedback</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../c/axoobject-code.html" itemprop="url">
+        <span itemprop="title">AxoObject coding</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Sputnki.html'><b itemprop='author'>Sputnki</b></a>
+           
+           <time datetime='2016-04-27T11:44:18Z' itemprop='datePublished'>
+             2016-04-27 11:44:18 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>One thing missing is a proper oscillator feedback function (meaning fm feedback).<br>I tried to implement it the brute way inside the code of osc/sine, but the result is no different than connecting the osc object back to itself (and this is due to the buffer size i guess).<br>Is there some way to bypass the problem? <br>I was thinking about deriving the equation and then integrating it back, but is it a feasible route for a naive programmer?</p>
+
+<p>Also, since we're talking about feedback loops: would it be possible to extend the concept to something more complicated like a pll?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SirPrimalform.html'><b itemprop='author'>SirPrimalform</b></a>
+           
+           <time datetime='2016-04-27T12:40:13Z' itemprop='datePublished'>
+             2016-04-27 12:40:13 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Oh no! I had had the same thought, that implementing feedback internally would allow for a single sample delay instead of the full buffer. I assumed the buffer limitations only applied to connections between objects. So it's not possible to store the current output in a variable for the next pass to pick up and incorporate?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-04-27T12:42:47Z' itemprop='datePublished'>
+             2016-04-27 12:42:47 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>yes... doing a quick test right now.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-04-27T12:44:44Z' itemprop='datePublished'>
+             2016-04-27 12:44:44 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="2" data-topic="1582"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../user_avatar/community.axoloti.com/sirprimalform/40/1370_1.html" class="avatar">SirPrimalform:</div>
+<blockquote><p>So it's not possible to store the current output in a variable for the next pass to pick up and incorporate?</p></blockquote></aside>
+
+<p>I'm sure that IS possible.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SirPrimalform.html'><b itemprop='author'>SirPrimalform</b></a>
+           
+           <time datetime='2016-04-27T12:49:06Z' itemprop='datePublished'>
+             2016-04-27 12:49:06 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="4" data-topic="1582"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">toneburst:</div>
+<blockquote>
+<p>I'm sure that IS possible.</p>
+<p>a|x</p>
+</blockquote></aside>
+
+<p>I had hoped so... I hadn't got around to it, but I had a vague intention of trying it. A sine osc with a dial and inlet for feedback amount would allow proper DX style phase modulation patches (apart from ones where the feedback loop involves more than one operator).</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-04-27T15:32:29Z' itemprop='datePublished'>
+             2016-04-27 15:32:29 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Single-oscillator self-fm test patch in attachment, comments welcome before I turn it into a library object...<br><a class="attachment" href="../../uploads/default/original/2X/b/selfFM.axp">selfFM.axp</a> (4.6 KB)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:3'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Sputnki.html'><b itemprop='author'>Sputnki</b></a>
+           
+           <time datetime='2016-04-27T17:53:05Z' itemprop='datePublished'>
+             2016-04-27 17:53:05 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Works like a charm, however something i would change is the amount of feedback, i'd extend it if possible. At some point the osc would start to warble and then to degenerate into noise, that's a nice thing to have. At the current state the osc it's still a bit too tame</p>
+
+<p>Also, may i ask what's different with my code? (it's the one i did that would not work) (s rate)</p>
+
+<pre><code>Phase += ___SMMUL(param_feedback,Out_old) +  freq + inlet_freq;
+int32_t r; 
+int32_t p2 = Phase + (inlet_phase&lt;&lt;4);
+SINE2TINTERP(p2,r);
+Out_old=(r&gt;&gt;4);
+outlet_wave= (Out_old);</code></pre>
+
+<p>Out_old is a variable declared in local data. Did i screw up with the ranges? Also, you used SMMLA instead of SMMUL and +. Is it just a matter of code efficiency?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-04-27T19:59:22Z' itemprop='datePublished'>
+             2016-04-27 19:59:22 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="7" data-topic="1582"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../user_avatar/community.axoloti.com/sputnki/40/175_1.png" class="avatar">Sputnki:</div>
+<blockquote><p>Also, may i ask what's different with my code?</p></blockquote></aside>
+
+<p>You're integrating the feedback into the phase, I only added it to the phase. I think you implemented Frequency Modulation, I implemented Phase Modulation - yet I called it selfFM (contribution to the general confusion... sorry)<br>I think FM synthesis (DX7 etc) in popular language really means PM. </p>
+
+<aside class="quote" data-post="7" data-topic="1582"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../user_avatar/community.axoloti.com/sputnki/40/175_1.png" class="avatar">Sputnki:</div>
+<blockquote><p>SMMLA instead of SMMUL and +. Is it just a matter of code efficiency?</p></blockquote></aside>
+
+<p>yes</p>
+
+<p>edit: the measured difference in performance is 16 cpu cycles (1 for every audio rate sample) out of 507 cycles.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SirPrimalform.html'><b itemprop='author'>SirPrimalform</b></a>
+           
+           <time datetime='2016-04-27T23:53:10Z' itemprop='datePublished'>
+             2016-04-27 23:53:10 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="8" data-topic="1582"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../user_avatar/community.axoloti.com/johannes/40/8_1.html" class="avatar">johannes:</div>
+<blockquote><p>I think FM synthesis (DX7 etc) in popular language really means PM.</p></blockquote></aside>
+
+<p>That is true. Feedback in true FM is not all that useful, even in digital systems it sends the oscillator out of tune where PM is very stable (until you push the feedback high enough). Speaking of which, I second Sputnki's request: increasing the range so that 'too much' feedback is possible, it was used in DX synths as a noise source. I know we have proper noise sources, but the feedback noise still has its use in pure FM (PM) patches.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/lokki.html'><b itemprop='author'>lokki</b></a>
+           
+           <time datetime='2016-10-01T22:37:48Z' itemprop='datePublished'>
+             2016-10-01 22:37:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>so, tried the object, it sounds really nice! <a class="mention" href="../../users/johannes.html">@johannes</a>, why was it not included in the library? i tried adjusting the feedback, but i think that is not easily possible with your code, right?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Sputnki.html'><b itemprop='author'>Sputnki</b></a>
+           
+           <time datetime='2016-10-02T07:15:49Z' itemprop='datePublished'>
+             2016-10-02 07:15:49 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>You could adjust feedback (to achieve the noise), but i think you'd have to replace SMMLA(a,b,c) (which performs a*b + c with SMMUL(a,b), which does a*b<br>At that point you should be able to do some more bitshifting to the feedback signal before adding it to the phase. <br>Johannes' code is surely more efficient and good looking, however</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2016-12-14T23:50:09Z' itemprop='datePublished'>
+             2016-12-14 23:50:09 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hello,</p>
+
+<p>Here is an implementation of the Self phase modulation algorithm.<br>It is a tamed version, with a "anti hunting" filter.<br>So it is more like a low cost anti aliased sawtooth osc than a crazy feedback engine.</p>
+
+<p>By using this "anti hunting" filter, I avoid high frequency self oscillations and - as a side effect - I do not need to use the interpolation function SINE2TINTERP, a raw access to sine2t is good enough =&gt; low CPU and nice anti-aliasing.</p>
+
+<p>The feedback is controlled by the fbMod inlet.<br>The range of feedback modulation is controlled by two parameters fb0 and fb1.</p>
+
+<p>When the fbMod inletvaries in the [0 64] range<br>the feedback varies in the [fb0 fb1] range.</p>
+
+<p>I think this is a handy way to control this parameter.</p>
+
+<p>A dial display shows how fb evolves when you are live.</p>
+
+<p><img src="../../uploads/default/original/2X/f/f1ff9f3573d498a5308183b987cf536d8d820ff9.jpg" width="90" height="202"></p>
+
+<p>The object and a simple patch:</p>
+
+<p><a class="attachment" href="../../uploads/default/original/2X/7/SelfPM.axo">SelfPM.axo</a> (2.0 KB)<br><a class="attachment" href="../../uploads/default/original/2X/9/SelfPM.axp">SelfPM.axp</a> (2.6 KB)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Sputnki.html'><b itemprop='author'>Sputnki</b></a>
+           
+           <time datetime='2016-12-15T20:59:24Z' itemprop='datePublished'>
+             2016-12-15 20:59:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Sounds nice, could it also stabilize a self frequency modulation osc?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2016-12-15T22:29:46Z' itemprop='datePublished'>
+             2016-12-15 22:29:46 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I don't think it will.<br>FM is equivalent to PM in the simple case of a sine wave modulating a sine wave.<br>Frequency modulation has many drawbacks VS phase modulation. One is detuning if the modulator has some DC offset.</p>
+
+<p>With self modulated PM, it is possible to generate square like waveforms by feedbacking the square of the output.<br>Here is an update of my SelfPM object:</p>
+
+<p><a class="attachment" href="../../uploads/default/original/2X/0/SelfPM.axo">SelfPM.axo</a> (3.5 KB)</p>
+
+<ul>
+<li>Extended Fb for brighter sounds</li>
+<li>negative Fb switches to "squarish" mode</li>
+<li>linear interpolation of fb at audio rate</li>
+</ul>
+
+<p>Here is another object that implements 4 detuned SelfPM oscillators.<br><a class="attachment" href="../../uploads/default/original/2X/c/selfPMBank.axo">selfPMBank.axo</a> (6.3 KB)</p>
+
+<p>and a 15 voice (60 oscs) String Machine patch that uses this one:<br><a class="attachment" href="../../uploads/default/original/2X/f/PolySelfPMBank.axp">PolySelfPMBank.axp</a> (14.2 KB)</p>
+
+<p>And thanks Spitnki for your "Coding axoloti objects", it really helped me to figure how fixed point works with ___SMMUL !</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SirSickSik.html'><b itemprop='author'>SirSickSik</b></a>
+           
+           <time datetime='2017-01-11T12:04:37Z' itemprop='datePublished'>
+             2017-01-11 12:04:37 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>check my oscillators for doing selfFM,<br>there are a few things that you need to take care off:</p>
+
+<p>-linear FM should often use an index: multiply it with the current frequency so it stays in the same ratio, whatever the frequency is. Then add this value to the phase together with the base frequency.</p>
+
+<p>FMW    =  <em>__SMMUL(param</em>FMW&lt;&lt;3,freq&lt;&lt;3);<br>phase +=  freq + ___SMMUL(modsignal&lt;&lt;3,FMW&lt;&lt;2)</p>
+
+<p>(ps. this code isn't working as the <em>__ before SMMUL should be 3x "</em>" and the editor here removes one in the FMW function..)</p>
+
+<p>-exponential FM doesn't need an indexing, as the modulation-width is automatically wider at higher octaves.</p>
+
+<p>-I always implement a HP-filter on the modulating signal. This is needed as frequency modulation tends to modulate the signal such that it gets a DC-offset, offsetting the base-pitch. By implementing a HP-filter, you can remove this DC-offset, so the base-pitch of the modulated oscillator doesn't change too much.</p>
+
+<p>This HP filter also helps to prevent the oscillator to get "stuck" if the self-modulation makes the frequency to be zero hertz. As this only happens when the modulation is exactly the negative version of the "base-pitch"( when the multiplication of the frequency is -1), the HP filter will force the modulator-multiplication back to zero, allowing the oscillator to go above zero hertz again and move on.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-11T19:21:51Z' itemprop='datePublished'>
+             2017-01-11 19:21:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'll surely play with wilder/less controlled self modulation, distortions and delays in the feedback loop can lead to unexpected and sometimes interesting results <img src="../../images/emoji/emoji_one/smiley30f4.png?v=3" title=":smiley:" class="emoji" alt=":smiley:"> and in the case of distorted feedback FM and PM are not equivalent.</p>
+
+<blockquote><p>-I always implement a HP-filter on the modulating signal</p></blockquote>
+
+<p>Phase is the integral of the frequency.<br>A first order high pass filter is an approximate of a differentiator (it is a low passed differentiator) .<br>So, when you insert the HP filter I guess it is equivalent to phase modulation with a low pass filter on the mod input.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SirSickSik.html'><b itemprop='author'>SirSickSik</b></a>
+           
+           <time datetime='2017-01-11T23:41:51Z' itemprop='datePublished'>
+             2017-01-11 23:41:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>that's true indeed, now you mention it XD<br>but in case of FM, you're changing the internal phase, while with PM, you add the signal to the current phase, which keeps going on it;s own pace..<br>so the PM is more like a waveshaper with feedback and phase as input.<br>The use of the HP filter with linear FM allows to move between "normal" FM modulation(very very low cutoff, or fading out the filter) and a more PM-like modulation (higher cutoff) or just sit somewhere in between.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-12T00:37:37Z' itemprop='datePublished'>
+             2017-01-12 00:37:37 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Yes, at low frequency, a phase modulated oscillator can be seen as a non linear function with a varying central point.<br>That's why i put some effort in the pre integrated polynomial wavetables: this will allow to anti alias wavetables and distortions <img src="../../images/emoji/emoji_one/smiley30f4.png?v=3" title=":smiley:" class="emoji" alt=":smiley:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Oscillator feedback'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../index.html'>Home</a>
+        <a href="../../categories.html">Categories</a>
+        <a href="../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../tos.html">Terms of Service</a>
+        <a href="../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/oscillator-feedback/1582 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:50:43 GMT -->
+</html>

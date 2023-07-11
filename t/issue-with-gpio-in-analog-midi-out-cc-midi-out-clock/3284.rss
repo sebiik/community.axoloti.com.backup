@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+    <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284</link>
+    <description>Hello :) 
+
+I am this morning experimenting with external clock and at the same time use the modular thing add on board to control some things. But I am experiencing some odd behaviour when using the midi/out/clock, midi/out/cc and the gpio/in/analog in same patch. Like this:
+
+&lt;img src=&quot;/uploads/default/original/2X/7/7cde35d848115ec4a3c51bad874fd0e2ec73bcba.png&quot; width=&quot;690&quot; height=&quot;439&quot;&gt;
+
+I know this sounds really weird.. But when I connect the gpio/in/analog to the midi/out/cc in the patch... Axolotis clock about drops to half tempo...... + it starts to sound very very bad and super digital. As soon as i disconnect it, it sounds good again and tempo is normal again
+
+**Could anyone try this patch and see if you get the same result? I** am thinking it might be my modular thing add on board that is not the best solder job. But I didnt really think it could cause these kinds of issue.
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/0/0577caaf966337bda13597d125659fd4b8cfe601.axp&quot;&gt;Tempo weird.axp&lt;/a&gt; (5.1 KB)</description>
+    
+    <lastBuildDate>Sun, 07 May 2017 10:28:23 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="8" data-topic="3284"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>blindsmyth suggestion did work, using change speedlim .</p></blockquote></aside>
+
+<p>of course it works... it just limits sending CC messages to the time you specify.<br>the issue is, because the float value is constantly changing, it will still be sending a stream of CC messages, even though the cc value is not altered.<br>e.g. imagine you set the throttle time to 1 second, and that the gpio is jittering around, 0.4999005 and 0.500005.<br>what will happen is you will be sending CC of value 64 every second, because the float value is jittering around 0.5, not enough to kill the system, but still a waste of resources/io</p>
+
+<p>now if you quantise to 128, ( using a simple shift followed by a bit mask) , the result will constantly be 64 - so the change never triggers, as the (quantised) value has not altered. so no CC are sent saving cpu and io.</p>
+
+<p>it doesn't actually matter if midi/out/cc supports integer of not! you can use your calculation for the trig condition... regardless of what is sent to the value.<br>that is why the trig is separate it allows the patcher to decide on the criteria of when to send updates - as there are a number of potential strategies depending on what is required.</p>
+
+<p>anyway, this is why when working with midi, id always recommend monitoring the input/output when testing , either internally on Axoloti (midi/utils/monitor) or even better using a monitor app. </p>
+
+<p>tip: if you have 2 Axoloti you can use one as a midi monitoring device ... use my thru object, and put the test axo in between patch tested, and device... if the midi light blinks like fury, or when you don't expect, then you know you have to take a closer look at the messages sent</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/9</link>
+        <pubDate>Sun, 07 May 2017 10:28:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-9</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="7" data-topic="3284"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>the real cause, as you have seen, is analog input will have jitter, how much depends on many things, but its pretty common to be use a filter to smooth it out.</p></blockquote></aside>
+
+<p>blindsmyth suggestion did work, using change speedlim . I put it in a controller object and have it live in every patch and for now it doesnt seem to affect anything.......</p>
+
+<p>Will definatly try the scaling to 0-127.. I dont rememebr right now if it is midi/in or midi/out that has an integer version. Ill check up on that.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/8</link>
+        <pubDate>Sat, 06 May 2017 23:02:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-8</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="3284"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>Anyway, I still think it is a bit strange that a gpio with jitter can affect the whole system to sound "broken! and cause the midi dclock to become unstable</p></blockquote></aside>
+
+<p>Id need to double check, but I suspect, the midi din output is not threaded (unlike USB device midi which is)... this means the IO is being done in the audio thread, which is a bad idea as will lead to audio breakups, if you push it too much.</p>
+
+<p>watching the amount of midi messages goes out is always a good idea, even with the threading of usb midi, this would 'break' since it has a limited ring buffer, which will overflow if too many messages are sent.</p>
+
+<p>the real cause, as you have seen, is analog input will have jitter, how much depends on many things, but its pretty common to be use a filter to smooth it out.</p>
+
+<p>in your scenario, id have probably converted the gpio to an int in range 0...127. then used change on that, since you only need to trig a CC when the resulting cc value changes NOT the float (which is much more accurate)... this is generally true of change, quantise first, then use change.<br>you'll probably still need to filter (or similar) though, since if you get the pot in just the right place, it could jitter around a threshold value, but obviously is much less likely.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/7</link>
+        <pubDate>Thu, 04 May 2017 15:31:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-7</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="5" data-topic="3284" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/b/2acd7d/40.png" class="avatar">Blindsmyth:</div>
+<blockquote><p>changing logic change by change speedlim seems to solve it. propably the jitter of the gpio was to much for axoloti's midi engine</p></blockquote></aside>
+
+<p>Just tried that and it WORKS... Super <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>Anyway, I still think it is a bit strange that a gpio with jitter can affect the whole system to sound "broken! and cause the midi dclock to become unstable</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/6</link>
+        <pubDate>Thu, 04 May 2017 12:32:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-6</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>changing logic change by change speedlim seems to solve it. propably the jitter of the gpio was to much for axoloti's midi engine.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/5</link>
+        <pubDate>Thu, 04 May 2017 12:30:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-5</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/blindsmyth">@Blindsmyth</a> </p>
+
+<p>Thanks for trying it out. I cant find any logical explanation for this. </p>
+
+<aside class="quote" data-post="3" data-topic="3284" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/keyman/40/49_1.png" class="avatar">keyman:</div>
+<blockquote><p>Also If you change midi/out/cc from din to other output... din related?</p></blockquote></aside>
+
+<p><a class="mention" href="/users/keyman">@keyman</a></p>
+
+<p>Just tried changing to USB port. It doesnt happen there., so it might be related to the din only. Weird thing is when I disconnect the gpio/in/analog, but still keeps it in the patch, it doesnt happen. Reconnect it again to the midi cc out, it will happen again.</p>
+
+<p>Anyway I think <a class="mention" href="/users/thetechnobear">@thetechnobear</a> and <a class="mention" href="/users/johannes">@johannes</a> opinions would be nice on this.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/4</link>
+        <pubDate>Thu, 04 May 2017 12:25:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-4</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@keyman Antonio Machado]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/keyman">@keyman</a> wrote:</p>
+          <blockquote>
+              <p>Also If you change midi/out/cc from din to other output... din related?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/3</link>
+        <pubDate>Thu, 04 May 2017 11:59:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-3</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>Hey Jaffa tested your patch, has the same issues, tempo drop and digital harshness! Very weird!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/2</link>
+        <pubDate>Thu, 04 May 2017 11:25:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-2</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+      <item>
+        <title>Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Hello <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>I am this morning experimenting with external clock and at the same time use the modular thing add on board to control some things. But I am experiencing some odd behaviour when using the midi/out/clock, midi/out/cc and the gpio/in/analog in same patch. Like this:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/7cde35d848115ec4a3c51bad874fd0e2ec73bcba" href="//community.axoloti.com/uploads/default/original/2X/7/7cde35d848115ec4a3c51bad874fd0e2ec73bcba.png" class="lightbox" title="clock weird.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/7/7cde35d848115ec4a3c51bad874fd0e2ec73bcba_1_690x439.png" width="690" height="439"><div class="meta">
+<span class="filename">clock weird.png</span><span class="informations">900x573 42 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>I know this sounds really weird.. But when I connect the gpio/in/analog to the midi/out/cc in the patch... Axolotis clock about drops to half tempo...... + it starts to sound very very bad and super digital. As soon as i disconnect it, it sounds good again and tempo is normal again</p>
+
+<p><strong>Could anyone try this patch and see if you get the same result? I</strong> am thinking it might be my modular thing add on board that is not the best solder job. But I didnt really think it could cause these kinds of issue.</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/0/0577caaf966337bda13597d125659fd4b8cfe601.axp">Tempo weird.axp</a> (5.1 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284/1</link>
+        <pubDate>Thu, 04 May 2017 08:02:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3284-1</guid>
+        <source url="http://community.axoloti.com/t/issue-with-gpio-in-analog-midi-out-cc-midi-out-clock/3284.rss">Issue with gpio/in/analog &amp; midi/out/cc &amp; midi/out/clock</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,323 @@
+<patch-1.0 appVersion="1.0.11">
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="84" y="14">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="the one"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="1d4209a7-cea0-410e-a40e-e6bc4472ca14" name="display a string" x="392" y="42">
+      <params/>
+      <attribs>
+         <spinner attributeName="pos" value="1"/>
+         <spinner attributeName="line" value="0"/>
+         <spinner attributeName="len" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="1d4209a7-cea0-410e-a40e-e6bc4472ca14">
+         <inlets>
+            <bool32 name="enabled"/>
+            <charptr32 name="value"/>
+            <charptr32 name="buffer"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="pos" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <spinner name="line" MinValue="0" MaxValue="1" DefaultValue="0"/>
+            <spinner name="len" MinValue="1" MaxValue="16" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[/** CONV **/
+
+int
+copy(const char *in_str, char *buf) {
+	for (int i = 0; i<attr_len; i++) {
+  		char ch = in_str[i];
+		buf[i] = ch ? ch : ' ';
+  }
+}]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_enabled) {
+	copy(inlet_value, (char *)&inlet_buffer[(attr_line * 16) + attr_pos]);	
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="mux/mux 2" uuid="777491e645978e331fcbab6610f52c1aaa5ade0e" name="mux_2" x="266" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_2" x="84" y="84">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="the other"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_2" x="168" y="154">
+      <params>
+         <frac32.u.map name="value" value="33.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="3bcb8a666381ed18b8962eda50b1aa679136f618" name="mux_1" x="294" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="168" y="238">
+      <params>
+         <frac32.u.map name="value" value="49.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="70" y="266">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="2687caf9-4b41-4ee8-93b3-9757984c39e1" name="hd44780" x="154" y="350">
+      <params>
+         <bool32.mom name="init" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="2687caf9-4b41-4ee8-93b3-9757984c39e1">
+         <sDescription>script with 2 inputs and 2 outputs, running in a separate thread</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>script.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <charptr32 name="displaybuf"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.mom name="init"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[/**
+ * Connect a 2x16 HD44780 compatible display to:
+ * 
+ * Pin 4 (RS) -> Axoloti GPIOC0
+ * Pin 6 (E) -> Axoloti GPIOC1
+ * Pin 11 (D4) -> Axoloti GPIOC2
+ * Pin 12 (D5) -> Axoloti GPIOC2
+ * Pin 13 (D6) -> Axoloti GPIOC2
+ * Pin 14 (D7) -> Axoloti GPIOC2
+ * 
+ * 5V to pin 2, GND to pin 1, 5 and 16
+ * Wiper of a pot to pin 3 for contrast with the other pins to gnd and 5V
+ * (for contrast)
+ * Pin 15 to 5V through a 100 ohm resistor 
+ * 
+ * Pins 7, 8, 9, 10 - unused
+ */
+
+/** DISPLAY UPDATE **/
+bool init_trig;
+
+static msg_t 
+DisplayUpdate(void *arg) {
+	((attr_parent *)arg)->DisplayUpdateThread();
+}
+WORKING_AREA(waDisplayUpdate, 1024);
+Thread *DisplayThd;
+
+char msgbuf[2*16];
+
+msg_t 
+DisplayUpdateThread(void) {
+	while(!chThdShouldTerminate()){
+		lcd_set_pos(0,0);
+		lcd_write_line(&msgbuf[0]);
+		lcd_set_pos(0,1);
+		lcd_write_line(&msgbuf[16]);
+     	chThdSleepMilliseconds(50);
+  	}
+  	chThdExit((msg_t)0);
+}
+
+#define LCD_PIN_BANK GPIOC
+#define LCD_PIN_RS 0
+#define LCD_PIN_E 1
+const int LCD_DATA_PINS[4] = { 2, 3, 4, 5 };
+
+inline void
+lcd_write_line(char *line) {
+	for (int i = 0; i <= 16; i++) {
+		char c = line[i];
+		lcd_write_word(false, c ? c : ' ');
+	}
+}
+
+inline void
+lcd_set_pos(int x, int y) {
+	int pos = (y>0) ? 0x40 : 0x0;
+	pos += x;
+	lcd_write_word(true, 0x80 | pos);
+}
+
+inline void
+lcd_pin_high(int pin) {
+	palWritePad(LCD_PIN_BANK, pin, 1);
+}
+
+inline void
+lcd_pin_low(int pin) {
+	palWritePad(LCD_PIN_BANK, pin, 0);
+}
+
+inline void
+lcd_set_bus(uint8_t nibble) {
+	for (int i = 0; i < 4; i++) {
+		palWritePad(LCD_PIN_BANK, LCD_DATA_PINS[i], (nibble&1<<i) ? 1 : 0);
+	}
+}
+
+inline void
+lcd_wiggle_e() {
+	lcd_pin_high(LCD_PIN_E);
+	chThdSleepMicroseconds(1);
+	lcd_pin_low(LCD_PIN_E);
+}
+
+void
+lcd_write_word(bool command, uint8_t word) {
+	if (!command) lcd_pin_high(LCD_PIN_RS);
+	lcd_set_bus(word>>4);
+	lcd_wiggle_e();
+	lcd_set_bus(word&0x0f);
+	lcd_wiggle_e();
+	lcd_pin_low(LCD_PIN_RS);
+}
+
+void
+lcd_init() {
+	palSetPadMode(LCD_PIN_BANK, LCD_PIN_E, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPadMode(LCD_PIN_BANK, LCD_PIN_RS, PAL_MODE_OUTPUT_PUSHPULL);
+	for (int i = 0; i < 4; i++) {
+		palSetPadMode(LCD_PIN_BANK, LCD_DATA_PINS[i], PAL_MODE_OUTPUT_PUSHPULL);
+	}
+	
+	chThdSleepMilliseconds(10);
+	lcd_pin_low(LCD_PIN_RS);
+	lcd_set_bus(0b0010);
+	lcd_wiggle_e();
+
+	chThdSleepMilliseconds(10);
+	lcd_write_word(true, 0b10);
+
+	lcd_write_word(true, 0b1100);
+}]]></code.declaration>
+         <code.init><![CDATA[DisplayThd = chThdCreateStatic(waDisplayUpdate, sizeof(waDisplayUpdate),
+                    NORMALPRIO, DisplayUpdate, (void *)this);]]></code.init>
+         <code.dispose><![CDATA[chThdTerminate(DisplayThd);
+chThdWait(DisplayThd);]]></code.dispose>
+         <code.krate><![CDATA[if (param_init && !init_trig) {
+	lcd_init();
+}
+
+outlet_displaybuf = msgbuf;
+init_trig = param_init;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="1d4209a7-cea0-410e-a40e-e6bc4472ca14" name="display a number" x="378" y="350">
+      <params/>
+      <attribs>
+         <spinner attributeName="pos" value="2"/>
+         <spinner attributeName="line" value="1"/>
+      </attribs>
+      <object id="patch/object" uuid="1d4209a7-cea0-410e-a40e-e6bc4472ca14">
+         <sDescription></sDescription>
+         <inlets>
+            <bool32 name="enabled"/>
+            <frac32 name="value"/>
+            <charptr32 name="buffer"/>
+         </inlets>
+         <outlets>
+            <charptr32 name="ptr"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="pos" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <spinner name="line" MinValue="0" MaxValue="1" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[/** CONV **/
+
+const int bases[6] = { 1, 10, 100, 1000, 10000, 100000 };
+
+int
+conv(int num, int digits, char *str) {
+  int tmp = num % bases[digits];
+  for (int i = digits; i>0; i--) { 
+    int base = bases[i-1];
+    int digit = tmp/base;
+    tmp -= digit*base;
+    str[digits-i] = digit + '0';
+  }
+}]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_enabled) {
+	conv(inlet_value>>19, 3, (char *)&inlet_buffer[(attr_line * 16) + attr_pos]);	
+}
+
+outlet_ptr = (char *)&inlet_buffer[(attr_line * 16) + attr_pos];]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_2" x="252" y="448">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="hd44780" outlet="displaybuf"/>
+         <dest obj="display a number" inlet="buffer"/>
+         <dest obj="display a string" inlet="buffer"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="mux_1" inlet="s"/>
+         <dest obj="mux_2" inlet="s"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="display a number" inlet="value"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="display a number" inlet="enabled"/>
+         <dest obj="display a string" inlet="enabled"/>
+      </net>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="mux_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="c_2" outlet="out"/>
+         <dest obj="mux_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="mux_2" outlet="o"/>
+         <dest obj="display a string" inlet="value"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>699</x>
+      <y>18</y>
+      <width>688</width>
+      <height>658</height>
+   </windowPos>
+</patch-1.0>

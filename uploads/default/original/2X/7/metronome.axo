@@ -1,0 +1,47 @@
+<objdefs>
+	<obj.normal id="metronome" uuid="47775c7a1a9e361ba12881cedc17ede68525e071" sha="87bb57a92b1bfbad18dcd5c3462b21786eabecc7">
+		<upgradeSha/>
+		<sDescription>Metronome with PBM and note values</sDescription>
+		<author>loopmasta@gmail.com</author>
+		<license>BSD</license>
+		<helpPatch/>
+		<inlets/>
+		<outlets>
+			<int32.bipolar name="out" description="metronome output"/>
+		</outlets>
+		<displays/>
+		<params>
+			<int32 name="bpm" description="beats per minute">
+				<MinValue i="56"/>
+				<MaxValue i="240"/>
+			</int32>
+			<int32 name="note" description="notes per beat">
+				<MinValue i="1"/>
+				<MaxValue i="32"/>
+			</int32>
+			<int32 name="swing" description="swing feel in %">
+				<MinValue i="1"/>
+				<MaxValue i="100"/>
+			</int32>
+		</params>
+		<attribs/>
+		<code.declaration><![CDATA[
+
+int32_t phase;
+
+static const uint32_t oneBPM = (INT32_MAX / ((SAMPLERATE / BUFSIZE) * 60.0)) * 2;
+
+		]]></code.declaration>
+		<code.init><![CDATA[
+
+phase = 0;
+
+		]]></code.init>
+		<code.krate><![CDATA[
+
+phase += oneBPM * param_bpm * param_note;
+outlet_out = phase > 0 ? 32 : -32;
+
+		]]></code.krate>
+	</obj.normal>
+</objdefs>

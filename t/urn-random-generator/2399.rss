@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>URN random generator?</title>
+    <link>http://community.axoloti.com/t/urn-random-generator/2399</link>
+    <description>Is there a way to have a unique number generator for serial operations?
+random with no repetition with variable limit?</description>
+    
+    <lastBuildDate>Fri, 25 Oct 2019 13:18:59 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/urn-random-generator/2399.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>URN random generator?</title>
+        <dc:creator><![CDATA[@urklang Nicolas Steven Miller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/urklang">@urklang</a> wrote:</p>
+          <blockquote>
+              <p>This got me thinking about how randomness is implemented:<br></p>
+
+<p></p><pre><code class="lang-auto">__attribute__ ( ( always_inline ) ) __STATIC_INLINE int32_t rand_s32(void) {
+  // This function differs from the standard C rand() definition, standard C
+  // rand() only returns positive numbers, while rand_s32() returns the full
+  // signed 32 bit range.
+  // The hardware random generator can't provide new data as quick as desireable
+  // but rather than waiting for a new true random number,
+  // we multiply/add the seed with the latest hardware-generated number.
+  static uint32_t randSeed = 22222;
+  return randSeed = (randSeed * 196314165) + RNG-&gt;DR;
+}</code></pre>
+
+<p>(from axoloti_math.h)<br>So just glancing at this rand/uniform by itself isn't giving any uniqueness guarantee, just that the results are uniformly distributed. RNG-&gt;DR is based on reading physical analog noise; off the top of my head I'm not sure what they guarantee about it statistically.</p>
+
+<p>Like Jaffa is saying, you need more logic if you want to have something spit out unique values and then reset, conceptually like a lottery system where you are pulling tickets out, like you pick n values, put them in a bucket and pull them out until the bucket is empty and then reset.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/urn-random-generator/2399/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/urn-random-generator/2399/6</link>
+        <pubDate>Fri, 25 Oct 2019 13:18:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2399-6</guid>
+        <source url="http://community.axoloti.com/t/urn-random-generator/2399.rss">URN random generator?</source>
+      </item>
+      <item>
+        <title>URN random generator?</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>I did do some googling, but the suggestions I found doesn't work fully for me. I know it is 100% surely me who is doing it wrong, but not 100% sure how to go about it.</p>
+
+<p>Here is my first try, from this page: <a href="http://www.cplusplus.com/forum/beginner/119369/">http://www.cplusplus.com/forum/beginner/119369/</a></p>
+
+<p>int counter;<br>int lotteryNumbers [65];</p>
+
+<p>int Length = 64;</p>
+
+<p>int index = 0;<br>int new_num;</p>
+
+<p>if(on&gt;0){<br>    for (counter = 0; counter &lt; Length; counter++)<br>    {	<br>		do{<br>			new_num = rand()%Length + 1;<br>			for( int i = 0; i &lt; Length; i++ ){<br>				if( new_num == lotteryNumbers[i] ){<br>					new_num = 0;<br>					break;<br>				}<br>			}<br>		}while( new_num == 0 );<br>            lotteryNumbers[index] = new_num;<br>            index++;       <br>}<br>}</p>
+
+<p>on=0;</p>
+
+<p>outlet_o = lotteryNumbers[inlet_i];</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/urn-random-generator/2399/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/urn-random-generator/2399/5</link>
+        <pubDate>Fri, 25 Oct 2019 11:59:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2399-5</guid>
+        <source url="http://community.axoloti.com/t/urn-random-generator/2399.rss">URN random generator?</source>
+      </item>
+      <item>
+        <title>URN random generator?</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/tobor">@Tobor</a></p>
+
+<p>Did you manage to make something with unique random numbers?</p>
+
+<p>Maybe I am not looking for the same as you do, not 100% sure. But here is what I am looking for atm:</p>
+
+<p>Lets say I need to put 10 random numbers into and array and they should all stay within the same range and with no duplicates. Such an array could look like this:<br>2,1,4,6,8,9,3,5,7,0</p>
+
+<p>A bit like a lottery system, where you never can not draw the same number more than once. All 10 numbers are within a range of 10 and only 1 of each.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/urn-random-generator/2399/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/urn-random-generator/2399/4</link>
+        <pubDate>Fri, 25 Oct 2019 11:56:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2399-4</guid>
+        <source url="http://community.axoloti.com/t/urn-random-generator/2399.rss">URN random generator?</source>
+      </item>
+      <item>
+        <title>URN random generator?</title>
+        <dc:creator><![CDATA[@Tobor Giorgio Sancristoforo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tobor">@Tobor</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="2399"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sputnki/40/175_1.png" class="avatar">Sputnki:</div>
+<blockquote><p>rand/uniform i</p></blockquote></aside>
+
+<p>ah good it's unique! lovely! thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/urn-random-generator/2399/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/urn-random-generator/2399/3</link>
+        <pubDate>Tue, 18 Oct 2016 16:46:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2399-3</guid>
+        <source url="http://community.axoloti.com/t/urn-random-generator/2399.rss">URN random generator?</source>
+      </item>
+      <item>
+        <title>URN random generator?</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>rand/uniform i</p>
+
+<p>20 characters</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/urn-random-generator/2399/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/urn-random-generator/2399/2</link>
+        <pubDate>Tue, 18 Oct 2016 12:20:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2399-2</guid>
+        <source url="http://community.axoloti.com/t/urn-random-generator/2399.rss">URN random generator?</source>
+      </item>
+      <item>
+        <title>URN random generator?</title>
+        <dc:creator><![CDATA[@Tobor Giorgio Sancristoforo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tobor">@Tobor</a> wrote:</p>
+          <blockquote>
+              <p>Is there a way to have a unique number generator for serial operations?<br>random with no repetition with variable limit?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/urn-random-generator/2399/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/urn-random-generator/2399/1</link>
+        <pubDate>Sun, 16 Oct 2016 13:19:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2399-1</guid>
+        <source url="http://community.axoloti.com/t/urn-random-generator/2399.rss">URN random generator?</source>
+      </item>
+  </channel>
+</rss>

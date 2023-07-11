@@ -1,0 +1,140 @@
+<patch appVersion="3.0.1">
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_2" x="28" y="42">
+      <params>
+         <frac32.s.map name="pitch" onParent="false" value="23.0">
+            <presets/>
+         </frac32.s.map>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 2 g" uuid="221f038da51943034a75e442c90624fcebfe6112" name="mix_2" x="140" y="42">
+      <params>
+         <frac32.u.map name="gain1" onParent="false" value="0.0">
+            <presets/>
+         </frac32.u.map>
+         <frac32.u.map name="gain2" onParent="false" value="48.5">
+            <presets/>
+         </frac32.u.map>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="6573ffb8-4bc4-4233-b4a3-8f3583a9814f" name="pwm" x="252" y="42">
+      <params/>
+      <attribs/>
+      <object id="pwm" uuid="6573ffb8-4bc4-4233-b4a3-8f3583a9814f">
+         <sDescription>PWM Output at high freq, e.g. 48000 kHz on timer 3</sDescription>
+         <author>DIYDSP, Noah Vawter</author>
+         <license>BSD</license>
+         <providesModulationSource>false</providesModulationSource>
+         <rotatedParams>false</rotatedParams>
+         <inlets>
+            <frac32buffer name="pa6" description="pwm ratio"/>
+         </inlets>
+         <outlets>
+            <bool32 name="dir"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <file-depends/>
+         <includes/>
+         <depends/>
+         <modules/>
+         <code.declaration><![CDATA[]]></code.declaration>
+         <code.init><![CDATA[static const PWMConfig pwmcfg = {
+	
+	
+	200000000, // 200 MHz PWM clock frequency. 
+	//40000000, // 40 MHz PWM clock frequency. 
+	//4000000, // 4 MHz PWM clock frequency. 
+	//400000, // 400kHz PWM clock frequency.
+	
+	4096, // PWM period is 4096 cycles.   
+	NULL, 
+	{{PWM_OUTPUT_ACTIVE_HIGH, NULL}, 
+	{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+	{PWM_OUTPUT_ACTIVE_HIGH, NULL}, 
+	{PWM_OUTPUT_ACTIVE_HIGH, NULL}},
+	/* HW dependent part.*/
+	0};
+
+pwmStart(&PWMD3, &pwmcfg);
+  
+palSetPadMode(GPIOA, 6, PAL_MODE_ALTERNATE(2));
+
+//palSetPadMode(GPIOA, 7, PAL_MODE_ALTERNATE(2));
+//palSetPadMode(GPIOB, 1, PAL_MODE_ALTERNATE(2));
+
+//assert(1==1)]]></code.init>
+         <code.dispose><![CDATA[pwmStop(&PWMD3);]]></code.dispose>
+         <code.krate><![CDATA[]]></code.krate>
+         <code.srate><![CDATA[uint16_t pwm_val;  //  currently 0-4095
+bool     pwm_dir;
+//bool  pwm_dir = ( inlet_pa6 >= 0 ) ? 1 : 0;
+
+if( inlet_pa6 > 0 )
+{	
+	pwm_val = inlet_pa6 >> 15;	
+	pwm_dir = 1;
+} else
+{
+	pwm_val = (-inlet_pa6) >> 15;
+	pwm_dir = 0;
+}
+
+//int16_t pwm_val = inlet_pa6 >> 15;
+//int16_t pwm_val = ( inlet_pa6 >= 0 ) ? inlet_pa6>>15 : 0;
+
+// drive direction pin
+outlet_dir = pwm_dir;
+
+// drive PWM channel
+pwmEnableChannel(&PWMD3, 0, (pwmcnt_t) pwm_val );
+//pwmEnableChannel(&PWMD3, 0, (pwmcnt_t)(inlet_pa6>=0?inlet_pa6>>15:0));
+
+// to be removed
+//pwmEnableChannel(&PWMD3, 1, (pwmcnt_t)(inlet_pa7>=0?inlet_pa7>>15:0));
+//pwmEnableChannel(&PWMD3, 3, (pwmcnt_t)(inlet_pb1>=0?inlet_pb1>>15:0));]]></code.srate>
+         <code.midihandler><![CDATA[]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="gpio/out/digital" uuid="320eed040f6c55bb24c56416596ac2e67d0c82bc" name="digital_1" x="476" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="pad" selection="PB0"/>
+         <combo attributeName="mode" selection="Push pull"/>
+      </attribs>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="182" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="dc7fbdd46e5e6d4b8de62ee63fd6321639b2f167" name="*_1" x="364" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="sine_2" outlet="wave"/>
+         <dest obj="mix_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="pwm" outlet="dir"/>
+         <dest obj="digital_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mix_2" outlet="out"/>
+         <dest obj="pwm" inlet="pa6"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>878</x>
+      <y>30</y>
+      <width>639</width>
+      <height>671</height>
+   </windowPos>
+</patch>

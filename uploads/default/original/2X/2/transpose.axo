@@ -1,0 +1,72 @@
+<objdefs>
+   <obj.normal id="transpose" uuid="f895976fb3431190a9fc6d6c57e47bca5a20237" sha="c8221b10337454297be342a29b1f03929842b4a8">
+      <upgradeSha>b8deb97637e54be31fcb62e849e4fa406e722557</upgradeSha>
+      <sDescription>Polyphonic MIDI transpose</sDescription>
+      <author>Ricard Wanderlof</author>
+      <license>BSD</license>
+      <helpPatch>midi_in.axh</helpPatch>
+      <inlets>
+ 	  <int32 name="transpose" description="transpose value (-64..63)"/>
+      </inlets>
+      <outlets/>
+      <displays/>
+      <params/>
+      <attribs>
+         <combo name="device">
+            <MenuEntries>
+               <string>din</string>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <combo name="omni">
+            <MenuEntries>
+               <string>on</string>
+               <string>off</string>
+            </MenuEntries>
+            <CEntries>
+               <string>1</string>
+               <string>0</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <code.declaration><![CDATA[int8_t _xposes[128];
+int8_t _transpose;
+uint8_t _status;
+uint8_t _channel;
+]]></code.declaration>
+      <code.init><![CDATA[memset(_xposes, 0, 128);
+]]></code.init>
+      <code.krate><![CDATA[
+_transpose = inlet_transpose;
+]]></code.krate>
+      <code.midihandler><![CDATA[_status = status & 0xf0;
+_channel = status & 0x0f;
+if (!attr_omni && _channel != attr_midichannel)
+   return;
+if (_status == MIDI_NOTE_ON && data2) {
+   _xposes[data1] = _transpose;
+   MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + _channel, (data1 + _transpose) & 127, data2);
+} else if ((_status == MIDI_NOTE_ON) && (!data2)) {
+   MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + _channel, (data1 + _xposes[data1]) & 127, 0);
+} else if (_status == MIDI_NOTE_OFF) {
+   MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + _channel, (data1 + _xposes[data1]) & 127, data2);
+}
+]]></code.midihandler>
+   </obj.normal>
+</objdefs>

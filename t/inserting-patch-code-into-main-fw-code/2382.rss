@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Inserting patch code into main FW code</title>
+    <link>http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382</link>
+    <description>Hi All
+
+finally I get - maybe in a week from now - some time to spend on the AXO board.
+I already stated that my purpose with the board is to learn the ropes of programming the STM32 for audio applications, so I plan to leverage the written code and study it to learn how to deal with the controller and its peripherals.
+
+Last time I managed to compile the FW as makefile project using gnu tool chain under Eclipse, adding some very stylish LED blinking of my own :grin: :joy:
+
+Now my goal is to start working on basic filtering actions, with the easiest filter being a straight connection between IN and OUT.
+
+This involves sending to and getting back data from the DAC/ADC, through SPI interface.
+Since I wouldn&#39;t really know where to start with this, I thought I would put a simple patch together using the GUI, where a single in and out audio blocks are connected by a wire, and then try to embed its code (which is available in the file patch.cpp) somehow in the main of the FW.
+
+However, I am not able to do so because it looks like the patch loading mechanism is different than a simple loading of functions...At least I wasn&#39;t able to figure out the proper actions to follow.
+
+Can anyone point me in the right direction?
+
+Alternatively, what is the simplest form of (DMA) transfer to and back from the ADC/DAC via SPI, using AXO?
+
+Thank you in advance for any hint :smile:
+
+Michele</description>
+    
+    <lastBuildDate>Thu, 13 Oct 2016 08:40:14 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Inserting patch code into main FW code</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p>Hi Johannes</p>
+
+<p>Thanks, lots of good pointers in your answer.<br>Sure I've got the Bible as you call it, but as we stated elsewhere, there is no "learn STM" book out there, there is no path laid out for the general user. So I'm trying to see if I can build one of my own, with the limited time I have on my hands.</p>
+
+<p>No questions about the usefulness of loading a test module <em>only</em> as opposed to uploading the whole infrastructure time and again.</p>
+
+<p>I will look into your pointers:</p>
+
+<ol>
+<li>the struct of callbacks returned by <code>main()</code> in <code>patch.cpp</code>
+</li>
+<li>the <code>patchMeta.fptr_dsp_process</code> callback specifically</li>
+<li>the <code>--just-symbols</code> flag (which is totally obscure to me)</li>
+<li>SAI peripherial and its related initialization in <code>firmare/codec_ADAU1961_SAI.c</code>
+</li>
+</ol>
+
+<p>I think I understand your final comment: from a perspective of developing algorithms, the AXO GUI is the real deal. You can just connect your blocks the way it visually makes sense and upload them in real time to see the effects.<br>This is a really powerful approach and I understand that a lot of work went into providing this infrastructure.</p>
+
+<p>Before I get to that, however, I am interested in getting a first-pass understanding of the "guts" of the processing.<br>My key focus is <strong>not</strong> in algorithm creation right now, but in being able to understand the basics of data transfers firstly to and from the ADC/DAC, then (but I guess this will be easier) to other peripherals like I/O for "live" switching, MIDI and the like..</p>
+
+<p>Thanks a lot for your help, I really appreciate your comments so...Keep them coming! <img src="//community.axoloti.com/images/emoji/emoji_one/innocent.png?v=3" title=":innocent:" class="emoji" alt=":innocent:"></p>
+
+<p>Michele</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382/3</link>
+        <pubDate>Thu, 13 Oct 2016 08:40:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2382-3</guid>
+        <source url="http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382.rss">Inserting patch code into main FW code</source>
+      </item>
+      <item>
+        <title>Inserting patch code into main FW code</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>The "bible" for programming the processor is the RM0090 Reference manual from STMicro. It's a heavy document, over 1700 pages... PM0214 is also interesting, and the STM32F427 datasheet.<br>Let me first explain why splitting firmware and patch is interesting: if you 'd compile and flash both parts together, it takes far more time to flash. Erasing/writing the whole flash memory is slow, and can't keep a usb connection alive that way. Splitting firmware and patch keeps the compilation and upload time fast for the patch, while firmware is less likely to change as often.<br>The patch is compiled as a separate binary from the firmware, but can use exposed firmware functions and variable via hard linking though the --just-symbols linker flag. The patch main function returns a patchMeta_t struct containing the relevant callbacks.<br>The DAC/ADC does not use the SPI peripheral in the processor, but the SAI, it is more specialized for audio i/o. The codec register and DMA initialization is in <code>firmware/codec_ADAU1961_SAI.c</code>.<br>A DMA interrupt from SAI then wakes up the "ThreadDSP" thread in <code>firmware/patch.c</code> which in turn calls the patchMeta.fptr_dsp_process callback. </p>
+
+<p>You can strip the firmware to bypass patch loading, but I'd suggest to have a look at the object editor in the Axoloti GUI. It accelerates code development, because it makes the edit/compile/evaluate cycle quite fast, and allows to validate algorithms-in-development with a variety of signal generators, and inspect the real-time output.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382/2</link>
+        <pubDate>Thu, 13 Oct 2016 00:50:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2382-2</guid>
+        <source url="http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382.rss">Inserting patch code into main FW code</source>
+      </item>
+      <item>
+        <title>Inserting patch code into main FW code</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p>Hi All</p>
+
+<p>finally I get - maybe in a week from now - some time to spend on the AXO board.<br>I already stated that my purpose with the board is to learn the ropes of programming the STM32 for audio applications, so I plan to leverage the written code and study it to learn how to deal with the controller and its peripherals.</p>
+
+<p>Last time I managed to compile the FW as makefile project using gnu tool chain under Eclipse, adding some very stylish LED blinking of my own <img src="//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3" title=":grin:" class="emoji" alt=":grin:"> <img src="//community.axoloti.com/images/emoji/emoji_one/joy.png?v=3" title=":joy:" class="emoji" alt=":joy:"></p>
+
+<p>Now my goal is to start working on basic filtering actions, with the easiest filter being a straight connection between IN and OUT.</p>
+
+<p>This involves sending to and getting back data from the DAC/ADC, through SPI interface.<br>Since I wouldn't really know where to start with this, I thought I would put a simple patch together using the GUI, where a single in and out audio blocks are connected by a wire, and then try to embed its code (which is available in the file patch.cpp) somehow in the main of the FW.</p>
+
+<p>However, I am not able to do so because it looks like the patch loading mechanism is different than a simple loading of functions...At least I wasn't able to figure out the proper actions to follow.</p>
+
+<p>Can anyone point me in the right direction?</p>
+
+<p>Alternatively, what is the simplest form of (DMA) transfer to and back from the ADC/DAC via SPI, using AXO?</p>
+
+<p>Thank you in advance for any hint <img src="//community.axoloti.com/images/emoji/emoji_one/smile.png?v=3" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>Michele</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382/1</link>
+        <pubDate>Wed, 12 Oct 2016 21:10:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2382-1</guid>
+        <source url="http://community.axoloti.com/t/inserting-patch-code-into-main-fw-code/2382.rss">Inserting patch code into main FW code</source>
+      </item>
+  </channel>
+</rss>

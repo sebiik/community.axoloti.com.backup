@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Audio input/output at 0..5v</title>
+    <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246</link>
+    <description>Id like to transfer audio rate signals in the 0..5v range into/out of Axoloti.
+e.g. imagine say an oscillator as output, or feeding a audio signal 0..5v into to drive a env follower.
+( 2 channels in and out is fine for now, I&#39;m after a simple solution ;))
+
+and wondered if anyone can point me in the right direction:
+
+
+I see 2 options:
+A) GPIO, this is 0. 3.3v, ive got a fair idea how to scale this to 0..5v.
+has the advantage i can take as many channels as there are analog gpio. (and could multiplex for more, albeit reducing SR)
+BUT,  I see 2 issues
+i) i think currently we can only drive gpio at k-rate, so I&#39;m guessing id need to modify firmware? ive not looked yet, so this is just a &#39;feasible&#39; or not question... will it have significant cpu impact due to extra io.
+ii) i write an audio rate gpio in/out which i use instead of audio out, then use this in my patches,
+pain to differentiate patches, but its ok.
+will there be aliasing issues? as I don&#39;t have the codec which I suspect has anti aliasing filters?
+
+B) take audio in/out RTS and scale the -1.3.. +1.3v to 0..5v, centred around 2.5v
+no idea how to do this, i assume i need opamps, but cant find an obvious reference.
+output is just adding +2.5, and amplifying by ~ 2xm  no idea how to do this :slight_smile: 
+input, reduce by 2.5v, and scale by half, again no idea :slight_smile:
+
+I&#39;m assuming the codec wont allow me to just input/output 0...1.3v ? ie. do it in software? 
+also id be a bit concerned id send in a bit too much voltage, can cause damage.
+(though I&#39;d assume the audio input is protected to a higher peak to peak voltage, and will just clip?)
+
+thoughts/suggestions?
+thanks for any pointers
+Mark
+
+another side note...
+i see the midi/power part of the board has 0..5v where it connects to the main part, if i chop off the part, can i use this to power axo from 0..5v?
+(what would i need to do do disable usb , i.e. what do i connect to vbusend)
+... its not a major thing, i can connect a 9v to barrel, but a bit tidier to drive it from 5v.</description>
+    
+    <lastBuildDate>Mon, 24 Apr 2017 13:50:33 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yeah, this is pretty much what I'm considering <a class="mention" href="/users/gavin">@Gavin</a></p>
+
+<p>Ive seen 'modules' (usually like this) that the cv jack, can either be used for input or output, and then just in software you say which you want to use it for. <br>this is cool, because we only have (without multiplexing) a limited number of analog io on the axo, and for different patches you might want more or less inputs/outputs.</p>
+
+<p>the axo board can cope with this, but obviously if you have scaling, then it would have to be bidirectional... (i.e. 3.3v to 5v, or 5v to 3.3v) and I'm assuming this needs to separate circuits?<br>saying that ive got some sparkfun level converters coming, and they are suppose to be bi-directional, so will give those a try. ( i'll also be able to see how they work for future reference)</p>
+
+<p>EDIT: found schematics for <a href="http://cdn.sparkfun.com/datasheets/BreakoutBoards/Logic_Level_Bidirectional.pdf">level converter</a>  they use a <a href="http://uk.farnell.com/fairchild-semiconductor/bss138/mosfet-n-chan-50v-220ma-sot-23/dp/9845330RL">bss138</a></p>
+
+<p>anyway, i think I now have a solution for the audio input , a simple capacitor followed by a voltage divider (or diode clamp?) works as a DC to AC converter <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>its all coming together slowly... the 'project' hopefully arrives next week, which gives me time to get a few parts (mainly rail to rail opamps)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/10</link>
+        <pubDate>Mon, 24 Apr 2017 13:50:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-10</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>I don't know anything about setting up "CV", I would have always thought you would want it only going one direction ?<br>However if whatever is sending and recieving the control votage, can do so also in reverse, then it should be possible but would realy need to understand the specifics involved when setting up, ("Not suggesting you advise me of the details as it is getting outside my scope of experience") but how it sends and recieves would define the relevant steps.<br>For example, if you are intending to send and recieve info on a single Axo pin, you would need to set it up so its state from input to output changes, in line with whatever relevant circuit is involved etc..<br><img src="//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/9</link>
+        <pubDate>Mon, 24 Apr 2017 11:42:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-9</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Thanks - I've had suggested a different solution which doesn't require a -ve supply, will report back after testing <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>I'm also going  order some mcp6002 for rail to rail output.  </p>
+
+<p>on the output I'm thinking i need to protect against plugging in a output , I guess just putting in a diode should work ?! <br>(I'm thinking the same for cv outputs ?)</p>
+
+<p>One thing that would be be nice is for cv/audio to be switchable between in/out , but I've not seen a circuit which does this - I'm guessing she me how it 'knows' , so it can switch between amplifying in one direction and voltage dividing in the other - thoughts?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/8</link>
+        <pubDate>Mon, 24 Apr 2017 09:53:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-8</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>Have looked at a max828 circuit, it appears as though it should provide the negative voltage reference you are looking for.<br>Recomend however you test it to be sure it is outputting the correct voltage first.<br>You may even be able to find and buy a prebuilt circuit online.</p>
+
+<p>There are alot of circuits on the intnet, not all of them work with a power supply, only batteries. This is where I have gotten confused in the past.<br><img src="//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/7</link>
+        <pubDate>Mon, 24 Apr 2017 08:04:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-7</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>this is <strong>not</strong> for eurorack, a different project, details later <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>ok, on a breadboard ive got the basics working for audio out now... <br>for some reason (which I'm checking now), using the LM324 i had available (got TL072s on their way), I'm not getting rail to rail voltage though, on 5v. I'm getting clipping at around 3.6v, at 7.5v clipping at 6v.... this clip is not just amplication its also when moving the offset/vref.<br>anyway, I'm sure this can be ironed out, if not, just means i'll have to limit to 2.4vpp.</p>
+
+<p>I started looking at the input side, this seems more difficult.</p>
+
+<p>so i have 0...5v , centre 2.5v , i need to take this to +/-1.3.... i initially thought i can do the same, as above just in reverse i.e. move the vref to -1.3v (an as its an inverting config, i can easily scale) BUT the issue is i don't have a bipolar voltage source for the reference.... <br>thoughts? how do i create a negative voltage for vref, to get back to into the ac dac range?</p>
+
+<p>EDIT: ive found a max828 that creates a -ve voltage, is this whats needed, or am i barking up the wrong tree <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/6</link>
+        <pubDate>Sun, 23 Apr 2017 13:55:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-6</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>I don't know much about eurorack except that it helps to make synths, but couldn't you turn the audio signal into midi data, and send it to a Eurorack midi to CV converter like the followwing link, or is this in the wrong direction.. ?<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.tindie.com/products/hexinverter/midi2cv-full-kit/?pt=full_prod_search" rel="nofollow noopener">tindie.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://d3s5r33r268y59.cloudfront.net/7323/products/thumbs/2015-05-05T17:54:57.939Z-MIDI2CV_done_1_sm-875x1000.jpg.2560x2560_q85.jpg" width="74" height="84" class="thumbnail">
+
+<h3><a href="https://www.tindie.com/products/hexinverter/midi2cv-full-kit/?pt=full_prod_search" rel="nofollow noopener">MIDI2CV (FULL KIT) by Hexinverter.Net Electronics</a></h3>
+
+<p>This full kit contains all of the parts you need to build a eurorack format ACXSynth MIDI2CV module</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/5</link>
+        <pubDate>Sun, 23 Apr 2017 08:07:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-5</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@geecen]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/geecen">@geecen</a> wrote:</p>
+          <blockquote>
+              <p>The actual scaling and offsetting of the -1.3 +1.3 to 0 5 is easy in itself using op amps. The trouble as far as I've been able to see it, is powering the opamps in the first place. If the reason you're doing it is to interface with Eurorack then you can power it from the it's +/-12 supply. If you're making it a stand alone thing you'll have to power it separately unless you want to look into sinle low power supply opamp stuff, which I'm not sure about.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/4</link>
+        <pubDate>Sat, 22 Apr 2017 23:08:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-4</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Sorry cant help, but that guys is so nice <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>He knows a thing or two <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/3</link>
+        <pubDate>Sat, 22 Apr 2017 20:18:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-3</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ive got some ideas for (b), after finding a good video on opamps <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<div class="lazyYT" data-youtube-id="7FYHt5XviKc" data-youtube-title="EEVblog #600 - OpAmps Tutorial - What is an Operational Amplifier?" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/2</link>
+        <pubDate>Sat, 22 Apr 2017 17:33:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-2</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+      <item>
+        <title>Audio input/output at 0..5v</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Id like to transfer audio rate signals in the 0..5v range into/out of Axoloti.<br>e.g. imagine say an oscillator as output, or feeding a audio signal 0..5v into to drive a env follower.<br>( 2 channels in and out is fine for now, I'm after a simple solution <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+
+<p>and wondered if anyone can point me in the right direction:</p>
+
+<p>I see 2 options:<br>A) GPIO, this is 0. 3.3v, ive got a fair idea how to scale this to 0..5v.<br>has the advantage i can take as many channels as there are analog gpio. (and could multiplex for more, albeit reducing SR)<br>BUT,  I see 2 issues<br>i) i think currently we can only drive gpio at k-rate, so I'm guessing id need to modify firmware? ive not looked yet, so this is just a 'feasible' or not question... will it have significant cpu impact due to extra io.<br>ii) i write an audio rate gpio in/out which i use instead of audio out, then use this in my patches,<br>pain to differentiate patches, but its ok.<br>will there be aliasing issues? as I don't have the codec which I suspect has anti aliasing filters?</p>
+
+<p>B) take audio in/out RTS and scale the -1.3.. +1.3v to 0..5v, centred around 2.5v<br>no idea how to do this, i assume i need opamps, but cant find an obvious reference.<br>output is just adding +2.5, and amplifying by ~ 2xm  no idea how to do this <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> <br>input, reduce by 2.5v, and scale by half, again no idea <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>I'm assuming the codec wont allow me to just input/output 0...1.3v ? ie. do it in software? <br>also id be a bit concerned id send in a bit too much voltage, can cause damage.<br>(though I'd assume the audio input is protected to a higher peak to peak voltage, and will just clip?)</p>
+
+<p>thoughts/suggestions?<br>thanks for any pointers<br>Mark</p>
+
+<p>another side note...<br>i see the midi/power part of the board has 0..5v where it connects to the main part, if i chop off the part, can i use this to power axo from 0..5v?<br>(what would i need to do do disable usb , i.e. what do i connect to vbusend)<br>... its not a major thing, i can connect a 9v to barrel, but a bit tidier to drive it from 5v.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/audio-input-output-at-0-5v/3246/1</link>
+        <pubDate>Sat, 22 Apr 2017 12:22:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3246-1</guid>
+        <source url="http://community.axoloti.com/t/audio-input-output-at-0-5v/3246.rss">Audio input/output at 0..5v</source>
+      </item>
+  </channel>
+</rss>

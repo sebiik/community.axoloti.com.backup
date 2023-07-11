@@ -1,0 +1,246 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="gpio/serial/config" uuid="8ec617bbe7b552a58656442e87513d8b4c69833a" name="serial.begin_1" x="126" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="baudrate" selection="31250"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="bf337e88-4c56-4a69-9a98-a61afddd5fd4" name="cc_3" x="392" y="112">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="9"/>
+         <spinner attributeName="cc" value="1"/>
+      </attribs>
+      <object id="patch/object" uuid="bf337e88-4c56-4a69-9a98-a61afddd5fd4">
+         <sDescription>Midi controller output, automatic thinning, outputs midi to Pin PA2. Mod of factory midi/out/cc thin object</sDescription>
+         <author>Johannes Taelman / Simon Schmidt</author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="v" description="value"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <spinner name="cc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <depends>
+            <depend>SD2</depend>
+         </depends>
+         <code.declaration><![CDATA[int32_t lsend;
+int timer;
+
+void SendMidi3(uint8_t b0,uint8_t b1,uint8_t b2){
+  sdPut(&SD2,b0);
+  sdPut(&SD2,b1);
+  sdPut(&SD2,b2);
+}]]></code.declaration>
+         <code.init><![CDATA[timer = 0;
+]]></code.init>
+         <code.krate><![CDATA[if (((lsend>inlet_v+(1<<19))||(inlet_v>lsend+(1<<19))) && (timer>30)) {
+   lsend = inlet_v;
+   SendMidi3(MIDI_CONTROL_CHANGE + (attr_channel-1),attr_cc,__USAT(inlet_v>>20,7));
+   timer = 0;
+} else timer++;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="3247ea2a-46ad-4428-b223-943b2e90f6e8" name="SRL2Internal Midi" x="126" y="126">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="3247ea2a-46ad-4428-b223-943b2e90f6e8">
+         <sDescription>script with 2 inputs and 2 outputs, running in a separate thread, you must define &quot;void setup(void){}&quot; and &quot;void loop(void)&quot;</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>script.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t StatusToMsgLength(uint8_t t){
+	switch(t) {
+	case 0x0:
+	case 0x1:
+	case 0x2:
+	case 0x3:
+	case 0x4:
+	case 0x5:
+	case 0x6:
+	case 0x7:
+		return 0;
+	case 0x8:
+	case 0x9:
+	case 0xa:
+	case 0xb:
+		return 3;
+	case 0xc:
+	case 0xd:
+		return 2;
+	case 0xe:
+		return 3;
+	default:
+		return -1;
+	}
+}
+
+uint8_t SysToMsgLength(uint8_t t){
+    switch(t) {
+	case 0x0:
+		return -1; // 0xf0=sysex start. may vary
+	case 0x1:
+		return 2; // 0xf1=MIDI Time Code. 2 bytes
+	case 0x2:
+		return 3; // 0xf2=MIDI Song position. 3 bytes
+	case 0x3:
+		return 2; // 0xf3=MIDI Song Select. 2 bytes.
+	case 0x4:
+		return 1; // 0xf4=undefined
+	case 0x5:
+		return 1; // 0xf5=undefined
+	case 0x6:
+		return 1; // 0xf6=TUNE Request
+	case 0x7:
+		return 1; // 0xf7=sysex end.
+	case 0x8:
+		return 1; // 0xf8=timing clock. 1 byte
+	case 0x9:
+		return 1; // 0xf9=proposed measure end?
+	case 0xa:
+		return 1; // 0xfa=start. 1 byte
+	case 0xb:
+		return 1; // 0xfb=continue. 1 byte
+	case 0xc:
+		return 1; // 0xfc=stop. 1 byte
+	case 0xd:
+		return 1; // 0xfd=undefined
+	case 0xe:
+		return 1; // 0xfe=active sensing. 1 byte
+	case 0xf:
+	default:
+		return 3; // 0xff= not reset, but a META-EVENT, which is always 3 bytes
+	}
+}
+
+
+unsigned char MidiByte0;
+unsigned char MidiByte1;
+unsigned char MidiByte2;
+unsigned char MidiCurData;
+unsigned char MidiNumData;
+
+uint8_t port = 0;
+
+void setup(){
+  MidiNumData = 0;
+  MidiCurData = 0;
+}
+
+
+void MidiInByteHandler(uint8_t data) {
+  int8_t len;
+  if (data & 0x80) {
+    len = StatusToMsgLength(data >> 4);
+    if (len == -1) {
+      len = SysToMsgLength(data - 0xF0);
+    }
+    if (len == 1) {
+      MidiInMsgHandler(MIDI_DEVICE_INTERNAL,port,data,0,0);
+    } else {
+      MidiByte0 = data;
+      MidiNumData = len - 1;
+      MidiCurData = 0;
+    }
+  }
+  else // not a status byte
+  {
+    if (MidiCurData == 0) {
+      MidiByte1 = data;
+      if (MidiNumData == 1) {
+        // 2 byte message complete
+        MidiInMsgHandler(MIDI_DEVICE_INTERNAL,port,MidiByte0, MidiByte1,0);
+        //MidiInMsgHandler(MidiByte0, MidiByte1, 0);
+        MidiCurData = 0;
+      }
+      else
+        MidiCurData++;
+    }
+    else if (MidiCurData == 1) {
+      MidiByte2 = data;
+      if (MidiNumData == 2) {
+      	MidiInMsgHandler(MIDI_DEVICE_INTERNAL,port,MidiByte0, MidiByte1, MidiByte2);
+        //MidiInMsgHandler(MidiByte0, MidiByte1, MidiByte2);
+        MidiCurData = 0;
+      }
+    }
+  }
+}
+void loop(){
+	while(!sdGetWouldBlock(&SD2))
+	{
+    		char ch = sdGet(&SD2);
+    		MidiInByteHandler(ch);
+    	}	
+}
+
+msg_t ThreadX2(){
+  setup();
+  while(!chThdShouldTerminate()){
+     loop();
+     chThdSleepMilliseconds(1);
+  }
+  chThdExit((msg_t)0);
+}
+static msg_t ThreadX(void *arg) {
+((attr_parent *)arg)->ThreadX2();
+}
+WORKING_AREA(waThreadX, 1024);
+Thread *Thd;]]></code.declaration>
+         <code.init><![CDATA[Thd = chThdCreateStatic(waThreadX, sizeof(waThreadX),
+                    NORMALPRIO, ThreadX, (void *)this);]]></code.init>
+         <code.dispose><![CDATA[chThdTerminate(Thd);
+chThdWait(Thd);]]></code.dispose>
+      </object>
+   </patchobj>
+   <obj type="lfo/sine" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_1" x="266" y="126">
+      <params>
+         <frac32.s.map name="pitch" value="-35.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/monitor" uuid="b51863ca-6afa-4d29-acfd-c8c2fe06cb16" name="monitor_1" x="126" y="196">
+      <params>
+         <bool32.tgl name="ControlChange" value="1"/>
+         <bool32.tgl name="Note" value="1"/>
+         <bool32.tgl name="ProgramChange" value="1"/>
+         <bool32.tgl name="Bend" value="1"/>
+         <bool32.tgl name="PolyPressure" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="cc_3" inlet="v"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>9</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+      <Author></Author>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>180</x>
+      <y>25</y>
+      <width>1087</width>
+      <height>630</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,82 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="audio/inconfig" uuid="9a80ef3c19f2a8f81da3a3b7c1c44d18126b97d9" name="inconfig_1" x="14" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="gain" selection="24dB"/>
+         <combo attributeName="boost" selection="0dB"/>
+         <combo attributeName="mode" selection="Stereo"/>
+      </attribs>
+   </obj>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="112" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/max" uuid="1d512af879107527df7313f1749d700fa05b5376" name="max_1" x="210" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="6d3fd7a2-6bea-4fbd-b0d9-713ba7379be6" name="object_1" x="294" y="14">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="6d3fd7a2-6bea-4fbd-b0d9-713ba7379be6">
+         <inlets>
+            <frac32buffer.bipolar name="in"/>
+         </inlets>
+         <outlets>
+            <bool32 name="clip"/>
+         </outlets>
+         <displays>
+            <frac32.vu name="d1"/>
+            <bool32 name="d2"/>
+         </displays>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[disp_d1 = inlet_in;
+outlet_clip = disp_d2;
+if (abs(inlet_in) > 1<<26) disp_d2 = true; //choose where to clip (1<<30 is just an example)
+if (abs(inlet_in) > 1<<26) outlet_clip = true; //choose where to clip (1<<30 is just an example)
+else disp_d2 = false;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="gpio/out/digital" uuid="320eed040f6c55bb24c56416596ac2e67d0c82bc" name="led" x="378" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="pad" selection="PA0"/>
+         <combo attributeName="mode" selection="Push pull"/>
+      </attribs>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="378" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="max_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="clip"/>
+         <dest obj="bool_1" inlet="in"/>
+         <dest obj="led" inlet="in"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="right"/>
+         <dest obj="max_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="max_1" outlet="out"/>
+         <dest obj="object_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>353</x>
+      <y>23</y>
+      <width>1118</width>
+      <height>802</height>
+   </windowPos>
+</patch-1.0>

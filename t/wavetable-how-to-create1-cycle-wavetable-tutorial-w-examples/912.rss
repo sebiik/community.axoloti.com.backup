@@ -1,0 +1,800 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+    <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912</link>
+    <description>Hey guys :) 
+
+I just flicked together this tutorial on how to create one cycle waveforms for Axoloti. You can use it instead on an oscillator and gives some new options. Anyway here goes:
+
+Pic of patch:
+
+&lt;img src=&quot;/uploads/default/original/2X/a/acbb6b3ba694eefa14c3cd9ea1e3e90909136225.png&quot; width=&quot;690&quot; height=&quot;404&quot;&gt;
+
+Video of the Audacity part:
+https://youtu.be/39js-kkPZmg
+
+## **0. Tutorial on how to make 1 cycle waveforms for Axoloti**
+
+To start with this I would like to mention that this can de done in many ways and this is just one example, but I found it to work and the wavetables created in this way, seems to be in perfect tune with Axolotis own oscillators. 
+
+Using one cycle wavetable is a very sufficient way of adding character to Axoloti, without using up too much Sdram. In this tutorial I will use 1024 samples length for the waveforms. I will try to keep it simple, but keep in mind that most of the steps can be done in different ways to suit different needs.
+
+Also I want to mention that Axoloti usually uses 16 bit signed 48khz bit audiofiles that you then convert into .raw files, but for wavetables you can also use 44.1khz. But IMO it is simpler just keep all audio at one rate, 48khz. Then there is no confusion ;) Also for wavetable mono is preferred. 
+
+Ill explain each step as we go. Let’s get to it :)
+
+## **1. How to create a one cycle waveform in Audacity(video):**
+
+First step would be to create some waveforms. I use Audacity in this example, cause it’s free. It doesn’t offer that many different waveforms, but this is just to show the technique. The same can be done in other audio editing apps, with more choices, for example Sound Forge.
+
+
+A. Get Audacity &amp; open Audacity
+B. Set project rate to 48khz
+C. Go to generate menu and select “Tone”(to create a waveform)
+D. Set these parameters and press ok:
+
+Waveform        : Saw, in this example(choose what you like)
+Frequency    : 48hz
+Amplitude        : 1
+Duration        : 1000 samples 
+
+
+Now we have exactly one cycle of the waveform and now we need to stretch it so it fits exactly to Axolotis tables. 
+
+E. Go to effect menu and choose “change speed” plug in. Set 1024 samples in “New length”. Press ok.
+F. Change bit size to 16-bit signed from 32 bit float.
+G. Export the wave file to .raw format in file menu “export audio”. Use these settings:
+Format        : Other uncompressed files
+In Options set:    
+Header        :RAW (header-less)
+Encoding        : Signed 16 bit PCM
+
+Press ok.
+
+Now you have a one cycle waveform. Next step is getting it into Axoloti.
+
+## **2. Importing the waveform into Axoloti.**
+
+A. Enter card reader mode and copy the folder called “Wt” included in the tutorial folder onto Axoloti Sd card.
+
+B. Open the Axoloti patch included and simply copy the names I have put in comments into the string/c object(for easy access). When changing waveforms, be aware that Axoloti sometimes have to go live a few times before it gets that it is a new file loaded. Also try disconnecting the board if this happens.
+
+I have included a sine and a saw waveform created in Audacity with above method, but I encourage you to create your own. It’s fun and very rewarding :) If you have a bunch of synth lying around, record the oscillators and use them in Axoloti. It brings a lot of character to Axoloti. You can test if the tuning os ok, byt pushing the test Axo button. Then it switches to Axoloti oscillator.
+
+Link to patch and waveforms:
+https://mega.nz/#!TdBm3ZBS!71T-sOMnLNXhARQT4SZfaRGsB3NdI_zQYZfhKghuEus
+
+There might be errors inthe set up, but this is as far as I have come with Wavetables.. If anyknow find mistakes pleae let me know or have updates. But I think it is pretty useful as it is now. I have used it a lot already :)
+
+
+
+**## HAVE FUN :)**</description>
+    
+    <lastBuildDate>Thu, 07 Jan 2021 04:42:27 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@tactilesounds Jonathan Murphy]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tactilesounds">@tactilesounds</a> wrote:</p>
+          <blockquote>
+              <p>Nice find <span class="mention">@joagogatao</span>. I've written a Python script using osc_gen, pysoundfile, and pysox, that allows you to choose any two wave files, resizes them to any power of two that you wish, morphs between them over the desired number of wavetable slots (again, any power of two), and outputs a .raw wavetable. Here it is:</p>
+
+<pre><code>#wtgen.py, Jonathan Murphy 2020
+
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askdirectory
+import soundfile as sf
+import sox
+from osc_gen import sig
+from osc_gen import wavetable
+from osc_gen import dsp
+
+Tk().withdraw()
+
+def is_power_of_two(n):
+    return (n != 0) and (n &amp; (n-1) == 0)
+
+setup = input("1024 samples per wave, 64 slots per wavetable. Okay? y/n:")
+
+if setup == "y":
+    pts = 1024
+    slts = 64
+elif setup == "n":
+    pts = int(input("How many samples per wave? Enter a power of two:"))
+    if is_power_of_two(pts):
+        print(pts, "Samples")
+    else:
+        print(pts, "Is not a power of 2!")
+    
+    slts = int(input("How many slots per wavetable? Enter a power of two:"))
+    if is_power_of_two(slts):
+        print(slts, "Slots")
+    else:
+        print(slts, "Is not a power of 2!")
+else:
+    print("Please enter y or n")
+    
+answer1 = input("Are you ready to select your first waveform? Enter y or n:")
+if answer1 == "y":
+    file1 = askopenfilename(filetypes=[("Wave Files", "*.wav")])
+    f1 = sf.SoundFile(file1)
+    #print('samples = {}'.format(len(f1)))
+    if len(f1) == pts:
+        print("File size matches!")
+    else: 
+        rat1 = len(f1) / pts
+        #print('ratio = {}'.format(rat))
+        tfm = sox.Transformer()
+        tfm.speed(rat1)
+        data, samplerate = sf.read(file1)
+        new_data = tfm.build_array(input_array=data, sample_rate_in=f1.samplerate)
+        #tfm.build_file(input_array=data, sample_rate_in=f1.samplerate, output_filepath=outputfilename)
+        #tfm.build_file(file1, outputfilename)      
+    #print('sample rate = {}'.format(f1.samplerate))
+    #print('seconds = {}'.format(len(f1) / f1.samplerate))
+elif answer1 == "n":
+    print("That's a shame!")
+    exit()
+else:
+    print("Please enter y or n")
+    
+answer2 = input("Are you ready to select your second waveform? Enter y or n:")
+if answer2 == "y":
+    file2 = askopenfilename(filetypes=[("Wave Files", "*.wav")])
+    f2 = sf.SoundFile(file2)
+    if len(f2) == pts:
+        print("File size matches!")
+    else: 
+        rat2 = len(f2) / pts
+        tfm2 = sox.Transformer()
+        tfm2.speed(rat2)
+        data2, samplerate2 = sf.read(file2)
+        new_data_2 = tfm.build_array(input_array=data2, sample_rate_in=f1.samplerate)
+elif answer2 == "n":
+    print("That's a shame!")
+    exit()
+else:
+    print("Please enter y or n")
+
+answer3 = input("Are you ready to select your output directory? Enter y or n:")
+if answer3 == "y":
+    output_dir = askdirectory()
+    print(output_dir)
+    outputfilename = input("Enter a filename for your wavetable:")
+    slash = "/"
+    filetype = ".raw"
+    outputfilename = output_dir + slash + outputfilename + filetype
+    print(outputfilename)
+    sg = sig.SigGen(num_points=pts)
+    wt = wavetable.WaveTable(slts)
+    wt.waves = sig.morph((sg.arb(new_data), sg.arb(new_data_2)), slts)
+    sf.write(outputfilename, wt.waves, f1.samplerate, 'PCM_16')
+elif answer3 == "n":
+    print("That's really a shame!")
+    exit()
+else:
+    print("Please enter y or n")</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/36">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/36</link>
+        <pubDate>Thu, 07 Jan 2021 04:42:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-36</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@joaogatao joaogatao]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/joaogatao">@joaogatao</a> wrote:</p>
+          <blockquote>
+              <p>Hi John, thanks. I use sox now to convert the files, which is already much quicker than putting them through Audacity. It would still be nice to write the output directly to .raw within the script. I'll check out pysox for that.</p>
+
+<p>osc_gen is very easy to use. Here's a simple script to generate a wavetable that morphs between sine and triangle waves with 1024 samples per wave. This works fine with Axoloti.</p>
+
+<pre><code>from osc_gen import sig
+from osc_gen import wavetable
+from osc_gen import dsp
+
+sg = sig.SigGen(num_points=1024)
+wt = wavetable.WaveTable(16)
+wt.waves = sig.morph((sg.sin(), sg.tri()),16)
+wt.to_wav('osc_sin_tri.wav', samplerate=48000)</code></pre>
+
+<p>And then with sox:</p>
+
+<pre><code>sox osc_sin_tri.wav -r 48000 -c 1 osc_sin_tri.raw</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/35">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/35</link>
+        <pubDate>Sun, 24 May 2020 14:26:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-35</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@jcgriggs John Griggs]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jcgriggs">@jcgriggs</a> wrote:</p>
+          <blockquote>
+              <p>I am surprised to see no mention of libSox for audio conversion on Linux in this thread - it has utilities that can convert from wave to RAW, do sample rate conversion, etc. from the command line, so it can be scripted for batch processing. Full disclosure: I have not tried it myself for wave tables, although I probably will soon.</p>
+
+<p>To the current point, it has python bindings: <a href="https://pypi.org/project/pysox/" rel="nofollow noopener">https://pypi.org/project/pysox/</a></p>
+
+<p>Regards,<br>   John</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/34">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/34</link>
+        <pubDate>Sun, 24 May 2020 13:34:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-34</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@joaogatao joaogatao]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/joaogatao">@joaogatao</a> wrote:</p>
+          <blockquote>
+              <p>I came across this little wavetable generator in Python. Maybe someone here uses it already?<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://github.com/harveyormston/osc_gen" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://avatars2.githubusercontent.com/u/6793028?s=400&amp;v=4" width="" height="" class="thumbnail">
+
+<h3><a href="https://github.com/harveyormston/osc_gen" target="_blank" rel="nofollow noopener">harveyormston/osc_gen</a></h3>
+
+<p>Python package to create and manage oscillator wavetables - harveyormston/osc_gen</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>I quickly tried only some very basic functions, but it seems pretty okay. I'm more familiar with Python for maths (numpy, scipy), so it'll be nice to use those tools also to create wavetables. The module allows to set the sample size and rate. It can write to a .wav file, which is fine. But it would be nice to have it write to a headerless .raw straight away for use with Axoloti. Anyone who knows a Python function for that to be added?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/33">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/33</link>
+        <pubDate>Sun, 24 May 2020 06:07:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-33</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="31" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>audioterm is pretty powerful, does more than the likes of serum, but is not the most obvious to use <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p></blockquote></aside>
+
+<p>Yeah it might do more....... But not as easy to use as serum. Actually I dont even think it does more. In Serum you can basically just drag in 128 waves and export as wav and you have got a wavetable. PERFECT fit in first shot... Audioterm doesnt do anything like that... </p>
+
+<p>My recommendation goes to Serum.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/32">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/32</link>
+        <pubDate>Sun, 09 Apr 2017 13:29:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-32</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>audioterm is pretty powerful, does more than the likes of serum, but is not the most obvious to use <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">  </p>
+
+<p>Id actually recommend Tone2 Icarus over Serum for wavetable editing, its absolutely fantastic, allowing you to do things all sorts of crazy things... and can output individual waveforms or wavetables like serum.<br>(that said, i only used serum for a bit, so it whist i preferred Icarus, it may have some advantages that i didnt spot)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/31">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/31</link>
+        <pubDate>Sun, 09 Apr 2017 10:47:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-31</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>No worries <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<aside class="quote" data-post="29" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/a/7ba0ec/40.png" class="avatar">adnauseam:</div>
+<blockquote><p>I hadn't heard of Serum.  Given that you own it's great that you can use it for your editing purposes. We can expect most won't want to pay almost $200 for wavetable software given the other free options.</p></blockquote></aside>
+
+<p>You dont have to pay anything, you can make them without Serum. It is just a lot more work. Allthough Serum is THET BEST. It is a VSTI which uses wavetables.... BUT the cool thinkg about serum is that you can drop 128 single waveforms into serum and it combines tthe waves into a wavetable of 128 waves. It adapts sizes and everything. Then you export the wavetable from Serum, convert it to raw and you are good to go <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>I am just sayin Serum is the easiest way to do it. But there are other ways which yuo can use for free. </p>
+
+<p>That said, I know someone shared a smal bank with some allready converted waves in here somewhere... Did you find it?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/30">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/30</link>
+        <pubDate>Sun, 09 Apr 2017 07:37:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-30</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@adnauseam Jordan]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/adnauseam">@adnauseam</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/jaffasplaffa">@jaffasplaffa</a> </p>
+
+<p>In no way was I implying that I <em>expect</em> others to share with everyone or give us their finished wavetable, I was simply expressing my surprise.</p>
+
+<p>I hadn't heard of Serum.  Given that you own it's great that you can use it for your editing purposes. We can expect most won't want to pay almost $200 for wavetable software given the other free options.</p>
+
+<p>I haven't tried AudioTerm yet but I understand it exports to WAV.</p>
+
+<p>Cheers</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/29">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/29</link>
+        <pubDate>Sun, 09 Apr 2017 07:29:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-29</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="27" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/a/7ba0ec/40.png" class="avatar">adnauseam:</div>
+<blockquote><p>Lots of talk, but no action? Or maybe people want others to have to do the frustrating work too?</p></blockquote></aside>
+
+<p><a class="mention" href="/users/adnauseam">@adnauseam</a></p>
+
+<p>I think some people in here are all ready sharing A LOT of stuff, like information, objects, subpatches, etc. And some people dont share anything, which is also okay...... But just because this is an open source platform and an open source community doesnt mean that you have to share everything you make. </p>
+
+<p>If you want some wavetables there are many ways to get them;</p>
+
+<ol>
+<li>Make them yourself.</li>
+<li>Buy some.</li>
+<li>Find free ones.</li>
+<li>Ask others(kindly?).</li>
+</ol>
+
+<p>There are many options. But like most things in life, putting an effort into what you want to accomplish does give great satisfaction <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>Waveterm... To me no good. I prefer to use Serum for editing and combining waves.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/28">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/28</link>
+        <pubDate>Sun, 09 Apr 2017 06:45:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-28</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@adnauseam Jordan]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/adnauseam">@adnauseam</a> wrote:</p>
+          <blockquote>
+              <p>I'm surprised with all the talk about how much work it is to convert found single cycle waveforms into proper wave tables that nobody has shared their results here.</p>
+
+<p>Lots of talk, but no action? Or maybe people want others to have to do the frustrating work too?</p>
+
+<p>In the mean time I've just found another waveform editor called AudioTerm</p>
+
+<aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="http://www.kvraudio.com/forum/viewtopic.php?f=257&amp;amp;t=334828&amp;amp;start=345" rel="nofollow noopener">kvraudio.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="http://static.kvraudio.com/i/b/kvraudio-300x300-grey-eeeeee.png" width="86" height="86" class="thumbnail">
+
+<h3><a href="http://www.kvraudio.com/forum/viewtopic.php?f=257&amp;amp;t=334828&amp;amp;start=345" rel="nofollow noopener">KVR Forum: A small "Waveterm" for Terratec Komplexer (and other products) (Topic...</a></h3>
+
+<p>KVR Audio Forum - A small "Waveterm" for Terratec Komplexer (and other products) (Topic in the 'Soundware' forum)</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+
+<p>Look for the zip file in a link on that page.<br>If you can't find it - <a href="http://dl.dropbox.com/s/1y0d88ts8zy1um7/Audio-Term.zip" rel="nofollow noopener">v2.27 is right here</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/27">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/27</link>
+        <pubDate>Sun, 09 Apr 2017 05:22:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-27</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>If you want to extract a single-period wavetable from a wave, window functions are useful.<br>However when re-processing a single-period wavetable into another single-period wavetable, a window function should not be used.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/25</link>
+        <pubDate>Mon, 04 Apr 2016 22:55:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-25</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <p>Cool, thanks <a class="mention" href="/users/johannes">@johannes</a> <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>I am pretty sure that Serum uses windowed fourier transform. I know the opposite of what you mention. But if you import a file into Serum and export it again, it has got fade in/outs on each wave. This makes sure all indexing is pretty good and make sure that there is a lot less clicks that just importing a wav(.raw) into axoloti. That would create a lot more clicks. I made some wavetable from movie clips, with a lot going on, that works pretty well this way. </p>
+
+<p>I kind of thought I covered most aspects of wavetables by now. But will defiantly look into the suggestions you have <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/24</link>
+        <pubDate>Mon, 04 Apr 2016 20:56:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-24</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Some remarks:<br>* With a one-cycle wavetable, the sample rate of the wave is irrelevant<br>* I strongly suspect sample rate conversion in audacity (and other similar software) assumes silence before and after the wave, while wavetables should be assumed cyclic. <br>* The right way change the length of wavetables is going through (unwindowed) fourier transform. A tool to do this is, is with a small script in numpy, gnu octave, or Matlab (or anything similar), but I currently have no time to dedicate to this.<br>* there are 2 interpretations of a wavetable: bandwidth limited or assuming all of its samples are converted by a pitch-synchronous DAC.<br>* there are many tricks to improve the properties of wavetable playback: <a href="https://www.dafx12.york.ac.uk/papers/dafx12_submission_69.pdf">https://www.dafx12.york.ac.uk/papers/dafx12_submission_69.pdf</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/23</link>
+        <pubDate>Mon, 04 Apr 2016 20:29:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-23</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>mhehehehehe, this is sweet:<br>1. download AKWF waveforms (4358 different waveforms), "advanced renamer" and audacity v2 (v1 crashes!)</p>
+
+<ol>
+<li><p>throw all the AKWF waveforms in the same map (they come in different maps) and rename them using Advanced Renamer to W0000 to W4358.</p></li>
+<li><p>Load the waveforms into audacity (my computer only handles 500 at a time, nope, re-edit (again), you'll probably have to restart the computer after around 1000 files to clear the cache....<em>sighs</em>)</p></li>
+<li><p>set audacity internal rate to 48K</p></li>
+<li><p>resample all waveforms to 48K (this may take quite a while)</p></li>
+<li><p>adjust the playback speed: percentage= -36.23 for 1024 samples length</p></li>
+<li><p>go to "export multiple", select "other uncompressed files" and set to Raw (headerless), signed 16-bit-PCM</p></li>
+<li><p>now you'll need to press down the enter button a couple of minutes, to press "yes" for each file repeatedly (when closing in on the last file, go easy, otherwise it might restart the whole saving process and you'll need to go around one more time haha)</p></li>
+</ol>
+
+<p>now you've got 4358 raw waveforms to build yourself a massive wavetable oscillator <img src="/images/emoji/emoji_one/stuck_out_tongue.png?v=0" title=":stuck_out_tongue:" class="emoji" alt=":stuck_out_tongue:"><br>Use the index string module, enter W0, W1, W2, W3 or W4 in the name, or load 5 index string modules with W0 to W4 as their names and use a mux to select one of them, Raw as extension and use the index to select any of the waveforms (000 to 999). Remember though.. W4 "only" has 358 samples under it's hood.. <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>Another edit:<br>I've just send all the waveforms to "Adventure Kid", so he can post them on his website. So just wait a while and you can just download them instead of having them all manually redo them yourself (I don't think I'm allowed to upload them myself)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/22</link>
+        <pubDate>Sat, 02 Apr 2016 10:02:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-22</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <p>Hey <a class="mention" href="/users/matthewcieplak">@matthewcieplak</a></p>
+
+<p>Nice. Wavetables are the best <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> I never use regular oscillators anymore. Only wavetables <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<aside class="quote" data-post="20" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/matthewcieplak/40/280_1.png" class="avatar">matthewcieplak:</div>
+<blockquote><p>However the bulk import/export functions in audacity seem to be working well for the adventurekid waveforms so far. Importing/exporting 10 at a time is a breeze, so should be able to finish up a batch quickly. I may be truncating the files on playback, but they sound good to me – will have to test accuracy against some other WT player (maybe in max msp?). My enclosure has a 2-digit seven segment display so I'll try to winnow it down to 100 of my favorites and then be able to scroll through them on the synth.</p></blockquote></aside>
+
+<p>I just checked a few of the adventure kid 1 cycle waves and they are all 600 samples long each and they are 16 bit 44.1khz. That is great. They can be used in different ways in Axoloti:</p>
+
+<ol>
+<li><p>This is in my opinion the best way.<br>Open up Audacity and load up one of the 600 samples long waves.<br>Next highlight the whole file and go to effect and choose change speed. <br>Change the speed to Axolotis closest table size in SAMPLES. That would be 512 samples. Then you know for a FACT that the file fit perfectly in the table.</p></li>
+<li><p>This is the easiest way, since you already changed the files to raw and it would be a hassle to go back to Audacity and strecth all one by one. But this is NOT perfect and will definatly create clicks in many situations, cause it is not always 100% precise like first way I suggested.<br>The solution is to calcualte how many percentage of the table/alloc the raw file actually fills up.<br>You do that this way. For this you HAVE to set tabelsize to be bigger than the file:<br>Tablesize = 1024 samples<br>.raw adventure kid samplesize = 600 samples</p></li>
+</ol>
+
+<p>Dividide the .raw files samplesize with tables:<br>600/1027 = 0,5859375      which is 58,59375 % </p>
+
+<p>You see not precise. This percentage would be rounded to 58,59% in Axoloti. Anyway to set it up this way you would have to connect an attentuator between the phasor osc and the table/play object and set the attenuator to 58.59%</p>
+
+<p>It is a solution, but I wouldnt use it. I would personally go back and change the speed of every single file individually. That way you get the best result. And even better, just make it a habit doing them one by one. Wavetables are very different and for example for especially multi wavetablesl Serums morhped wavetable will not work in axoloti(as for now), cause they basicly only consist of 4-8 waves. So if you try to use a wavetable that was morphed and you are not aware it wont sound right. Also a lot of the wavetable pack out there, the individual files are not same size, length etc. Som there are god reason to go through them manually. It can be a lot of work, but very rewarding when done <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>About the morph waves. I believe it can be done with Axoloti as it is now. I already build a wavetable creator patch which you can check out here. Need to do the final work on it before i can share final version with saving included. Anyway, check the patch here and a small video that shows it in action <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<aside class="quote" data-post="1" data-topic="980">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">
+    <a href="//community.axoloti.com/t/preview-of-an-additive-wavetable-creator-for-axoloti-updated-with-test-patch/980">Preview of an Additive wavetable creator for Axoloti UPDATED WITH TEST PATCH</a> <a class="badge-wrapper  bullet" href="/c/patching"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" data-drop-close="true" class="badge-category clear-badge" title="This category is for discussion about patching Axoloti, and sharing patches.">Patching</span></a>
+  </div>
+  <blockquote>Hey [:smile:] Have been working on this patch for creating wavetable in Axoloti, not just loading them, but creating them from scratch, using Axolotis oscillators. And I think I got it working pretty well for now.. Anyway, just wanted to post a preview. Its recorded from a phone so the quality is not that good and you cannot here the sound only some mouse clicking. Sorry. But you can see the waveform change as harmonics are added. And morphed… the patch can create 1 cycle wavetables.  1cycle = 1…
+    <div class="topic-info">
+    </div>
+  </blockquote>
+</aside>
+
+
+<p>But yeah, got a few ideas how to implement morphed waves in a more controlled fashion than the one from the link. WOuld like to make a version which moprhes a few waves at a time. For example start out as a saw wave and moprh into a sine wave. Actually  think it can be done with the one I posed already now that I think of it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/21</link>
+        <pubDate>Tue, 23 Feb 2016 17:19:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-21</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@matthewcieplak Matthew Cieplak]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/matthewcieplak">@matthewcieplak</a> wrote:</p>
+          <blockquote>
+              <p>Finally finished up my new enclosure and had a go at the wavetable stuff tonight. Seems to work well! I'm still downloading the 1.0.6 patcher (github seems to be throttled on my ISP?) so I have to use the old file browser to add the files for now. <img src="/images/emoji/emoji_one/expressionless.png?v=0" title=":expressionless:" class="emoji" alt=":expressionless:"> </p>
+
+<p>However the bulk import/export functions in audacity seem to be working well for the adventurekid waveforms so far. Importing/exporting 10 at a time is a breeze, so should be able to finish up a batch quickly. I may be truncating the files on playback, but they sound good to me – will have to test accuracy against some other WT player (maybe in max msp?). My enclosure has a 2-digit seven segment display so I'll try to winnow it down to 100 of my favorites and then be able to scroll through them on the synth.</p>
+
+<p>Also interested in the "morph" functions I've seen on Serum and Massive (don't have either myself), I wonder if it'd be possible to build a feature like that into a synth patch. If it's a simple x-fade, it might be as easy as having 2 selectable waveforms and a fade control. Would be great to hook up to an envelope I suspect.</p>
+
+<p>Any thoughts on wavetable synths I should check out for design ideas? Have been meaning to snag the demo of NI massive anyway, but I'm a complete n00b to the wavetable game, so all recommendations are welcome!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/20</link>
+        <pubDate>Tue, 23 Feb 2016 10:09:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-20</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/mrdrbobo/40/1105_1.png" class="avatar">mrdrbobo:</div>
+<blockquote><p>So although it works, I don't completely understand how it works. Left bottom, the objects for wavetable position (why does it have to go through the /divremc and the /nointerp ?). And the part that resets the wavetable doesn't seem to do anything in my case.</p></blockquote></aside>
+
+<p>Oh, forgot to explain a bit here. The divremc c makes it play only 1 cycle at a time. The 1 cycle length is set by the phasor oscs frequency. </p>
+
+<p>The no interp make sure the position knob only controls position and not the pitch.. the pitch is controlled by the phasor osc... So it is basicly to seperate pitch and position control <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>Hope that helps <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/19</link>
+        <pubDate>Sun, 31 Jan 2016 18:05:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-19</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <p>ah yes.. Maybe the ones I had was different format <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> And not sure I actually got them form his site. Myabe some one else already did some conversion on them.. Gonna check it...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/18</link>
+        <pubDate>Sun, 31 Jan 2016 14:16:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-18</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="16" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>But yeah, regarding the Adventure kid samples. I had them already... and they are not all same sample sizes. some are 1024, some are 2048 some are 4096, etc....</p></blockquote></aside>
+
+<p>from his website<br></p>
+
+<p><aside class="quote"><blockquote><p>All in one pack!<br>You probably want to download one of the all in one pack. It contains all the single cycle wave forms. The wave format work with many samplers and synths and there are some packages containing samples formatted for ones that need a different format. I choose to sample thes waveforms at D2+2 which equals 600 samples. The biggest reason for that was because I was using Fibonacci sequences to build sounds. As the synths, samplers and computers got better at handling single cycle wave forms it made less sense but I kept the standard of 600 samples anyway.</p></blockquote></aside></p>
+
+<p>Really, perhaps we are talking about different ones...<br>Im looking at the AKWF set, these have a a readme which says they are all 600 samples long, and and all Ive looked at are 44.1/16 bit.</p>
+
+<p>perhaps your looking at a different version?<br>anyway no matter, it was just a passing comment anyway.</p>
+
+<aside class="quote" data-post="15" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/mtyas/40/1798_1.png" class="avatar">mtyas:</div>
+<blockquote><p>Do you think some day it will be able to read wav files (kind of skip the header function), it could save some time and complications for new users</p></blockquote></aside>
+
+<p>I discussed this with Johannes the other day, as I thought it would be 'relatively straightforward', <br>and his answer was very interesting...<br>the reason he hadn't done this so far, is due to block sizes on the SD cards, essentially the wave headers offset the real wave data, such that streaming it would be less efficient. </p>
+
+<p>so what we thought was:<br>a) perhaps have this 'inefficiency' but warning, that raw files are better... the issue with this, is no matter how many times you remind people, they will use wav files as its the easy way <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>b) conversion... this is the better way, but more work, provide some kind of conversion mechanism such that when you transfer the files they are converted from wav to raw. this makes more sense since potentially we can then expand the conversion formats (or resampling), and also means its done once, with the powerful cpu of the computer rather than the limited resources of the STM32F4.<br>this is probably also in line with thinking on package management etc.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/17</link>
+        <pubDate>Sun, 31 Jan 2016 13:53:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-17</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <p>ANyway you can already set the table siezes dynamically......</p>
+
+<p>Just set denominator for 2 instead of 1. And change the tablesize to 2048.. Then you can play 1024 samples WT in a 2048 samples table.... Use the position to test it:</p>
+
+<ol>
+<li><p>First test the position with table of 1024 sample size and denominator to 1 and and scan through the 1cycle with the position. with 1024 samplesize wave of course.</p></li>
+<li><p>Then change the tablesize to 2048 and denominator to 2 and scan though it again with the position.. These two setting sounds EXACTLY identilcal......</p></li>
+</ol>
+
+<p>But yeah, regarding the Adventure kid samples. I had them already... and they are not all same sample sizes. some are 1024, some are 2048 some are 4096, etc.... So batch converting is still not the best idea for this.. Like Mtyas mention it is better to do it by hand, cause there are many variables that can go wrong, which wil jst leave them useless.</p>
+
+<p>For example a lot of the Serum wavetables you find are morphed wavetables so they actually consist of only very few waves,, like 4-6 waves. These I dont know how to import to Axoloti yet..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/16</link>
+        <pubDate>Sun, 31 Jan 2016 13:43:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-16</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@mtyas Matthew Tyas]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mtyas">@mtyas</a> wrote:</p>
+          <blockquote>
+              <p>I didn't know about adapting the playback mechanism to any size, that is why I was trying to stretch all to 1024. <br>I like your idea about the futur dynamic aspect of it. </p>
+
+<p>Do you think some day it will be able to read wav files (kind of skip the header function), it could save some time and complications for new users</p>
+
+<p>Otherwise, it seems that the files I downloaded from Adventure Kid were sometimes in 44kHz and sometimes 48kHz, unless some of my batch converting messed everything up. <br>Actually doing it by hand and picking out the ones you want using <a href="http://www.adventurekid.se/AKRTfiles/AKWF/view/waveforms_index.html">these previews</a> makes more sense for myself. I can get to know my waves <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/15</link>
+        <pubDate>Sun, 31 Jan 2016 13:04:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-15</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <p>ahh ok.. Sorry  <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<p>Going to look into those too then. </p>
+
+<aside class="quote" data-post="13" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>(hmmm, we should actually make the table load return the file read size as an outlet, to allow it to be dynamic)</p></blockquote></aside>
+
+<p>Is the idea to be able to adjust table size while "live"? Maybe with a ctrl/i object?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/14</link>
+        <pubDate>Sun, 31 Jan 2016 12:34:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-14</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/jaffasplaffa">@jaffasplaffa</a>,  yup I recognise this, but I was talking specifically about the adventure kid samples, which are all identical in size/sample rate etc but there are a huge number of them <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<p><span class="mention">@mytas</span> why did you convert them to 1024 in length, are you just standardising on the size?<br>since the playback mechanism can be adapted to any size.</p>
+
+<p>(hmmm, we should actually make the table load return the file read size as an outlet, to allow it to be dynamic)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/13</link>
+        <pubDate>Sun, 31 Jan 2016 11:20:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-13</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="9" data-topic="912"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>surely there must be a command line app that can do this conversion, would be great to just point it to a directory for it to do them all.</p></blockquote></aside>
+
+<p>Just have in mind that wavetables are NOT all 32, 64, 128 waves.. some have weird sized, in context to Axoloti.... And with the multi cycle wavetables sizes and wave numbers are VERY important.. if you try to stretch a 142 wavetable with a sample size of 2631333 samples you CANNOT stretch it to axolotis tabel sizes and expect it to be click free... There will be a lot of clickin, cause the indexing will not de right</p>
+
+<p>WHat I do is import them into Serum first and check how many waves they actually have(most wavetables from the web does not gives this info, yuo have to find out yourself).. ANd for example if the wavetable is 140 waves.... you just cut away down to 128 waves.. and export it. and since Serum converts it automacitally to riggh sizes, this is the best way to go, imo.... </p>
+
+<p>So one cycles are pretty  easy.. but take care with the multi wavetables.  Batch processing i dont think wil be succesfull, cause you have to get hands on with each indivudually file anyway to get sizes wave nr, etc...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/12</link>
+        <pubDate>Sat, 30 Jan 2016 14:56:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-12</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+      <item>
+        <title>Wavetable - How to create1 cycle wavetable tutorial w. examples</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <p>Why use batch script(except if you want to converted a lot at the same time, but that is not advisable since wavetable vary a lot in size.. some are 356 samples, some are 1234, some are other sizes, so they dont need to be stretched same amount). In audacity there is a function called change speed that lets you set the exact sample length in samples. BUt yeah, it take a little bit of " hard" work to get started to get a library going.....</p>
+
+<p><a class="mention" href="/users/mtyas">@mtyas</a></p>
+
+<p>If you want to dig into wavetables I'd suggest to also check Serum VST/AU. Very capable of making wavetables, both 1 and multicycles..... Serum export 1cycle WTs in wav and 2048 samples long.. SO you ONLY have to drag them into audacity and convert them to .raw... file size is perfectl al ready..</p>
+
+<p>Serum video:</p>
+
+<div class="lazyYT" data-youtube-id="MzJ8qocQreM" data-youtube-title="Xfer Serum: How to Make Custom Wavetables" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912/11</link>
+        <pubDate>Sat, 30 Jan 2016 14:42:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-912-11</guid>
+        <source url="http://community.axoloti.com/t/wavetable-how-to-create1-cycle-wavetable-tutorial-w-examples/912.rss">Wavetable - How to create1 cycle wavetable tutorial w. examples</source>
+      </item>
+  </channel>
+</rss>

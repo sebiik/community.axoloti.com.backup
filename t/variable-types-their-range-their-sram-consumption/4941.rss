@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Variable types, their range &amp; their SRAM consumption</title>
+    <link>http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941</link>
+    <description>This is probably a stupid question, but since people here are so nice...
+
+I am trying to squeeze the last bit of SRAM out of my axo. I suppose that choosing variables with as few bits as possible would be one way of doing that. But i noticed that e.g. switching from an &quot;int&quot; variable to an &quot;int8_t&quot; variable uses _more_ SRAM than the other way around.
+
+So if someone were kind enough to take the time and explain to me what the different int (and similar) variable types are ---int, int8_t, int16, uint and what have you--- and how they differ in terms of range and SRAM usage, that&#39;d be sooo appreciated!</description>
+    
+    <lastBuildDate>Tue, 25 Jun 2019 00:41:13 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Variable types, their range &amp; their SRAM consumption</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>[quote/]<br>E.g.</p>
+
+<p>BAD<br>struct {<br>a uint32_t,<br>b uint8_t,<br>c uint32_t,<br>d uint8_t,<br>e uint32_t,<br>}</p>
+
+<p>GOOD:<br>struct {<br>a uint32_t,<br>c uint32_t,<br>e uint32_t,<br>b uint8_t,<br>d uint8_t,<br>}</p>
+
+<p>[/quote]</p>
+
+<p>aha ok... this should save up some mem in quite some of my modules..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/5</link>
+        <pubDate>Tue, 25 Jun 2019 00:41:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4941-5</guid>
+        <source url="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941.rss">Variable types, their range &amp; their SRAM consumption</source>
+      </item>
+      <item>
+        <title>Variable types, their range &amp; their SRAM consumption</title>
+        <dc:creator><![CDATA[@Captain_Burek Daniel Büring]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/captain_burek">@Captain_Burek</a> wrote:</p>
+          <blockquote>
+              <p>Thanks, guys! Between your two answers, i'm beginning to see the light. I think .map file reading is beyond me, but variable sorting i can do (-:</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/4</link>
+        <pubDate>Thu, 06 Sep 2018 00:46:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4941-4</guid>
+        <source url="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941.rss">Variable types, their range &amp; their SRAM consumption</source>
+      </item>
+      <item>
+        <title>Variable types, their range &amp; their SRAM consumption</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p>Misaligned accesses (ie accessing a N bit variable on something other than a N bit memory boundary) tend to be either prohibited or slow, so compilers avoid generating them. As a consequence data structures are not packed- and if you don't arrange things efficiently the compiler will generate data structures with holes.</p>
+
+<p>E.g.</p>
+
+<p>BAD<br>struct {<br>a uint32_t,<br>b uint8_t,<br>c uint32_t,<br>d uint8_t,<br>e uint32_t,<br>}</p>
+
+<p>GOOD:<br>struct {<br>a uint32_t,<br>c uint32_t,<br>e uint32_t,<br>b uint8_t,<br>d uint8_t,<br>}</p>
+
+<p>The latter case uses less RAM for the same data. So that's one thing to watch out for. Use sizeof() to check.</p>
+
+<p>Also - Compilers generally generate the most concise code when dealing with variables that match the natural word size of the CPU- so use something that makes life easy for the compiler.</p>
+
+<p>BAD:<br>unsigned char i;<br>for (i = 0; i &lt; 100; i ++) {<br>// blah<br>}</p>
+
+<p>GOOD:<br>int i;<br>for (i = 0; i &lt; 100; i ++) {<br>// blah<br>}</p>
+
+<p>i is a stack variable - and is probably going to have the same stack usage in either case.<br>The code may be smaller (.text) because it's all 32 bit ops. ARM does have 8/16/32 bit ops,<br>so may do an ok job with this - but the point is that picking a local variable that is smaller in<br>size is really a no-op as far as data and code size go.</p>
+
+<p>int<br>signed integer - size is compiler dependent, 32 bits on the ARM cortex M4<br>int8_t,int16_t,int32_t<br>These are also signed integers, but the size is explicit.</p>
+
+<p>min_value = -(1 &lt;&lt; (n - 1))<br>max_value = (1 &lt;&lt; (n-1)) - 1<br>where n is the size in bits.</p>
+
+<p>e.g. in python</p>
+
+<blockquote><blockquote><blockquote><p>n = 8<br>min_value = -(1 &lt;&lt; (n - 1))<br>print min_value<br>-128<br>max_value = (1 &lt;&lt; (n-1)) - 1<br>print max_value<br>127</p></blockquote></blockquote></blockquote>
+
+<p>BTW - if you really want to save RAM you should look at the *.map file and see where it's being used.<br>That'll tell you where you need to focus your efforts.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/3</link>
+        <pubDate>Wed, 05 Sep 2018 23:46:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4941-3</guid>
+        <source url="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941.rss">Variable types, their range &amp; their SRAM consumption</source>
+      </item>
+      <item>
+        <title>Variable types, their range &amp; their SRAM consumption</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>hmm,  interesting question, and one id need to play with to give a good answer .. but some thoughts to give you something to look into...</p>
+
+<p>I think the M4, being 32bit, uses 4 byte aligned data , <br>so by default, I think unpacked data , like an int8 would effectively use 32 bit anyway. (1 byte data, 3 byte pad, and perhaps also a performance penalty for conversion <img src="//community.axoloti.com/images/emoji/twitter/frowning.png?v=5" title=":frowning:" class="emoji" alt=":frowning:"> </p>
+
+<p>however, I think you can use packed structures to stop this(!?)</p>
+
+<p>but Id need to check this, the best way to do this would be to check with structs, and do a sizeof.<br>( a simple type, wont tell you about memory wasted due to alignment)</p>
+
+<p>anyway hopefully this gives you a few keywords to do a bit of research, as I don't have time at the moment.</p>
+
+<p>(but also do check, that your quest for more ram, doesn't come at a cpu performance hit that's unacceptable for your need - this stuff is aligned by default for a reason <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> )</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/2</link>
+        <pubDate>Wed, 05 Sep 2018 18:39:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4941-2</guid>
+        <source url="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941.rss">Variable types, their range &amp; their SRAM consumption</source>
+      </item>
+      <item>
+        <title>Variable types, their range &amp; their SRAM consumption</title>
+        <dc:creator><![CDATA[@Captain_Burek Daniel Büring]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/captain_burek">@Captain_Burek</a> wrote:</p>
+          <blockquote>
+              <p>This is probably a stupid question, but since people here are so nice...</p>
+
+<p>I am trying to squeeze the last bit of SRAM out of my axo. I suppose that choosing variables with as few bits as possible would be one way of doing that. But i noticed that e.g. switching from an "int" variable to an "int8_t" variable uses <em>more</em> SRAM than the other way around.</p>
+
+<p>So if someone were kind enough to take the time and explain to me what the different int (and similar) variable types are ---int, int8_t, int16, uint and what have you--- and how they differ in terms of range and SRAM usage, that'd be sooo appreciated!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941/1</link>
+        <pubDate>Wed, 05 Sep 2018 10:12:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4941-1</guid>
+        <source url="http://community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941.rss">Variable types, their range &amp; their SRAM consumption</source>
+      </item>
+  </channel>
+</rss>

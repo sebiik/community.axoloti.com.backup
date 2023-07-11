@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Axo delay implementation</title>
+    <link>http://community.axoloti.com/t/axo-delay-implementation/3186</link>
+    <description>Hi there, so for a project i&#39;m doing for university, i am attempting to make a delay among other things (chorus &amp; flanger, but they are derivatives on delay), and have found the way its done in factory objects is rather different to what i&#39;ve been taught. To clear up any confusion, the object i am using is a combination of delay rite/read interp.
+If we look at the local data it seems there are 3 delay related variables 
+
+&lt;img src=&quot;/uploads/default/original/2X/5/52b2c1c7d20ff5d131a5b212ebaa571c4fa62647.jpg&quot; width=&quot;388&quot; height=&quot;81&quot;&gt;
+
+I can see what these are defined as, but not really sure as to what each of them really do. In the processing code (s-rate) &quot;LENGTH&quot; isn&#39;t actually used at all, only LENGTHPOW * LENGTHMASK are used. 
+
+&lt;img src=&quot;/uploads/default/original/2X/d/de1f4c2a05207e0e848344400113f5b2c571411f.jpg&quot; width=&quot;459&quot; height=&quot;213&quot;&gt;
+
+If we look at line 2 &amp; 3 for example, this looks like the inlet actually being written to the buffer, but unsure as to what &amp;LENGTHMASK is doing? and LENGTHPOW for that matter
+
+And again with the processing code from read interp, I&#39;ve been taught how to use buffers by having a read and a write pointer in a circular buffer that wraps around, but cant see anything to do with a read pointer, instead it looks like on line 7, tmp_di is a variable relating to the write point which acts as the read point, is this right ? but the code after that does get a bit lost on me, its so different to what i was taught! You&#39;re probably just thinking why not use what you where taught ? well i i would love to, but we where given a framework to work in written by our lecturer, and haven&#39;t had much success in porting it over (way too many error messages)
+
+The main reason i am investigating all of this is because i am attempting to make a chorus from this as a building block, i have put the lfo inside the object and that all works, but i cant seem to figure out where to apply the lfo as there isnt an obvious read pointer! 
+
+Here is what i&#39;ve done so far &lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/c/c34b07785ae0ea8444d3262a140205731d350a36.axo&quot;&gt;dead chorus.axo&lt;/a&gt; (4.1 KB) please let me know if you can help :)</description>
+    
+    <lastBuildDate>Wed, 12 Apr 2017 20:55:20 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/axo-delay-implementation/3186.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ive just taken a look at your new code, but its still got the same basic issue - this code will not work</p>
+
+<p></p><pre><code class="lang-auto">	readpos = writepos - time;
+	if(readpos &lt; 0)	
+	{
+		readpos = 0;                                 //read pos wrapper
+	}</code></pre>
+
+<p>please see my previous reply for why......<br>(hint, for writepos = 1,2,3,4 you will set readpos to 0, this is incorrect!)</p>
+
+<p>I'm confused you say it works under xcode... to me the algorithm looks wrong.<br>(well to be precise, it would 'appear' to work only under limited circumstances, when the writepos is not near the start of the delay line)</p>
+
+<p>personally, id draw this on a piece of paper, and work thru it, once you have worked out the algorithm its trivial to implement.</p>
+
+<p>the issue, is real time programming (including audio stuff) is tricky to debug, its better to spend more time upfront working out the design/algo .... this is a different 'workflow' for some programmers, who have become reliant on debuggers ( quite common these days with modern IDEs)</p>
+
+<p>EDIT:<br>btw, a tip<br>initially develop objects as embedded objects, its a much quicker workflow.<br>also then you can upload the axp here, and we can look at it with one click.<br>( with axo, I have to save the file, move it into an objects directory, and then reload objects... much more hassle <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/26">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/26</link>
+        <pubDate>Wed, 12 Apr 2017 20:55:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-26</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>When i say the code works, i have adapted it so far to work inside axoloti rather than a PC, so i really only mean the flow of things rather than a copy paste job. Those issues have been sorted along the way and are fixed.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/25</link>
+        <pubDate>Wed, 12 Apr 2017 20:26:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-25</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Your original code wouldn't work due to the issue I mentioned. ( uint and not implementing a circular buffer correctly)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/24</link>
+        <pubDate>Wed, 12 Apr 2017 19:17:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-24</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>Little update on this one, so far i've managed to configure the buffers correctly (that took a long time!), so i can get audio into and out of a buffer. <br>Then with the delay time, it all complies fine which is great, also took a fair bit of fiddling about but the issue I've come to now, is actually delaying the signal, i really don't understand why the code that used to work doesn't with axoloti, that being.</p>
+
+<blockquote><p>BufferReadPos = BufferWritePos - time;<br>if(BufferReadPos &lt; 0) BufferReadPos = 0;</p></blockquote>
+
+<p>When i run an impulse through, the delayed signal is just the same as the input signal with no change in time, so although time has a value (lets say 10,000), it doesn't do anything to the read pointer for some reason, even though everything is the same type (float) and the code works (on xcode).</p>
+
+<p>Any ideas ? Thanks <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/c/c866e29fd78aa197acf864ff70c0a04745346d29.axo">simple delay.axo</a> (4.8 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/23</link>
+        <pubDate>Wed, 12 Apr 2017 17:06:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-23</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>That is what i have been doing, trying to anyway haha.</p>
+
+<p>I will stay away from casting, was just trying out spuntki's solution, but didn't work so back to trying to find a fix with floats.<br>Ye i get your point about using floats, trust! I don't think i could have even got this far with q27 maths as all my uni stuff is in float, so i know that in the short-ish time frame i have left, there is no point trying to get my head around the q27 maths as it's a struggle still with the floating point version!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/22</link>
+        <pubDate>Sun, 09 Apr 2017 13:04:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-22</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>get the types correct e.g. float array, and using q27_to_float(), float_to_q27()</p>
+
+<p>seriously, don't get into the (really) bad habit of casting to fix compilation errors, i promise you long term this will cause you real grief... its one of the most common sources of bugs!<br>( basically, casting is saying to the compiler, im not interested in you telling me about the bugs i have in my code  <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) </p>
+
+<p>... where casting is required, there are better ways in modern compilers (static_cast, dynamic_cast)</p>
+
+<p>btw, the reason I've pointed you to using floats, is not for the delay,( for that you can simply use int32_t) , but because when the you want to start doing things like 'wet/dry' mixes, or feedback loops, the maths is much easier (/obvious) with floats that using q27 maths.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/21</link>
+        <pubDate>Sun, 09 Apr 2017 12:51:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-21</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>Yep same error unfortunately <img src="//community.axoloti.com/images/emoji/emoji_one/confused.png?v=3" title=":confused:" class="emoji" alt=":confused:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/20</link>
+        <pubDate>Sun, 09 Apr 2017 12:45:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-20</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Uhm, that's strange. Try casting it to int32_t, though i doubt it will solve anything</p>
+
+<p>outlet_out = (in32_t) yourfloatvariable;</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/19</link>
+        <pubDate>Sun, 09 Apr 2017 12:37:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-19</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>All processing code is being done in s-rate</p>
+
+<p>Thought i would see what would happen if you just write the q27 inlet to the buffer and as expected you get</p>
+
+<blockquote><p>invalid conversion from int32_t (aka long int) to float</p></blockquote>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/18</link>
+        <pubDate>Sun, 09 Apr 2017 12:33:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-18</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Are you executing code in k-rate or s-rate?</p>
+
+<p>Because if you want to access buffered inlets or outlets (red) in k-rate, you need to specify the exact sample..</p>
+
+<p>For example be out a frac32buffer outlet: in k-rate</p>
+
+<p></p><pre><code class="lang-auto">outlet_out[15] = value;</code></pre>
+
+<p>While, in s-rate:<br></p>
+
+<p></p><pre><code class="lang-auto">outlet_out = value;</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/17</link>
+        <pubDate>Sun, 09 Apr 2017 12:28:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-17</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>thank you <a class="mention" href="/users/sputnki">@Sputnki</a> for the link, since technobear responded i have looked into this and can now see the big benefit of having a modulo (wondering why i didn't get taught this!).</p>
+
+<p>The main issue im having at the minute is this error when trying to input/output the buffer</p>
+
+<blockquote><p>cant convert 'float to float' in assignment</p></blockquote>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/16</link>
+        <pubDate>Sun, 09 Apr 2017 12:22:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-16</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/walla">@Walla</a> <br><a href="http://www.cplusplus.com/forum/general/19502/" class="onebox" target="_blank" rel="nofollow noopener">http://www.cplusplus.com/forum/general/19502/</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/15</link>
+        <pubDate>Sun, 09 Apr 2017 12:18:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-15</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <blockquote><p>sorry dont have time to read now...<br>No worries! as i said earlier the fact you have time to lend a hand every now and then i am grateful for <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> you are a big help!</p></blockquote>
+
+<p>does your "% len" refer to the percentage of buffer used ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/14</link>
+        <pubDate>Sun, 09 Apr 2017 12:07:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-14</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>sorry dont have time to read now...<br>the 'trick' with this, is probably to actually track readpos (not write) and use modulo </p>
+
+<p>off the top of my head something like </p>
+
+<pre><code>r = (r + 1) % len;
+w = (r + delay) % len</code></pre>
+
+<p>(could be wrong, as I've not really thought it thru <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/13</link>
+        <pubDate>Sun, 09 Apr 2017 10:54:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-13</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>awesome, dont worry about that! that fact you can find time to help me at all i am gracious for <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> you must be a very busy man!</p>
+
+<p>aha thought there might have been a few oversights in the porting of code, sorted, and no not that i saw!</p>
+
+<blockquote><p>buffreadpos = buffwritepos - 12000; <br>if(buffreadpos &lt; 0) buffreadpos = 0;</p></blockquote>
+
+<p>This little bit is giving me quite a hard time to get my head around its wrong because this is the way we've been taught and is in my working code. I understand your example, but not sure as to what the work around would be. <br>To create the circular buffer, you wrap the write/read pointers so for the read, instead of the above code, would it be something like:</p>
+
+<blockquote><p>buffreadpos = buffwritepos - 12000; <br>if(buffreadpos &lt;= 0) buffreadpos = buffreadpos + attr_size;</p></blockquote>
+
+<p>this in my head would fix it as it would just add the full buffer size with the offset from being negative ?</p>
+
+<p>Have now declared the array into sdram, was getting the error: incompatible types in assignment of 'float*' to 'float* [17]' for this line...</p>
+
+<blockquote><p>array = &amp;_array[parent-&gt;polyIndex][0];</p></blockquote>
+
+<p>but a pointer to the declaration in local data seemed to solve that.</p>
+
+<p>Think there is something wrong with my floats though somewhere, these 2 lines of code which are the only ones accessing the array, are giving me the error <em>"can't convert float to float in assignment"</em>, which has me headscratching as the only time im converting from/to a float is on an inlet variable first thing when audio comes in and last thing as audio is sent to the outlet.</p>
+
+<blockquote><p>array[writepos] = fIn; <br>fDelSig = array[readpos];</p></blockquote>
+
+<p>Does that error message imply that because the array is a float, the input will automatically get converted before it goes into the array ? that is my only thought (fIn and fDelSig are delcared as float type)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/12</link>
+        <pubDate>Sat, 08 Apr 2017 13:49:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-12</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ok, I don't have time to debug your code, so I can only point out some errors that 'stand out' to me.</p>
+
+<p>the main issue, is you are trying to store the float signal into a 16 bit int, its should be a float (which is 32bit), make your array a float.</p>
+
+<p>( are you not getting 'type conversion' warnings when you compile this?)  </p>
+
+<p></p><pre><code class="lang-auto">buffreadpos = buffwritepos - 12000; 
+if(buffreadpos &lt; 0) buffreadpos = 0;</code></pre>
+
+<p>this is wrong,<br>essentially what your trying to do is create a circular buffer... <br>if the writepos = 100, then readpos = 12000 -writepos,<br>i.e. 11500</p>
+
+<p>note, you  also need to be careful here, if your buffer size is less that the delay line size, you need to handle this too.<br>(your default is 5000, so cannot work for 12000 samples)</p>
+
+<p>also your check will not work..<br>bufferreadpos will never be &lt;  0 as you have declared it as a uint, i.e. an unsigned int... </p>
+
+<p>this is probably what is crashing your patch, as on the first execution<br>bufreadpos = 0-12000, which will evaluation to  UINT32_MAX-12000, <br>which is a very large number, well beyond your array boundary <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>finally, if you are using larger delay lines you will want to declare the array in sdram, as the default (sram) is quite small... look up one of the factory objects with sdram in title to see how to do this.</p>
+
+<p>also id be tempted to add a 'wet/dry' param, so your out only has a part of you in signal.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/11</link>
+        <pubDate>Fri, 07 Apr 2017 18:36:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-11</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>So first of all thanks <a class="mention" href="/users/thetechnobear">@thetechnobear</a> for another very helpful reply, much appreciated! also good choice in title update, mine was a bit vague.</p>
+
+<p>I have taken your advice and a converting all data into floats for my working and then back again for the output which has helped me in other areas (distortion implementation).</p>
+
+<p>I started trying to port over my old code into axo and i seem to have run into a bit of a halt. Basically, i set it all up as it worked with xcode, changing variable names and references of course so they match the axo framework, and when i run the object, the compiler takes a little longer than normal to run, then when it runs i got a couple of odd, squeaky noises, spits out a huuuge error in the console window and then crashes.<br>Before it crashed, i got a really quick look at the console and it said something about overflow of 2605 samples, which i'm assuming is something to do with how i'm creating and using my buffer, but i'm really not too sure as its not something i dealt with on my course. </p>
+
+<p>So after axo had crashed i lost my object, so i re-wrote it out (only a few lines) and now when i go to compile the green LED flashes really fast, then it seems to reboot as it disconnects from my laptop, while both led's flash and im back to the start <img src="//community.axoloti.com/images/emoji/emoji_one/confused.png?v=3" title=":confused:" class="emoji" alt=":confused:"> there is now no more error in console, only:<br>Starting patch...<br>patch start taking too long, disconnecting<br>Disconnect request<br>Done starting patch</p>
+
+<p>Have uploaded the object in question. All i want to be doing here is taking the input and adding to buffer, then have a fixed delay time of 0.25s mixed with the original. All variable names should be obvious <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/a/ae81b9e1c55549137db9ea63e06749a117d7c07c.axo">simple echo.axo</a> (1.6 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/10</link>
+        <pubDate>Fri, 07 Apr 2017 17:34:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-10</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>btw: if you are doing this for 'educational purposes' , I'm not sure id advise going down the whole Q27/integer maths route, its not really going to gain you much understanding in delay lines/fx (if that's your goal), and its hard when reading code, to try to learn multiple things at the same time.</p>
+
+<p>so I think, I would be tempted to convert the audio/parameters into floats, and use a more understandable implementation... (as you are being taught), similarly your implementation doesn't need to use the optimisation tips used by the factory objects. </p>
+
+<p>once you have your 'simple' implementation working, then you can take that knowledge and go back and revise to a more optimised form if you feel its necessary - but then you will be able to concentrate on that, rather than the delay implementation.</p>
+
+<p>just my personal opinion , I'm sure you'll get there in the end either way.</p>
+
+<p>EDIT, for float to int32 and back you need q27_to_float(), and float_to_q27(), <br>if you look at fx/rngs/reverb k-rate code you will see us doing this conversion.<br>(you don't need to look at the reverb code, just how its doing the conversion in Axoloti to float, which is probably how you've been taught delay lines)</p>
+
+<aside class="quote" data-post="7" data-topic="3186"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/walla/40/3814_1.png" class="avatar">Walla:</div>
+<blockquote><p>yes its quite hard just going from code without any comments or documentation, i think that is going to be one of the next big steps to get this product to the masses, documentation!</p></blockquote></aside>
+
+<p>I think that's probably an unrealistic expectation, I don't Axoloti factory objects are created to be an education in how to write dsp code/integer maths, rather to provide a visual patching environment so users do <strong>not</strong> have to know about dsp coding. <br>if you can learn coding techniques from them (as I have)  I personally have seen this as a bonus.<br>(Johannes may have a different opinion, this is just my view)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/9</link>
+        <pubDate>Wed, 05 Apr 2017 18:27:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-9</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>mod note: ive renamed topic to a bit a bit clearer</p>
+
+<p>I suspect its doing as you have been taught, just it using binary operations to keep it efficient..</p>
+
+<p>LENGTHMASK is being used as a modulo operation to keep the array read within bounds.</p>
+
+<p>LENGTHPOW <br>first instance to calculate the read position, (this is a division, taking into account <a href="//community.axoloti.com/t/coding-axoloti-objects">this is in Q27 format, see user guide for more on this</a>)<br>second instance, this is part of the interpolation, so how much of the delay time, is between samples.</p>
+
+<p>sorry this is a bit 'overview' , the best idea is to work thru an example. <br>this integer maths is at first a bit confusing, again check the post in the user guide section.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/8</link>
+        <pubDate>Wed, 05 Apr 2017 18:15:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-8</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>No worries! yes its quite hard just going from code without any comments or documentation, i think that is going to be one of the next big steps to get this product to the masses, documentation!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/7</link>
+        <pubDate>Wed, 05 Apr 2017 18:07:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-7</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Sorry cant help you wit that. I am still learning things like that, so I am definately following your post <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/6</link>
+        <pubDate>Wed, 05 Apr 2017 18:05:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-6</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>Sorry should have been more clear then, it is a 'custom' object combined of the factory read/write <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>My general question was about what these 3 are each actually doing, why have 3 variables for the length of the buffer ? for example whats the point of having LENGTH bitshifted left 1 position ?<br>but the second part was more trying to get an understanding of whats going on in the s-rate code for the delay/read interp and how those variables are being used, as ultimately i want to be modulating the read position with the LFO, as there isn't a specific function for the read pointer</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/5</link>
+        <pubDate>Wed, 05 Apr 2017 18:03:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-5</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="3186"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/walla/40/3814_1.png" class="avatar">Walla:</div>
+<blockquote><p>what makes you think its not factory ?</p></blockquote></aside>
+
+<p>Cause the factory objects are NOT combined. They are seperate, Anyway, i doesnt really matter <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<aside class="quote" data-post="3" data-topic="3186"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/walla/40/3814_1.png" class="avatar">Walla:</div>
+<blockquote><p>It looks like LEGTHPOW is the normal delay size, then what about the (1&lt;&lt;attr_size) for LENGTH and LENGTHMASK ?</p></blockquote></aside>
+
+<p>I opened the code and looked. Look in "local code". There you see all three. If you want to find where the LENGTH is used, look in "init code". But in general ALL three refers to the delay size;<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/540c2f854760d29d787d86c0d0ee409e8b5a8519" href="//community.axoloti.com/uploads/default/original/2X/5/540c2f854760d29d787d86c0d0ee409e8b5a8519.png" class="lightbox" title="1.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/5/540c2f854760d29d787d86c0d0ee409e8b5a8519_1_690x138.png" width="690" height="138"><div class="meta">
+<span class="filename">1.png</span><span class="informations">830x166 19.3 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/6/6240c044b10c5fe0774bf5410f230cfb8a31ab69.png" width="170" height="185"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/4</link>
+        <pubDate>Wed, 05 Apr 2017 17:55:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-4</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@Walla Ben Waller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/walla">@Walla</a> wrote:</p>
+          <blockquote>
+              <p>It looks like LEGTHPOW is the normal delay size, then what about the (1&lt;&lt;attr_size) for LENGTH and LENGTHMASK ?</p>
+
+<p>I did write in the original post but there was a lot of writing so could have got a bit lost, i have combined the factory read/write interp into one object, what makes you think its not factory ? i have that same section you posted as the first picture in my initial post.</p>
+
+<p>I can see what the names are, it just this has been done very differently to the only way in which i know, so i need to try and get my head around whats going on with each variable, as i understand the processes involved, i just can't pick that out from the code. Does that make sense ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/3</link>
+        <pubDate>Wed, 05 Apr 2017 17:47:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-3</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+      <item>
+        <title>Axo delay implementation</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="3186"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/walla/40/3814_1.png" class="avatar">Walla:</div>
+<blockquote><p>LENGTH</p></blockquote></aside>
+
+<p>I am pretty sure it refers to size and length of the delay line. You know, the attribute where you set the delay length in 1024, 2048, 4096, etc...</p>
+
+<p>When I look at the picture I see it is not a factory delay line, cause the reference to the delay/write object has been removed. WHich one are you working on? The attr_ references for the array and writpos, which is usually located in the delay/write sdram object have been removed.</p>
+
+<p>So if this is a combined object of the delay/write and the delay/read int, take a look in the local code page. There you should see this:<br><img src="//community.axoloti.com/uploads/default/original/2X/4/48f21bdd7deca3fb733d034125db72cfdc6cb78d.png" width="540" height="235"></p>
+
+<p>If not a combined object, then look inside the delay/write sdram.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-delay-implementation/3186/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-delay-implementation/3186/2</link>
+        <pubDate>Wed, 05 Apr 2017 17:27:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3186-2</guid>
+        <source url="http://community.axoloti.com/t/axo-delay-implementation/3186.rss">Axo delay implementation</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,140 @@
+<patch-1.0 appVersion="1.0.10">
+   <obj type="env/d" uuid="190ae648e41832b41adbedb465317c18a010aefe" name="Amp Env" x="140" y="56">
+      <params>
+         <frac32.s.map name="d" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="714" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="798" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="patch/cyclecounter" uuid="6b9e9c2187a0e07fb56029aef6ccaaf1f9621e35" name="cyclecounter_1" x="266" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="f24c81be-9c19-4ed9-881d-28ab75af8201" name="Interpolation" x="392" y="126">
+      <params>
+         <frac32.u.map name="curve" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="f24c81be-9c19-4ed9-881d-28ab75af8201">
+         <sDescription>decay envelope</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="in" description="input value"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="out" description="interpolated output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="curve" description="interpolation curve"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;
+]]></code.declaration>
+         <code.krate><![CDATA[// http://community.axoloti.com/t/fastest-way-to-convert-to-from-int32-and-float-in-0-1-range/1679/18
+
+// Transform inlet val to float in 0 - 1 range
+float in1f = inlet_in * (float)(1.0f / (1 << 27));
+
+// Transform curve param to float in 0 - 1 range
+float pos = param_curve * (float)(1.0f / (1 << 27));
+
+// Interpolate between exp-like and log-like curves
+float out1f = 2 * pos * (in1f - in1f * in1f) + in1f * in1f;
+
+// Output int
+outlet_out = (int)(out1f * (float)(1 << 27));]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="patch/cyclecounter" uuid="6b9e9c2187a0e07fb56029aef6ccaaf1f9621e35" name="cyclecounter_2" x="490" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="602" y="126">
+      <params>
+         <frac32.s.map name="pitch" value="-52.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="42" y="154">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/d" uuid="190ae648e41832b41adbedb465317c18a010aefe" name="Pitch Env" x="140" y="154">
+      <params>
+         <frac32.s.map name="d" value="4.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/-" uuid="1643d55e6e7ce1c995a5e66db9f54fd969e6c9b7" name="-_1" x="602" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="686" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="Pitch Env" inlet="trig"/>
+         <dest obj="Amp Env" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="Pitch Env" outlet="env"/>
+         <dest obj="Interpolation" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="Amp Env" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="right"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="Interpolation" outlet="out"/>
+         <dest obj="sine_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="-_1" outlet="out"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="cyclecounter_2" outlet="t"/>
+         <dest obj="-_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="cyclecounter_1" outlet="t"/>
+         <dest obj="-_1" inlet="in2"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>311</x>
+      <y>23</y>
+      <width>1003</width>
+      <height>743</height>
+   </windowPos>
+</patch-1.0>

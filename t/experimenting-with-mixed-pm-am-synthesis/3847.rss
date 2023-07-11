@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Experimenting with mixed PM/AM synthesis</title>
+    <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847</link>
+    <description>Recently i&#39;ve been working on a hybrid synthesis method (that&#39;s based on pm and am synthesis)
+To keep things short, an &quot;operator&quot; is composed of two sine oscillators, the carrier and the modulator.
+Instead of using the modulator osc to directly pm the carrier, i multiply it by the previous operator output.
+&lt;img src=&quot;/uploads/default/original/2X/5/5463d15abb213305938459e9b3c6883dae5a6a50.png&quot; width=&quot;486&quot; height=&quot;193&quot;&gt;
+With this topology you can produce both a square wave and a saw wave (well, sort of): 
+[square wave](http://www.wolframalpha.com/input/?i=y+%3D+sin(t+%2B+y*cos(t)))
+[saw wave](http://www.wolframalpha.com/input/?i=y+%3D+sin(t+%2B+y))
+You can hear it implemented in my sptnk/osc/multi object, that morphs between square and saw.
+What&#39;s interesting is that you can easily bandlimit the output by just tweaking parameters. The s-rate code is really light (like ~300 cycles per object) and sounds quite warm to me.
+The only downside is that the output is not really bright as a traditional blit oscillator, and the way i implemented produces some instabilities with intermediate shapes.
+
+I tried to generalize the topology with this formula: (y[t] is the current output and y[t-1] is the previous output)
+[code] y[t] = sin(p + F*y[t-1] + sin(p*C+D)*(A*y[t-1] + B))[/code]
+(this way i can implement both straight phase modulation and self phase modulation (other than the hybrid modulation method)
+p is the phase of the carrier oscillator
+The phase of the modulator osc is given by p*C +D (that allows me to have a consistent phase relationship between mod and carrier)
+A, B and F are modulation indices that let me mix (in this order order) the amplitude modulated feedback, the modulator and the straight feedback.
+
+My plan was to find coefficients to fake several waveforms (for example pulse width modulation) and make an ultralight bass oscillator, just wanted to share these ideas with the community</description>
+    
+    <lastBuildDate>Tue, 31 Oct 2017 22:54:28 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@brasso Marc Brassé]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/brasso">@brasso</a> wrote:</p>
+          <blockquote>
+              <p>Yep, that is a very good argument. If one wants to get a clear picture of the specific behaviour staying close to classic waveforms certainly makes sense. The mad musician in me however always immediately wants to go for weirdest possible sound. <img src="//community.axoloti.com/images/emoji/twitter/star_struck.png?v=5" title=":star_struck:" class="emoji" alt=":star_struck:"> <img src="//community.axoloti.com/images/emoji/twitter/man_mechanic.png?v=5" title=":man_mechanic:" class="emoji" alt=":man_mechanic:"></p>
+
+<p>I wish you success with getting that degree. Priorities are priorities after all. Do however please keep us posted about any future developments.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/12</link>
+        <pubDate>Tue, 31 Oct 2017 22:54:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-12</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>At first i wanted to see if i could estabilish a nice procedure to generate coefficients, and i believe there's no better way to do it than on test signals that are easy to generate and with very specific timbral properties (like pulse waves, triangles and sawteeths). <br>The problem is that i don't have an academic knowledge in dsp and i have very little spare time (i'm currently rushing to get a degree in a totally different subject <img src="//community.axoloti.com/images/emoji/twitter/grin.png?v=5" title=":grin:" class="emoji" alt=":grin:">) <br>I promise i'll produce something, sometime!<br>One thing i would like to try is to generate "resonant" waves, kinda like a sawtooth filtered through a lowpass filter with cranked resonance, but without the filter.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/11</link>
+        <pubDate>Tue, 31 Oct 2017 22:03:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-11</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@brasso Marc Brassé]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/brasso">@brasso</a> wrote:</p>
+          <blockquote>
+              <p>Hm, I do not get the full math but hopefully you are also interested in some more general remarks.</p>
+
+<p>1 - That the sounds tend to be less bright seems to be logical since those first waveforms had relatively gentle edges. If you want bright overtones you need harde edges, like clipping a low frequency guitar signal through a preamp brings extra overtones. But I gues you already knew that.</p>
+
+<p>2 - I love the concept but would like to hear what more esoteric waveshapes sound like. Will such sounds for instance differ substantially from normal FM. For simply recreating existing "analog" waveshapes this must surely be a bit over the top. Or am I simply too impatient and is that something you want to do as a next phase?</p>
+
+<p>Marc</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/10</link>
+        <pubDate>Mon, 30 Oct 2017 22:10:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-10</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Already taken into account..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/9</link>
+        <pubDate>Wed, 25 Oct 2017 05:08:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-9</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Perhaps a normalising coefficient in the phase modulation index, a 2π or something like that ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/8</link>
+        <pubDate>Tue, 24 Oct 2017 22:52:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-8</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>1 sample delay feedback, without any filtering. Everything done in fixed point math. I'm pretty sure there's nothing wrong with the code, i believe the problem arises from my coefficient testing technique in octave (computing 1024 samples -&gt; fft -&gt; taking the absolute value -&gt; evaluating the difference with a non bandlimited pw)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/7</link>
+        <pubDate>Tue, 24 Oct 2017 21:39:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-7</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Hi <a class="mention" href="/u/sputnki">@Sputnki</a>,</p>
+
+<p>How did you do the feedback ?<br>If you used existing objects, you may be aware of the <em>implicit</em> 16 sample delay.</p>
+
+<p>I think that if you want a 1 sample delay feedback you will have to code a specific object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/6</link>
+        <pubDate>Tue, 24 Oct 2017 21:25:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-6</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Experimental failure: the coefficients i generated with such fatigue did not work in axoloti world, for unknown reasons.<br>So, i took on the good old heuristic approach and realized this:<br><iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?visual=false&amp;url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F348423799&amp;show_artwork=true&amp;maxheight=166" seamless="seamless" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe><br>First a real pwm wave, then my pwm wave, then the two waves played together, with center panning, then the two waves panned left-right (you can easily guess which one is the fake pw)</p>
+
+<p>Tell you, it does not sound like the wave i generated in octave, not even close. But at least now i have a tidy workspace to do my experiments on.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/5</link>
+        <pubDate>Tue, 24 Oct 2017 21:09:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-5</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Great experiments <a class="mention" href="/u/sputnki">@Sputnki</a> <img src="//community.axoloti.com/images/emoji/twitter/smiley.png?v=5" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p>maybe you can have a look to <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.127.2761&amp;rep=rep1&amp;type=pdf">this paper</a>, it shows how to use Genetic Algorithms to match synthesis parameters with a reference model.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/4</link>
+        <pubDate>Wed, 18 Oct 2017 20:10:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-4</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>PW fatness test part 2<br>I have run the code for one hour, doing 98 tests (10000x4 coefficients generated per test, starting from pw = 0.5 with bounded parameters)<br>.<br><iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?visual=false&amp;url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F347496186&amp;show_artwork=true&amp;maxheight=166" seamless="seamless" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe></p>
+
+<p>Audio is still generated from octave, you'll have to wait until this weekend before i can drop an actual test. However it sounds quite ok to me</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/3</link>
+        <pubDate>Tue, 17 Oct 2017 20:11:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-3</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Some updates on the oscillator: i implemented some really cool code in octave (which is the poor man's matlab) that allows me to generate a bunch of random parameters for the object, test the formula and confront the spectrum of the generated wave with the spectrum of the wave i want to replicate.<br>These are some waves i generated (1000 tentatives per wave, but i can push it easily to 10000 or more since the code is so good and efficient (edit: actually it seems i can't go much further than 10000 since octave runs out of memory <img src="//community.axoloti.com/images/emoji/twitter/laughing.png?v=5" title=":laughing:" class="emoji" alt=":laughing:"> )):<br>50% pulse width<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/a94bd89a6f66a1faf6cd21a1bd1f4b1fd51e7f05" href="//community.axoloti.com/uploads/default/original/2X/a/a94bd89a6f66a1faf6cd21a1bd1f4b1fd51e7f05.png" class="lightbox" title="pw50.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/a/a94bd89a6f66a1faf6cd21a1bd1f4b1fd51e7f05_1_559x500.png" width="559" height="500"><div class="meta">
+<span class="filename">pw50.png</span><span class="informations">575x514 22.2 KB</span><span class="expand"></span>
+</div></a></div><br>40% pulse width<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/dc9d282d36b25824027a1fef136b77bf3c794658" href="//community.axoloti.com/uploads/default/original/2X/d/dc9d282d36b25824027a1fef136b77bf3c794658.png" class="lightbox" title="pw40.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/d/dc9d282d36b25824027a1fef136b77bf3c794658_1_559x500.png" width="559" height="500"><div class="meta">
+<span class="filename">pw40.png</span><span class="informations">575x514 19.1 KB</span><span class="expand"></span>
+</div></a></div><br>30% pulse width<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/2c9fb90224b8dc0a37e7d1dd100abc64f1e12a6a" href="//community.axoloti.com/uploads/default/original/2X/2/2c9fb90224b8dc0a37e7d1dd100abc64f1e12a6a.png" class="lightbox" title="pw30.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/2c9fb90224b8dc0a37e7d1dd100abc64f1e12a6a_1_558x500.png" width="558" height="500"><div class="meta">
+<span class="filename">pw30.png</span><span class="informations">574x514 22 KB</span><span class="expand"></span>
+</div></a></div><br>20% pulse width<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4115e13126e63bb0974590953895c74b256b62e9" href="//community.axoloti.com/uploads/default/original/2X/4/4115e13126e63bb0974590953895c74b256b62e9.png" class="lightbox" title="pw20.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/4115e13126e63bb0974590953895c74b256b62e9_1_560x500.png" width="560" height="500"><div class="meta">
+<span class="filename">pw20.png</span><span class="informations">574x512 21.6 KB</span><span class="expand"></span>
+</div></a></div><br>10% pulse width<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/2cb67b9dc8a37182cc28a5cc9c6da837327bd752" href="//community.axoloti.com/uploads/default/original/2X/2/2cb67b9dc8a37182cc28a5cc9c6da837327bd752.png" class="lightbox" title="pw10.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/2cb67b9dc8a37182cc28a5cc9c6da837327bd752_1_560x500.png" width="560" height="500"><div class="meta">
+<span class="filename">pw10.png</span><span class="informations">576x514 20.3 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>My next plan is to generate a bunch of coefficients, filter the best ones and make some polynomial fitting to morph between waves <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/2</link>
+        <pubDate>Mon, 16 Oct 2017 20:30:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-2</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+      <item>
+        <title>Experimenting with mixed PM/AM synthesis</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Recently i've been working on a hybrid synthesis method (that's based on pm and am synthesis)<br>To keep things short, an "operator" is composed of two sine oscillators, the carrier and the modulator.<br>Instead of using the modulator osc to directly pm the carrier, i multiply it by the previous operator output.<br><img src="//community.axoloti.com/uploads/default/original/2X/5/5463d15abb213305938459e9b3c6883dae5a6a50.png" width="486" height="193"><br>With this topology you can produce both a square wave and a saw wave (well, sort of): <br><a href="http://www.wolframalpha.com/input/?i=y+%3D+sin(t+%2B+y*cos(t))" rel="nofollow noopener">square wave</a><br><a href="http://www.wolframalpha.com/input/?i=y+%3D+sin(t+%2B+y)" rel="nofollow noopener">saw wave</a><br>You can hear it implemented in my sptnk/osc/multi object, that morphs between square and saw.<br>What's interesting is that you can easily bandlimit the output by just tweaking parameters. The s-rate code is really light (like ~300 cycles per object) and sounds quite warm to me.<br>The only downside is that the output is not really bright as a traditional blit oscillator, and the way i implemented produces some instabilities with intermediate shapes.</p>
+
+<p>I tried to generalize the topology with this formula: (y[t] is the current output and y[t-1] is the previous output)<br></p>
+
+<p></p><pre><code class="lang-auto"> y[t] = sin(p + F*y[t-1] + sin(p*C+D)*(A*y[t-1] + B))</code></pre>
+
+<p>(this way i can implement both straight phase modulation and self phase modulation (other than the hybrid modulation method)<br>p is the phase of the carrier oscillator<br>The phase of the modulator osc is given by p*C +D (that allows me to have a consistent phase relationship between mod and carrier)<br>A, B and F are modulation indices that let me mix (in this order order) the amplitude modulated feedback, the modulator and the straight feedback.</p>
+
+<p>My plan was to find coefficients to fake several waveforms (for example pulse width modulation) and make an ultralight bass oscillator, just wanted to share these ideas with the community</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847/1</link>
+        <pubDate>Sun, 15 Oct 2017 09:19:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3847-1</guid>
+        <source url="http://community.axoloti.com/t/experimenting-with-mixed-pm-am-synthesis/3847.rss">Experimenting with mixed PM/AM synthesis</source>
+      </item>
+  </channel>
+</rss>

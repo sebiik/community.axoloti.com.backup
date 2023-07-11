@@ -1,0 +1,93 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="938" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="58f12d86-3df4-4419-af8d-887fbaeba461" name="object_2" x="588" y="98">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="58f12d86-3df4-4419-af8d-887fbaeba461">
+         <inlets>
+            <frac32buffer name="in"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map name="pitch"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[biquad_state bs_lp;
+biquad_state bs_hp;
+biquad_coefficients bc;]]></code.declaration>
+         <code.init><![CDATA[biquad_clearstate(&bs_hp);
+biquad_clearstate(&bs_lp);]]></code.init>
+         <code.krate><![CDATA[int32_t freq;
+int32_t true_pitch;
+
+int32_t dummy[BUFSIZE];
+
+if (param_pitch > 0) {
+	// High Pass, resonance increases with increasing filter frequency
+	true_pitch = param_pitch*2 - (1<<27);
+	MTOF(true_pitch,freq);
+	biquad_hp_coefs(&bc,freq,INT_MAX - (param_pitch<<3));
+	biquad_dsp(&bs_hp,&bc,inlet_in,outlet_out);
+
+	MTOF(1<<27,freq);
+	biquad_lp_coefs(&bc,freq,INT_MAX);
+	biquad_dsp(&bs_lp,&bc,inlet_in,dummy);
+} else if (param_pitch < 0) {
+	// Low Pass, Resonance increases with decreasing filter frequency
+	MTOF(-1<<27,freq);
+	biquad_hp_coefs(&bc,freq,INT_MAX);
+	biquad_dsp(&bs_hp,&bc,inlet_in,dummy);
+
+	true_pitch = param_pitch*2 + (1<<27);
+	MTOF(true_pitch,freq);
+	biquad_lp_coefs(&bc,freq,INT_MAX - (-param_pitch<<3));
+	biquad_dsp(&bs_lp,&bc,inlet_in,outlet_out);
+} else {
+	// param_pitch == 0 --> Bypass
+	for (int i=0; i<BUFSIZE; i++) outlet_out[i] = inlet_in[i];
+
+	MTOF(1<<27,freq);
+	biquad_lp_coefs(&bc,freq,INT_MAX);
+	biquad_dsp(&bs_lp,&bc,inlet_in,dummy);
+
+	MTOF(-1<<27,freq);
+	biquad_hp_coefs(&bc,freq,INT_MAX);
+	biquad_dsp(&bs_hp,&bc,inlet_in,dummy);
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="112" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="object_2" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="object_2" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>402</x>
+      <y>125</y>
+      <width>1228</width>
+      <height>1287</height>
+   </windowPos>
+</patch-1.0>

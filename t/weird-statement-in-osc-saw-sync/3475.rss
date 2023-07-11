@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Weird statement in osc/saw sync</title>
+    <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475</link>
+    <description>I was studying the bandlimiting implementation of axoloti objects when i stumbled in something curious: 
+In k-rate code of osc/saw sync, at row 15 there&#39;s something like this:
+[code]vgain[nextvoice] = vgain[nextvoice] = (((x*(freq&gt;&gt; .. etcetera ;[/code]
+
+Is that some kind of special statement in c++ or is it just a typo?</description>
+    
+    <lastBuildDate>Thu, 29 Jun 2017 20:16:10 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>nope,  a=1, b=0 <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:">  - (most will usually assume/guess, a=0, b=1 <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) </p>
+
+<p>basically its because the assignment operator actually returns a reference, not an lvalue.</p>
+
+<p>which means you can also do amusing things like this <br>(A=5)++;<br>which will set A to 6<br>(now to be clear this is because the object A is returned from the assignment operator, which means the ++ works on it, this is i.e. its not being treated as A=(5++), so (A=5)=4; is also valid syntax)</p>
+
+<p>in fairness, this stuff never gets taught (nor is in books)... its something you tend to find out if you 'play' with language syntax...<br>in this particular case, this should become 'evident' when you learn to overload the assignment operator, you should really use </p>
+
+<p></p><pre><code class="lang-auto">class A {
+public:
+    A&amp; operator=(const A&amp;);
+}</code></pre>
+
+<p>see how it returns a reference... so once you know this, its logical (I think) to ask yourself the question... does this apply to built in types (and the answer is yes, hence all the above syntax)<br>... the reasoning, is of course  its more efficient to return a reference, than to start copying values around.<br>(in K&amp;R C it was an r-value, so you could not do this, not really so evident, as you cant overload types in C <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/8</link>
+        <pubDate>Thu, 29 Jun 2017 20:16:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-8</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Let me guess.. a = b = 0</p>
+
+<p>At first a is set to 0, then b is set to a=0, and then 0++ is computed, but not actually stored anywhere.</p>
+
+<p>I'd be happy to be wrong, though! (Because i never actually studied C or C++, so i wish i could learn something new)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/7</link>
+        <pubDate>Thu, 29 Jun 2017 19:55:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-7</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yes...</p>
+
+<p>but its actually a bit more interesting than that in C++ <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>take the following:<br></p>
+
+<p></p><pre><code class="lang-auto">    int a = 4;
+    int b = 3;
+    b=(a=0)++;</code></pre>
+
+<p>what is the value of a &amp; b?<br>... and for bonus points, why?<br>... and extra bonus points, why was it not the same in C? (assume K&amp;R) </p>
+
+<p>Im capable of giving evil C++ questions to interviewees <img src="//community.axoloti.com/images/emoji/emoji_one/smiling_imp.png?v=3" title=":smiling_imp:" class="emoji" alt=":smiling_imp:"></p>
+
+<p>and, yeah, while the above is not particularly useful, there are quite a lot of situations where it can be very useful.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/6</link>
+        <pubDate>Thu, 29 Jun 2017 19:42:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-6</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>Odd syntax...<br>Would a, b and c all end up with the same value, then?</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/5</link>
+        <pubDate>Thu, 29 Jun 2017 19:11:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-5</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>its a typo...</p>
+
+<p>its perfectly valid C syntax, an assignment operator returns value assigned.<br>so you can do something like </p>
+
+<p>a = b  = c&gt;&gt; 4;</p>
+
+<p>but obviously in osc/saw  case it does nothing.... (and the optimiser will strip it out <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/4</link>
+        <pubDate>Thu, 29 Jun 2017 17:12:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-4</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>whoops, i made an error in the topic! The code was from osc/saw sync<br>You can see it on github too: <a href="https://github.com/axoloti/axoloti-factory/blob/1.0.12/objects/osc/saw%20sync.axo" rel="nofollow noopener">https://github.com/axoloti/axoloti-factory/blob/1.0.12/objects/osc/saw%20sync.axo</a></p>
+
+<p>Usually i'm very careful when working with factory objects, i always embed them as patch/object.</p>
+
+<p>The weird statement is still there</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/3</link>
+        <pubDate>Thu, 29 Jun 2017 16:27:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-3</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@Eskadrone Siegmar Kreie]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/eskadrone">@Eskadrone</a> wrote:</p>
+          <blockquote>
+              <p>I cannot find it there. Sounds like accidently pasted, maybe try a sync?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/2</link>
+        <pubDate>Thu, 29 Jun 2017 15:05:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-2</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+      <item>
+        <title>Weird statement in osc/saw sync</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>I was studying the bandlimiting implementation of axoloti objects when i stumbled in something curious: <br>In k-rate code of osc/saw sync, at row 15 there's something like this:<br></p>
+
+<p></p><pre><code class="lang-auto">vgain[nextvoice] = vgain[nextvoice] = (((x*(freq&gt;&gt; .. etcetera ;</code></pre>
+
+<p>Is that some kind of special statement in c++ or is it just a typo?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475/1</link>
+        <pubDate>Thu, 29 Jun 2017 13:49:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3475-1</guid>
+        <source url="http://community.axoloti.com/t/weird-statement-in-osc-saw-sync/3475.rss">Weird statement in osc/saw sync</source>
+      </item>
+  </channel>
+</rss>

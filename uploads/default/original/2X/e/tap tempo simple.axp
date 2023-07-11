@@ -1,0 +1,228 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="126" y="70" text="tap"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="126" y="84">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="238" y="126" text="tap volume"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="238" y="140">
+      <params>
+         <frac32.u.map name="value" value="10.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="238" y="252" text="tap tempo module"/>
+   <patchobj type="patch/object" uuid="00fda506-1c00-4602-81e6-4199b4826421" name="tap_1" x="238" y="266">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="00fda506-1c00-4602-81e6-4199b4826421">
+         <license>GPL</license>
+         <inlets>
+            <bool32 name="tap"/>
+         </inlets>
+         <outlets>
+            <int32 name="kbeat"/>
+            <bool32 name="tapping"/>
+            <bool32 name="trig"/>
+            <int32 name="1ppq"/>
+            <bool32 name="start"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int tap[4];
+int count;
+int t;
+int avg;
+int ntrig;
+int rtrig;
+int counttaken;
+int lastcount;
+int outcount;
+int outrig;
+int tapping;
+int newtap;
+int prevavg;
+int ppq1;
+int resetC;
+int start;]]></code.declaration>
+         <code.init><![CDATA[t=-1;
+count=-1;]]></code.init>
+         <code.krate><![CDATA[outcount+=1;
+if ((outcount>=avg)&&!newtap){
+	if (avg>20){
+		outrig=1;
+	}
+	outcount=0;
+}
+// timer
+if (t>=0){
+	t+=1;
+}
+if ((t>=((avg>>1)+avg))&&(avg>20)){
+	newtap=0;
+	tapping=0;
+}
+
+//tap
+if (inlet_tap&&!ntrig){
+	if (!tapping){
+		count=-1;
+			outrig=1;
+			outcount=0;
+			tapping=1;
+			newtap=1;
+			resetC=1;
+			avg=0x07FFFFFF;
+			tap[0]=0;
+			tap[1]=0;
+			tap[2]=0;
+	}
+	tapping=1;
+	ntrig=1;
+//	if ((t>=(avg<<3))&&(avg>20)){
+//			count=-1;
+//			outrig=1;
+//			outcount=0;
+//		}
+		
+	if (count>=0){
+		
+		tap[count]=t;
+		if (newtap){
+			outrig=1;
+			avg=(tap[0]+tap[1]+tap[2])/(count+1);
+		}
+		if (!newtap){
+		avg=(tap[0]+ tap[1]+tap[2])/3;
+		}
+	}
+	lastcount=count;
+	count+=1;
+
+	if (count>=3){
+		newtap=0;
+		outcount=0;
+		outrig=1;
+		
+		count=-1;
+	}
+
+	t=0;
+}
+
+
+if (!inlet_tap){
+	ntrig=0;
+}
+if ((avg!=prevavg)&&(avg!=0X07FFFFFF)){
+	prevavg=avg;
+}
+
+if (outrig){
+	ppq1+=1;
+	if (resetC){
+		ppq1=0;
+	}
+	if (ppq1==4){
+		start=1;
+	}
+}
+outlet_kbeat=prevavg;
+outlet_trig=outrig;
+outlet_tapping=tapping;
+outlet_1ppq=ppq1-((ppq1>>2)<<2);
+
+outlet_start=start;
+
+start=0;
+resetC=0;
+outrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="350" y="280" text="learning tap when lit"/>
+   <comment type="patch/comment" x="476" y="280" text="count"/>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="350" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_3" x="476" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="490" y="392" text="tap sound                                                                                                                  "/>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="490" y="406">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-34.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="noise/pink" uuid="72c03a2468ee865f248733fcf9b12d4cf42b5a61" name="pink_1" x="588" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_1" x="658" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="728" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_1" x="798" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="tap_1" inlet="tap"/>
+      </net>
+      <net>
+         <source obj="pink_1" outlet="out"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="ad_1" outlet="env"/>
+         <dest obj="*_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="*_1" inlet="b"/>
+      </net>
+      <net>
+         <source obj="tap_1" outlet="1ppq"/>
+         <dest obj="i_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tap_1" outlet="tapping"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tap_1" outlet="trig"/>
+         <dest obj="ad_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="wave"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

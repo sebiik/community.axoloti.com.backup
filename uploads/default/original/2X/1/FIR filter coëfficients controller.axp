@@ -1,0 +1,791 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="continous update" x="1106" y="112">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1190" y="140" text="when &quot;on&quot;, the FIR-filter coefficients will be continuously updating. This asks quite some cpu though!"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="momentary update" x="1092" y="168">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1190" y="196" text="you can also just momentarily update, though remember to set glide to off or attack and release to fast settings to notice any change"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="auto random with momentary" x="1050" y="224">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1190" y="252" text="when &quot;on&quot;, the FIR-filter coefficients will be randomised when hitting the momentary button"/>
+   <patchobj type="patch/object" uuid="e17b701f-9e8f-462b-90aa-76fd1d251b08" name="change_1" x="1092" y="294">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="e17b701f-9e8f-462b-90aa-76fd1d251b08">
+         <sDescription>Generates a trigger pulse when current input value is different from previous value.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>change.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="in"/>
+         </inlets>
+         <outlets>
+            <bool32.pulse name="trig"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int ptrig;
+   int32_t pval;]]></code.declaration>
+         <code.init><![CDATA[ptrig = 0;
+pval = 0;]]></code.init>
+         <code.krate><![CDATA[if ((pval != inlet_in)&(!ptrig)) { 
+  outlet_trig = inlet_in>pval;
+  pval = inlet_in;
+  ptrig = 1;
+} else {
+  ptrig = 0;
+  outlet_trig = 0;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="1176" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="1246" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="0" y="364">
+      <params>
+         <frac32.s.map name="pitch" value="15.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="98" y="364">
+      <params>
+         <int32 name="maximum" value="32"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sel/sel b 16 pulse" uuid="b52a026dd735305ac8ddf499e366883006aa2acf" name="sel_1" x="182" y="364">
+      <params>
+         <bin16 name="b16" value="22823"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sel/sel b 16 pulse" uuid="b52a026dd735305ac8ddf499e366883006aa2acf" name="sel_2" x="378" y="364">
+      <params>
+         <bin16 name="b16" value="21065"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="574" y="364">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-9.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="b80fb6c6-248d-41c8-aea1-755b8d622ff7" name="tri lfo_1" x="770" y="364">
+      <params>
+         <frac32.s.map name="pitch" value="-15.0"/>
+         <frac32.u.map name="lvl" value="37.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="b80fb6c6-248d-41c8-aea1-755b8d622ff7">
+         <sDescription>saw wave LFO, rising slope, pitch input</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>lfo.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="pitch" description="pitch"/>
+            <bool32.rising name="reset" description="reset phase"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="wave" description="saw wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.lfopitch name="pitch" noLabel="true"/>
+            <frac32.u.map.gain name="lvl"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t Phase;
+uint32_t r;]]></code.declaration>
+         <code.init><![CDATA[Phase = 0;
+   r = 1;]]></code.init>
+         <code.krate><![CDATA[{
+      if (inlet_reset && r) {
+         Phase = 0;
+         r = 0;
+      } else {
+         if (!inlet_reset) r = 1;
+         int32_t freq;
+         MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+         Phase += freq>>8;
+      }
+      int32_t phs=Phase;
+      outlet_wave= ___SMMUL((phs>0?phs:-phs)-(1<<30)>>2,param_lvl);
+   }]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="b80fb6c6-248d-41c8-aea1-755b8d622ff7" name="saw lfo_1" x="868" y="364">
+      <params>
+         <frac32.s.map name="pitch" value="27.0"/>
+         <frac32.u.map name="lvl" value="64.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="b80fb6c6-248d-41c8-aea1-755b8d622ff7">
+         <sDescription>saw wave LFO, rising slope, pitch input</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>lfo.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="pitch" description="pitch"/>
+            <bool32.rising name="reset" description="reset phase"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="wave" description="saw wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.lfopitch name="pitch" noLabel="true"/>
+            <frac32.u.map.gain name="lvl"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t Phase;
+uint32_t r;]]></code.declaration>
+         <code.init><![CDATA[Phase = 0;
+   r = 1;]]></code.init>
+         <code.krate><![CDATA[{
+      if (inlet_reset && r) {
+         Phase = 0;
+         r = 0;
+      } else {
+         if (!inlet_reset) r = 1;
+         int32_t freq;
+         MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+         Phase += freq>>11;
+      }
+      int32_t phs=Phase;
+      outlet_wave= ___SMMUL(Phase>>4,param_lvl);
+   }]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="osc/saw" uuid="739ecc36017ef3249479b8f01716b8bbfba9abc1" name="saw_1" x="966" y="364">
+      <params>
+         <frac32.s.map name="pitch" value="-30.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_2" x="1064" y="364">
+      <params>
+         <frac32.u.map name="amp" value="9.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="ef179568-baa4-49ff-b117-29cfbe063599" name="FIR filter_1" x="1162" y="364">
+      <params>
+         <bool32.mom name="rnd" value="0"/>
+         <int32 name="thin" value="0"/>
+         <frac32.u.map name="mode" value="39.0"/>
+         <frac32.s.map name="pitch" value="9.0"/>
+         <frac32.s.map name="Q" value="9.0"/>
+         <frac32.s.map name="variation" value="19.0"/>
+         <bool32.tgl name="symmetry" value="0"/>
+         <frac32.s.map name="Soffset" value="21.0"/>
+         <bool32.tgl name="glide" value="1"/>
+         <frac32.s.map name="attack" value="-64.0"/>
+         <frac32.s.map name="release" value="-12.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="256"/>
+         <combo attributeName="presets" selection="16"/>
+      </attribs>
+      <object id="patch/object" uuid="ef179568-baa4-49ff-b117-29cfbe063599">
+         <sDescription>finite impulse response filter, with 16 coefficients</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>fir16.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="input"/>
+            <bool32 name="rnd" description="randomises the coëfficients array"/>
+            <bool32 name="update" description="when high, continuously updates the settings. Use a trigger for a momentary update, saving cpu, or a constant high gate for continuous updating the coëfficients"/>
+            <frac32.bipolar name="pitch"/>
+            <frac32.bipolar name="Q"/>
+            <frac32.bipolar name="variation"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.mom name="rnd" description="randomise FIR coefficient presets"/>
+            <int32 name="thin" description="adds an eponential curve to the random generated FIR coefficients. Higher values have more pronounced peaks, but are also less stable in power output!">
+               <MinValue i="0"/>
+               <MaxValue i="6"/>
+            </int32>
+            <frac32.u.map.gain name="mode"/>
+            <frac32.s.map name="pitch"/>
+            <frac32.s.map name="Q"/>
+            <frac32.s.map name="variation"/>
+            <bool32.tgl name="symmetry"/>
+            <frac32.s.map name="Soffset"/>
+            <bool32.tgl name="glide"/>
+            <frac32.s.map.klineartime.exp name="attack"/>
+            <frac32.s.map.klineartime.exp name="release"/>
+         </params>
+         <attribs>
+            <combo name="size">
+               <MenuEntries>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+                  <string>128</string>
+                  <string>256</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+               </CEntries>
+            </combo>
+            <combo name="presets">
+               <MenuEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+                  <string>128</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[arm_fir_instance_q31 f;
+static const uint32_t LENGTH=1<<attr_size;
+int32_t array[LENGTH];
+q31_t state[(LENGTH<<1) -1];
+
+//you can delete all below to make a simple fir filter that just loads the fir coefficients you created. Keep the code above.
+
+static const uint32_t SIZE=1<<attr_size;
+static const uint32_t SSIZE=16;
+static const uint32_t PRESETS=1<<attr_presets;
+int32_t *COEFS,TCOEFS[SIZE],ACOEFS[SIZE];
+int rnd,rate;]]></code.declaration>
+         <code.init><![CDATA[arm_fir_init_q31
+(
+	&f,
+	LENGTH,
+	0,
+	&state[0],
+	16
+);
+
+for(int i=0;i<LENGTH;i++)
+{
+	array[i]=0;
+}
+
+//you can delete all below to make a simple fir filter that just loads the fir coefficients you created.  Keep the code above.
+
+static int32_t _COEFS[SIZE<<attr_presets]  __attribute__ ((section (".sdram")));
+COEFS = &_COEFS[0];
+
+rate=0;
+int32_t tmp;
+
+	for(int k=0;k<PRESETS;k++)
+	{
+		int32_t l=k<<attr_size;
+			uint64_t sum=0;
+	for(int i=0;i<SIZE;i++)
+	{
+		tmp=(int32_t)(GenerateRandomNumber());
+
+		tmp=tmp>>2;
+
+		TCOEFS[i]=tmp>>3;
+		sum+=___SMMUL(tmp,tmp)<<1;
+	}
+	int32_t power=(((1<<27))>>attr_size)<<5;
+	float32_t ratio=(float32_t)power/(sum>>attr_size);
+
+		for(int i=0;i<SIZE;i++)
+		{
+			COEFS[i+l]=TCOEFS[i]*ratio;
+		}
+	}
+
+	f.pCoeffs = (q31_t*)COEFS;]]></code.init>
+         <code.krate><![CDATA[int RND=param_rnd||inlet_rnd;
+int32_t half=SIZE>>1;
+if(RND&&!rnd)
+{
+	rnd=1;
+	int32_t tmp;
+	uint64_t sum=0;
+	for(int i=0;i<(SIZE<<attr_presets);i++)
+	{
+		tmp=(int32_t)(GenerateRandomNumber());
+		for(int j=0;j<param_thin;j++)
+		{
+			tmp=___SMMUL(tmp,tmp>0?tmp:-tmp)<<1;
+		}
+		tmp=tmp>>5;
+		COEFS[i]=tmp;
+	}
+}
+else if(!RND)
+{
+	rnd=0;
+}
+
+if(inlet_update>0)
+{
+	int32_t frq,slope,variation;
+	variation=inlet_variation+param_variation<<4;
+	int32_t pitch=__SSAT(inlet_pitch+param_pitch,28);
+	int32_t Q=__SSAT(param_Q+inlet_Q,28);
+	MTOFEXTENDED(pitch,frq)
+	MTOFEXTENDED(__SSAT(-Q-pitch,28),slope)
+	
+	for(int i=0;i<half;i++)
+	{
+		int32_t s;
+		SINE2TINTERP(variation+i*frq,s)
+		ACOEFS[half+i]=s>>5;
+		ACOEFS[half-1-i]=s>>5;
+	}
+
+int32_t attack,release;
+if(param_glide)
+{
+	MTOF(-param_attack,attack)
+	MTOF(-param_release,release)
+	attack=attack>>3;
+	release=release>>3;
+}
+else
+{
+	attack=((1<<31)-1);
+	release=((1<<31)-1);
+}
+
+int32_t AMASK=(SIZE<<attr_presets)-1;
+uint32_t phs=0;
+int32_t symmetry=___SMMUL(param_Soffset,half<<5);
+for(int i=0;i<SIZE;i++)
+{
+	phs=((i-half+symmetry)*frq>>attr_size)+variation;
+	int k=i-half+symmetry;
+	if(param_symmetry)
+	{
+		k=k>0?k:-k;
+	}
+	int32_t gain=__USAT(((1<<31)-1)-k*slope,31);
+	int32_t x,y;
+	x=ACOEFS[i];
+	int32_t a,b,mix;
+	mix=((uint32_t)phs<<attr_size)>>1;
+	a=(phs>>32-attr_size-attr_presets)&AMASK;
+	b=(a+1)&AMASK;
+	a=COEFS[a];
+	b=COEFS[b];
+	a+=___SMMUL(b-a,mix)<<1;
+	y=a;
+	x+=___SMMUL(y-x,param_mode)<<1;
+	x=___SMMUL(gain,x)<<1;
+	y=array[i];
+	array[i]+=___SMMUL(x-y,x>y?attack:release)<<1;
+	
+}
+
+}
+
+
+//only keep this part of the code below to keep the module working as a coëfficient loading module, you can delete all above
+f.pCoeffs = (q31_t*)array;
+arm_fir_fast_q31(&f,(q31_t*)inlet_in,outlet_out,16);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_3" x="1260" y="364">
+      <params>
+         <frac32.u.map name="amp" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="e126bbd5-7f47-46cf-94a7-989753dd19bc" name="lp1_1" x="1358" y="364">
+      <params>
+         <frac32.s.map name="freq" value="-28.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e126bbd5-7f47-46cf-94a7-989753dd19bc">
+         <sDescription>1st order lowpass filter, modulation input</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>filter.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="input"/>
+            <frac32 name="freq" description="cutoff frequency"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map name="freq"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;]]></code.declaration>
+         <code.init><![CDATA[val = 0;]]></code.init>
+         <code.krate><![CDATA[int32_t f;
+   MTOF(param_freq+(inlet_freq<<1),f);]]></code.krate>
+         <code.srate><![CDATA[val = ___SMMLA((inlet_in-val)<<1,f,val);
+   val = ___SMMLA((inlet_in-val)<<1,f,val);
+   outlet_out= val;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="load" x="1526" y="518">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="index" x="1596" y="518">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="save" x="1652" y="518">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_1" x="1554" y="574">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="../fir256_"/>
+         <table attributeName="suffix" table=".tab"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="1722" y="574">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="FIR filter_1"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="686" y="616" text="this FIR filter module  is meant as an end-of-chain filter to set the character quality of your synth"/>
+   <comment type="patch/comment" x="686" y="630" text="the smaller the size, the less control over lower frequencies"/>
+   <comment type="patch/comment" x="686" y="644" text="the bigger the size, the more control over lower frequencies, though with increased cpu"/>
+   <comment type="patch/comment" x="1288" y="658" text="first set &quot;continuous&quot; to &quot;on&quot; (see buttons at top)"/>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="1722" y="658">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="FIR filter_1"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="686" y="672" text="modulation options áre added, just so you can if you really want"/>
+   <comment type="patch/comment" x="686" y="686" text="but note that it will calculate the modulation changes at k-rate, so will allias at high modulation rates"/>
+   <comment type="patch/comment" x="1288" y="686" text="change settings so you get a nice filter shape as &quot;end filter&quot;"/>
+   <comment type="patch/comment" x="686" y="700" text="for this, the attack/release controls for the glide come in handy for some smooth character changing"/>
+   <comment type="patch/comment" x="1288" y="700" text="select an index to save to"/>
+   <comment type="patch/comment" x="686" y="714" text="note that this will also influence the change-rate of the randomisation and parameter changes"/>
+   <comment type="patch/comment" x="1288" y="714" text="save your filter shape"/>
+   <comment type="patch/comment" x="1288" y="728" text="repeat these steps till you got a whole bank of filter shapes"/>
+   <comment type="patch/comment" x="1288" y="756" text="then put &quot;continuous&quot; to &quot;off&quot; and use the load and index controls to load your shapes"/>
+   <comment type="patch/comment" x="1288" y="770" text="this allows you to save lots of shapes to you SD-card and enable you to use the FIR filter coëfficients at low cpu use and less memory cost"/>
+   <comment type="patch/comment" x="1288" y="784" text="for this, use the module below, that only contains the necessary code to load&amp;use the coëfficients"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="select preset-loading" x="1288" y="798">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1400" y="840" text="be sure to first make some presets to load..."/>
+   <obj type="osc/saw" uuid="739ecc36017ef3249479b8f01716b8bbfba9abc1" name="saw_2" x="770" y="910">
+      <params>
+         <frac32.s.map name="pitch" value="-28.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="preset load" x="910" y="910">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="index_" x="980" y="910">
+      <params>
+         <int32 name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_2" x="1036" y="910">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="../fir256_"/>
+         <table attributeName="suffix" table=".tab"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_2" x="1204" y="910">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="FIR filter_2"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="ef179568-baa4-49ff-b117-29cfbe063599" name="FIR filter_2" x="1330" y="910">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="256"/>
+      </attribs>
+      <object id="patch/object" uuid="ef179568-baa4-49ff-b117-29cfbe063599">
+         <sDescription>finite impulse response filter, with 16 coefficients</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>fir16.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="size">
+               <MenuEntries>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+                  <string>128</string>
+                  <string>256</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[arm_fir_instance_q31 f;
+static const uint32_t LENGTH=1<<attr_size;
+int32_t array[LENGTH];
+q31_t state[(LENGTH<<1) -1];
+
+//you can delete all below to make a simple fir filter that just loads the fir coefficients you created. Keep the code above.]]></code.declaration>
+         <code.init><![CDATA[arm_fir_init_q31
+(
+	&f,
+	LENGTH,
+	0,
+	&state[0],
+	16
+);
+
+for(int i=0;i<LENGTH;i++)
+{
+	array[i]=0;
+}
+
+//you can delete all below to make a simple fir filter that just loads the fir coefficients you created.  Keep the code above.]]></code.init>
+         <code.krate><![CDATA[//only keep this part of the code below to keep the module working as a coÃ«fficient loading module, you can delete all above
+f.pCoeffs = (q31_t*)array;
+arm_fir_fast_q31(&f,(q31_t*)inlet_in,outlet_out,16);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="mux/mux 2" uuid="539c246f4c360ac476e128cfbfa84348fb7f7e73" name="mux_1" x="1526" y="910">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_1" x="1596" y="910">
+      <params>
+         <frac32.u.map name="amp" value="63.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="dist/soft" uuid="e680d76a805e4866027cdf654c7efd8b2e54622" name="soft_1" x="1694" y="910">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="1750" y="910">
+      <params>
+         <frac32.u.map name="volume" value="56.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="952" y="994" text="notice I named it fir256_ so I can know the table size of the tables I load"/>
+   <comment type="patch/comment" x="1330" y="994" text="be sure to set it to the right table size"/>
+   <nets>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="FIR filter_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="FIR filter_1" outlet="out"/>
+         <dest obj="lp1_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="soft_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="soft_1" outlet="out"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="continous update" outlet="o"/>
+         <dest obj="or_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="or_1" inlet="i2"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="FIR filter_1" inlet="update"/>
+      </net>
+      <net>
+         <source obj="tri lfo_1" outlet="wave"/>
+         <dest obj="FIR filter_1" inlet="Q"/>
+      </net>
+      <net>
+         <source obj="saw lfo_1" outlet="wave"/>
+         <dest obj="FIR filter_1" inlet="variation"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="sel_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sel_1" outlet="chain"/>
+         <dest obj="sel_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sel_2" outlet="o"/>
+         <dest obj="ad_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="ad_1" outlet="env"/>
+         <dest obj="*c_2" inlet="in"/>
+         <dest obj="*c_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="FIR filter_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="sel_1" outlet="o"/>
+         <dest obj="sel_2" inlet="def"/>
+      </net>
+      <net>
+         <source obj="indexed_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="load" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="save" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="index" outlet="out"/>
+         <dest obj="indexed_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="momentary update" outlet="o"/>
+         <dest obj="change_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="auto random with momentary" outlet="o"/>
+         <dest obj="and_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="FIR filter_1" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="*c_3" outlet="out"/>
+         <dest obj="lp1_1" inlet="freq"/>
+      </net>
+      <net>
+         <source obj="saw_2" outlet="wave"/>
+         <dest obj="FIR filter_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="FIR filter_2" outlet="out"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="indexed_2" outlet="out"/>
+         <dest obj="load_2" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="preset load" outlet="o"/>
+         <dest obj="load_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="index_" outlet="out"/>
+         <dest obj="indexed_2" inlet="index"/>
+      </net>
+      <net>
+         <source obj="lp1_1" outlet="out"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="select preset-loading" outlet="o"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>0</y>
+      <width>1624</width>
+      <height>1080</height>
+   </windowPos>
+</patch-1.0>

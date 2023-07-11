@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Testing dev versions</title>
+    <link>http://community.axoloti.com/t/testing-dev-versions/2113</link>
+    <description>a quick thought and tip for other devs out there about testing the master branch version of axoloti.
+
+To ensure I test the development version properly prior to release, I like to use a full packaged version rather than running it from the &#39;build directory&#39; . 
+
+The main reason for this Axoloti runs in a &#39;special developer&#39; mode whilst running in the build directory, which could mean differences from the released build. (we try to minimise this, but for some things its inevitable to ensure an easier dev cycle)
+ 
+ok, so to help this in 1.0.10, I introduced &#39;versioned homes&#39;, this resolves the issue that Axoloti always goes to look for your prefs file etc in ~/Documents (or windows equivalent, so you can&#39;t run multiple versions.
+I explained this in 1.0.10 releases notes here :slight_smile:
+
+[quote]
+Running multiple versions of Axoloti
+Axoloti now supports &#39;versioned home directories&#39;, this means you can run different versions of Axoloti, side by side.
+by default, axoloti will look for its home directory in ~/Documents/axoloti ( and the windows equivalent)
+BUT if you have a version specific home directory it will use that instead, for 1.0.10 the version directory would be called: 
+~/Documents/axoloti_1_0_10 (again, similar on windows)
+
+Ive found this useful for testing out new releases, whilst having the &#39;stable&#39; one around for use.
+
+Notes:
+
+On the Mac, when I install Axoloti I simply rename the application e.g. call it Axoloti-1.0.10
+On windows, the installer will automatically overwrite the old axoloti app, so the approach on windows is to rename the &#39;old&#39; version before you install the new version.
+currently the runtime is compatible with new and old versions so no extra steps are required, but this can be set in preferences if they diverged (unlikely!)
+the version directory, is derived from the version compiled into the app (as noted in the about box etc), it is unrelated to the application name, which you can call what you like.
+[/quote]
+ 
+ok, so this is useful for testing and support... 
+
+BUT there is a slight issue in dev, currently we don&#39;t tag the build with a new version until its released (this may change in the future) ... so the way I got around this was to tag my own local repo with a new version, do an ant clean (to ensure version.java is recreated) and then used this dummy version.
+
+but I didn&#39;t like having this extra dummy tag, but Ive realised today this is unnecessary , instead we can just force ant to use a specific version number, so we build with 
+
+&gt;  ant -Dshort.version=1.0.99 -Dbuild.bundle=true
+
+this forces the version to 1.0.99,  whats nice about this is you still keep the same long version... so its actually identifiable as a dev build.
+
+so from here, I do as before , install this new built version , renaming it to Axoloti_1_0_99  (so it doesn&#39;t overwrite my other Axoloti in my Applications directory), duplicate my existing 1.0.10 home directory, and rename it to ~/Documents/Axoloti_1_0_99
+then when I run this axoloti, it will warn me its a versioned home, and will rename things that are necessary
+
+NOW... an extra step, of course there is no axolti-factory or axoloti-contrib at 1.0.99...  so we need to run against a particular branch, for now, as its compatible it can be 1.0.10... but might be master if dev has diverged.
+so we do this by preferences and then edit the libraries, and change the revision ([b]do not add contributors details!![/b]
+
+NOTE: you will need to enable expert mode to do this! 
+
+thats it, sync libraries and your done...
+running a packaged version of Axoloti dev, using the 1.0.10 libraries, and alongside your proper 1.0.10 release.
+
+a couple of parting notes:
+
+-  updating the bundle with a new dev build , you must remember to use -Dshort.version=1.0.99 on your ant build... but of course when its installed, you&#39;ll already have your 1.0.99 axoloti home, so that doesn&#39;t need to be redone.
+- [b]do not put your contributor details into the community library section[/b]. this is because they would be deemed potentially incompatible with 1.0.10  - so if you do, 1.0.10 will refuse to load them, saying they are from a future version of axoloti.   
+of course this does NOT stop you developing objects/testing the editor etc. just save them locally in 1.0.99 and then when done copy to 1.0.10 home, edit them, and change the app version to 1.0.10. then start Axoloti 1.0.10 and they will load, and gives you an ideal time to TEST them in 1.0.10, if they work ok, then you can sync your libraries as normal.
+this process means we don&#39;t get incompatible dev versions in the library.
+[b]note: if I find/or have reports of &#39;dev versions&#39; in the community library, I will remove them without question, assuming its done accidentally[/b]</description>
+    
+    <lastBuildDate>Sat, 13 Aug 2016 18:37:31 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/testing-dev-versions/2113.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Testing dev versions</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>a quick thought and tip for other devs out there about testing the master branch version of axoloti.</p>
+
+<p>To ensure I test the development version properly prior to release, I like to use a full packaged version rather than running it from the 'build directory' . </p>
+
+<p>The main reason for this Axoloti runs in a 'special developer' mode whilst running in the build directory, which could mean differences from the released build. (we try to minimise this, but for some things its inevitable to ensure an easier dev cycle)</p>
+
+<p>ok, so to help this in 1.0.10, I introduced 'versioned homes', this resolves the issue that Axoloti always goes to look for your prefs file etc in ~/Documents (or windows equivalent, so you can't run multiple versions.<br>I explained this in 1.0.10 releases notes here <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p><aside class="quote"><blockquote>
+<p>Running multiple versions of Axoloti<br>Axoloti now supports 'versioned home directories', this means you can run different versions of Axoloti, side by side.<br>by default, axoloti will look for its home directory in ~/Documents/axoloti ( and the windows equivalent)<br>BUT if you have a version specific home directory it will use that instead, for 1.0.10 the version directory would be called: <br>~/Documents/axoloti_1_0_10 (again, similar on windows)</p>
+<p>Ive found this useful for testing out new releases, whilst having the 'stable' one around for use.</p>
+<p>Notes:</p>
+<p>On the Mac, when I install Axoloti I simply rename the application e.g. call it Axoloti-1.0.10<br>On windows, the installer will automatically overwrite the old axoloti app, so the approach on windows is to rename the 'old' version before you install the new version.<br>currently the runtime is compatible with new and old versions so no extra steps are required, but this can be set in preferences if they diverged (unlikely!)<br>the version directory, is derived from the version compiled into the app (as noted in the about box etc), it is unrelated to the application name, which you can call what you like.</p>
+</blockquote></aside></p>
+
+<p>ok, so this is useful for testing and support... </p>
+
+<p>BUT there is a slight issue in dev, currently we don't tag the build with a new version until its released (this may change in the future) ... so the way I got around this was to tag my own local repo with a new version, do an ant clean (to ensure version.java is recreated) and then used this dummy version.</p>
+
+<p>but I didn't like having this extra dummy tag, but Ive realised today this is unnecessary , instead we can just force ant to use a specific version number, so we build with </p>
+
+<blockquote><p> ant -Dshort.version=1.0.99 -Dbuild.bundle=true</p></blockquote>
+
+<p>this forces the version to 1.0.99,  whats nice about this is you still keep the same long version... so its actually identifiable as a dev build.</p>
+
+<p>so from here, I do as before , install this new built version , renaming it to Axoloti_1_0_99  (so it doesn't overwrite my other Axoloti in my Applications directory), duplicate my existing 1.0.10 home directory, and rename it to ~/Documents/Axoloti_1_0_99<br>then when I run this axoloti, it will warn me its a versioned home, and will rename things that are necessary</p>
+
+<p>NOW... an extra step, of course there is no axolti-factory or axoloti-contrib at 1.0.99...  so we need to run against a particular branch, for now, as its compatible it can be 1.0.10... but might be master if dev has diverged.<br>so we do this by preferences and then edit the libraries, and change the revision (<span class="bbcode-b">do not add contributors details!!</span></p>
+
+<p>NOTE: you will need to enable expert mode to do this! </p>
+
+<p>thats it, sync libraries and your done...<br>running a packaged version of Axoloti dev, using the 1.0.10 libraries, and alongside your proper 1.0.10 release.</p>
+
+<p>a couple of parting notes:</p>
+
+<ul>
+<li>updating the bundle with a new dev build , you must remember to use -Dshort.version=1.0.99 on your ant build... but of course when its installed, you'll already have your 1.0.99 axoloti home, so that doesn't need to be redone.</li>
+<li>
+<span class="bbcode-b">do not put your contributor details into the community library section</span>. this is because they would be deemed potentially incompatible with 1.0.10  - so if you do, 1.0.10 will refuse to load them, saying they are from a future version of axoloti. <br>of course this does NOT stop you developing objects/testing the editor etc. just save them locally in 1.0.99 and then when done copy to 1.0.10 home, edit them, and change the app version to 1.0.10. then start Axoloti 1.0.10 and they will load, and gives you an ideal time to TEST them in 1.0.10, if they work ok, then you can sync your libraries as normal.<br>this process means we don't get incompatible dev versions in the library.<br><span class="bbcode-b">note: if I find/or have reports of 'dev versions' in the community library, I will remove them without question, assuming its done accidentally</span>
+</li>
+</ul>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/testing-dev-versions/2113/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/testing-dev-versions/2113/1</link>
+        <pubDate>Sat, 13 Aug 2016 18:37:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2113-1</guid>
+        <source url="http://community.axoloti.com/t/testing-dev-versions/2113.rss">Testing dev versions</source>
+      </item>
+  </channel>
+</rss>

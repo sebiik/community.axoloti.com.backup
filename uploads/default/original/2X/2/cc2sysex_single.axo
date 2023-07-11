@@ -1,0 +1,206 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="cc2sysex_single" uuid="8f9cbe57-45f4-4158-a03a-456f800e92f4">
+      <sDescription>this object is for controlling a single parameter of Zoom MultiStomp pedal via MIDI. recieves a CC message, converts it to gear-specific SysEx message and sends to pedal. 
+parameters for outgoing messages: model – MS-70CDR / MS-60B / MS-50G; txdev – port to transmit SysEx messages to (you likely want to send them directly to pedal attached to USB host, but there are also other options); fxnum – effect number (can be 1–6, but only first 3 effects in chain actually react to SysEx messages); param – the parameter to control; 
+parameters for incoming messages: rxdev – port to receive incoming CC messages on; rxchnl – MIDI channel for incoming CC messages; rxcc1 – incoming CC message number. that&apos;s all for parameters with values no more than 127 (7-bit resolution); if parameter range is beyond 0–127, then 14-bit resolution is required, and the folowing object parameters are related to this: 14bit – no/yes (default is &quot;no&quot;), cc2std (yes/no) –  whether the number of second CC message for 14-bit value follows the standard convention (1st CC message number + 32); you likely want it to be &quot;yes&quot; unless you really know what you&apos;re doing; cc2ovr – the non-standard second CC number (relevant only if the previous parameter is &quot;no&quot;). 
+rev2020-10-27</sDescription>
+      <author>Valery Marko a.k.a. chaocrator</author>
+      <license>BSD</license>
+      <inlets/>
+      <outlets/>
+      <displays/>
+      <params/>
+      <attribs>
+         <combo name="model">
+            <MenuEntries>
+               <string>MS-70CDR</string>
+               <string>MS-60B</string>
+               <string>MS-50G</string>
+            </MenuEntries>
+            <CEntries>
+               <string>97</string>
+               <string>95</string>
+               <string>88</string>
+            </CEntries>
+         </combo>
+         <combo name="txdev">
+            <MenuEntries>
+               <string>usb host port 1</string>
+               <string>din</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <spinner name="fxnum" MinValue="1" MaxValue="6" DefaultValue="1"/>
+         <combo name="param">
+            <MenuEntries>
+               <string>on/off</string>
+               <string>page 1 left    [1]</string>
+               <string>page 1 mid    [2]</string>
+               <string>page 1 right  [3]</string>
+               <string>page 2 left    [4]</string>
+               <string>page 2 mid    [5]</string>
+               <string>page 2 right  [6]</string>
+               <string>page 3 left    [7]</string>
+               <string>page 3 mid    [8]</string>
+               <string>page 3 right  [9]</string>
+            </MenuEntries>
+            <CEntries>
+               <string>0</string>
+               <string>2</string>
+               <string>3</string>
+               <string>4</string>
+               <string>5</string>
+               <string>6</string>
+               <string>7</string>
+               <string>8</string>
+               <string>9</string>
+               <string>10</string>
+            </CEntries>
+         </combo>
+         <combo name="rxdev">
+            <MenuEntries>
+               <string>omni</string>
+               <string>din</string>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_OMNI, 0</string>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <spinner name="rxchnl" MinValue="1" MaxValue="16" DefaultValue="1"/>
+         <spinner name="rxcc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         <combo name="14bit">
+            <MenuEntries>
+               <string>no</string>
+               <string>yes</string>
+            </MenuEntries>
+            <CEntries>
+               <string>0</string>
+               <string>1</string>
+            </CEntries>
+         </combo>
+         <combo name="cc2std">
+            <MenuEntries>
+               <string>yes</string>
+               <string>no</string>
+            </MenuEntries>
+            <CEntries>
+               <string>1</string>
+               <string>0</string>
+            </CEntries>
+         </combo>
+         <spinner name="cc2ovr" MinValue="0" MaxValue="127" DefaultValue="32"/>
+      </attribs>
+      <code.declaration><![CDATA[uint8_t fxnum;
+
+// data value parameters
+char    dv_msb;
+char    dv_lsb;
+int32_t dv_int;
+int ntrig;
+
+#if attr_14bit == 1
+int32_t dv14;
+#endif
+
+__attribute__ (( always_inline )) __STATIC_INLINE int midi_device_test( midi_device_t dev, uint8_t port, int selected_dev, uint8_t selected_port )
+{
+  if(    (selected_dev == MIDI_DEVICE_OMNI)
+      || (selected_dev == dev && selected_port == port)
+      )
+    return 1;
+  return 0;
+}
+
+// this SysEx puts Zoom pedal to parameter edit mode
+uint8_t parmEditOn[6] = {240,82,0,attr_model,80,247};
+
+// this disables parameter edit mode
+// uint8_t parmEditOff[6] = {240,82,0,attr_model,81,247};]]></code.declaration>
+      <code.init><![CDATA[// convert FX number displayed on pedal screen
+//   to the number used in SysEx
+fxnum = attr_fxnum - 1;
+
+//  data value parameters
+dv_msb = 0;
+dv_lsb = 0;
+dv_int = 0;
+ntrig  = 0;
+
+#if attr_14bit == 1
+dv14     = 0;
+# endif
+
+// put Zoom pedal to parameter edit mode
+MidiSendSysEx(attr_txdev,parmEditOn,6);]]></code.init>
+      <code.krate><![CDATA[uint8_t sysexArray[10] = {240,82,0,attr_model,49,fxnum,attr_param,dv_lsb,dv_msb,247};
+if (ntrig) { MidiSendSysEx(attr_txdev,sysexArray,10); ntrig=0; }]]></code.krate>
+      <code.midihandler><![CDATA[if( midi_device_test( dev, port, attr_rxdev ) == 1 && status == (attr_rxchnl-1) | MIDI_CONTROL_CHANGE )
+  {
+
+  #if attr_14bit == 0
+    if( data1 == attr_rxcc )
+      {
+        dv_lsb = data2;
+        ntrig  = 1;
+      }
+
+  #elif attr_14bit == 1
+
+    #if attr_cc2std == 1
+      if( data1 == attr_rxcc )
+        {
+          dv_msb = data2;
+          dv_int = dv_msb << 7;
+          ntrig  = 1;
+        }
+      else if( data1 == (attr_rxcc+32) )
+        {
+          dv14   = (dv_msb << 7) | data2;
+          dv_lsb = data2;
+          dv_int = (dv_msb << 7) | dv_lsb;
+          ntrig  = 1;
+        }
+    #else
+      if( data1 == attr_rxcc )
+        {
+          dv_msb = data2;
+          dv_int = dv_msb << 7;
+          ntrig  = 1;
+        }
+      else if( data1 == attr_cc2ovr )
+        {
+          dv14   = (dv_msb << 7) | data2;
+          dv_lsb = data2;
+          dv_int = (dv_msb << 7) | dv_lsb;
+          ntrig  = 1;
+        }
+    #endif
+
+  #endif
+  }]]></code.midihandler>
+   </obj.normal>
+</objdefs>

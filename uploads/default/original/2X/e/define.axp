@@ -1,0 +1,224 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="280" y="0" text="FUN THING about #define :"/>
+   <comment type="patch/comment" x="280" y="14" text="..is the possibility to pass object references to other objects."/>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="126" y="28">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="280" y="28" text="in this case,in the object called &apos;master&apos; , 4 tables are referenced,"/>
+   <comment type="patch/comment" x="280" y="42" text="and these are &apos;promoted&apos; via #define."/>
+   <comment type="patch/comment" x="280" y="56" text="now, all these tables can be referenced by other objects that only need to reference the &apos;master&apos; - object."/>
+   <comment type="patch/comment" x="322" y="84" text="this DOESNT save SRAM or CPU, but it can avoid a lot of patching."/>
+   <comment type="patch/comment" x="364" y="112" text="I AM NOT SHURE if this is the &apos;proper&apos; way to do it, but it avoids creating a &apos;singleton&apos;"/>
+   <obj type="ctrl/i radio 4 h" uuid="f87ae81e3162014f3bdca0f56dbbdf9322e69dfd" name="i_2" x="112" y="154">
+      <params>
+         <int32.hradio name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="794330b3-823a-45a3-aed5-b8cc5c2822f5" name="master" x="308" y="154">
+      <params/>
+      <attribs>
+         <objref attributeName="A" obj="A"/>
+         <objref attributeName="B" obj="B"/>
+         <objref attributeName="C" obj="C"/>
+         <objref attributeName="D" obj="D"/>
+      </attribs>
+      <object id="patch/object" uuid="794330b3-823a-45a3-aed5-b8cc5c2822f5">
+         <inlets>
+            <frac32 name="v0"/>
+            <int32 name="destination"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="A"/>
+            <objref name="B"/>
+            <objref name="C"/>
+            <objref name="D"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[#define table0 attr_A.array
+#define table1 attr_B.array
+#define table2 attr_C.array
+#define table3 attr_D.array
+
+int prev0;]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_v0 != prev0) {
+prev0 = inlet_v0;
+	switch(inlet_destination){
+     	 case 0: {
+      		table0[0]  = inlet_v0;
+      		break;
+     	 }
+  		 case 1: {
+      		table1[0]  = inlet_v0;
+      		break;
+      	}
+   		case 2: {
+      		table2[0]  = inlet_v0;
+      		break;
+      	}
+   		case 3: {
+      		table3[0]  = inlet_v0;
+      		break;
+      	}     
+	}
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="A" x="448" y="168">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="8"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="B" x="588" y="168">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="8"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/i radio 4 h" uuid="f87ae81e3162014f3bdca0f56dbbdf9322e69dfd" name="i_3" x="770" y="168">
+      <params>
+         <int32.hradio name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="ce409699-1e84-472a-8cf9-864b260822b7" name="slave" x="868" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="master" obj="master"/>
+      </attribs>
+      <object id="patch/object" uuid="ce409699-1e84-472a-8cf9-864b260822b7">
+         <inlets>
+            <int32.positive name="source"/>
+         </inlets>
+         <outlets>
+            <frac32 name="o0"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="master"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[switch(inlet_source){
+      case 0: {
+      	outlet_o0 = attr_master.table0[0];
+      	break;
+      }
+      case 1: {
+      	outlet_o0 = attr_master.table1[0];
+      	break;
+      }
+      case 2: {
+      	outlet_o0 = attr_master.table2[0];
+      	break;
+      }
+      case 3: {
+      	outlet_o0 = attr_master.table3[0];
+      	break;
+      }
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_2" x="1050" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="84" y="224" text="select which table to write to"/>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="C" x="448" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="8"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="D" x="588" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="8"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="196" y="266" text="press &apos;edit&apos; --&gt;"/>
+   <comment type="patch/comment" x="154" y="280" text="and check out &apos;local data&apos;"/>
+   <comment type="patch/comment" x="868" y="280" text="...you only need to reference the &apos;master&apos; - object "/>
+   <comment type="patch/comment" x="154" y="294" text="to see the FUN part"/>
+   <comment type="patch/comment" x="896" y="294" text="to have acces to the 4 tables!"/>
+   <comment type="patch/comment" x="168" y="336" text="the &apos;master&apos; -object references the 4 tables"/>
+   <obj type="rbrt/disp/disp float b8" uuid="0df242ad-0343-4dfe-8c7e-27efd7ece7a0" name="disp_1" x="280" y="392">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="A"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/disp/disp float b8" uuid="0df242ad-0343-4dfe-8c7e-27efd7ece7a0" name="disp_2" x="420" y="392">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="B"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/disp/disp float b8" uuid="0df242ad-0343-4dfe-8c7e-27efd7ece7a0" name="disp_3" x="546" y="392">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="C"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/disp/disp float b8" uuid="0df242ad-0343-4dfe-8c7e-27efd7ece7a0" name="disp_4" x="686" y="392">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="D"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="master" inlet="destination"/>
+      </net>
+      <net>
+         <source obj="slave" outlet="o0"/>
+         <dest obj="dial_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="master" inlet="v0"/>
+      </net>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="slave" inlet="source"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>0</y>
+      <width>1173</width>
+      <height>733</height>
+   </windowPos>
+</patch-1.0>

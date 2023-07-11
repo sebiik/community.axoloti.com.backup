@@ -1,0 +1,145 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="sample" x="42" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="65536"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="midi/in/pgm" uuid="6165409901fee4a0781b41bac3513f51c2120d67" name="pgm_1" x="210" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_1" x="308" y="28">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="/samples/sample"/>
+         <table attributeName="suffix" table="raw"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="490" y="42">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="sample"/>
+      </attribs>
+   </obj>
+   <patcher type="patch/patcher" uuid="e6c7ec3c-388d-42ed-bb79-8a51925bac58" name="voice" x="224" y="224">
+      <params>
+         <frac32.s.map name="adsr_1:a" value="-64.0"/>
+         <frac32.s.map name="adsr_1:d" value="0.0"/>
+         <frac32.u.map name="adsr_1:s" value="50.0"/>
+         <frac32.s.map name="adsr_1:r" value="0.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="1"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_1" x="84" y="70">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="table/play pitch" uuid="5632a54926261833bbb9fff049e71322c360e57e" name="play_1" x="252" y="98">
+            <params>
+               <frac32.s.map name="pitch" value="0.0"/>
+            </params>
+            <attribs>
+               <objref attributeName="table" obj="../sample"/>
+            </attribs>
+         </obj>
+         <obj type="env/adsr" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="adsr_1" x="392" y="98">
+            <params>
+               <frac32.s.map name="a" onParent="true" value="-64.0"/>
+               <frac32.s.map name="d" onParent="true" value="0.0"/>
+               <frac32.u.map name="s" onParent="true" value="50.0"/>
+               <frac32.s.map name="r" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="518" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="616" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="keyb_1" outlet="note"/>
+               <dest obj="play_1" inlet="pitch"/>
+               <dest obj="adsr_1" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="gate"/>
+               <dest obj="play_1" inlet="start"/>
+            </net>
+            <net>
+               <source obj="vca_1" outlet="o"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="play_1" outlet="wave"/>
+               <dest obj="vca_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="adsr_1" outlet="env"/>
+               <dest obj="vca_1" inlet="v"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>772</x>
+            <y>646</y>
+            <width>842</width>
+            <height>490</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="560" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="indexed_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="pgm_1" outlet="o"/>
+         <dest obj="indexed_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="pgm_1" outlet="trig"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="voice" outlet="outlet_1"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>719</x>
+      <y>314</y>
+      <width>841</width>
+      <height>631</height>
+   </windowPos>
+</patch-1.0>

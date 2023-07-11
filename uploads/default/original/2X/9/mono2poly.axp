@@ -1,0 +1,260 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="266" y="70" text="Configuration options in Local Data!"/>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="70" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="phi/mix/mix 2 mono" uuid="aa27653e-72f3-415b-87c1-379ddb99fe01" name="mix_1" x="154" y="98">
+      <params>
+         <frac32.u.map name="gain1" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="752cc541-11b4-419a-b55d-f5eb01247c59" name="record_1" x="266" y="98">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+         <objref attributeName="tail" obj="alloc_2"/>
+      </attribs>
+      <object id="patch/object" uuid="752cc541-11b4-419a-b55d-f5eb01247c59">
+         <sDescription>Resample a monosynth into polyphonic, based on MIDI input. Synth should be set to highest note priority.</sDescription>
+         <author>Ott</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="wave" description="wave"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="wave"/>
+            <frac32 name="note"/>
+            <int32 name="dbg"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <objref name="tail"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[// Start user configuration
+// Number of voices. Voices are very cheap!
+#define MONO2POLY_VOICES 32
+// Modifies record rate. Lower numbers = longer loops and less CPU, at the cost of frequency aliasing.
+#define MONO2POLY_UNDERSAMPLING 4
+// Declicking radius (wip). Seems to just make thunkier clicks.
+#define MONO2POLY_DECLICK_RADIUS 0
+// End user configuration. Voice ordering (highest, lowest, most recent) can be configured on line 47.
+
+#define MONO2POLY_OFF -128
+int8_t voices[MONO2POLY_VOICES];
+float phases[MONO2POLY_VOICES];
+float incs[MONO2POLY_VOICES];
+int prev_sample = 0;
+float tail_inc = 0.0f;
+float tail_phase = 0.0f;
+
+float get_inc(int8_t note) {
+	int note_f_i;
+	MTOF(note << 21, note_f_i);
+	float note_f = note_f_i / 16.0f;
+	return note_f / (48000.0f * MONO2POLY_UNDERSAMPLING);
+}
+
+void insert_voice(size_t index, int8_t value) {
+	for (size_t i = MONO2POLY_VOICES - 1; i > index; --i) {
+		voices[i] = voices[i - 1];
+		phases[i] = phases[i - 1];
+		incs[i] = incs[i - 1];
+	}
+	voices[index] = value;
+	phases[index] = 0.0f;
+	incs[index] = get_inc(value);
+}
+
+void remove_voice(size_t index) {
+	float temp_inc = incs[index];
+	for (size_t i = index; i < MONO2POLY_VOICES - 1; ++i) {
+		voices[i] = voices[i + 1];
+		phases[i] = phases[i + 1];
+		incs[i] = incs[i + 1];
+	}
+	voices[MONO2POLY_VOICES - 1] = MONO2POLY_OFF;
+	phases[MONO2POLY_VOICES - 1] = 0;
+	incs[voices[0] == MONO2POLY_OFF ? 0 : MONO2POLY_VOICES - 1] = temp_inc;
+}
+
+void push_voice(int8_t value) {
+	for (size_t i = 0; i < MONO2POLY_VOICES; ++i) {
+		// This comparison determines voice ordering. Change it to match your synth's ordering.
+		// > = Highest voice is sampled
+		// < = Lowest voice is sampled
+		// No comparison (if (true)) = most recently used voice is sampled.
+		if (value > voices[i]) {
+			insert_voice(i, value);
+			break;
+		}
+	}
+}
+
+void pop_voice(int8_t value) {
+	for (size_t i = 0; i < MONO2POLY_VOICES; ++i) {
+		if (value == voices[i]) {
+			remove_voice(i);
+			break;
+		}
+	}
+}]]></code.declaration>
+         <code.init><![CDATA[for (size_t i = 0; i < MONO2POLY_VOICES; ++i) {
+	voices[i] = MONO2POLY_OFF;
+}]]></code.init>
+         <code.krate><![CDATA[outlet_note = voices[0] << 21;
+outlet_dbg = int(incs[0]);]]></code.krate>
+         <code.srate><![CDATA[if (voices[0] != MONO2POLY_OFF) {
+	int start = phases[0];
+	int end = phases[0] + incs[0];
+	int sample = __SSAT(inlet_wave,28)>>attr_table.GAIN;
+	int step = (sample - prev_sample) / (end - start);
+	for (int i = 0; i + start <= end; ++i) {
+		if (i + start >= attr_table.LENGTH) {
+			phases[0] -= attr_table.LENGTH;
+			start -= attr_table.LENGTH;
+			end -= attr_table.LENGTH;
+		}
+		attr_table.array[i + start] = prev_sample + step * i;
+	}
+	
+	phases[0] += incs[0];
+	tail_inc = incs[0];
+	tail_phase = 0.0f;
+	prev_sample = sample;
+} else {
+	int start = tail_phase;
+	int end = tail_phase + tail_inc;
+	int sample = __SSAT(inlet_wave,28)>>attr_table.GAIN;
+	int step = (sample - prev_sample) / (end - start);
+	for (int i = 0; i + start <= end; ++i) {
+		if (i + start >= attr_tail.LENGTH) {
+			tail_phase -= attr_tail.LENGTH;
+			start -= attr_tail.LENGTH;
+			end -= attr_tail.LENGTH;
+		}
+		attr_tail.array[i + start] = prev_sample + step * i;
+	}
+	tail_phase += tail_inc;
+	prev_sample = sample;
+}
+
+
+outlet_wave = inlet_wave >> 2;
+
+for (int i = 1; i < MONO2POLY_VOICES; ++i) {
+	if (voices[i] != MONO2POLY_OFF) {
+		int gain = 1 << 31;
+		if (MONO2POLY_DECLICK_RADIUS) {
+			int dist = phases[i] > phases[0] ? int(phases[i]) - int(phases[0]) : int(phases[0]) - int(phases[i]);
+			if (attr_table.LENGTH - dist < 32) {
+				dist = attr_table.LENGTH - dist;
+			}
+			if (int(phases[i]) < MONO2POLY_DECLICK_RADIUS) {
+				dist = int(phases[i]);
+			}
+			if (dist < MONO2POLY_DECLICK_RADIUS) {
+				gain *= (float(dist) / MONO2POLY_DECLICK_RADIUS);
+			}
+		}
+		if (int(phases[i]) >= attr_table.LENGTH) {
+			phases[i] -= attr_table.LENGTH;
+		}
+		outlet_wave = __SSAT(outlet_wave + ___SMMUL(attr_table.array[int(phases[i])] << (attr_table.GAIN - 1), gain), 28);
+		phases[i] += incs[i];
+	} else if (incs[i] != 0.0f) {
+		if (phases[i] < attr_tail.LENGTH) {
+			outlet_wave = __SSAT(outlet_wave + (attr_tail.array[int(phases[i])] << (attr_table.GAIN - 2)), 28);
+			phases[i] += incs[i];
+		} else {
+			incs[i] = 0.0f;
+		}
+	}
+}]]></code.srate>
+         <code.midihandler><![CDATA[if (status == MIDI_NOTE_ON) {
+	push_voice(data1 - 64);
+} else if (status == MIDI_NOTE_OFF) {
+	pop_voice(data1 - 64);
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="392" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_1" x="588" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="112" y="238" text="Loop size"/>
+   <obj type="disp/note" uuid="ce3190ad98b73b468f22221f555b01feee03226a" name="note_1" x="462" y="238">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="alloc_1" x="112" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="131072"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="434" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="112" y="336" text="Change the tail size to remove or lengthen release"/>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="alloc_2" x="112" y="350">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="2"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="mix_1" inlet="l"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="right"/>
+         <dest obj="mix_1" inlet="r"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="record_1" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="record_1" outlet="wave"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+         <dest obj="scope_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="record_1" outlet="note"/>
+         <dest obj="note_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="record_1" outlet="dbg"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>556</x>
+      <y>440</y>
+      <width>799</width>
+      <height>571</height>
+   </windowPos>
+</patch-1.0>

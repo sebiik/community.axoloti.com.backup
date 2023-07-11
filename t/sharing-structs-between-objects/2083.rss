@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Sharing Structs Between Objects</title>
+    <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083</link>
+    <description>Is it possible to do the following?
+
+**In Object A**
+
+* define a data struct in _Local Data_
+* define and populate an instance of struct with data (preferably in SDRAM) in _Init Code_
+
+**In Object B**
+
+* Access data stored in struct in **Object A** using object-name-reference stored in _ObjRef_ attribute and standard struct-access .syntax
+
+I know this is an obscure thing to want to do, but I have a good reason (I think).
+
+a|x</description>
+    
+    <lastBuildDate>Sat, 06 Aug 2016 00:38:21 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>Is it possible for one object to allocate multiple items in SDRAM?</p>
+
+<p>I'm trying to allocate an array and a struct (as above) as two separate chunks of data in SDRAM.</p>
+
+<p>If I make the struct (and the pointer pointing to it) constant, as above, I get an error:</p>
+
+<p><code>/Users/alx/Documents/axoloti/build/xpatch.cpp:815:16: error: vsm_rom_data_sdram causes a section type conflict with lpc_tables_sdram<br> static uint8_t vsm_rom_data_sdram[1][LENGTH] __attribute__ ((section (".sdram")));<br>                ^<br>/Users/alx/Documents/axoloti/build/xpatch.cpp:1014:28: note: 'lpc_tables_sdram' was declared here<br> static const Tms5100Coeffs lpc_tables_sdram[1] __attribute__ ((section (".sdram"))) = T0280B_0281A_coeff<br>                            ^</code><br>If I make the struct in SDRAM non-constant, it doesn't generate an error, but the values retrieved by the receiver objects are garbage.</p>
+
+<p>It works fine if I allocate the struct in SRAM.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/8</link>
+        <pubDate>Sat, 06 Aug 2016 00:38:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-8</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="2083"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>your next issue, is about const, you have to initialise constants, you cannot just assign them (so your pointer assignment will fail)... again, lots of stuff on the net and in C/C++ books about this.</p></blockquote></aside>
+
+<p>This does seem to work though, with the constant declared and initialised (isnt that what the <em>{true, 345}</em> does?) in the <em>Init Code</em> section of the sender object.</p>
+
+<p>a|x</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/a/a1a3deffa0e3ed93bd64ff53f773fe4fb6f909c4.axp">struct_send_test.axp</a> (2.0 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/7</link>
+        <pubDate>Fri, 05 Aug 2016 22:19:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-7</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>there are lots of naming conventions <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"> <br>I guess today, many use the google style guide, so thats as good as any.</p>
+
+<p>one tip, look at the xpatch.cpp, and find the instance of the object you have created, it can be important at times to see what the generated C++ class looks like, and how your code is inserted.<br>also if you turn on expert mode (axoloti prefs), you can even edit the xpatch.cpp directly and compile it, can be useful for trying things out.<br>if you do look at the xpatch.cpp, Id recommend a code formatter , like astyle,  to reformat it first, it makes it much easier to read.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/6</link>
+        <pubDate>Fri, 05 Aug 2016 16:46:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-6</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="2083"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">toneburst:</div>
+<blockquote><p>It does seem to be possible, but not to put the struct into SDRAM. I guess that's only for unstructured arrays.</p></blockquote></aside>
+
+<p>I believe the problem is not the struct in sdram, but the initializer, assigning initial data for something in sdram.</p>
+
+<aside class="quote" data-post="2" data-topic="2083"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">toneburst:</div>
+<blockquote><p>I'd like to know if this would work properly with polyphonic patches, though, or if it could be tweaked to store the struct in SDRAM.</p></blockquote></aside>
+
+<p>A <code>static</code> variable means its contents will be shared in a polyphonic context. The static keyword is required to be able to specify alternate memory segments, required for sdram and DMA. To use sdram <em>without</em> sharing data across all voices, a static array can be used with an element per voice. The table and delay objects use this approach.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/5</link>
+        <pubDate>Fri, 05 Aug 2016 16:39:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-5</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>Thanks very much for the tips.</p>
+
+<p>I must admit, I have been confused about declaration and initialisation for a while now. I really should have read up on it earlier. I'll probably have to go through all the objects I've made and change things to make more sense (though they do appear all to be working, somehow).</p>
+
+<p>Re. naming conventions:<br>I know what you mean. I did try adding the underscore to the type name, but then I stupidly added it also to the name of the struct, to make it look different to the pointer that points to it, as I've seen this done in the factory file-read object.</p>
+
+<p>Is there a 'standard' or common convention for type definition naming? ALL_CAPS for type definition names, perhaps?</p>
+
+<p>Re. stackoverflow:<br>I know it well. I've spend a LOT of time on there over the years, believe me...<br>I'm not a noob programmer, just new to C (or at least building on a very limited knowledge of it, from many years ago, which more-or-less amount to the same thing).<br>Having said that, I'm 100% self-taught, so don't have a strong grasp on some of the basics, to my shame.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/4</link>
+        <pubDate>Fri, 05 Aug 2016 16:29:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-4</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yes its possible , but your syntax is incorrect.</p>
+
+<p>try<br></p>
+
+<p></p><pre><code>static  const _myStructDef _myStruct __attribute__ ((section (".sdram"))) = {.myBool = true, .myInt = 345} ;</code></pre>
+
+<p>your mixing up declaration and initialisation, so this is probably worth you reading up about.</p>
+
+<p>also _myStructDef is not a good naming convention (in C) as its a type name, its a good practice to use different naming styles for types and instances, otherwise things get confusing fast <img src="/images/emoji/emoji_one/wink.png?v=2" title=":wink:" class="emoji" alt=":wink:">  (if you want other programmers to look at it)</p>
+
+<p>your next issue, is about const, you have to initialise constants, you cannot just assign them (so your pointer assignment will fail)... again, lots of stuff on the net and in C/C++ books about this.</p>
+
+<p>EDIT: <a href="http://stackoverflow.com" rel="nofollow">http://stackoverflow.com</a> is a great resource for searching for syntax errors and fixing, actually just a great programming resource full stop.  every programming question ever asked, has been answered there.... ok, slight exaggeration, but you'll be amazed at its coverage <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/3</link>
+        <pubDate>Fri, 05 Aug 2016 16:13:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-3</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>It does seem to be possible, but not to put the struct into SDRAM. I guess that's only for unstructured arrays.</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/c/c334f110a61704fd6d906a36e00797ee35a7f043.axp">struct_send_test.axp</a> (2.1 KB)</p>
+
+<p>I'd like to know if this would work properly with polyphonic patches, though, or if it could be tweaked to store the struct in SDRAM.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/2</link>
+        <pubDate>Fri, 05 Aug 2016 15:30:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-2</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+      <item>
+        <title>Sharing Structs Between Objects</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>Is it possible to do the following?</p>
+
+<p><strong>In Object A</strong></p>
+
+<ul>
+<li>define a data struct in <em>Local Data</em>
+</li>
+<li>define and populate an instance of struct with data (preferably in SDRAM) in <em>Init Code</em>
+</li>
+</ul>
+
+<p><strong>In Object B</strong></p>
+
+<ul><li>Access data stored in struct in <strong>Object A</strong> using object-name-reference stored in <em>ObjRef</em> attribute and standard struct-access .syntax</li></ul>
+
+<p>I know this is an obscure thing to want to do, but I have a good reason (I think).</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sharing-structs-between-objects/2083/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sharing-structs-between-objects/2083/1</link>
+        <pubDate>Fri, 05 Aug 2016 13:47:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2083-1</guid>
+        <source url="http://community.axoloti.com/t/sharing-structs-between-objects/2083.rss">Sharing Structs Between Objects</source>
+      </item>
+  </channel>
+</rss>

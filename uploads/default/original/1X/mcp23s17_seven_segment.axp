@@ -1,0 +1,243 @@
+<patch-1.0>
+   <comment type="patch/comment" x="546" y="28" text="MCP 23S17 DRIVER"/>
+   <obj type="gpio/spi/config" sha="62af644b09e7f654b36d66533da8ea5971ddb351" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="546" y="56">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=0"/>
+         <combo attributeName="clock_phase" selection="CPHA=0"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <obj type="disp/hex" sha="ad78cd5cb2a2edbf8c65ba2d6e393f821b3e5535" uuid="3ce415f2f0e09f5b3cf10e5d355274847fd063b2" name="hex_2" x="994" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gpio/in/digital" sha="90fc95d938b6230073e230ead488ad0c23936425" uuid="f59f139e8da912742832dc541157f20f30b7ac1b" name="digital_1" x="70" y="112">
+      <params/>
+      <attribs>
+         <combo attributeName="pad" selection="PB0"/>
+         <combo attributeName="mode" selection="hi-z"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" sha="519c79f42a7c84352830b08e68696ecbf5d0bd52" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="168" y="112">
+      <params>
+         <int32 name="maximum" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" sha="fcf3c7b64624a2ee10ab0923e03af3f1e8e2a648" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="294" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/countersat2" sha="b0de9b0d8f1dd62c8a210878afa2d9afa875a4e1" uuid="ac2f83169ae51aaf19acf322affbe56ca1bbf48f" name="countersat2_1" x="392" y="154">
+      <params>
+         <int32 name="maximum" value="64"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" sha="e98a25a12afc62efc1991c3bb5290ccdf7214102" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="504" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" sha="501c30e07dedf3d701e8d0b33c3c234908c3388e" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="644" y="182">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/div 16" sha="153e55f554960498908693663e38bb762eb480d8" uuid="19cf8d3358046cb69c1139e51a3e1555742492e0" name="div_3" x="728" y="182">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="lfo/sine lin" sha="b1fb3a256dda91eaf0d60201af75dad0e2c6d8c5" uuid="96a3731e796f472decaad48e9acbca9546b8140b" name="sine_1" x="826" y="182">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" sha="519c79f42a7c84352830b08e68696ecbf5d0bd52" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_3" x="910" y="182">
+      <params>
+         <int32 name="maximum" value="99"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="SEVEN SEGMENT" x="1008" y="182">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[
+// MCP23S17 I/O EXPANDER SPI
+// by matthew cieplak
+
+uint8_t *txbuf;
+unsigned char *truth_table_a;
+unsigned char *truth_table_b;
+unsigned int display_num;
+unsigned int tens;
+unsigned int ones;
+
+#define MCP_IODIRA 0x00
+#define MCP_IODIRB 0x01
+#define MCP_IOCONA 0x0A
+#define MCP_GPPUA  0x0C
+#define MCP_GPPUB  0x0D
+#define MCP_GPIOA  0x12
+#define MCP_GPIOB  0x13
+
+// MCP23S17 SPI Slave Device
+#define SPI_SLAVE_ID    0x40
+#define SPI_SLAVE_ADDR  0x00      // A2=0,A1=0,A0=0
+#define SPI_SLAVE_WRITE 0x00
+#define SPI_SLAVE_READ  0x01
+
+
+void setup(void){
+	static uint8_t _txbuf[32] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+
+	static unsigned char _truth_table_b[32] = {
+	 0b01101111, //0     // [unusued] topright top middle topleft bottomleft bottom bottomright
+	 0b01000001, //1
+	 0b01110110, //2
+	 0b01110011, //3
+	 0b01011001, //4
+	 0b00111011, //5
+	 0b00111111, //6
+	 0b01100001, //7
+	 0b01111111, //8
+	 0b01111011  //9
+	};
+	truth_table_b = _truth_table_b;
+
+	static unsigned char _truth_table_a[32] = {
+	 0b11011110, //0     // bottomleft bottom middle bottomright topright top topleft [unused]
+	 0b00011000, //1
+	 0b11101100, //2
+	 0b01111100, //3
+	 0b00111010, //4
+	 0b01110110, //5
+	 0b11110110, //6
+	 0b00011100, //7
+	 0b11111110, //8
+	 0b01111110  //9
+	};
+	truth_table_a = _truth_table_a;
+
+	display_num = 0;
+	tens = 0;
+	ones = 0;
+
+	mcp_send_command(MCP_IOCONA,0x28);   // I/O Control Register: BANK=0, SEQOP=1, HAEN=1 (Enable Addressing)
+	mcp_send_command(MCP_IODIRA,0x00);   // GPIOA As Output
+	mcp_send_command(MCP_IODIRB,0x00);   // GPIOB As Output
+	mcp_send_command(MCP_GPIOA,0x00);    // Reset Output on GPIOA
+	mcp_send_command(MCP_GPIOB,0x00);    // Reset Output on GPIOA
+}
+
+
+void mcp_send_command(uint8_t reg, uint8_t val){
+	spiSelect(&SPID1);
+        txbuf[0] = SPI_SLAVE_ID | ((SPI_SLAVE_ADDR << 1) & 0x0E)| SPI_SLAVE_WRITE;
+        txbuf[1] = reg;
+        txbuf[2] = val;
+        spiSend(&SPID1,3, txbuf);
+	spiUnselect(&SPID1);
+}
+
+void loop(void){
+	display_num = int(in1 >> 21);
+	if (display_num < 0) {
+		display_num = 0;
+	}
+	if (display_num > 99) {
+		display_num = 99;
+	}
+
+	//on my protoboard, GPIOB is left digit (tens), GPIOA is right digit (ones)
+	ones = display_num % 10;
+	tens = (display_num - ones) / 10;
+	mcp_send_command(MCP_GPIOB, truth_table_b[tens]);
+	mcp_send_command(MCP_GPIOA, truth_table_a[ones]);
+
+	chThdSleepMilliseconds(2);
+}
+]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="logic/and 2" sha="fcf3c7b64624a2ee10ab0923e03af3f1e8e2a648" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_2" x="294" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gpio/in/digital" sha="90fc95d938b6230073e230ead488ad0c23936425" uuid="f59f139e8da912742832dc541157f20f30b7ac1b" name="digital_2" x="70" y="210">
+      <params/>
+      <attribs>
+         <combo attributeName="pad" selection="PB1"/>
+         <combo attributeName="mode" selection="hi-z"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" sha="519c79f42a7c84352830b08e68696ecbf5d0bd52" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_2" x="168" y="210">
+      <params>
+         <int32 name="maximum" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="digital_1" outlet="out"/>
+         <dest obj="counter_1" inlet="trig"/>
+         <dest obj="and_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="digital_2" outlet="out"/>
+         <dest obj="counter_2" inlet="trig"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="counter_2" outlet="c"/>
+         <dest obj="and_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="countersat2_1" outlet="o"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="countersat2_1" inlet="dec"/>
+      </net>
+      <net>
+         <source obj="and_2" outlet="o"/>
+         <dest obj="countersat2_1" inlet="inc"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="c"/>
+         <dest obj="and_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="out"/>
+         <dest obj="counter_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_3" outlet="o"/>
+         <dest obj="hex_2" inlet="in"/>
+         <dest obj="SEVEN SEGMENT" inlet="in1_"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="div_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="div_3" outlet="out"/>
+         <dest obj="sine_1" inlet="freq"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>430</x>
+      <y>23</y>
+      <width>1273</width>
+      <height>1176</height>
+   </windowPos>
+</patch-1.0>

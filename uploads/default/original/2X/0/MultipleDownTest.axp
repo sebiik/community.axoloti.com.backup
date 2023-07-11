@@ -1,0 +1,246 @@
+<patch-1.0 appVersion="1.0.11">
+   <patchobj type="patch/object" uuid="8b03c296-8c05-4a5c-9658-dabae1341efc" name="object_1" x="0" y="0">
+      <params>
+         <frac32.u.map name="H1" value="64.0"/>
+         <frac32.u.map name="H2" value="21.0"/>
+         <frac32.u.map name="H3" value="27.5"/>
+         <frac32.u.map name="H4" value="0.0"/>
+         <frac32.u.map name="H6" value="7.0"/>
+         <frac32.u.map name="H8" value="4.5"/>
+         <frac32.u.map name="D10" value="3.0"/>
+         <frac32.u.map name="H12" value="0.0"/>
+         <frac32.u.map name="H16" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="8b03c296-8c05-4a5c-9658-dabae1341efc">
+         <sDescription></sDescription>
+         <license>BSD</license>
+         <inlets/>
+         <outlets>
+            <frac32buffer.bipolar name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="H1"/>
+            <frac32.u.map name="H2"/>
+            <frac32.u.map name="H3"/>
+            <frac32.u.map name="H4"/>
+            <frac32.u.map name="H6"/>
+            <frac32.u.map name="H8"/>
+            <frac32.u.map name="D10"/>
+            <frac32.u.map name="H12"/>
+            <frac32.u.map name="H16"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[class interp2_7 {
+  // 14 tap fir interpolator
+  // + 2 one pole iir
+  // T.Rochebois 13/12/07
+  public:
+  float_t x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,y0,y1,yf,yff,y0f,y1f;
+  void init(){
+  	x0=x1=x2=x3=x4=x5=x6=x7=x8=x9=x10=x11=x12=x13=y0=y1=yf=yff=y0f=y1f=0;
+  }
+  void proc(int32_t x){
+    x0 = x1; x1 = x2; x2 = x3; x3 = x4; x4 = x5; x5 = x6; x6 = x7; x7 = x8;
+  x8 = x9; x9 = x10; x10 = x11; x11 = x12; x12 = x13; x13 = (float)x;
+  y1 = x6;
+  yf += 0.7f*(y1 - yf);
+  y1f = yff += 0.7f*(yf - yff);
+  y0 = (x7 + x6) * 0.62291195262049f
+     + (x8 + x5) * -0.1825230470160293f
+     + (x9 + x4) * 0.08341431268391979f
+     + (x10 + x3) * -0.03805513432497066f
+     + (x11 + x2) * 0.015098706960700642f
+     + (x12 + x1) * -0.005504141006718507f
+     + (x13 + x0) * 0.004657350082607964f;
+  yf += 0.7f*(y0 - yf);
+  y0f = yff += 0.7f*(yf - yff);
+
+  }
+};
+/*
+ int2_7(x) instance(x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 y0 y1)(
+  x0 = x1; x1 = x2; x2 = x3; x3 = x4; x4 = x5; x5 = x6; x6 = x7; x7 = x8;
+  x8 = x9; x9 = x10; x10 = x11; x11 = x12; x12 = x13; x13 = x;
+  y0 = x6;
+  y1 = (x7 + x6) * 0.62291195262049
+     + (x8 + x5) * -0.1825230470160293
+     + (x9 + x4) * 0.08341431268391979
+     + (x10 + x3) * -0.03805513432497066
+     + (x11 + x2) * 0.015098706960700642
+     + (x12 + x1) * -0.005504141006718507
+     + (x13 + x0) * 0.004657350082607964;
+ */
+
+
+// dp midi [0 127]
+int32_t dp[128];
+
+uint32_t p[128];
+int32_t target[91];
+int32_t env[91];
+int32_t env1[91];
+int32_t env2[91];
+
+int32_t gates[128];
+int32_t rnd=137137137;
+interp2_7 interp_16_to_8;
+interp2_7 interp_8_to_4;
+interp2_7 interp_4_to_2;
+interp2_7 interp_2_to_sr;
+
+int refresh;
+int32_t H1,H2,H3,H4,H6,H8,D10,H12,H16;]]></code.declaration>
+         <code.init><![CDATA[interp_16_to_8.init();
+interp_8_to_4.init();
+interp_4_to_2.init();
+interp_2_to_sr.init();
+for(int i = 0; i < 91; i++){ env[i] = 0; }
+
+for(int i = 0;i<128;i++){
+	dp[i] = (uint32_t)( (440.0f/48000.0f)*powf(2.0f, 32 + (i-69)/12.0f) );
+	if(i<=78) dp[i]*=16;
+	else if(i<=90) dp[i]*=8;
+	else if(i<=102) dp[i]*=4;
+	else dp[i]*=2;
+}
+
+for (int i=0;i<128;i++)
+	gates[i]=0;
+
+refresh=0;
+H1=H2=H3=H4=H6=H8=D10=H12=H16=0;]]></code.init>
+         <code.krate><![CDATA[int i,j;
+if(refresh == 0){
+for(i=0;i<91;i++) target[i]=0;  // target amplitudes for the AR enveloppes
+H1 = param_H1>>2;H2 = param_H2>>2;H3 = param_H3>>2;H4 = param_H4>>2;
+H6 = param_H6>>3;H8 = param_H8>>3;D10 = param_D10>>3;H12 = param_H12>>4;
+H16 = param_H16>>4;
+for(i=0; i < 43; i++)if (gates[i+24] != 0) {target[i] += H1;target[i+12] += H2;target[i+19] += H3;target[i+24] += H4;target[i+31] += H6;target[i+36] += H8;target[i+40] += D10;target[i+43] += H12;target[i+48] += H16;}
+} else {
+for(i=43;i<48;i++)if (gates[i+24] != 0) {target[i] += H1;target[i+19] += H3;target[i+12] += H2;target[i+24] += H4;target[i+31] += H6;target[i+36] += H8;target[i+40] += D10;target[i+43] += H12;}
+for(i=48;i<51;i++)if (gates[i+24] != 0) {target[i] += H1;target[i+19] += H3;target[i+12] += H2;target[i+24] += H4;target[i+31] += H6;target[i+36] += H8;target[i+40] += D10;}
+for(i=51;i<55;i++)if (gates[i+24] != 0) {target[i] += H1;target[i+12] += H2;target[i+19] += H3;target[i+24] += H4;target[i+31] += H6;target[i+36] += H8;}
+for(i=55;i<60;i++)if (gates[i+24] != 0) {target[i] += H1;target[i+19] += H3;target[i+12] += H2;target[i+24] += H4;target[i+31] += H6;}
+for(i=60;i<67;i++)if (gates[i+24] != 0) {target[i] += H1;target[i+12] += H2;target[i+19] += H3;target[i+24] += H4;}
+for(i=67;i<72;i++)if (gates[i+24] != 0) {target[i] += H1;target[i+12] += H2;target[i+19] += H3;}
+for(i=72;i<79;i++)if (gates[i+24] != 0) {target[i] += H1;target[i+12] += H2;}
+for(i=79;i<91;i++)if (gates[i+24] != 0) {target[i] += H1;}
+};
+refresh +=1; refresh%=2;
+// _____________________________________________________________
+// simple anti click AR enveloppes
+for(i=0;i<91;i++){
+	env1[i] = __SMMLA(env1[i]<target[i]?0x40000000:0x4000000, target[i] - env1[i], env1[i]); 
+	//env2[i] = __SMMLA(env2[i]<target[i]?0x01000000:0x0100000, target[i] - env2[i], env2[i]);
+	env[i] = env1[i];//+(env2[i]>>2);
+	if(i>54) env[i]>>=1; // q31
+	}
+
+// Notes [24 78] (first 4 1/2 octaves) downsampled 16 calculated by base osc and freq doublers
+{
+  int32_t s[12];
+  // base oscs calc
+  for(int note = 0; note < 12; note++){
+    p[note] += dp[note+24];
+    SINE2TINTERP(p[note], s[note]);
+  }
+  //
+  int32_t out = 0;
+  for(int note = 0; note < 12; note++){
+    // y: q30 value of sine wave
+    // note: q31 caused overflow 
+    int32_t y = s[note]>>1;  
+    out = __SMMLA(y, env[note], out);
+    for(int ind = note + 12; ind <= 54; ind += 12){
+      // frequency doubler:
+      y = __SMMLA(y,  y, 0xF8000000 ) << ( 1   +   2 );     
+      // output accumulation
+      out = __SMMLA(y, env[ind], out);
+    }
+  }
+  interp_16_to_8.proc(out);
+  outlet_out[0] = interp_16_to_8.y1f;
+  outlet_out[8] = interp_16_to_8.y0f;
+}
+
+// Notes [79 90] downsampled 8
+for(int note=79-24;note<=90-24;note++){
+  for(j=0;j<16;j+=8){
+    p[note] += dp[note+24];
+    outlet_out[j] = __SMMLA(sine2t[ ((uint32_t)p[note])>>20], env[note], outlet_out[j]);
+  }
+}
+for(j=0;j<16;j+=8){
+  interp_8_to_4.proc(outlet_out[j]);
+  outlet_out[j  ] = interp_8_to_4.y1f;
+  outlet_out[j+4] = interp_8_to_4.y0f;
+}
+// Notes [91 102] downsampled 4
+for(int note=91-24;note<=102-24;note++){
+  for(j=0;j<16;j+=4){
+    p[note] += dp[note+24];
+    outlet_out[j] = __SMMLA(sine2t[ ((uint32_t)p[note])>>20], env[note], outlet_out[j]);
+  }
+}
+
+for(j=0;j<16;j+=4){
+  interp_4_to_2.proc(outlet_out[j]);
+  outlet_out[j  ] = interp_4_to_2.y1f;
+  outlet_out[j+2] = interp_4_to_2.y0f;
+}
+// Notes [103 114] downsampled 4
+for(int note=103-24;note<=114-24;note++){
+  for(j=0;j<16;j+=2){
+    p[note] += dp[note+24];
+    outlet_out[j] = __SMMLA(sine2t[ ((uint32_t)p[note])>>20], env[note], outlet_out[j]);
+  }
+}
+
+
+for(j=0;j<16;j+=2){
+  interp_2_to_sr.proc(outlet_out[j]);
+  outlet_out[j  ] = interp_2_to_sr.y1f;
+  outlet_out[j+1] = interp_2_to_sr.y0f;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if(status == MIDI_NOTE_ON + attr_midichannel) {
+  gates[data1 & 0x7F] = data2<<23UL;
+} else if(status == MIDI_NOTE_OFF + attr_midichannel) {
+  gates[data1 & 0x7F] = 0;
+} else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+  for(int i=0;i<128;i++) gates[data1 & 0x7F] = 0;
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="70" y="0">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="object_1" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>0</NPresets>
+      <NPresetEntries>0</NPresetEntries>
+      <NModulationSources>0</NModulationSources>
+      <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+      <Author>SmashedTransistors (T.Rochebois)</Author>
+      <License>LGPL</License>
+   </settings>
+   <notes><![CDATA[Freq doubling tone generator Patch by T.Rochebois (aka Smashed Transistors/TiaR)
+]]></notes>
+   <windowPos>
+      <x>569</x>
+      <y>380</y>
+      <width>666</width>
+      <height>625</height>
+   </windowPos>
+</patch-1.0>

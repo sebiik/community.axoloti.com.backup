@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Ricard contributions</title>
+    <link>http://community.axoloti.com/t/ricard-contributions/4311</link>
+    <description>I&#39;ve uploaded some non-audio objects which I&#39;ve devised while porting the Axoloti to run on the Audiothingies P6 .
+
+The P6 has 6 rotary encoders, which together with 9 push buttons (and 6 push buttons in the encoders) are connected to 74HC165 shift registers using an SPI-like interface (although in the P6 it is bit-banged rather than using an SPI interface in the STM32 chip).
+
+There&#39;s also a quadrature decoder object for decoding the outputs from the rotary encoders, which takes two inputs and produces an up clock and a down clock, which output clocks depending on which way the encoder is turned. There&#39;s also a step output which outputs clocks independent of the direction of rotation.
+
+Objects:
+objects/ricard/gpio/in/165ctrl v.axo (control object specifying the pins used and number of bits employed (8 per 74HC165 chip), as well as the scanning rate.
+objects/ricard/gpio/in/165in.axo (actual bit input object generating a boolean signal)
+objects/ricard/logic/qdecode.axo (quadrature decoder)
+
+The P6 also uses a 74HC595 shift register for controlling 8 of the LEDs on the front panel.
+
+Objects:
+objects/ricard/gpio/out/595ctrl.axo (control object specifying the pins used and number of bits employed (8 per 74HC595 chip).
+objects/ricard/gpio/out/595out.axo (actual bit output object)
+
+The P6 has a 2x24 character LCD, and I&#39;ve devised a pair of objects for printing to the LCD. The connection is rather rudimentary, utilizing the 4-bit mode of the display, with no status readout, hence a 6 wire interface suffices, with RS, E and 4 data bits D4..D7. The R/W pin is assumed permanently low (i.e. write).
+
+Objects:
+objects/ricard/disp/lcdctrl.axo (control object specifying the pins used and size of the print queue (number of strings that may be printed at once and which will be printed in order as the display becomes available)
+objects/ircard/disp/lcdprint.axo (output object outputting the string input to the module when the clock input goes high)
+
+The strings can contain rudimentary cursor control using control characters, see the object definition for more details.
+
+Finally a rather trivial object, which converts a vector of bits into a single bit masked output value, with a 9 bit input. I seem to remember there being an 8 bit version among the factory patches but I cannot find it now.
+
+Object:
+objects/ricard/logic/bitval 9.axo
+
+Please note that for the control objects, more pins can be selected than normally on Axoloti modules, simply because I want to be able to run these objects on the P6, where some of the pins used are not available for general use in the Axoloti. So exercise caution when using the modules so you don&#39;t select pins which are not actually available.</description>
+    
+    <lastBuildDate>Mon, 27 May 2019 02:30:42 +0000</lastBuildDate>
+    <category>Community Library</category>
+    <atom:link href="http://community.axoloti.com/t/ricard-contributions/4311.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@weasel79 blender]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/weasel79">@weasel79</a> wrote:</p>
+          <blockquote>
+              <p>you're such an OG for these, i was getting worried cause i need the SPI pins for ws2812 and thought i'm out of luck with my 165s...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/25</link>
+        <pubDate>Mon, 27 May 2019 02:30:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-25</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="23" data-topic="4311" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/spacelordmother/40/2687_1.png" class="avatar">spacelordmother:</div>
+<blockquote><p>If I were to not hook that up so I could use the pin for other I/O would it cause problems?  Like -- won't the object be scanning whatever pin I select in the drop down?  </p></blockquote></aside>
+
+<p>Yes, to use the Axoloti I/O pin for other purposes you need to remove the corresponding code from the object, i.e. the following two lines from the Init section:</p>
+
+<pre><code>palSetPadMode(attr_inh,PAL_MODE_OUTPUT_PUSHPULL);
+palWritePad(attr_inh,0); // inhibit, leave 0 at all times to enable clock</code></pre>
+
+<p>and then for clarity also remove the corresponding inh attribute. (I suppose I should have added "don't use" value to the list of pins in the drop down list so the object could handle this without modification).<br></p>
+
+<p><aside class="quote"><blockquote><p>I noticed in your P6 patch that you had some different bit values in your 165 read objects -- were they device specific, or required?</p></blockquote></aside></p>
+
+<p>Although principally not necessary for the 165 chips, one of the pins for the 595 chips in the P6 is connected to a port which is not available for general I/O in Axoloti. So I added it (PA8) to the dropdown (attribute) list for the 595 controller object and then re-used the list for the 165 objects even though it's not strictly necessary, as the P6 uses PA0-3 for the 165 chips which are available as standard Axoloti pins.<br></p>
+
+<p><aside class="quote"><blockquote><p>I am trying to get 8 bool inputs [... ].</p></blockquote></aside></p>
+
+<p>That looks fine, except that the output bits are numbered from 0 and upwards, i.e. 0 to 7, rather than 1 to 8. Actually, since the output register from which the bits are fetched is  shifted when the bits are read in and never cleared, the patch as it stands will work as the bit numbers wrap after 'count' bits, but the bit numbering will be a bit confusing as the first bit will be 8 in the patch, followed by 1, 2, 3 etc.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/24</link>
+        <pubDate>Sat, 02 Jun 2018 04:17:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-24</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>If I were to not hook that up so I could use the pin for other I/O would it cause problems?  Like -- won't the object be scanning whatever pin I select in the drop down?  </p>
+
+<p>I noticed in your P6 patch that you had some different bit values in your 165 read objects -- were they device specific, or required?  I am trying to get 8 bool inputs like this:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/eef70c0b1d08b4f8a113f0387fa9b115f9edf9ba" href="//community.axoloti.com/uploads/default/original/2X/e/eef70c0b1d08b4f8a113f0387fa9b115f9edf9ba.JPG" class="lightbox" title="Capture.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/e/eef70c0b1d08b4f8a113f0387fa9b115f9edf9ba_1_403x500.JPG" width="403" height="500"><div class="meta">
+<span class="filename">Capture.JPG</span><span class="informations">630x781 48.7 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Seems correct?  I'll test it out more tomorrow with the hookups you noted.  Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/23</link>
+        <pubDate>Sat, 02 Jun 2018 02:28:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-23</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="21" data-topic="4311" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/spacelordmother/40/2687_1.png" class="avatar">spacelordmother:</div>
+<blockquote><p>Seems like a pretty simple matter of just making the connections from buttons to breakout, and breakout to axo, yes?</p></blockquote></aside>
+
+<p>Yes, that should work fine.<br></p>
+
+<p><aside class="quote"><blockquote><p>On your control object I see "data, clock, latch, inh" -- do these equate to "serial out, clk, ce, and sh/ld" on the breakout? </p></blockquote></aside></p>
+
+<p>Almost. 'latch' on the object goes to shift/load (sh/ld), and 'inh' on the object goes to clock enable (ce).</p>
+
+<p>You actually don't have to connect anything to the clock enable line, as it defaults to the clock being enabled, and the object just pulls it low at init time and never changes it. The reason it's there at all is because the P6 hardware which I've used the object with has the line connected.</p>
+
+<p><aside class="quote"><blockquote><p>Which of those need to be connected to the serial enabled pins on Axo?  </p></blockquote></aside></p>
+
+<p>If you mean that you need to connect the data output from the 'HC165 to a pin which has a serial receiver, no, that's not necessary, you can use any I/O pin on the Axoloti. The object uses simple bitbanging (i.e. manipulates the I/O bits directly) rather than utilizing for instance an SPI interface in the STM32F427 chip.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/22</link>
+        <pubDate>Fri, 01 Jun 2018 22:15:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-22</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>Hello <a class="mention" href="/u/ricard">@ricard</a> !</p>
+
+<p>I have a couple of these:  <a href="https://www.sparkfun.com/products/retired/11733" rel="nofollow noopener">https://www.sparkfun.com/products/retired/11733</a></p>
+
+<p>Seems like a pretty simple matter of just making the connections from buttons to breakout, and breakout to axo, yes?  On your control object I see "data, clock, latch, inh" -- do these equate to "serial out, clk, ce, and sh/ld" on the breakout? </p>
+
+<p>Which of those need to be connected to the serial enabled pins on Axo?  </p>
+
+<p>Thanks for the help!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/21</link>
+        <pubDate>Fri, 01 Jun 2018 01:27:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-21</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Finally got my PWM oscillator working yesterday:</p>
+
+<ul><li>ricard/osc/PTRPulse.axo</li></ul>
+
+<p>PWM input (and PWM parameter) has a range of -64 to +64, from maximally short negative to maximually short positive pulse, to the point that the oscillator actually goes silent at the extremes. With PWM at 0, the output is a square wave.</p>
+
+<p>The PTR antialising means that the amplitude drops for small pulse widths at high frequencies. I'm thinking about adding a function to optionally limit the minimum pulse width in a frequency-dependent manner so that this doesn't happen, as at high frequencies the harmonics are not really discernible anyway, so the deviation from the intended pulse width would not be noticeable. On the other hand, an analog PW oscillator tends to behave in a similar manner due to limited slew rates, so perhaps it wouldn't buy much.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/20</link>
+        <pubDate>Mon, 28 May 2018 04:41:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-20</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>I would think it would be very difficult to enforce such a patent. Given an arbitrary bandlimited sawtooth oscillator, I would think it impossible to see in the output waveform how the bandlimiting was actually acheived; one would need to look at the actual algorithm for that.</p>
+
+<p>Anyway, back to the thread, I've now uploaded the optimized version of the PTR sawtooth oscillator as described a few posts back.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/19</link>
+        <pubDate>Thu, 24 May 2018 04:49:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-19</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="17" data-topic="4311"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>Have you or do you know of anyone else has elaborated further on this in the form of a paper or other report?</p></blockquote></aside>
+
+<p>Well... mmm... The BLEP described by Korg in their drawings have no Gibbs overshoot.<br><a href="https://patents.google.com/patent/US20060145733A1" class="onebox" target="_blank">https://patents.google.com/patent/US20060145733A1</a></p>
+
+<p>Anyway, it's not an issue to use a smooth symetric BLIT and integrate it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/18</link>
+        <pubDate>Wed, 23 May 2018 23:03:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-18</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="15" data-topic="4311" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/smashedtransistors/40/3147_1.png" class="avatar">SmashedTransistors:</div>
+<blockquote><p>To me the PTR very looks like a two point BLEP consisting of a parabola.</p></blockquote></aside>
+
+<p>From what I can tell, it was derived by analyzing how each output sample in the corresponding-order DPW algorithm is related to the input (i.e. trivial waveform) samples. So it is mathematically identical to DPW if I understand correctly.</p>
+
+<p>I would think that it's not unlikely that there are different ways to arrive at essentially  the same sample values in the transition region, since all algorithms have the same goal of minimizing frequencies beyond half Nyquist.</p>
+
+<p><aside class="quote"><blockquote><p>I think that good candidates for smooth band limited impulse can be taken from window functions (as they are designed with the same criterion). I think that PTR corresponds to a two point welsh window.)</p></blockquote></aside></p>
+
+<p>Interesting. Have you or do you know of anyone else has elaborated further on this in the form of a paper or other report?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/17</link>
+        <pubDate>Wed, 23 May 2018 22:05:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-17</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Loving this debate. All though I dont understand all of it, its interesting. </p>
+
+<p>Thanks guys <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/16</link>
+        <pubDate>Wed, 23 May 2018 08:37:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-16</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>To me the PTR very looks like a two point BLEP consisting of a parabola.</p>
+
+<hr>
+
+<p>I think that good candidates for smooth band limited impulse can be taken from window functions (as they are designed with the same criterion):<br><aside class="onebox wikipedia">
+  <header class="source">
+    <a href="https://en.wikipedia.org/wiki/Window_function" target="_blank" rel="nofollow noopener">en.wikipedia.org</a>
+  </header>
+  <article class="onebox-body">
+    <img src="//upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Spectral_leakage_from_a_sinusoid_and_rectangular_window.png/480px-Spectral_leakage_from_a_sinusoid_and_rectangular_window.png" class="thumbnail">
+
+<h3><a href="https://en.wikipedia.org/wiki/Window_function" target="_blank" rel="nofollow noopener">Window function</a></h3>
+
+<p>In signal processing, a window function (also known as an apodization function or tapering function) is a mathematical function that is zero-valued outside of some chosen interval. For instance, a function that is constant inside the interval and zero elsewhere is called a rectangular window, which describes the shape of its graphical representation. When another function or waveform/data-sequence is multiplied by a window function, the product is also zero-valued outside the interval: all tha In...</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>(I think that PTR corresponds to a two point welsh window.)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/15</link>
+        <pubDate>Wed, 23 May 2018 06:15:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-15</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="13" data-topic="4311" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/smashedtransistors/40/3147_1.png" class="avatar">SmashedTransistors:</div>
+<blockquote><p>Sorry for polluting this thread with this kind of issues.</p></blockquote></aside>
+
+<p>Well, I suppose this is as good a place as any to discuss the issue.<br></p>
+
+<p><aside class="quote"><blockquote><p>I think it is very important to state that these methods are "good old methods" and "state of the art" to avoid that some people have the idea to patent them.<br>As a concrete example, symmetric BLEPs have been patented by Korg in 2005 even if it was used by others before (EdgE algorithm by Canam Computers Quartz Audio, but as it has never been published, I think that Korg's patent is valid). I think that's why many people use asymmetric BLEPs or BLITs.</p></blockquote></aside></p>
+
+<p>That's amazing that Korg managed to patent that. I wonder if it's because its tricky to understand the small details of these algorithms and the fact that a lot of stuff is found in research papers rather than patents that it can slip through the patent system (notwithstanding the fact that a lot of patented stuff should never had made it that far).</p>
+
+<p>I would think though that asymmetric BLEPs (which I'm assuming is not necessarily the same as minBLEPs although the minimum-phase reconstruction of the BLEP does result in a fully causal and asymmetric BLEP) as used in the Axoloti factory oscillators, have the computational advantage that nothing needs to be added before transitions, which otherwise would require some form of waveform lag or lookahead in order to insert the BLEP at the correct point. </p>
+
+<p><aside class="quote"><blockquote><p>The differentiation causes issues when the step is small (ie for low frequencies). In this case, anti aliasing is not needed and you need a way to soft switch from DPW to trivial. </p></blockquote></aside></p>
+
+<p>Yes, I didn't think of that, that would take care of that issue. I still find the PTR algorithm elegant. The whole waveform generation for the PTRSaw oscillator comes out as:</p>
+
+<pre><code>p += dp; p -= (p &gt; 1);
+if (p &lt; dp) { D = p/dp; y = (2 * dp - D) * D + 1; }
+else if (p &lt; 2*dp) { D = p/dp; y = (D + 2 * dp - 4) * D + 3; }
+else y = 2*p - 1;
+y -= 2 * dp;</code></pre>
+
+<p>(there's probably still room for optimizations. EDIT: Only calculate D when actually needed.).</p>
+
+<p><aside class="quote"><blockquote><p>DPW do not cause these Gibbs overshoots.</p></blockquote></aside></p>
+
+<p>This is something that fascinates me. From what I can tell, the magic lies in moving the phase of the harmonics around causing the ringings to dissolve. There's also a slight spectral droop with DPW from what I understand, but not enough to explain the complete lack of Gibbs ringings. But doesn't the altered relative phase positions have some form of drawback? After all, from a signal processing point of view, we've run a mathematically correct bandlimited oscillator through a filter whose major contribution is that it messes up the phase response.</p>
+
+<p><aside class="quote"><blockquote><p>Note that it may be possible to design "soft" BLITs (or BLEPs) that will behave quite like DPW.</p></blockquote></aside></p>
+
+<p>Do you mean using the minimum-phase reconstructed residual instead of the obvious BLIT or BLEP?</p>
+
+<p>I may be wrong, but it seems to me that the main problem in a system with limited processing power such as the Axoloti, that it's not possible to generate the BLIT or BLEP in real time, thus it must be added in the form of a waveform, which brings in the additional complexity of how to handle interpolation, for instance by oversampling the BLEP obtaining a polyphase BLEP.  The resulting phase error for the BLEP in a practical implementation limits the antialiasing response, indeed, the Axoloti factory oscillators seem to have a lot more aliasing that the DPW (or PTR) algorithm to my ears. In contrast, DPW and PTR calculate to the available precision the exact sample points.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/14</link>
+        <pubDate>Wed, 23 May 2018 04:58:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-14</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Sorry for polluting this thread with this kind of issues.<br>I think it is very important to state that these methods are "good old methods" and "state of the art" to avoid that some people have the idea to patent them.<br>As a concrete example, symmetric BLEPs have been patented by Korg in 2005 even if it was used by others before (EdgE algorithm by Canam Computers Quartz Audio, but as it has never been published, I think that Korg's patent is valid). I think that's why many people use asymmetric BLEPs or BLITs.</p>
+
+<hr>
+
+<p>The differentiation causes issues when the step is small (ie for low frequencies). In this case, anti aliasing is not needed and you need a way to soft switch from DPW to trivial. That's what I do in my DPW distortions and phase modulated oscillator objects.</p>
+
+<p>Example from distortion DP typeIIA:</p>
+
+<pre><code>  if(fabs(dx) &gt; 0.005f){                     //&lt;---- DP if the segment is 
+    y0 = 1.5f * x0*x0 / (1 + x0*x0);                 large enough
+    float dy = y1 - y0;                                   /
+    outlet_out[i] = arm::float_to_q(dy / dx, 27);  &lt;-----/
+  } else {
+    float inv = 1/(1 + x0*x0);                                     else
+    y0 = 1.5f * x0*x0 * inv;
+    outlet_out[i] = arm::float_to_q(3*x0*inv*inv , 27);   //&lt;----- direct value
+  }</code></pre>
+
+<hr>
+
+<p>The problem with higher order DPW is that it induces high frequency filtering (as it works as mean values over sample to sample segments).<br>So, i think that the best strategy consists in using oversampling combined with the integro diff scheme.</p>
+
+<p>As far as i experimented simple precision floats are enough for </p>
+
+<ul>
+<li>second order (ie two differentiation) for simple oscillators, and </li>
+<li>first order (ie one differentiation) for distortions and phase modulated oscillators</li>
+</ul>
+
+<p>double precision can be used for second order (two differentiations) for distortions and PM osc, but it is quite tricky to get the glitchless switching conditions (I got some working in jsfx / Reaper)</p>
+
+<hr>
+
+<p>BLITs (and BLEPs) are generally "sharp" in the spectral domain and have Gibbs ondulations in the temporal domain. Thus, they are not good if the signal goes through distortions or saturations that would chop off these ondulations.<br>DPW do not cause these Gibbs overshoots. So the signal can be post distorted without too much trouble.</p>
+
+<p>Note that it may be possible to design "soft" BLITs (or BLEPs) that will behave quite like DPW.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/13</link>
+        <pubDate>Tue, 22 May 2018 23:07:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-13</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>I don't want to take sides as to who invented DPW either. Despite my engineering background, I'm really a noob when it comes to this type of math. My gut feeling though is that even though integration followed by differentiation itself is old as the hills, the theoretical basis for this when it comes to cyclic waveforms has been sketchy, i.e. the math has to hold not only for the waveform itself but also for the discontinuity that appears as it looped, which is not obvious to me anyway.</p>
+
+<p>As I understand it, PTR is not a new algorithm, it's just a mathematical rewrite of DPW, including the realization that the differential of an integrated waveform is identical to the waveform itself, with an offset, except for the transition regions. For the transition regions, instead of actually performing an integration/differentiation operation, the actual resulting sample values can be directly calculated using suitable formulae, the whole point being that over a complete cycle, the amount of CPU time for PTR will be less than DPW. From my point of view, it's appealing that waveforms can be constructed without pre-integration, just a couple of highly specific calculations at the transitions.</p>
+
+<p>One advantage of PTR over DPW seems to be that there is less noise with finite resolution at low frequencies, indeed, other DPW implementations I've seen go for doubles to alleviate this.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/12</link>
+        <pubDate>Mon, 21 May 2018 22:47:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-12</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>I'm still surprised to read that Prof Valimaki invented DPW.</p>
+
+<p>This is one of the oldest anti aliasing method !!!</p>
+
+<p>Integrals have been used to calculate mean values since they have been invented !<br>Anti aliasing with them is a basic and direct application.<br>The fact that higher order integration can be used to calculate means of means is also as old as Calculus.<br>Thus only Sir Isaac and Herr Gottfried Wilhelm should be allowed to claim for this !</p>
+
+<p>Back in 1998, I used this trivial method in an exam for my students.<br>Here is an archived thread triggered by one of my student:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.kvraudio.com/forum/viewtopic.php?p=1710116" target="_blank" rel="nofollow noopener">kvraudio.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="http://static.kvraudio.com/i/b/kvraudio-300x300-grey-eeeeee.png" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.kvraudio.com/forum/viewtopic.php?p=1710116" target="_blank" rel="nofollow noopener">KVR Forum: obscure antialiased saw code [Ancient thread bumped; see page 3]...</a></h3>
+
+<p>KVR Audio Forum - obscure antialiased saw code [Ancient thread bumped; see page 3] (Topic in the 'DSP and Plug-in Development' forum)</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>along with a discussion about state changes and clicks... note the archive date...</p>
+
+<p>I do not claim anything about DPW, I just want to say that It is one of the oldest aliasing limiting method.</p>
+
+<p>The first time i heard about DPW was in an application note for the Motorola DSP 56001 back in 1995.</p>
+
+<p>The aliasing scheme of the D-5 D-10 D-50 Linear Arithmetic Synthesizers by Roland (1987) is consistent with DPW.</p>
+
+<p>The 2D equivalent of pre integration for anti aliasing is known as <a href="https://en.wikipedia.org/wiki/Summed-area_table">"Summed-Area Tables"</a> and was invented in 1984.</p>
+
+<hr>
+
+<p>On the other hand, I don't really get his PTR gibberish.</p>
+
+<p>Instead of calculating the value of a function at a sampled time,<br>fifferentiation of pre intergrated wave functions work by calculating mean values over the time segment between two samples (thanks to integrals).</p>
+
+<p>The application of integrals to hard sync is straight forward: when you have a hard sync event, you split the calculus in two subsample segments instead of one:</p>
+
+<ul>
+<li>the segment before the sync </li>
+<li>the segment after the sync</li>
+</ul>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/11</link>
+        <pubDate>Mon, 21 May 2018 20:04:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-11</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Inspired by <a class="mention" href="/u/smashedtransistors">@SmashedTransistors</a> (tiar), I started out with his DP2Saw oscillator, then read this article by Vesa Välimäki et al:</p>
+
+<p><a href="https://www.researchgate.net/publication/236616321_Reducing_Aliasing_from_Synthetic_Audio_Signals_Using_Polynomial_Transition_Regions" class="onebox" target="_blank" rel="nofollow noopener">https://www.researchgate.net/publication/236616321_Reducing_Aliasing_from_Synthetic_Audio_Signals_Using_Polynomial_Transition_Regions</a></p>
+
+<p>on the more optimal PTR algorithm, resulting the following third order PTR sawtooth oscillator:</p>
+
+<ul><li>ricard/osc/PTRSaw.axo</li></ul>
+
+<p>(Note: What SmashedTransistors calls a 'second order DPW' algorithm I believe is actually a third order algorithm, since both the polynomial and differentiation functions match the third-order cases in <a href="https://www.researchgate.net/publication/224557976_Alias-Suppressed_Oscillators_Based_on_Differentiated_Polynomial_Waveforms" rel="nofollow noopener">https://www.researchgate.net/publication/224557976_Alias-Suppressed_Oscillators_Based_on_Differentiated_Polynomial_Waveforms</a> (again by Välimäki and associates).)</p>
+
+<p>What utterly fascinates me is how just making a few changes to the waveform in the sawtooth reset period reduces the aliasing to negligible levels. It becomes very obvious in the PTR algorithm, as the only actual waveform mangling takes place in the reset region, even though the actual output waveform is identical to the DPW algorithm (used in DP2Saw). However, due to the way the computation is performed, numerical precision isn't as important with PTR compared to DPW. Indeed, DP2Saw is quite noisy at lower frequencies which PTRSaw isn't.</p>
+
+<p>A lot of research papers contain a lot of hairy math and are not immediately suitable for conversion to code, however, the above one is an exception, also providing ideas for a PWM oscilator which I have yet to realize.</p>
+
+<p>Another paper which I found immediately useful is this one:</p>
+
+<aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.semanticscholar.org/paper/Improved-Polynomial-Transition-Regions-Algorithm-Ambrits/7d31b9d62daa97980edd0284bdcf70e6c0161ddd" target="_blank" rel="nofollow noopener">semanticscholar.org</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.semanticscholar.org/img/semantic_scholar_og.jpg" width="695" height="364" class="thumbnail">
+
+<h3><a href="https://www.semanticscholar.org/paper/Improved-Polynomial-Transition-Regions-Algorithm-Ambrits/7d31b9d62daa97980edd0284bdcf70e6c0161ddd" target="_blank" rel="nofollow noopener">Improved Polynomial Transition Regions Algorithm for Alias-suppressed Signal...</a></h3>
+
+<p>One of the building blocks of virtual analog synthesizers is the oscillator algorithm producing simple geometric waveforms, such as saw or triangle. An important requirement for such a digital oscillator is that its spectrum is similar to that of the...</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+
+<p>(also available as <a href="http://home.mit.bme.hu/~bank/publist/smc13.pdf" rel="nofollow noopener">http://home.mit.bme.hu/~bank/publist/smc13.pdf</a>)</p>
+
+<p>outlining how to make a triangle wave oscillator with variable symmetry. Sadly, it only covers the second order case, but the level of harmonics in triangle waves is lower than in sawtooth or square waves to start with, so the results seem fairly usable anyway. Indeed, during some quick tests, the level of aliasing in both the third order PTR above and the second order EPTR oscillators below are less than the build-in BLEP based Axoloti oscillators. From the aforementioned paper I've derived the following implementations:</p>
+
+<ul>
+<li>ricard/osc/EPTRSaw.axo : Second order EPTR sawtooth. Less alias than the Axoloti build in sawtooth, but more than the third order PTR above.</li>
+<li>ricard/osc/EPTRTri.axo :  Second order EPTR triangle oscillator, a rather crude proof-of-concept implementation just as a test of the EPTR algorithm.</li>
+<li>ricard/osc/EPTRAsymTri.axo : Second order EPTR Asymmetric triangle. The waveform generation has been refined, but the symmetry control needs work to be useful, as it is there's much too much action around the zero point of the bipolar control.</li>
+</ul>
+
+<p>All of these are work-in-progress, especially EPTRSaw and EPTRTri which are really just stopgaps while getting myself familiar with the algorithms. I've just made some quick tests, there might be weird quirks lingering in the code somewhere.</p>
+
+<p>Indeed, with a combination of methods to make essentially alias free waveforms for both waveforms with discontinuities (e.g. sawtooth and square/pulse waves) as well as with discontinuities in the first derivative (i.e. the waveform is not discontinuous but changes direction, like the triangle wave does), a lot of interesting analog-synth-like waveforms could be constructed from piecewise linear waveform segments, since the PTR/EPTR algorithms only require adjustments of the corresponding trivial waveforms near the transition regions.</p>
+
+<p>The advent of intrinsic hardware floating point capability in microcontrollers such as the STM32F4 means that it's much easier to implement efficient algorithms without having to convert everything to fixed point or integer math. This means that purely analytical measures can be used to calculate the exact sample points, in contrast to the practical implementation of algorithms such as BLEP which rely on pre-computed tables with the residual waves, suffering from limited phase resolution, rendering the in principle alias free BLEP algorithm not as alias free as intended.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/10</link>
+        <pubDate>Sun, 20 May 2018 23:03:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-10</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>I have updated my quadrature decoder object. It now features configurable debouncing, and configurable knob acceleration (output toggles at an accelerated rate when knob is turned faster). The configuration of the object is now is now in a separate configuration object, so the configuration does not have to be repeated when there are several quadrature decoders in the patch.</p>
+
+<p>I've updated the P6 test patch (p6test.axp) to reflect this, and also added a new P6 patch with a basic single sawtooth oscillator patch, yielding 16 voices of polyphony (it would actually be more, but the Axoloti UI limits polyphony to 16).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/9</link>
+        <pubDate>Thu, 10 May 2018 21:45:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-9</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>all good, it is there. sorry stupid mistake from my side. somehow syncing libraries got disabled at startup. and since i was so used to that i did not even check...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/8</link>
+        <pubDate>Tue, 06 Mar 2018 06:43:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-8</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>That's strange. I assume you've pulled from the repository recently, I uploaded them just a couple of days ago. Or else I've made some mistake; I pushed them to the 1.0.12 branch which seems to be the default one. Checked by cloning the axoloti-contrib repository just now and they are there.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/7</link>
+        <pubDate>Tue, 06 Mar 2018 05:38:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-7</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>hmm, i don't see your objects or patches anywhere in the contrib section...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/6</link>
+        <pubDate>Mon, 05 Mar 2018 22:41:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-6</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Fortunately, the Axoloti seems to be one of the user friendliest builds I've seen, not that I've seen many though. There's a lot of stuff it does, but it's basically download and go for the most part.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/5</link>
+        <pubDate>Mon, 05 Mar 2018 13:08:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-5</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>thanks, ok will have a go at this sometime i think. time to setup an axoloti build environment.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/4</link>
+        <pubDate>Mon, 05 Mar 2018 06:33:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-4</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Hi and thanks for your interest!</p>
+
+<p>First, you need a patched version of the Axoloti firmware which adds support for the P6, mainly when it comes to differing clock crystal rates, UART assignment, and the different DAC used in the P6, but also removes support for things like the ADC since the STM32 analog inputs are not used in the P6.</p>
+
+<p>The firmware is available in my Github repository, at github.com/polluxsynth/axoloti, on the p6 branch. Basically, you check out that branch (which is just a fork of the official Axoloti firmware), and build just as you would the standard Axoloti firmware.</p>
+
+<p>To flash the P6, first start the Axoloti UI as usual, connect it to the P6 using a USB cable, and then set the P6 to DFU boot mode by holding the BOOT button inside the P6 and switching it on. Go into the Board -&gt; Firmware -&gt; Flash (rescue) menu in the Axoloti UI to flash the P6; the progress will be indicated in the main Axoloti log window. (For some reason which I haven't  been able to figure out, upgrading to a newer version must be done in the same way, rather than use Board -&gt; Firmware -&gt; Flash .)</p>
+
+<p>After that, it basically works the same as with the standard Axoloti, taking into consideration the limitations of the P6 hardware. MIDI input and output, also over USB, works directly in the platform, using the corresponding Axoloti objects. The LCD and other user interface elements require the special objects described above to access them. There's no audio input of course, since the P6 has no ADC, and there is no SD card, and no DRAM. So objects which use these elements won't work. Apart from the, there's the same DSP and RAM capacity as on the Axoloti hardware. In particular, the Patch -&gt; Upload to internal flash function works, which is really nice on a box with its own user interface.</p>
+
+<p>I just uploaded my test patch, patches/ricard/p6/p6test.axp which basically implements a complete P6 UI, with three embedded objects implementing user interface menus, parameter management, and a state machine for menu navigation. There's also an object which implements rudimentary patch storage in the P6 on-board 24C512 EEPROM. Mind you, these are patches in the UI sense of the embedded objects in the patch, not storage of true Axoloti patches. The reason for this is that my end goal was to implement a synth where only a subset parameters are user controllable, in order to make the user interface more managable, as on any pre-configured synth (such as the P6).</p>
+
+<p>In order for the UI to have something to control, there's a very rudimentary synth implemented as a subpatch, a far cry from a real P6, basically just something to test the user interface on.</p>
+
+<p>Just to be clear, neither the p6 branch of the firmware nor the p6test patch can load original P6 patches or anything, I'm just aiming for something with the same look and feel, as I really like the P6 UI approach.</p>
+
+<p>I haven't done a lot of work on this lately, partly because I'm not fully convinced like things like the LCD and encoder control should be patcher objects, because I feel the Axoloti patcher environment is not ideal for things like state machines and things that are triggered from user buttons, as opposed to DSP code which does something useful all the time, The EEPROM support for instance is implemented partly in the firmware on the p6 branch, and then has a (currently embedded) object for the actual patcher interface, and a similar approach might be more viable for the LCD for instance. At the same time, the current approach means that the objects can be used for other, custom, hardware as well, which is a plus from a community perspective.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/3</link>
+        <pubDate>Sun, 04 Mar 2018 23:41:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-3</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>hi ricard, great work! i have a p6 collecting dust and would be very interested in this. so what is the procedure? how do i "update" my p6? how do i upload patches? generally, what works, what not?</p>
+
+<p>cheers</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/2</link>
+        <pubDate>Sun, 04 Mar 2018 22:15:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-2</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+      <item>
+        <title>Ricard contributions</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>I've uploaded some non-audio objects which I've devised while porting the Axoloti to run on the Audiothingies P6 .</p>
+
+<p>The P6 has 6 rotary encoders, which together with 9 push buttons (and 6 push buttons in the encoders) are connected to 74HC165 shift registers using an SPI-like interface (although in the P6 it is bit-banged rather than using an SPI interface in the STM32 chip).</p>
+
+<p>There's also a quadrature decoder object for decoding the outputs from the rotary encoders, which takes two inputs and produces an up clock and a down clock, which output clocks depending on which way the encoder is turned. There's also a step output which outputs clocks independent of the direction of rotation.</p>
+
+<p>Objects:<br>objects/ricard/gpio/in/165ctrl v.axo (control object specifying the pins used and number of bits employed (8 per 74HC165 chip), as well as the scanning rate.<br>objects/ricard/gpio/in/165in.axo (actual bit input object generating a boolean signal)<br>objects/ricard/logic/qdecode.axo (quadrature decoder)</p>
+
+<p>The P6 also uses a 74HC595 shift register for controlling 8 of the LEDs on the front panel.</p>
+
+<p>Objects:<br>objects/ricard/gpio/out/595ctrl.axo (control object specifying the pins used and number of bits employed (8 per 74HC595 chip).<br>objects/ricard/gpio/out/595out.axo (actual bit output object)</p>
+
+<p>The P6 has a 2x24 character LCD, and I've devised a pair of objects for printing to the LCD. The connection is rather rudimentary, utilizing the 4-bit mode of the display, with no status readout, hence a 6 wire interface suffices, with RS, E and 4 data bits D4..D7. The R/W pin is assumed permanently low (i.e. write).</p>
+
+<p>Objects:<br>objects/ricard/disp/lcdctrl.axo (control object specifying the pins used and size of the print queue (number of strings that may be printed at once and which will be printed in order as the display becomes available)<br>objects/ircard/disp/lcdprint.axo (output object outputting the string input to the module when the clock input goes high)</p>
+
+<p>The strings can contain rudimentary cursor control using control characters, see the object definition for more details.</p>
+
+<p>Finally a rather trivial object, which converts a vector of bits into a single bit masked output value, with a 9 bit input. I seem to remember there being an 8 bit version among the factory patches but I cannot find it now.</p>
+
+<p>Object:<br>objects/ricard/logic/bitval 9.axo</p>
+
+<p>Please note that for the control objects, more pins can be selected than normally on Axoloti modules, simply because I want to be able to run these objects on the P6, where some of the pins used are not available for general use in the Axoloti. So exercise caution when using the modules so you don't select pins which are not actually available.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ricard-contributions/4311/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ricard-contributions/4311/1</link>
+        <pubDate>Sun, 04 Mar 2018 22:02:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4311-1</guid>
+        <source url="http://community.axoloti.com/t/ricard-contributions/4311.rss">Ricard contributions</source>
+      </item>
+  </channel>
+</rss>

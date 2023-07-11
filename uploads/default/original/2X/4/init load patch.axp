@@ -1,0 +1,62 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="210" y="42" text=" this is in all of my patches"/>
+   <comment type="patch/comment" x="210" y="98" text="custom object that takes a midi note from the controller attached to load the init patch - can replace with a simple midi/in/note object or whatever"/>
+   <patchobj type="patch/object" uuid="27a4893e-93bb-4a7c-b41c-0b02da02cbed" name="keyb_3" x="210" y="112">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="27a4893e-93bb-4a7c-b41c-0b02da02cbed">
+         <sDescription>Monophonic MIDI keyboard note input, gate, velocity and release velocity</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <bool32 name="gate" description="key pressed?"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t _gate;
+int ccv;]]></code.declaration>
+         <code.init><![CDATA[_gate = 0;
+]]></code.init>
+         <code.krate><![CDATA[if (ccv&&_gate){
+	outlet_gate=1;
+}
+else outlet_gate=0;]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + 8) && (data2)) {if (data1 == 108) {
+   _gate = 1;
+}
+} else if (((status == MIDI_NOTE_ON + 8) && (!data2))||          (status == MIDI_NOTE_OFF + 8)) {
+  if (data1 == 108) {
+    _gate = 0;
+  }
+} 
+if ((status == 8 + MIDI_CONTROL_CHANGE)&&(data1 == 107)) { ccv = data2;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="560" y="322" text="this loads the init patch so you can load another patch"/>
+   <obj type="patch/load" uuid="634bf1f8c313920d7f19fc402ba937fd1ee27802" name="load_3" x="574" y="336">
+      <params/>
+      <attribs>
+         <table attributeName="filename" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="keyb_3" outlet="gate"/>
+         <dest obj="load_3" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

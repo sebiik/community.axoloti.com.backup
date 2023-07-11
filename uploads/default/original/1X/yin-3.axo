@@ -1,0 +1,293 @@
+<objdefs>
+   <obj.normal id="yin" uuid="69de8e3d8044e145e1eb908baa5a7d3ed2ec5f72" sha="49e30fe8e2a9387b54833e0d861626dcd2417053">
+      
+      <sDescription>YIN pitch detection</sDescription>
+      <author>Joren Six</author>
+      <license>GPL</license>
+      <inlets>
+         <frac32buffer name="in" description="in"/>
+      </inlets>
+      <outlets>
+         <frac32 name="pitch" description="Frequency in Fractional MIDI numbers."/>
+         <frac32 name="salience" description="A value representing the salience of the periodicity."/>
+      </outlets>
+      <displays/>
+      <params>
+      </params>
+      <attribs>
+         <combo name="size">
+            <MenuEntries>
+               <string>256 (5.33ms)</string>
+               <string>384 (14.25ms)</string>
+               <string>512 (10.66ms)</string>
+               <string>768 (16.00ms)</string>
+               <string>1024 (21.33ms)</string>
+               <string>2048 (42.66ms)</string>
+            </MenuEntries>
+            <CEntries>
+               <string>256</string>
+               <string>384</string>
+               <string>512</string>
+               <string>768</string>
+               <string>1024</string>
+               <string>2048</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <code.declaration><![CDATA[  
+
+      static const uint32_t BUFFER_LENGHT = (attr_size);
+      
+      int32_t inbuff[BUFFER_LENGHT];
+      
+
+      /**
+       * @struct  Yin
+       * @breif   Object to encapsulate the parameters for the Yin pitch detection algorithm 
+       */
+      typedef struct _Yin {
+         int32_t bufferSize;        /**< Size of the audio buffer to be analysed */
+         int32_t halfBufferSize;    /**< Half the buffer length */
+         float yinBuffer[BUFFER_LENGHT];    /**< Buffer that stores the results of the intermediate processing steps of the algorithm */
+         float probability;      /**< Probability that the pitch found is correct as a decimal (i.e 0.85 is 85%) */
+         float threshold;     /**< Allowed uncertainty in the result as a decimal (i.e 0.15 is 15%) */
+      } Yin;
+
+      /**
+       * Step 1: Calculates the squared difference of the signal with a shifted version of itself.
+       * @param buffer Buffer of samples to process. 
+       *
+       * This is the Yin algorithms tweak on autocorellation. Read http://audition.ens.fr/adc/pdf/2002_JASA_YIN.pdf
+       * for more details on what is in here and why it's done this way.
+       */
+      void Yin_difference(Yin *yin, int32_t* buffer){
+         int32_t i;
+         int32_t tau;
+         float delta;
+
+         /* Calculate the difference for difference shift values (tau) for the half of the samples */
+         for(tau = 0 ; tau < yin->halfBufferSize; tau++){
+
+            /* Take the difference of the signal with a shifted version of itself, then square it.
+             * (This is the Yin algorithm's tweak on autocorellation) */ 
+            for(i = 0; i < yin->halfBufferSize; i++){
+               delta = buffer[i] - buffer[i + tau];
+               yin->yinBuffer[tau] += delta * delta;
+            }
+         }
+      }
+
+      /**
+       * Step 2: Calculate the cumulative mean on the normalised difference calculated in step 1
+       * @param yin #Yin structure with information about the signal
+       *
+       * This goes through the Yin autocorellation values and finds out roughly where shift is which 
+       * produced the smallest difference
+       */
+      void Yin_cumulativeMeanNormalizedDifference(Yin *yin){
+         int32_t tau;
+         float runningSum = 0;
+         yin->yinBuffer[0] = 1;
+
+         /* Sum all the values in the autocorellation buffer and nomalise the result, replacing
+          * the value in the autocorellation buffer with a cumulative mean of the normalised difference */
+         for (tau = 1; tau < yin->halfBufferSize; tau++) {
+            runningSum += yin->yinBuffer[tau];
+            yin->yinBuffer[tau] *= tau / runningSum;
+         }
+      }
+
+      /**
+       * Step 3: Search through the normalised cumulative mean array and find values that are over the threshold
+       * @return Shift (tau) which caused the best approximate autocorellation. -1 if no suitable value is found over the threshold.
+       */
+      int32_t Yin_absoluteThreshold(Yin *yin){
+         int32_t tau;
+
+         /* Search through the array of cumulative mean values, and look for ones that are over the threshold 
+          * The first two positions in yinBuffer are always so start at the third (index 2) */
+         for (tau = 2; tau < yin->halfBufferSize ; tau++) {
+            if (yin->yinBuffer[tau] < yin->threshold) {
+               while (tau + 1 < yin->halfBufferSize && yin->yinBuffer[tau + 1] < yin->yinBuffer[tau]) {
+                  tau++;
+               }
+               /* found tau, exit loop and return
+                * store the probability
+                * From the YIN paper: The yin->threshold determines the list of
+                * candidates admitted to the set, and can be interpreted as the
+                * proportion of aperiodic power tolerated
+                * within a periodic signal.
+                *
+                * Since we want the periodicity and and not aperiodicity:
+                * periodicity = 1 - aperiodicity */
+               yin->probability = 1 - yin->yinBuffer[tau];
+               break;
+            }
+         }
+
+         /* if no pitch found, tau => -1 */
+         if (tau == yin->halfBufferSize || yin->yinBuffer[tau] >= yin->threshold) {
+            tau = -1;
+            yin->probability = 0;
+         }
+
+         return tau;
+      }
+
+   /**
+    * Step 5: Interpolate the shift value (tau) to improve the pitch estimate.
+    * @param  yin         [description]
+    * @param  tauEstimate [description]
+    * @return             [description]
+    *
+    * The 'best' shift value for autocorellation is most likely not an interger shift of the signal.
+    * As we only autocorellated using integer shifts we should check that there isn't a better fractional 
+    * shift value.
+    */
+   float Yin_parabolicInterpolation(Yin *yin, int32_t tauEstimate) {
+      float betterTau;
+      int32_t x0;
+      int32_t x2;
+      
+      /* Calculate the first polynomial coeffcient based on the current estimate of tau */
+      if (tauEstimate < 1) {
+         x0 = tauEstimate;
+      } 
+      else {
+         x0 = tauEstimate - 1;
+      }
+
+      /* Calculate the second polynomial coeffcient based on the current estimate of tau */
+      if (tauEstimate + 1 < yin->halfBufferSize) {
+         x2 = tauEstimate + 1;
+      } 
+      else {
+         x2 = tauEstimate;
+      }
+
+      /* Algorithm to parabolically interpolate the shift value tau to find a better estimate */
+      if (x0 == tauEstimate) {
+         if (yin->yinBuffer[tauEstimate] <= yin->yinBuffer[x2]) {
+            betterTau = tauEstimate;
+         } 
+         else {
+            betterTau = x2;
+         }
+      } 
+      else if (x2 == tauEstimate) {
+         if (yin->yinBuffer[tauEstimate] <= yin->yinBuffer[x0]) {
+            betterTau = tauEstimate;
+         } 
+         else {
+            betterTau = x0;
+         }
+      } 
+      else {
+         float s0, s1, s2;
+         s0 = yin->yinBuffer[x0];
+         s1 = yin->yinBuffer[tauEstimate];
+         s2 = yin->yinBuffer[x2];
+         // fixed AUBIO implementation, thanks to Karl Helgason:
+         // (2.0f * s1 - s2 - s0) was incorrectly multiplied with -1
+         betterTau = tauEstimate + (s2 - s0) / (2 * (2 * s1 - s2 - s0));
+      }
+
+
+      return betterTau;
+   }
+
+
+   /* ------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------------- PUBLIC FUNCTIONS
+   -------------------------------------------------------------------------------------------*/
+
+
+
+   /**
+    * Initialise the Yin pitch detection object
+    * @param yin        Yin pitch detection object to initialise
+    * @param bufferSize Length of the audio buffer to analyse
+    * @param threshold  Allowed uncertainty (e.g 0.05 will return a pitch with ~95% probability)
+    */
+   void Yin_init(Yin *yin, float threshold){
+      /* Initialise the fields of the Yin structure passed in */
+      yin->bufferSize = BUFFER_LENGHT;
+      yin->halfBufferSize = BUFFER_LENGHT/2;
+      yin->probability = 0.0;
+      yin->threshold = threshold;
+
+      int32_t i;
+      for(i = 0; i < yin->halfBufferSize; i++){
+         yin->yinBuffer[i] = 0;
+      }
+   }
+
+   /**
+    * Runs the Yin pitch detection algortihm
+    * @param  yin    Initialised Yin object
+    * @param  buffer Buffer of samples to analyse
+    * @return        Fundamental frequency of the signal in Hz. Returns -1 if pitch can't be found
+    */
+   float Yin_getPitch(Yin *yin, int32_t* buffer){
+      int32_t tauEstimate = -1;
+      float pitchInHertz = -1;
+      
+      /* Step 1: Calculates the squared difference of the signal with a shifted version of itself. */
+      Yin_difference(yin, buffer);
+      
+      /* Step 2: Calculate the cumulative mean on the normalised difference calculated in step 1 */
+      Yin_cumulativeMeanNormalizedDifference(yin);
+      
+      /* Step 3: Search through the normalised cumulative mean array and find values that are over the threshold */
+      tauEstimate = Yin_absoluteThreshold(yin);
+      
+      /* Step 5: Interpolate the shift value (tau) to improve the pitch estimate. */
+      if(tauEstimate != -1){
+         pitchInHertz = 48000.0 / Yin_parabolicInterpolation(yin, tauEstimate);
+      }
+      
+      return pitchInHertz;
+   }
+
+   int state = 0;
+   Yin yin;
+   int32_t buffer[BUFFER_LENGHT];
+   int32_t prevPitch=0;
+   int32_t prevSalience=0;
+
+
+]]></code.declaration>
+      <code.init><![CDATA[
+      Yin_init(&yin,0.15);
+
+      //
+]]></code.init>
+      <code.krate><![CDATA[
+      
+      if(state==BUFFER_LENGHT){
+         float currentPitch;
+         float currentProbability;
+         currentPitch = Yin_getPitch(&yin,buffer);
+         currentProbability = yin.probability;
+         if(currentPitch == -1){
+            currentPitch = -64;
+         }else{
+            //(12 * log2 (f / 440)) + 5
+            currentPitch = 12.0 * log(currentPitch/440.0)/log(2.0) + 5.0;
+         }         
+         prevPitch = (int32_t)(currentPitch*(1<<21));
+         prevSalience = (int32_t)(currentProbability*64*(1<<21));
+
+         state = 0;
+      }
+     outlet_pitch =  prevPitch;
+     outlet_salience = prevSalience;
+      
+]]></code.krate>
+      <code.srate><![CDATA[
+      //store the samples in the buffer;
+      buffer[state] = inlet_in;
+      state++;
+]]></code.srate>
+   </obj.normal>
+</objdefs>

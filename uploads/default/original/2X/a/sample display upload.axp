@@ -1,0 +1,564 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="gpio/i2c/config" uuid="b095a33e56de5fcd23740a7d983bc0bafb315d81" name="config_1" x="70" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="data" x="168" y="56">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="1048576"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="294" y="56">
+      <params>
+         <int32 name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="tiar/HW/OLED128x64nice" uuid="5bde8c3d-fe37-40b3-848e-edb113767bc8" name="OLED128x64nice_1" x="350" y="56">
+      <params/>
+      <attribs>
+         <objref attributeName="scope" obj="test_1"/>
+         <combo attributeName="type" selection="SH1106"/>
+         <combo attributeName="I2CADDR" selection="0x3C"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="266" y="266" text="record"/>
+   <comment type="patch/comment" x="434" y="266" text="trigger"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_4" x="266" y="280">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_3" x="434" y="280">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1008" y="308" text="sample accurate"/>
+   <comment type="patch/comment" x="658" y="322" text="scroll"/>
+   <comment type="patch/comment" x="742" y="322" text="zoom (0=whole sample)"/>
+   <comment type="patch/comment" x="882" y="322" text="scroll X samples"/>
+   <comment type="patch/comment" x="1008" y="322" text="(disables horizontal zoom)"/>
+   <comment type="patch/comment" x="1162" y="322" text="refresh"/>
+   <comment type="patch/comment" x="1358" y="322" text="small scope for OLED use"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="658" y="336">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_2" x="742" y="336">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="896" y="336">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="1008" y="336">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_4" x="1162" y="336">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_2" x="1288" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="25a08eb5-7343-4d04-bdbc-df1fc7940ffa" name="test_1" x="1358" y="336">
+      <params>
+         <int32 name="length" value="0"/>
+         <int32 name="offset" value="0"/>
+         <int32 name="zoomV" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+      <object id="patch/object" uuid="25a08eb5-7343-4d04-bdbc-df1fc7940ffa">
+         <sDescription>displays samples (or whatever data is there)from a table;</sDescription>
+         <author>mattilyn mattroe</author>
+         <license>price per use is 5 wotsits and a dollop of mayo.</license>
+         <helpPatch>scope.axh</helpPatch>
+         <rotatedParams>false</rotatedParams>
+         <inlets>
+            <bool32 name="refresh"/>
+            <int32 name="length" description="length of recording in samples"/>
+            <frac32.positive name="scroll" description="scroll view"/>
+            <frac32.positive name="zoomH" description="zoom vertically by factor of 2"/>
+            <int32 name="sample" description="scroll by X samples"/>
+            <bool32.risingfalling name="accurate" description="sample accurate display - display shows 128 samples"/>
+         </inlets>
+         <outlets/>
+         <displays>
+            <int8array128.vbar name="1"/>
+         </displays>
+         <params>
+            <int32 name="length" description="length of recording in samples" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="4194303"/>
+            </int32>
+            <int32 name="offset" description="offset start position on table">
+               <MinValue i="0"/>
+               <MaxValue i="4194303"/>
+            </int32>
+            <int32 name="zoomV" description="vertical zoom">
+               <MinValue i="-4"/>
+               <MaxValue i="4"/>
+            </int32>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int length;
+int inzoom;
+int ratio;
+int cpt;
+int pzoom;
+int index;
+int prev;
+int pos;
+int pscroll;
+int pcount;
+int scroll;
+int rtrig;
+int inscroll;
+int zoomH;
+int chold;
+int pr;
+int psample;
+int paccurate;
+
+int8_t t[128];]]></code.declaration>
+         <code.init><![CDATA[int i;
+for(i=0;i<128;i++) t[i]=0;]]></code.init>
+         <code.krate><![CDATA[if (rtrig){
+	if (!inlet_accurate){
+		scroll= ___SMMUL(length<<3,inscroll<<2);
+		pos=((index)*ratio)+param_offset+scroll+inlet_sample;
+		}
+	else {
+		scroll= ___SMMUL(length<<3,inlet_scroll<<2);
+		pos=(index)+param_offset+scroll+inlet_sample;
+	}
+	if (pos<=0){
+		pos=0;
+	}
+	if (pos>=(length+param_offset+scroll)){
+		pos=(length+param_offset+scroll);
+	}
+	uint8_t v;
+	
+	disp_1[index] =((attr_table.array[pos])>>(21-param_zoomV));
+	t[index] =((attr_table.array[pos])>>(21-param_zoomV));
+	index++;
+	if ((index) >= (128)){
+		index = 0;
+		rtrig=0;
+		}
+	}
+
+if (!rtrig){
+	length=param_length+inlet_length;
+	
+	
+	
+	inzoom=0x07FFFFFF-inlet_zoomH;
+	inscroll=___SMMUL(inlet_zoomH<<3,inlet_scroll<<2);
+	
+	//ratio=length/zoomH/128;
+	ratio=(___SMMUL((length/128)<<3,inzoom<<2));
+	
+	
+	if ((inlet_scroll)!=pscroll) {
+	
+		pscroll=inlet_scroll;
+		//cpt=0;
+		index=0;
+		rtrig=1;
+	}
+	
+	if (param_zoomV!=pzoom){
+	
+		pzoom=param_zoomV;
+		//cpt=0;
+		index=0;
+		rtrig=1;
+	}
+	
+	
+	if (inlet_refresh&&!pr){
+		pr=1;
+		
+		index=0;
+		rtrig=1;
+	}
+	else if (!inlet_refresh){
+		pr=0;
+	}
+	
+	
+	if (zoomH!=inzoom){
+		zoomH=inzoom;
+	
+		
+		index=0;
+		rtrig=1;
+	}
+	if (inlet_sample!=psample){
+		psample=inlet_sample;
+		rtrig=1;
+		index=0;
+	}
+	if (inlet_accurate!=paccurate){
+		paccurate=inlet_accurate;
+		rtrig=1;
+		index=0;
+	}
+
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="812" y="518" text="time recording"/>
+   <comment type="patch/comment" x="938" y="518" text="*16 to get sample length"/>
+   <obj type="audio/in left" uuid="d40e60b7641fe75af4d7c91b45bb038aacafc52e" name="in_1" x="126" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="210" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/record" uuid="2f8909f3691be093f0b8cf6532d4acff2dcb1a9f" name="record_1" x="280" y="532">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_2" x="434" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/play" uuid="53c499b6f6fbdcc25b48906393123ca10030ed45" name="play_1" x="504" y="532">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="644" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_3" x="728" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="timer/timeri" uuid="11c19ad8fb3f9451d29984ba5dc7ebf8c30cdbfd" name="timeri_1" x="826" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/math/&lt;&lt; i c" uuid="984d06ee-2b58-4536-822a-bb4d9e119250" name="&lt;&lt;_1" x="938" y="532">
+      <params>
+         <int32 name="shift" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="798" y="616" text="pulse when recording stops to refresh screen"/>
+   <obj type="rbrt/control/t2p" uuid="e076e6e6-f59e-429e-b4ca-c0f3e55f074a" name="t2p_2" x="868" y="630">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="b1238ede-4823-4881-9353-1bc71d82a8a6" name="halfscope_1" x="966" y="686">
+      <params>
+         <int32 name="length" value="0"/>
+         <int32 name="offset" value="0"/>
+         <int32 name="zoomV" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+      <object id="patch/object" uuid="b1238ede-4823-4881-9353-1bc71d82a8a6">
+         <sDescription>bipolar audio rate signal oscilloscope (time domain), showing 128 consecutive samples after the signal becomes positive.
+
+this module has outputs to link several scopes behind each other for a big scope</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>scope.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <bool32.rising name="refresh"/>
+            <int32 name="length"/>
+            <frac32.positive name="scroll"/>
+            <frac32.positive name="zoomH"/>
+            <int32 name="sample"/>
+            <bool32.risingfalling name="accurate"/>
+         </inlets>
+         <outlets/>
+         <displays>
+            <int8array128.vbar name="1" noLabel="true"/>
+            <int8array128.vbar name="2" noLabel="true"/>
+            <int8array128.vbar name="3" noLabel="true"/>
+            <int8array128.vbar name="4" noLabel="true"/>
+         </displays>
+         <params>
+            <int32 name="length">
+               <MinValue i="0"/>
+               <MaxValue i="4194303"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="4194303"/>
+            </int32>
+            <int32 name="zoomV">
+               <MinValue i="-4"/>
+               <MaxValue i="4"/>
+            </int32>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int length;
+int inzoom;
+int ratio;
+int cpt;
+int pzoom;
+int index;
+int prev;
+int pos;
+int pscroll;
+int pcount;
+int scroll;
+int rtrig;
+int inscroll;
+int zoomH;
+int chold;
+int pr;
+int psample;
+int paccurate;
+
+int8_t t[512];]]></code.declaration>
+         <code.init><![CDATA[int i;
+for(i=0;i<128;i++) t[i]=0;]]></code.init>
+         <code.krate><![CDATA[//write+=1;
+//write=write&((1<<13)-1);
+//int i;
+
+//i=write>>3;
+     	  
+//     	  if(i<128){disp_1[i]=inlet_in>>21;}
+//       else if(i<256){disp_2[i-128]=inlet_in>>21;}
+//       else if(i<384){disp_3[i-256]=inlet_in>>21;}
+//       else {disp_4[i-384]=inlet_in>>21;}
+
+if (rtrig){
+	if (!inlet_accurate){
+		scroll= ___SMMUL(length<<3,inscroll<<2);
+		pos=((index)*ratio)+param_offset+scroll+inlet_sample;
+		}
+	else {
+		scroll= ___SMMUL(length<<3,inlet_scroll<<2);
+		pos=(index)+param_offset+scroll+inlet_sample;
+	}
+	if (pos<=0){
+		pos=0;
+	}
+	if (pos>=(length+param_offset+scroll)){
+		pos=(length+param_offset+scroll);
+	}
+	uint8_t v;
+	
+	
+	 if(index<128){
+	 	disp_1[index] =((attr_table.array[pos])>>(21-param_zoomV));
+		t[index] =((attr_table.array[pos])>>(21-param_zoomV));
+	 	}
+       else if(index<256){
+       	disp_2[index-128]=((attr_table.array[pos])>>(21-param_zoomV));
+       	}
+       else if(index<384){
+       	disp_3[index-256]=((attr_table.array[pos])>>(21-param_zoomV));
+       	}
+       else {
+       	disp_4[index-384]=((attr_table.array[pos])>>(21-param_zoomV));
+       	}
+
+	
+	index++;
+	if ((index) >= (512)){
+		index = 0;
+		rtrig=0;
+		}
+	}
+
+if (!rtrig){
+	length=param_length+inlet_length;
+	
+	
+	
+	inzoom=0x07FFFFFF-inlet_zoomH;
+	inscroll=___SMMUL(inlet_zoomH<<3,inlet_scroll<<2);
+	
+	//ratio=length/zoomH/128;
+	ratio=(___SMMUL((length/512)<<3,inzoom<<2));
+	
+	
+	if ((inlet_scroll)!=pscroll) {
+	
+		pscroll=inlet_scroll;
+		//cpt=0;
+		index=0;
+		rtrig=1;
+	}
+	
+	if (param_zoomV!=pzoom){
+	
+		pzoom=param_zoomV;
+		//cpt=0;
+		index=0;
+		rtrig=1;
+	}
+	
+	
+	if (inlet_refresh&&!pr){
+		pr=1;
+		
+		index=0;
+		rtrig=1;
+	}
+	else if (!inlet_refresh){
+		pr=0;
+	}
+	
+	
+	if (zoomH!=inzoom){
+		zoomH=inzoom;
+	
+		
+		index=0;
+		rtrig=1;
+	}
+	if (inlet_sample!=psample){
+		psample=inlet_sample;
+		rtrig=1;
+		index=0;
+	}
+	if (inlet_accurate!=paccurate){
+		paccurate=inlet_accurate;
+		rtrig=1;
+		index=0;
+	}
+
+
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="timeri_1" outlet="t"/>
+         <dest obj="&lt;&lt;_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="button_4" outlet="o"/>
+         <dest obj="or_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="OLED128x64nice_1" inlet="mode"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="test_1" inlet="zoomH"/>
+         <dest obj="halfscope_1" inlet="zoomH"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="test_1" inlet="scroll"/>
+         <dest obj="halfscope_1" inlet="scroll"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="wave"/>
+         <dest obj="record_1" inlet="wave"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="toggle_4" outlet="o"/>
+         <dest obj="record_1" inlet="start"/>
+         <dest obj="inv_1" inlet="i"/>
+         <dest obj="timeri_1" inlet="start"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="o"/>
+         <dest obj="record_1" inlet="stop"/>
+         <dest obj="timeri_1" inlet="stop"/>
+         <dest obj="t2p_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="play_1" outlet="wave"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="button_3" outlet="o"/>
+         <dest obj="play_1" inlet="start"/>
+         <dest obj="inv_2" inlet="i"/>
+      </net>
+      <net>
+         <source obj="inv_2" outlet="o"/>
+         <dest obj="play_1" inlet="stop"/>
+      </net>
+      <net>
+         <source obj="&lt;&lt;_1" outlet="out"/>
+         <dest obj="test_1" inlet="length"/>
+         <dest obj="halfscope_1" inlet="length"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="test_1" inlet="accurate"/>
+         <dest obj="halfscope_1" inlet="accurate"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="test_1" inlet="sample"/>
+         <dest obj="halfscope_1" inlet="sample"/>
+      </net>
+      <net>
+         <source obj="or_2" outlet="o"/>
+         <dest obj="test_1" inlet="refresh"/>
+         <dest obj="halfscope_1" inlet="refresh"/>
+      </net>
+      <net>
+         <source obj="t2p_2" outlet="pulse"/>
+         <dest obj="or_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="out_3" inlet="wave"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

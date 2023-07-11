@@ -1,0 +1,86 @@
+<objdefs appVersion="1.0.8">
+   <obj.normal id="octal_cc_register" uuid="583a6777-d277-4da1-b010-b7a25a0c4314">
+      <sDescription>Latch eight consecutive CCs when select is high. Including MIDI parameter feedback.</sDescription>
+      <author>Johannes Taelman</author>
+      <license>BSD</license>
+      <helpPatch>midi_in.axh</helpPatch>
+      <inlets>
+         <bool32 name="select"/>
+      </inlets>
+      <outlets>
+         <frac32.positive name="val1"/>
+         <frac32.positive name="val2"/>
+         <frac32.positive name="val3"/>
+         <frac32.positive name="val4"/>
+         <frac32.positive name="val5"/>
+         <frac32.positive name="val6"/>
+         <frac32.positive name="val7"/>
+         <frac32.positive name="val8"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs>
+         <combo name="device" description="Device to send parameter feedback to">
+            <MenuEntries>
+               <string>din</string>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <spinner name="channel" description="MIDI channel to respond to" MinValue="1" MaxValue="16" DefaultValue="0"/>
+         <spinner name="min" description="First CC, inclusive" MinValue="0" MaxValue="127" DefaultValue="0"/>
+      </attribs>
+      <code.declaration><![CDATA[const static int NUM_REGS = 8;
+
+int32_t _regs[NUM_REGS] = {}; 
+int32_t _selected; 
+int32_t ntrig;]]></code.declaration>
+      <code.init><![CDATA[ _selected = 0;
+ ntrig = 0;]]></code.init>
+      <code.krate><![CDATA[outlet_val1 = _regs[0];
+outlet_val2 = _regs[1];
+outlet_val3 = _regs[2];
+outlet_val4 = _regs[3];
+outlet_val5 = _regs[4];
+outlet_val6 = _regs[5];
+outlet_val7 = _regs[6];
+outlet_val8 = _regs[7];
+
+if (inlet_select && !_selected) {
+	ntrig = 1;
+}
+
+_selected = inlet_select;
+
+if (ntrig > 0) {
+	for (int i = 0; i<NUM_REGS; i++) {
+		MidiSend3((midi_device_t) attr_device, 
+			MIDI_CONTROL_CHANGE + (attr_channel-1),
+			attr_min + i,
+			__USAT(_regs[i]>>20,7));
+	}
+	ntrig = 0;
+}]]></code.krate>
+      <code.midihandler><![CDATA[if ((status&0xF0) == MIDI_CONTROL_CHANGE) {
+	if (_selected && ((status & 0x0F) == (attr_channel-1)) && (attr_min <= data1) && (data1 <= attr_min + NUM_REGS)) {
+          int reg = data1 - attr_min;
+          _regs[reg] = (data2<<20);
+	}
+}]]></code.midihandler>
+   </obj.normal>
+</objdefs>

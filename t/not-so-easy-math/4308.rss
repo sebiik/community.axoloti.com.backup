@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Not so easy math</title>
+    <link>http://community.axoloti.com/t/not-so-easy-math/4308</link>
+    <description>I am struggling to get some functionality in my object for which I need a division.
+
+I have entered the following expressions: 
+outlet_test1 = (64-24)*(64/40);
+outlet_test2 = (64-24)*1.6;
+
+In easy math they have the same outcome. In not so easy math they have a different outcome. Can anyone point me in the direction how I should change the first line to get the outcome of the second line?</description>
+    
+    <lastBuildDate>Mon, 05 Mar 2018 07:37:54 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/not-so-easy-math/4308.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Not so easy math</title>
+        <dc:creator><![CDATA[@azaxo Albert van der Zee]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/azaxo">@azaxo</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="4308"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>type conversion in C, its an important topic,</p></blockquote></aside>
+
+<p>Thank you Mark for pointing me in the right direction. </p>
+
+<aside class="quote" data-post="3" data-topic="4308"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>but I'm suspecting the expression is a simplification of a more complex expression involving variables, i</p></blockquote></aside>
+
+<p>You are right about that!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/not-so-easy-math/4308/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/not-so-easy-math/4308/4</link>
+        <pubDate>Mon, 05 Mar 2018 07:37:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4308-4</guid>
+        <source url="http://community.axoloti.com/t/not-so-easy-math/4308.rss">Not so easy math</source>
+      </item>
+      <item>
+        <title>Not so easy math</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="4308"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/a/ec9cab/40.png" class="avatar">azaxo:</div>
+<blockquote><p>outlet_test1 = (64-24)*(64/40);</p></blockquote></aside>
+
+<p>I think what you want to do is change the first line to </p>
+
+<p>outlet_test1 = (64-24)*64/40;</p>
+
+<p>or, clearer but with redundant parentheses, as multiplication and division take place in left to right order anyway.</p>
+
+<p>outlet_test1 = ((64-24)*64)/40;</p>
+
+<p>As <a class="mention" href="/u/thetechnobear">@thetechnobear</a> noted, when 64/40 is evaluated in integer maths, the result is 1, så you loose the fractional part. The trick in integer math is to multiply the whole value with 64 before dividing with 40; that way, you don't get the decimal truncation until the the final value. If you really want to be accurate, add 20 (half of 40) before the division, to get the result properly rounded, i.e.</p>
+
+<p>outlet_test1 = ((64-24)*64+20)/40;</p>
+
+<p>The downside is because you're potentially multiplying your value with a fairly large integer (64) it will overflow before the division is performed; in the above example this won't happen, at least not with integers that are 16 bits wide or more, but I'm suspecting the expression is a simplification of a more complex expression involving variables, in which case you need to check your expression with the largest possible input value to check that it doesn't overflow in that case.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/not-so-easy-math/4308/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/not-so-easy-math/4308/3</link>
+        <pubDate>Mon, 05 Mar 2018 06:01:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4308-3</guid>
+        <source url="http://community.axoloti.com/t/not-so-easy-math/4308.rss">Not so easy math</source>
+      </item>
+      <item>
+        <title>Not so easy math</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>I guess this is just a basic C question... (rather than about integer maths as is used in axo.)</p>
+
+<p>assuming so, then your issue with C, is 'type conversion'<br>C will keep its type, so your 64/40 is done as an integer and so equals 1, if you want to use floating point then you have to tell C to upcast it to float (or double or whatever <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:">) </p>
+
+<p>in this constant example, you can do this by using float constants<br>e.g. (64-24) * (64/40.0f) , this results in a float expression</p>
+
+<p>this is why your second example 'works' , since you have given it a float, and so will use float for the expression</p>
+
+<p>(40.0 will also work, but is considered bad practice, as its unclear... it could be a double or could be float, depending on compiler/platform... many compilers will now give a warning for this. ) </p>
+
+<p>however, Id recommend you read up about type conversion in C, its an important topic, and one if you are not clear on is <strong>really</strong> easy to get yourself in a mess, and introduce some subtle (=nasty) bugs.<br>(e.g. things like operator precedence might change which parts of your expression are in float, and which in int)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/not-so-easy-math/4308/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/not-so-easy-math/4308/2</link>
+        <pubDate>Sun, 04 Mar 2018 16:12:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4308-2</guid>
+        <source url="http://community.axoloti.com/t/not-so-easy-math/4308.rss">Not so easy math</source>
+      </item>
+      <item>
+        <title>Not so easy math</title>
+        <dc:creator><![CDATA[@azaxo Albert van der Zee]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/azaxo">@azaxo</a> wrote:</p>
+          <blockquote>
+              <p>I am struggling to get some functionality in my object for which I need a division.</p>
+
+<p>I have entered the following expressions: <br>outlet_test1 = (64-24)*(64/40);<br>outlet_test2 = (64-24)*1.6;</p>
+
+<p>In easy math they have the same outcome. In not so easy math they have a different outcome. Can anyone point me in the direction how I should change the first line to get the outcome of the second line?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/not-so-easy-math/4308/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/not-so-easy-math/4308/1</link>
+        <pubDate>Sun, 04 Mar 2018 14:30:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4308-1</guid>
+        <source url="http://community.axoloti.com/t/not-so-easy-math/4308.rss">Not so easy math</source>
+      </item>
+  </channel>
+</rss>

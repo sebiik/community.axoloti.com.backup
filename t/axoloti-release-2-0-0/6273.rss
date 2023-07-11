@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Axoloti release 2.0.0</title>
+    <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273</link>
+    <description>It&#39;s been a long and deep process, finally I&#39;ve reached the point where all changes converged into a new release. It hasn&#39;t been tested extensively yet, showstopper bugs may still exist.
+The first one I noticed is that the software quits unexpectedly on Windows, immediately after initiating firmware flashing. The firmware flashing does work, but you need to re-launch the software.
+
+USB hub support did not make it, I had it working (using the Chibios Community USB Host framework code) but noticed data drops on certain MIDI controllers. So that&#39;s rolled back to the implementation in 1.0.12. 
+
+My first priority is addressing showstopper bugs in this release, and migration from the 1.0.12 release.
+
+[Download link](https://github.com/axoloti/axoloti/releases)
+
+From the release notes:
+
+# New in Axoloti release 2.0.0
+
+* Multiple patches can now run simultaneously
+
+* MIDI routing
+
+  Patches do not refer any more to specific MIDI devices and ports, but to virtual MIDI ports.
+  Physical MIDI in- and outputs are now routed to virtual ports via the &quot;Midi Routing&quot; dialog in the
+  board menu. 
+  Midi routing settings can be stored on sdcard.
+  
+* MIDI input monitor
+
+  Shows the content of the MIDI input buffer. 
+
+* MIDI Sysex support
+
+* New objects `patch/bus_mix` and `patch/bus_rcv`
+
+  allow to route audio across running patches
+
+* Improved undo/redo
+
+* Introducing modules
+
+  Modules are dynamically loaded libraries, loaded only once when used in multiple patches.
+  They require an sdcard, and are located in /lib/libraryname.elf
+  Compiling and uploading libraries happens automagically when running a patch.
+
+* Audio input/output level meters
+
+* Improved USB protocol handling
+
+  Axoloti Core boards upgraded to v2.0 firmware can&#39;t connect to Axoloti v1.x software. 
+  If you need to go back to 1.x after upgrading you need to downgrade to 1.0.12 firmware via the 
+  board menu in 2.x, or do a &quot;rescue flash&quot;.
+
+# Changes in general behaviour:
+
+* Compiled patches now carry an .elf extension (instead of .bin)
+
+* &quot;controller object&quot; configuration is gone
+
+  Since multiple patches can run, one &quot;master&quot; patch can be used to load other patches, for example in
+  response to program changes. It can also contain your effects section, midi indirections, or other
+  &quot;utilities&quot; you want to keep running.
+
+* Old compiled patches do not run anymore, sorry
+
+* MIDI i/o on gpio does not work anymore
+
+* When dsp load exceeds 98%, patches are muted
+
+* No more dsp load indicator in patch window
+
+  There is a global dsp load indicator in the main window instead.
+
+* Menubars are inside windows on Mac OSX, no useful menubar on top of the screen.
+ 
+  The trick that puts the menubar on top of the screen unfortunately causes some menus to stop functioning correctly.
+
+* Patches used to run in with a directory carriying the patch&#39; name as working directory
+
+  This is no longer the case, it conflicts with the concept of multiple running patches.
+
+* Axoloti Runtime is no longer used, but installing gcc-arm-none-eabi manually is required.
+
+  An error message with download/installation instructions is shown at startup when missing.
+
+* Space characters in the installation path are not allowed on Mac OSX and Linux
+
+  An error message is shown...
+
+# Yet incomplete:
+
+* Several MI clone objects do not work anymore:
+	fx/lmnts/lmnts
+	fx/lmnts/string
+	fx/lmnts/tube
+	fx/clds/clds
+	fx/clds/pitchshifter
+	fx/rngs/chorus
+	fx/rngs/ensemble
+	fx/rngs/reverb
+	fx/strms/strms
+	fx/wrps/wrps
+	
+  Those need to be adapted to use modules...
+
+* A preliminary port of tinysoundfont library to play soundfonts need further work
+
+
+# Object code transitions:
+
+* Static memory allocations to use sdram are discouraged.
+
+  Use dynamic memory allocation instead, cfr. `ax_malloc` in `api/axoloti_memory.h`
+	
+* Object init code now has an integer return value (error code).
+
+  Return value 0 means &quot;everything OK&quot;. Predefined error codes are defined in `api/error_codes.h`
+  Other return values will cause the patch to abort and report the error code.
+  
+  Return statements without an argument will cause a compiler error.
+  
+* MidiSend1(), MidiSend2(), MidiSend3() API migration
+
+  `MidiSend1(dev,port,b0)`, `MidiSend2(dev,port,b0,b1)`, `MidiSend3(dev,port,b0,b1,b2)` had a separate device
+  and port argument, now we only have a virtual port number.
+  Those calls need to be migrated to `midiSend1(vport, b0)`, `midiSend2(vport,b0,b1)`,
+  `midiSend3(vport,b0,b1,b2)`.
+  Notice the lowercase m!</description>
+    
+    <lastBuildDate>Fri, 22 Apr 2022 10:05:34 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Don't use v2.0, it's not ready for production.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/80">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/80</link>
+        <pubDate>Fri, 22 Apr 2022 10:05:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-80</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@DiegoLiedo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/diegoliedo">@DiegoLiedo</a> wrote:</p>
+          <blockquote>
+              <p>I'm trying to use the patcher under Fedora 35, I had to install ant-junits and run ant on the main directory manually in order to run Axoloti.sh after building got the patcher v2.0 running but it can connect to the board neither upgrading the boards firmware.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/79">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/79</link>
+        <pubDate>Wed, 20 Apr 2022 23:38:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-79</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>Yes okay I did that.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/78">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/78</link>
+        <pubDate>Sun, 02 Aug 2020 18:57:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-78</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>You should probably install the latest stable version, 1.0.12.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/77">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/77</link>
+        <pubDate>Sun, 02 Aug 2020 07:15:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-77</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>After upgrading the Firmware to 2.0.0 my Axoloti my patch is not going live in the case I have a gpio/spi/config object in it. <br>Can anyone confirm this?<br>EDIT: <br>I just tried reinstalling all the axoloti software on my computer as I think the problems could perhaps be solved by this.<br>My computer is running ubuntu 18.<br>First i tried to remove everything with<br>sudo apt remove --purge axoloti <br>then i deleted<br>sudo rm -r /opt/Axoloti <br>Now i  dont now how to install Axoloti 2.0.0 from scratch.</p>
+
+<p>Can someone help me out?<br>The following did not help as the mentioned files do not exist for version 2<br><aside class="quote" data-post="1" data-topic="56">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">
+    <a href="//community.axoloti.com/t/installing-on-linux/56?source_topic_id=6273" rel="nofollow noopener">Installing on Linux</a> <a class="badge-wrapper  bullet" href="/c/user-guide"><span class="badge-category-bg" style="background-color: #3AB54A;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category contains posts to help users use Axoloti, a dynamic user guide.">User Guide</span></a>
+  </div>
+  <blockquote>
+    Normal Installation
+
+To reduce size we split the application into two parts, the main axoloti application, and a runtime which contains other required files. You must download and install both initially.  (Usually updates will only require the main application to be downloaded and installed.) 
+
+
+
+download both application bundle and axoloti_runtime
+go to <a href="http://github.com/axoloti/axoloti/releases" rel="nofollow noopener">http://github.com/axoloti/axoloti/releases</a> , you will see the 'latest release'
+download axo_runtime_linux_(version).tgz
+download axoloti_linux_…
+  </blockquote>
+</aside>
+</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/76">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/76</link>
+        <pubDate>Sat, 01 Aug 2020 17:36:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-76</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@basix]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/basix">@basix</a> wrote:</p>
+          <blockquote>
+              <p>Yes:</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/8/84e9bb1478c0043ab2488305710e3c5b9f1e1599.png" width="288" height="363"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/74">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/74</link>
+        <pubDate>Thu, 11 Jun 2020 18:55:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-74</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="72" data-topic="6273"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/b/c5a1d2/40.png" class="avatar">basix:</div>
+<blockquote><p>I'm a fan of the Remote and anything that might make this more of a standalone machine</p></blockquote></aside>
+
+<p>Remote? Is that an Axoloti 2.0 thing?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/73">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/73</link>
+        <pubDate>Thu, 11 Jun 2020 15:04:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-73</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@basix]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/basix">@basix</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for the replies, I am considering to go back to the stable 1.0.12 for this reason, but other than this issue I don't think there's much else broken? Just some GUI glitches here and there, but nothing a 2.0.1 release wouldn't resolve.</p>
+
+<p>I am not a master in C(++) or java and I'm not sure where the patches get generated (assuming codegen in java?). My interpretation of that error message is like the parent object is looking for its own parent</p>
+
+<p>I'm a fan of the Remote and anything that might make this more of a standalone machine<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/2c646eca959eb1b6a6c73d7e1d494d2324e81941" href="//community.axoloti.com/uploads/default/original/2X/2/2c646eca959eb1b6a6c73d7e1d494d2324e81941.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/2c646eca959eb1b6a6c73d7e1d494d2324e81941_1_690x285.png" width="690" height="285"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1225x506 75.5 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/72">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/72</link>
+        <pubDate>Thu, 11 Jun 2020 14:46:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-72</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/basix">@basix</a></p>
+
+<p>I am not sure what to tell you here. I am not the best at reading those error logs.</p>
+
+<p>My best advice will be - Go back to latest stable release until further notice.</p>
+
+<p>For this patch specifically, there is not really anything that needs features that's Axoloti 2.0 only, you can do with last stable release <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/71">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/71</link>
+        <pubDate>Thu, 11 Jun 2020 12:48:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-71</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Yeah I only tried for a few hours and realised any patches with for example embedded object, using tables would not work, without having to do change some stuff.....</p>
+
+<p>I guess if the code for how tables work has been changed, it's inevitable to have to go through the change at some point. But since I was not sure even what I had to do, I just downgraded back to latest release, instead of messing to much around. Errors could be because of many things I would not be sure how to fix.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/70">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/70</link>
+        <pubDate>Thu, 11 Jun 2020 12:44:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-70</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Somebody ought to put a big sign up saying: </p>
+
+<p>2.0 IS NOT READY FOR GENERAL USE. </p>
+
+<p>It's not BETA, it's not ALPHA. Last I checked, it was barely a proof of concept.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/69">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/69</link>
+        <pubDate>Thu, 11 Jun 2020 04:10:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-69</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@basix]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/basix">@basix</a> wrote:</p>
+          <blockquote>
+              <p>Anyone else having issues with compiling tables in main patch + table reads from the main patch in sub patches? </p>
+
+<p>Example in factory demos\audio_in\granular_verb.axp</p>
+
+<p>USB device found<br>connected<br>Authentic Axoloti Core<br>Firmware version: 2.0.0.0, crc=0xCDEEEFDA<br>more than 8entries in preset, skipping...<br>more than 8entries in preset, skipping...<br>more than 8entries in preset, skipping...<br>Generate code complete<br>more than 8entries in preset, skipping...<br>more than 8entries in preset, skipping...<br>more than 8entries in preset, skipping...<br>MODULE_PATHS=<br>compiling C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp: In member function 'void rootc::instancepatcher__1::voice::instanceplay__1::dsp(rootc::instancepatcher__1::voice*, int32_t, bool, bool, int32_t (&amp;)[16])':<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:726:31: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>       pos = asat&gt;&gt;(27-parent-&gt;parent-&gt;instancet_i.LENGTHPOW);<br>                               ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:739:25: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>        if (pos&lt; parent-&gt;parent-&gt;instancet_i.LENGTH)<br>                         ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:740:51: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               outlet_wave[buffer_index] = parent-&gt;parent-&gt;instancet_i.array[pos++]&lt;parent-&gt;instancet_i.GAIN;<br>                                                   ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:740:93: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               outlet_wave[buffer_index] = parent-&gt;parent-&gt;instancet_i.array[pos++]&lt;parent-&gt;instancet_i.GAIN;<br>                                                                                             ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp: In member function 'void rootc::instancepatcher__1::voice::instancetabrecord2_tilde___1::dsp(rootc::instancepatcher__1::voice*, const int32_t*, int32_t, bool, bool)':<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1025:31: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>       pos = asat&gt;&gt;(27-parent-&gt;parent-&gt;instancet_i.LENGTHPOW);<br>                               ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1037:25: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>        if (pos&lt; parent-&gt;parent-&gt;instancet_i.LENGTH)<br>                         ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1038:23: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               parent-&gt;parent-&gt;instancet_i.array[pos++] = <em>_SSAT(inlet</em>wave[buffer_index],28)&gt;&gt;parent-&gt;parent-&gt;instancet_i.GAIN;<br>                       ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1038:103: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               parent-&gt;parent-&gt;instancet_i.array[pos++] = <em>_SSAT(inlet</em>wave[buffer_index],28)&gt;&gt;parent-&gt;parent-&gt;instancet_i.GAIN;<br>                                                                                                       ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp: In member function 'void rootc::instancepatcher__1::voice::instanceplay__2::dsp(rootc::instancepatcher__1::voice*, int32_t, bool, bool, int32_t (&amp;)[16])':<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1348:31: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>       pos = asat&gt;&gt;(27-parent-&gt;parent-&gt;instancet_i.LENGTHPOW);<br>                               ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1361:25: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>        if (pos&lt; parent-&gt;parent-&gt;instancet_i.LENGTH)<br>                         ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1362:51: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               outlet_wave[buffer_index] = parent-&gt;parent-&gt;instancet_i.array[pos++]&lt;parent-&gt;instancet_i.GAIN;<br>                                                   ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1362:93: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               outlet_wave[buffer_index] = parent-&gt;parent-&gt;instancet_i.array[pos++]&lt;parent-&gt;instancet_i.GAIN;<br>                                                                                             ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp: In member function 'void rootc::instancepatcher__1::voice::instancetabrecord2_tilde___2::dsp(rootc::instancepatcher__1::voice*, const int32_t*, int32_t, bool, bool)':<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1623:31: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>       pos = asat&gt;&gt;(27-parent-&gt;parent-&gt;instancet_i.LENGTHPOW);<br>                               ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1635:25: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>        if (pos&lt; parent-&gt;parent-&gt;instancet_i.LENGTH)<br>                         ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1636:23: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               parent-&gt;parent-&gt;instancet_i.array[pos++] = <em>_SSAT(inlet</em>wave[buffer_index],28)&gt;&gt;parent-&gt;parent-&gt;instancet_i.GAIN;<br>                       ^~~~~~<br>C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.cpp:1636:103: error: 'class rootc::instancepatcher__1::voice' has no member named 'parent'<br>               parent-&gt;parent-&gt;instancet_i.array[pos++] = <em>_SSAT(inlet</em>wave[buffer_index],28)&gt;&gt;parent-&gt;parent-&gt;instancet_i.GAIN;<br>                                                                                                       ^~~~~~<br>make: *** [C:\Program Files (x86)\Axoloti\app\env/patch.mk:111: C:\Users\basix\DOCUME~1\AXOLOT~1.0/build/xpatch.o] Error 1<br>Done compiling patch</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/68">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/68</link>
+        <pubDate>Wed, 10 Jun 2020 20:31:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-68</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Axoloti 2.0 is not a stable release yet, it's still in experimental stage, so you will probably find numerous show stopper bugs. </p>
+
+<p>Only <a class="mention" href="/u/johannes">@johannes</a> knows how 2.0 is moving on. </p>
+
+<p>Or maybe you could look on Github if any progress has been made? </p>
+
+<p>EDIT: Checked Github, doesn't seem a lot have happened.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/67">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/67</link>
+        <pubDate>Thu, 30 Apr 2020 15:49:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-67</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@jotelcalifornia]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jotelcalifornia">@jotelcalifornia</a> wrote:</p>
+          <blockquote>
+              <p>Hi all! I'm super excited with the new midi routing option since I always had bad issues with transmitting an incoming midi clock. Although when I try to write the settings I get the following error:</p>
+
+<p>uploading: /settings/midi-out/DIN.axr<br>receive error: LIBUSB_ERROR_PIPE<br>Control transfer failed: -9<br>Disconnect request<br>java.io.IOException<br>java.io.IOException<br>	at axoloti.connection.USBBulkConnection_v2.createDirectory(USBBulkConnection_v2.java:1012)<br>	at axoloti.connection.USBBulkConnection_v2.createDirIfNonExistant(USBBulkConnection_v2.java:579)<br>	at axoloti.connection.USBBulkConnection_v2.upload(USBBulkConnection_v2.java:598)<br>	at axoloti.target.midirouting.MidiOutputRoutingTable.lambda$upload$0(MidiOutputRoutingTable.java:136)<br>	at axoloti.job.JobProcessor.lambda$exec$0(JobProcessor.java:21)<br>	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)<br>	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)<br>	at java.lang.Thread.run(Thread.java:748)</p>
+
+<p>uploading: /settings/midi-out/USB device.axr<br>java.io.IOException: Not connected<br>java.io.IOException: Not connected<br>	at axoloti.connection.USBBulkConnection_v2.transmitPacket1(USBBulkConnection_v2.java:415)<br>	at axoloti.connection.USBBulkConnection_v2.getFileInfo(USBBulkConnection_v2.java:491)<br>	at axoloti.connection.USBBulkConnection_v2.createDirIfNonExistant(USBBulkConnection_v2.java:577)<br>	at axoloti.connection.USBBulkConnection_v2.upload(USBBulkConnection_v2.java:598)<br>	at axoloti.target.midirouting.MidiOutputRoutingTable.lambda$upload$0(MidiOutputRoutingTable.java:136)<br>	at axoloti.job.JobProcessor.lambda$exec$0(JobProcessor.java:21)<br>	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)<br>	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)<br>	at java.lang.Thread.run(Thread.java:748)</p>
+
+<p>uploading: /settings/midi-in/DIN.axr<br>java.io.IOException: Not connected<br>java.io.IOException: Not connected<br>	at axoloti.connection.USBBulkConnection_v2.transmitPacket1(USBBulkConnection_v2.java:415)<br>	at axoloti.connection.USBBulkConnection_v2.getFileInfo(USBBulkConnection_v2.java:491)<br>	at axoloti.connection.USBBulkConnection_v2.createDirIfNonExistant(USBBulkConnection_v2.java:577)<br>	at axoloti.connection.USBBulkConnection_v2.upload(USBBulkConnection_v2.java:598)<br>	at axoloti.target.midirouting.MidiInputRoutingTable.lambda$upload$0(MidiInputRoutingTable.java:81)<br>	at axoloti.job.JobProcessor.lambda$exec$0(JobProcessor.java:21)<br>	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)<br>	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)<br>	at java.lang.Thread.run(Thread.java:748)</p>
+
+<p>uploading: /settings/midi-in/USB device.axr<br>java.io.IOException: Not connected<br>java.io.IOException: Not connected<br>	at axoloti.connection.USBBulkConnection_v2.transmitPacket1(USBBulkConnection_v2.java:415)<br>	at axoloti.connection.USBBulkConnection_v2.getFileInfo(USBBulkConnection_v2.java:491)<br>	at axoloti.connection.USBBulkConnection_v2.createDirIfNonExistant(USBBulkConnection_v2.java:577)<br>	at axoloti.connection.USBBulkConnection_v2.upload(USBBulkConnection_v2.java:598)<br>	at axoloti.target.midirouting.MidiInputRoutingTable.lambda$upload$0(MidiInputRoutingTable.java:81)<br>	at axoloti.job.JobProcessor.lambda$exec$0(JobProcessor.java:21)<br>	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)<br>	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)<br>	at java.lang.Thread.run(Thread.java:748)</p>
+
+<p>USB device found<br>connected<br>Authentic Axoloti Core<br>Firmware version: 2.0.0.0, crc=0xCDEEEFDA<br>exception report:<br>pc=0x2FE528<br>psr=0x21000000<br>lr=0x801ABBF<br>r12=0xFFFFFFFF<br>cfsr=0x100</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/66">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/66</link>
+        <pubDate>Thu, 30 Apr 2020 00:26:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-66</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@deef]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deef">@deef</a> wrote:</p>
+          <blockquote>
+              <p>Checked out Axoloti 2.0 on macOS 10.14.6:<br>The UI feels wobbly and it takes a lot of time to move around the patch with the trackpad, so it was not fun to try further and now I can't go back to firmware 1.0 as it says "Link to firmware CRC Please compile the firmware first<br>can't read flasher, please compile firmware! (file: /Applications/Axoloti.app/Contents/Java/firmware/flasher/flasher_build/flasher.bin )"</p>
+
+<p>Now that I am here, 2 little things annoy me so much on 1.0:<br>- I press "n" to search for an object I start typing the name and then press "down" to go inside the list, but I can't and have to reach to the mouse/trackpad for no reason - happened to me dozens of times<br>- in many circumstances I mark an object to delete or copy it, but nothing happens and I have to click on the field outside it and back on the object to mark it properly (even though it looked marked the first time), also happened to me dozens &amp; dozens of times</p>
+
+<p>maybe there is a logic behind why those things function the way they do?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/65">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/65</link>
+        <pubDate>Wed, 05 Feb 2020 20:19:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-65</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@omgzilla]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/omgzilla">@omgzilla</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="6273"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/joaogatao/40/6254_1.png" class="avatar">joaogatao:</div>
+<blockquote><p>/</p></blockquote></aside>
+
+<p>For me this didn't work. I had to copy the contents of the folder without the folder. </p>
+
+<p>So  </p>
+
+<p>`$ sudo cp -r gcc-arm-none-eabi-9-2019-q4-major/. /opt/Axoloti/app/platform_linux/</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/64">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/64</link>
+        <pubDate>Sun, 19 Jan 2020 23:13:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-64</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@philoop]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/philoop">@philoop</a> wrote:</p>
+          <blockquote>
+              <p>and how will one close patches in standalone ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/63">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/63</link>
+        <pubDate>Mon, 13 Jan 2020 15:49:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-63</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@jsilence Rolf]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jsilence">@jsilence</a> wrote:</p>
+          <blockquote>
+              <p>You can simply open several patches and klick the "live" button of each one. They are going to play at the same time.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/62">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/62</link>
+        <pubDate>Sun, 12 Jan 2020 23:50:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-62</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>From the original post :</p>
+
+<aside class="quote" data-post="1" data-topic="6273"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>USB hub support did not make it, I had it working (using the Chibios Community USB Host framework code) but noticed data drops on certain MIDI controllers. So that's rolled back to the implementation in 1.0.12.</p></blockquote></aside>
+
+<p>and</p>
+
+<aside class="quote" data-post="1" data-topic="6273"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>MIDI i/o on gpio does not work anymore</p></blockquote></aside>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/61">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/61</link>
+        <pubDate>Sun, 12 Jan 2020 22:11:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-61</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@chaocrator a.k.a. Vimanastaffel]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/chaocrator">@chaocrator</a> wrote:</p>
+          <blockquote>
+              <p>two questions about MIDI routing. </p>
+
+<p>1) are PA2 and PA3 pins still usable for MIDI connectivity with 2.0 ?</p>
+
+<p>2) so, 8 virtual MIDI ports, and this is hardcoded, so no easy way to change the number of them — do i understand it right? </p>
+
+<p>seems like in 2.0 i'm missing some low level capabilities for handling such devices as e.g. Miditech Midiface 8x8.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/60">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/60</link>
+        <pubDate>Sun, 12 Jan 2020 15:32:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-60</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@chaocrator a.k.a. Vimanastaffel]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/chaocrator">@chaocrator</a> wrote:</p>
+          <blockquote>
+              <p>.deb packages of proper version of ARM toolchain for Ubuntu are available here <br>(if you don't like to add stuff  to your system bypassing the package manager): </p>
+
+<p><a href="http://ppa.launchpad.net/team-gcc-arm-embedded/ppa/ubuntu/pool/main/g/gcc-arm-none-eabi/" class="onebox" target="_blank" rel="nofollow noopener">http://ppa.launchpad.net/team-gcc-arm-embedded/ppa/ubuntu/pool/main/g/gcc-arm-none-eabi/</a></p>
+
+<p><em><strong>edit:</strong></em> just installed two packages, <strong>gcc-arm-embedded</strong> from the link above, and <strong>axoloti-linux</strong> — and everything works like a charm.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/59">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/59</link>
+        <pubDate>Sun, 12 Jan 2020 14:07:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-59</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>I have a few projects to finish before having time to delve seriously into 2.0.x to "transition" my objects.</p>
+
+<p>I will switch to 2.0.x by june if some features are implemented by then (i.e. if 2.0.x is "moving forward", to me, usb hub support is kind of mandatory to move forward on the Axoloti platform).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/58">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/58</link>
+        <pubDate>Sun, 12 Jan 2020 11:51:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-58</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@martindunne martin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/martindunne">@martindunne</a> wrote:</p>
+          <blockquote>
+              <p>this is awsome many thanks <img src="//community.axoloti.com/images/emoji/twitter/grinning.png?v=5" title=":grinning:" class="emoji" alt=":grinning:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/57">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/57</link>
+        <pubDate>Sun, 12 Jan 2020 11:22:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-57</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@AlchemyTwo Dan]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alchemytwo">@AlchemyTwo</a> wrote:</p>
+          <blockquote>
+              <p>I saw that the new release adds MIDI Sysex support to the Axoloti. Is there an object for this?</p>
+
+<p>How would I go about implementing sysex messages in a patch?</p>
+
+<p>Thanks.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/56">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/56</link>
+        <pubDate>Sat, 11 Jan 2020 19:31:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-56</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+      <item>
+        <title>Axoloti release 2.0.0</title>
+        <dc:creator><![CDATA[@mtyas Matthew Tyas]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mtyas">@mtyas</a> wrote:</p>
+          <blockquote>
+              <p>Hi, a bit late for the party, but I'll try and catch-up.</p>
+
+<p>Install and upgrade went well on windows, and so did the first few patching sessions I've had time to do.</p>
+
+<p>I was wondering, are there any example / demo project files that show how this "multiple patch running simultaneously" function is supposed to be used. I suppose you need the use the new patch/bus objects, but I can't seem to get my head around it yet.</p>
+
+<p>Anyway, thanks for the hard work johannes, it sure seems like a nice path you're taking us on.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-release-2-0-0/6273/55">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-release-2-0-0/6273/55</link>
+        <pubDate>Sat, 04 Jan 2020 10:04:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6273-55</guid>
+        <source url="http://community.axoloti.com/t/axoloti-release-2-0-0/6273.rss">Axoloti release 2.0.0</source>
+      </item>
+  </channel>
+</rss>

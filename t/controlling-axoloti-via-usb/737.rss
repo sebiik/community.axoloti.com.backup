@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Controlling axoloti via USB</title>
+    <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737</link>
+    <description>this topic is to discuss options of controlling Axoloti via the USB device port. 
+(though arguably the same method could be used for the USB host port)
+
+primarily this is for my own project, but could be useful for axoloti as a whole or other developers doing similar things,
+so perhaps there is an opportunity for collaboration.
+
+the basic idea is for a hosting device (in my case a PI2/Beagleboard) to be able to control the axoloti board, 
+in particular my goals are:
+
+- parameter control 
+- sequencing control
+- meta patch data e.g. what parameters are available etc.
+- patch loading
+- binary patch (&amp; possibly other files) distribution.
+- possible some &#39;firmware level&#39; control e.g. gain level/mixing adjustment.
+
+note: the above implies bi-directional communication
+
+It can be seen i think, with the above any kind of UI could be generated to allow live performance e.g. the LIVE view of the current java UI but crucially without having the patch available 
+(this is critical since on multiple boards you may be running different patches)
+
+
+currently Im considering 3 approaches
+
+- using/extending the &#39;axoloti protocol&#39; , the protocol used by the current java UI.
+- using MIDI with a combination of NRPN/sysex
+- a completely new protocol
+
+axoloti protocol
+----
+this seems the obvious one, but it currently only supports a subset of the above, and I&#39;m concerned about taking it in directions that are contrary to those intended, whilst also needing to be able to take it where I need it to go...
+I also have to ensure I dont break the current java UI - though this can be avoided by a simple prefixing that can be ignored by the UI etc.
+
+midi
+----
+use NRPN to control parameters etc, and sysex for other info (eg. patch loading commands)
+using NRPN means good compatibly with lots of apps, but restricted to numeric data, so for more data we can use sysex.
+(would need to extend sysex support in axoloti) 
+
+new protocol - compressed OSC?
+----
+the difficultly with this approach is it would either need to use a new USB interface (so extend it) , or there be some means of switching the existing &#39;axoloti interface&#39; (as i dont need both protocols to be running at the same time)
+why use a new protocol?
+Im thinking of something that might be like a compressed form of OSC...  e.g. a message catalog that is sent upfront but from there is quite like OSC.
+the idea being, this could then easily be transformed into OSC at the other end, (and perhaps rebroadcast) which then could be a way to control axoloti from a variety of sources.    (e.g. say Lemur on an iPad)
+
+obviously technically, the most important requirement is the protocol used can be quickly generated/parsed on the axoloti side, as it has limited resources. the host has more power so I dont think is an issue.
+
+
+I think the first 2 are the most likely for me to go with, but thought id raise the other as perhaps its more interesting to others....
+
+thoughts?</description>
+    
+    <lastBuildDate>Wed, 01 Jun 2016 15:55:24 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@GaryInThailand Gary Hall]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/garyinthailand">@GaryInThailand</a> wrote:</p>
+          <blockquote>
+              <p>Thanks, Bear. I tend to agree about using midi. We've been noting its warts for decades now, but it's still the only game in town in a lot of ways.</p>
+
+<p>I look forward to hearing more on your project.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/8</link>
+        <pubDate>Wed, 01 Jun 2016 15:55:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-8</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Ive been kind of waiting a little to see whats going on with Axoloti Control, as this will also need some work to tidy up the parameter broadcasting.</p>
+
+<p>but that aside, Im personally now tending towards some kind of midi implementation.<br>I suspect there might be a couple of ways to do this - one is sysex data for meta data + cc/nrpn etc, the other just using sysex.</p>
+
+<p>sysex is not perfect of course, as there are quite a lot of environments that cannot process, but its really the only way to send the textual meta data. (e.g. parameter names)</p>
+
+<p>this is preferable over the bulk interface since it doesn't require a particular low level driver to handle the usb data.</p>
+
+<p>the 'trick' is to keep the data as compact as possible, since USB midi already has a 25% overhead, and NRPN and SYSEX also have overheads... however, Im hoping with once the data is packaged/throttled this wont be too bad.</p>
+
+<p>as for development, I (personally) need to do some work on another part of my project that will make use of this data, before there is any point in doing this, but once thats done I guess I will quickly do something (as a proof of concept) that can be based on the Ableton Push work I did.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/7</link>
+        <pubDate>Wed, 01 Jun 2016 15:29:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-7</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@GaryInThailand Gary Hall]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/garyinthailand">@GaryInThailand</a> wrote:</p>
+          <blockquote>
+              <p>Any recent developments here? I'm getting very interested in this area in order to drive axoloti patches with custom graphic interfaces on iOS or Android devices. Currently, there are several off-the-shelf toolkits that can speak MIDI or OSC so there's a potential big plus there. I'm not good at low-level code myself, but I can drive such things, as well as pd and Max, fairly fluently.</p>
+
+<p>I know that some devs in the music app space are interested in something similar.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/6</link>
+        <pubDate>Wed, 01 Jun 2016 14:55:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-6</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>this was a discussion on how we could send the parameter set... <br>currently axoloti doesn't support NRPN directly ... though NRPNS are just CCs so you can interpret yourself using the normal midi/in/cc or midi/in/cc hr ii</p>
+
+<p>with NRPN 63/62 tell you the parameter thats changing on your controller/synth, 26/06 tell you the data value.<br>note: I follow the convention that bytes are sent LSB then MSB, and he MSB triggers... this is the approach used by the continuum to ensure that you dont get data jumps when sending 14 bit values. whilst also allowing 7 bit midi to still be compatible.</p>
+
+<p>unless you have a very good reason , i would not use NRPNs ... they take up alot of bandwidth as they take 8 bytes (over usb or 6 over din) for just 2 bytes of data. <br>nrpns tends to just be used by synths, where there are hundreds of parameters to map, and even then the most common tend to also be assigned to CCs.</p>
+
+<p>(its the 100's of parameters argument, that may be suggest it for axoloti mapping... but we'd still need to use sysex to send data about what they  parameters actually are... i.e. metadata)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/5</link>
+        <pubDate>Wed, 20 Jan 2016 01:29:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-5</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@mrdrbobo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mrdrbobo">@mrdrbobo</a> wrote:</p>
+          <blockquote>
+              <p>Don't quite understand syntax of NRPN in Axo. <br>My controller (Xboard) is sending NRPN's like this:<br>B0 63 15<br>B0 62 28<br>B0 26 54<br>B0 06 1F<br>Last two bytes are the two 7bit LSB and MSB values.<br>I tried to look at the output with object "midi/in/cc hr ii" plus object "disp/hex", filled in 99 and 98 in the first two boxes, but didn't give any output. An oscillator responded tot modulation via CC-number 38 (= $26) but with very strange noises, no linear sweep.<br>Has probably to do with the osc not being able to see the LSB and MSB as such.<br>Any help would be appreciated.<br>Sorry if slightly offtopic or noobish question (or both).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/4</link>
+        <pubDate>Wed, 20 Jan 2016 00:41:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-4</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yeah, seems to be, but has the disadvantage that you need usb code to use it... <br>e.g. say something wanted to write a front end in Max/Msp, midi they could do directly, but for this they need to use an external.<br>also... its likely own one application can use it at a time, e.g. if you have the java UI open, you probably won't be able to use your Max app, because the USB device is already open.</p>
+
+<p>Ive also have a general fear of some 'all encompassing protocol' - being too ambitious on dev projects, usually means things just don't get done... Id far prefer an 'extension' approach, that allows it to evolve, and allow individual projects to add things they need.</p>
+
+<p>I completely accept the above might not even be a priority for axoloti/other users, so I need an approach that I can get on with, but with confidence that the work will not have to be redone entirely due to (for example) the axoloti protocol changing.<br>(ok, I can do a certain amount of encapsulation, but it has to make some assumptions about the underlying transport)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/3</link>
+        <pubDate>Wed, 16 Dec 2015 13:45:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-3</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>I think extending the axoloti protocol is the way to go. Encapsulating binary data in midi is ugly and will be very inefficient. OSC, I think a deamon running on PC is the best way to deal with OSC compatibility, the other option would be a USB network interface personality but I'd rather avoid that...</p>
+
+<p>The axoloti usb bulk protocol needs a cleanup though, now it is packets encapsulated in a bytestream encapsulated in usb packets. This is not efficient or elegant.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/2</link>
+        <pubDate>Wed, 16 Dec 2015 12:37:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-2</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+      <item>
+        <title>Controlling axoloti via USB</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>this topic is to discuss options of controlling Axoloti via the USB device port. <br>(though arguably the same method could be used for the USB host port)</p>
+
+<p>primarily this is for my own project, but could be useful for axoloti as a whole or other developers doing similar things,<br>so perhaps there is an opportunity for collaboration.</p>
+
+<p>the basic idea is for a hosting device (in my case a PI2/Beagleboard) to be able to control the axoloti board, <br>in particular my goals are:</p>
+
+<ul>
+<li>parameter control </li>
+<li>sequencing control</li>
+<li>meta patch data e.g. what parameters are available etc.</li>
+<li>patch loading</li>
+<li>binary patch (&amp; possibly other files) distribution.</li>
+<li>possible some 'firmware level' control e.g. gain level/mixing adjustment.</li>
+</ul>
+
+<p>note: the above implies bi-directional communication</p>
+
+<p>It can be seen i think, with the above any kind of UI could be generated to allow live performance e.g. the LIVE view of the current java UI but crucially without having the patch available <br>(this is critical since on multiple boards you may be running different patches)</p>
+
+<p>currently Im considering 3 approaches</p>
+
+<ul>
+<li>using/extending the 'axoloti protocol' , the protocol used by the current java UI.</li>
+<li>using MIDI with a combination of NRPN/sysex</li>
+<li>a completely new protocol</li>
+</ul>
+
+<h2>axoloti protocol</h2>
+
+<p>this seems the obvious one, but it currently only supports a subset of the above, and I'm concerned about taking it in directions that are contrary to those intended, whilst also needing to be able to take it where I need it to go...<br>I also have to ensure I dont break the current java UI - though this can be avoided by a simple prefixing that can be ignored by the UI etc.</p>
+
+<h2>midi</h2>
+
+<p>use NRPN to control parameters etc, and sysex for other info (eg. patch loading commands)<br>using NRPN means good compatibly with lots of apps, but restricted to numeric data, so for more data we can use sysex.<br>(would need to extend sysex support in axoloti) </p>
+
+<h2>new protocol - compressed OSC?</h2>
+
+<p>the difficultly with this approach is it would either need to use a new USB interface (so extend it) , or there be some means of switching the existing 'axoloti interface' (as i dont need both protocols to be running at the same time)<br>why use a new protocol?<br>Im thinking of something that might be like a compressed form of OSC...  e.g. a message catalog that is sent upfront but from there is quite like OSC.<br>the idea being, this could then easily be transformed into OSC at the other end, (and perhaps rebroadcast) which then could be a way to control axoloti from a variety of sources.    (e.g. say Lemur on an iPad)</p>
+
+<p>obviously technically, the most important requirement is the protocol used can be quickly generated/parsed on the axoloti side, as it has limited resources. the host has more power so I dont think is an issue.</p>
+
+<p>I think the first 2 are the most likely for me to go with, but thought id raise the other as perhaps its more interesting to others....</p>
+
+<p>thoughts?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/controlling-axoloti-via-usb/737/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/controlling-axoloti-via-usb/737/1</link>
+        <pubDate>Tue, 15 Dec 2015 17:36:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-737-1</guid>
+        <source url="http://community.axoloti.com/t/controlling-axoloti-via-usb/737.rss">Controlling axoloti via USB</source>
+      </item>
+  </channel>
+</rss>

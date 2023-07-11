@@ -1,0 +1,50 @@
+<objdefs>
+	<obj.normal id="bpm" uuid="2cf9cf6cd3317f608e6cbd201b91c75382364566" sha="8b71aad60dc45678c6e126fc7426d85edc167b37">
+		<sDescription>compute bpm</sDescription>
+		<author>loopmasta@gmail.com</author>
+		<license>BSD</license>
+		<helpPatch/>
+		<inlets>
+			<bool32.rising name="in" description="trigger"/>
+		</inlets>
+		<outlets>
+			<int32 name="bpm" description="bpm"/>
+		</outlets>
+		<displays/>
+		<params/>
+		<attribs/>
+		<code.declaration><![CDATA[
+
+uint32_t trigger;
+uint32_t count;
+uint32_t bpm;
+
+static const int fps_ppq = (SAMPLERATE / BUFSIZE) * 60;
+
+		]]></code.declaration>
+		<code.init><![CDATA[
+
+trigger = 0;
+count = 0;
+bpm = 0;
+
+		]]></code.init>
+		<code.krate><![CDATA[
+
+count++;
+
+if (inlet_in > 0) {
+	if (!trigger) {
+		bpm = fps_ppq / count;
+		count = 0;
+		trigger = 1;
+	}
+} else {
+	trigger = 0;
+}
+
+outlet_bpm = bpm;
+
+		]]></code.krate>
+	</obj.normal>
+</objdefs>

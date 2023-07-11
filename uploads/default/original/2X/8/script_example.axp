@@ -1,0 +1,75 @@
+<patch-1.0>
+   <comment type="patch/comment" x="224" y="56" text="very simple script example"/>
+   <obj type="lfo/square" sha="b4420b58ca2ae5ece53d53540bc91bc9ed7a4b83" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="42" y="70">
+      <params>
+         <frac32.s.map name="pitch" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" sha="501c30e07dedf3d701e8d0b33c3c234908c3388e" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="154" y="70">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="script2_1" x="238" y="70">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[int cnt = 1;
+bool gate = 1;
+void setup(void) {
+}
+void loop(void){
+	if (in1 && gate){
+		out1 = cnt; //send current value of counter to output 1
+		cnt += 1<<21; //increment counter
+		if (cnt > in2){ //reset to 0 when limit reached (in2 gets value from ctrl/dial p)
+			cnt=0;
+			}
+		gate = 0; //gate mechanism to trigger only on rising edge
+	}
+	if (!(in1 || gate)){
+		gate = 1;
+	}
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="disp/hex" sha="e21d1bcdfadc4f2009b547d002484bede0762978" uuid="87617898f70d90033f8add921438bf0d11721fdd" name="hex_1" x="350" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/chart p" sha="d8cf970a568c1d1bd09e7b952f862b6c8d658358" uuid="58f42040a894006a5f73ed8cb8d0bd45481b28cd" name="chart_1" x="434" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="224" y="154" text="script takes 2 inputs:"/>
+   <comment type="patch/comment" x="224" y="168" text="input 1 rising edge triggers counter"/>
+   <comment type="patch/comment" x="224" y="182" text="input 2 sets upper limit of counter (resets to 0 when limit reached)"/>
+   <nets>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="script2_1" inlet="in1_"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="script2_1" inlet="in2_"/>
+      </net>
+      <net>
+         <source obj="script2_1" outlet="out1_"/>
+         <dest obj="hex_1" inlet="in"/>
+         <dest obj="chart_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>137</x>
+      <y>79</y>
+      <width>626</width>
+      <height>422</height>
+   </windowPos>
+</patch-1.0>

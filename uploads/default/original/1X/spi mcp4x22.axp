@@ -1,0 +1,111 @@
+<patch-1.0>
+   <comment type="patch/comment" x="42" y="28" text="CONNECTION (MCP4x22)"/>
+   <comment type="patch/comment" x="42" y="56" text="PA4 = NSS/CS (MCP4x22: Pin2)"/>
+   <comment type="patch/comment" x="42" y="70" text="PA5 = SCK (MCP4x22: Pin3)"/>
+   <comment type="patch/comment" x="42" y="84" text="PA7 = MOSI (MCP4x22: Pin4)"/>
+   <comment type="patch/comment" x="42" y="98" text="MCP4x22 LDAC = GND"/>
+   <obj type="gpio/spi/config" sha="62af644b09e7f654b36d66533da8ea5971ddb351" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="42" y="140">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=0"/>
+         <combo attributeName="clock_phase" selection="CPHA=0"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="168" y="140" text="SPI Config"/>
+   <comment type="patch/comment" x="168" y="168" text="CPOL = 0"/>
+   <comment type="patch/comment" x="168" y="182" text="CPHA = 0"/>
+   <comment type="patch/comment" x="168" y="196" text="FPCLK/4"/>
+   <comment type="patch/comment" x="168" y="210" text="MSBfirst"/>
+   <obj type="lfo/sine" sha="a2851b3d62ed0faceefc98038d9571422f0ce260" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_1" x="56" y="294">
+      <params>
+         <frac32.s.map name="pitch" value="13.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/bipolar2unipolar" sha="93baeaf78c9a228f23225186d21e61abc921c3d6" uuid="f6f63d71053d572d3c795f83c7ec11dfbbce82dd" name="bipolar2unipolar_1" x="182" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="MCP4x22" x="336" y="294">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[// by paul for axoloti script2 objekt.
+// inlet1 = DACout A
+// inlet2 = DACout B
+
+uint8_t *txbuf;
+
+void setup(void){
+	
+	static uint8_t _txbuf[32] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+
+}
+
+void loop(void){
+	//MCP4922 DAC (MCP4822: Bit 14 is ignored)
+	// dacA: 0x7 (Bits: 0111)= select output A, Buffer enable, Gain *1, SHDN (active mode operation) + 12bit Value of in1
+	// dacB: 0xF (Bits: 1111)= select output A, Buffer enable, Gain *1, SHDN (active mode operation) + 12bit Value of in2
+	
+	uint16_t dacOutA = (0x7 << 12) | ( in1>>15 );
+	uint16_t dacOutB = (0xF << 12) | ( in2>>15 );
+
+	spiSelect(&SPID1);
+	txbuf[0] = (dacOutA >> 8);
+	txbuf[1] = (dacOutA & 0xFF);
+  	spiSend(&SPID1,2,txbuf);
+  	spiUnselect(&SPID1);
+	
+	spiSelect(&SPID1);
+	txbuf[0] = (dacOutB >> 8);
+	txbuf[1] = (dacOutB & 0xFF);
+  	spiSend(&SPID1,2,txbuf);
+  	spiUnselect(&SPID1);
+
+	chThdSleepMilliseconds(1);
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="lfo/sine" sha="a2851b3d62ed0faceefc98038d9571422f0ce260" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_2" x="56" y="406">
+      <params>
+         <frac32.s.map name="pitch" value="-15.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/bipolar2unipolar" sha="93baeaf78c9a228f23225186d21e61abc921c3d6" uuid="f6f63d71053d572d3c795f83c7ec11dfbbce82dd" name="bipolar2unipolar_2" x="182" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="bipolar2unipolar_1" outlet="o"/>
+         <dest obj="MCP4x22" inlet="in1_"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="bipolar2unipolar_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="sine_2" outlet="wave"/>
+         <dest obj="bipolar2unipolar_2" inlet="i"/>
+      </net>
+      <net>
+         <source obj="bipolar2unipolar_2" outlet="o"/>
+         <dest obj="MCP4x22" inlet="in2_"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>2449</x>
+      <y>226</y>
+      <width>832</width>
+      <height>653</height>
+   </windowPos>
+</patch-1.0>

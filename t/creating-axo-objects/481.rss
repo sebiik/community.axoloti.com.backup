@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Creating AXO objects</title>
+    <link>http://community.axoloti.com/t/creating-axo-objects/481</link>
+    <description>**Objects 101**
+
+*Object/XML overview*
+
+An object in Axoloti is an *.axo* file, which stores the object definition (like the name, a unique ID, inlets &amp; outlets ) and some code. 
+
+**XML**
+The code and object definitions are combined as an [XML][1] file and therefore every XML tag needs to be closed properly in order to function correctly. 
+
+XML tag with content: &lt;img src=&quot;/uploads/default/original/1X/bd246d24773f6b3b187c3f313e7a9a25f367364d.png&quot; width=&quot;261&quot; height=&quot;17&quot;&gt; 
+Empty XML tag: &lt;img src=&quot;/uploads/default/original/1X/db000f2d5f72fb9f203d472bbe1f049c8c87e048.png&quot; width=&quot;104&quot; height=&quot;16&quot;&gt; 
+Note that tags can *not* be left empty like this: &lt;img src=&quot;/uploads/default/original/1X/4bdf2f8fc81313a6d86b2f5af390a78043bb8966.png&quot; width=&quot;160&quot; height=&quot;18&quot;&gt; 
+Some tags may be left out, but some are mandatory.
+An XML tag can have *attributes* . Some of the (mandatory) attributes used in Axoloti objects  are **id**, **uuid** and **sha**  , and in the inlets and outlets sections you&#39;ll find things like **name** and **description**,
+
+In XML the *content* (= data between tags) can not contain certain characters, these are:  **&quot; &#39; &lt; &gt; &amp;** 
+The work-around for this is to use **CDATA**  formatting, which means that the data in between these tags is *content* , and not part of a tag. 
+------
+
+**Object Skeleton**
+This is a definition of a empty Axoloti object:
+```
+&lt;objdefs&gt;
+   &lt;obj.normal 
+         id=&quot;uniqueID&quot; 
+         uuid=&quot;2ae01ff03753539d9028888689654235fa199936&quot; 
+         sha=&quot;ae685c109e202b4739b3022d59a891becf60f349&quot;&gt;
+      &lt;upgradeSha&gt;26b0e9ebf07d4a6d8f04db3682899c48c85cc389&lt;/upgradeSha&gt;
+      &lt;sDescription&gt;Some description&lt;/sDescription&gt;
+      &lt;author&gt;AuthorName&lt;/author&gt;
+      &lt;license&gt;LicenceType&lt;/license&gt;
+      &lt;helpPatch&gt;helpfile.axh&lt;/helpPatch&gt;
+
+      &lt;inlets/&gt;
+      &lt;outlets/&gt;
+      &lt;displays/&gt;
+      &lt;params/&gt;
+      &lt;attribs/&gt;
+      &lt;includes/&gt;
+
+      &lt;code.declaration&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.declaration&gt;
+      
+      &lt;code.init&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.init&gt;      
+
+      &lt;code.krate&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.krate&gt;
+
+      &lt;code.srate&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.srate&gt;
+
+      &lt;code.midihander&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.midihander&gt;
+   &lt;/obj.normal&gt;
+&lt;/objdefs&gt;
+
+```
+
+**id**: a unique name for your object. 
+**uuid** ,  **sha** : a unique ID (SHA1) .  If the ID already exists , or when it has not the correct value, Axoloti will suggest the correct value when reloading the objects (File &gt; Reload Objects).
+
+**inlets** , **outlets** simply define the inputs and outputs of your object. 
+ 
+```
+&lt;inlets&gt;
+    &lt;frac32 name=&quot;in&quot; decription=&quot;in&quot; /&gt;
+&lt;/inlets&gt;
+&lt;outlets&gt;
+    &lt;frac32 name=&quot;out&quot; decription=&quot;out&quot; /&gt;
+&lt;/outlets&gt;
+```
+Inlets and outlets have a name, can have a description and have a numeric type (tagname).
+
+**Parameters**
+
+```
+    &lt;params&gt;
+       &lt;frac32.s.map name=&quot;value&quot;/&gt;
+    &lt;/params&gt;
+```
+generates this dial:
+&lt;img src=&quot;/uploads/default/original/1X/d0e9b4d382a058e0c8bd2d50472c98bf4bdebbd3.png&quot; width=&quot;70&quot; height=&quot;84&quot;&gt; 
+
+Some parameter types employ a &quot;pfunction&quot;, to scale/map/warp a linear parameter space into a range (-64...64) that can be more directly used by the dsp function. 
+
+All parameters result in a 32 bit type.
+
+**Displays**
+The definitions in the Displays section will show up as data visualizers in the GUI, only reading back from patch to GUI. The value of a Display element can not be changed by the GUI.
+
+```
+&lt;displays&gt;
+    &lt;frac32.s.dial name=&quot;v&quot; noLabel=&quot;true&quot;&gt;
+&lt;/displays&gt;
+```
+
+**attribs** 
+The definitions in the Attributes section are used to define constant values or strings (like table name ) 
+Attributes are known at compile time.
+
+```
+&lt;attribs&gt;
+   &lt;spinner name=&quot;delay&quot; MinValue=&quot;1&quot; MaxValue=&quot;10000&quot; DefaultValue=&quot;100&quot;/&gt;
+&lt;/attribs&gt;
+```
+results in :
+&lt;img src=&quot;/uploads/default/original/1X/edcc9da42352ffca67103855899dd39f7a96c270.png&quot; width=&quot;81&quot; height=&quot;26&quot;&gt; 
+In the code section the attribute can be used by adding the prefix attr_ , so in this example that would be *attr_delay*
+
+
+**Types**
+int32
+bool32
+frac32
+frac32buffer
+[...]
+
+---
+
+**Code Sections**
+This is where the actual code lives. 
+
+There are three code sections : 
+**code.krate**  : control rate, 3000Hz
+**code.srate**  : audio rate ,  48000Hz
+**code.midihandler**
+Code sections can be used together, or left out
+
+&gt; Sample rates are defined in the firmware *app/firmware/axoloti_defines.h*  
+The sample rate is defined by the macro SAMPLERATE.
+&gt; The number of audio samples corresponding to one control rate sample is defined by the macro BUFSIZE , so a buffersize  16 results a krate of 48000/16 = 3000.
+
+
+This example code simply adds the value of *in2*  to  *in1* , and send it to *out*  (3000 times per second): 
+&lt;img src=&quot;/uploads/default/original/1X/b722c8fd81b2a9c20a9761306e269460271d9b12.png&quot; width=&quot;360&quot; height=&quot;55&quot;&gt; 
+Note that the names are prefixed with **inlet_** and **outlet_** , this means they were defined in the outlet/inlet section of the XML. 
+
+&gt; If you look at existing objects, you&#39;ll notice a lot of operators. If you&#39;re not familiar with C syntax, this list might be useful: [C operators][2]   
+
+
+
+**declaration , init**
+Sometimes the values used in the code need to be declared and initialized.  
+This is where the **code.declaration** and **code.init** sections are for.  
+&lt;img src=&quot;/uploads/default/original/1X/8b71aa0d8279b288ffecb0fc8a6800c5e2dbc493.png&quot; width=&quot;251&quot; height=&quot;146&quot;&gt; 
+This is code is only executed once, when the program starts.
+
+---------------------------------
+Next: 
+**102 creating a first object**
+
+
+  [1]: http://www.w3schools.com/xml/xml_whatis.asp &quot;XM&quot;
+  [2]: http://www.tutorialspoint.com/cprogramming/c_operators.htm &quot;C operators&quot;</description>
+    
+    <lastBuildDate>Sun, 20 Sep 2015 17:36:24 +0000</lastBuildDate>
+    <category>User Guide</category>
+    <atom:link href="http://community.axoloti.com/t/creating-axo-objects/481.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Creating AXO objects</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/creating-axo-objects/481/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/creating-axo-objects/481/2</link>
+        <pubDate>Sun, 20 Sep 2015 17:36:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-481-2</guid>
+        <source url="http://community.axoloti.com/t/creating-axo-objects/481.rss">Creating AXO objects</source>
+      </item>
+      <item>
+        <title>Creating AXO objects</title>
+        <dc:creator><![CDATA[@alex alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alex">@alex</a> wrote:</p>
+          <blockquote>
+              <p><strong>Objects 101</strong></p>
+
+<p><em>Object/XML overview</em></p>
+
+<p>An object in Axoloti is an <em>.axo</em> file, which stores the object definition (like the name, a unique ID, inlets &amp; outlets ) and some code. </p>
+
+<p><strong>XML</strong><br>The code and object definitions are combined as an <a href="http://www.w3schools.com/xml/xml_whatis.asp" title="XM">XML</a> file and therefore every XML tag needs to be closed properly in order to function correctly. </p>
+
+<p>XML tag with content: <img src="//community.axoloti.com/uploads/default/original/1X/bd246d24773f6b3b187c3f313e7a9a25f367364d.png" width="261" height="17"> <br>Empty XML tag: <img src="//community.axoloti.com/uploads/default/original/1X/db000f2d5f72fb9f203d472bbe1f049c8c87e048.png" width="104" height="16"> <br>Note that tags can <em>not</em> be left empty like this: <img src="//community.axoloti.com/uploads/default/original/1X/4bdf2f8fc81313a6d86b2f5af390a78043bb8966.png" width="160" height="18"> <br>Some tags may be left out, but some are mandatory.<br>An XML tag can have <em>attributes</em> . Some of the (mandatory) attributes used in Axoloti objects  are <strong>id</strong>, <strong>uuid</strong> and <strong>sha</strong>  , and in the inlets and outlets sections you'll find things like <strong>name</strong> and <strong>description</strong>,</p>
+
+<p>In XML the <em>content</em> (= data between tags) can not contain certain characters, these are:  <strong>" ' &lt; &gt; &amp;</strong> <br>The work-around for this is to use <strong>CDATA</strong>  formatting, which means that the data in between these tags is <em>content</em> , and not part of a tag. </p>
+
+<hr>
+
+<p><strong>Object Skeleton</strong><br>This is a definition of a empty Axoloti object:<br></p>
+
+<p></p><pre><code class="lang-auto">&lt;objdefs&gt;
+   &lt;obj.normal 
+         id="uniqueID" 
+         uuid="2ae01ff03753539d9028888689654235fa199936" 
+         sha="ae685c109e202b4739b3022d59a891becf60f349"&gt;
+      &lt;upgradeSha&gt;26b0e9ebf07d4a6d8f04db3682899c48c85cc389&lt;/upgradeSha&gt;
+      &lt;sDescription&gt;Some description&lt;/sDescription&gt;
+      &lt;author&gt;AuthorName&lt;/author&gt;
+      &lt;license&gt;LicenceType&lt;/license&gt;
+      &lt;helpPatch&gt;helpfile.axh&lt;/helpPatch&gt;
+
+      &lt;inlets/&gt;
+      &lt;outlets/&gt;
+      &lt;displays/&gt;
+      &lt;params/&gt;
+      &lt;attribs/&gt;
+      &lt;includes/&gt;
+
+      &lt;code.declaration&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.declaration&gt;
+      
+      &lt;code.init&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.init&gt;      
+
+      &lt;code.krate&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.krate&gt;
+
+      &lt;code.srate&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.srate&gt;
+
+      &lt;code.midihander&gt;&lt;![CDATA[
+      ]]&gt;&lt;/code.midihander&gt;
+   &lt;/obj.normal&gt;
+&lt;/objdefs&gt;</code></pre>
+
+<p><strong>id</strong>: a unique name for your object. <br><strong>uuid</strong> ,  <strong>sha</strong> : a unique ID (SHA1) .  If the ID already exists , or when it has not the correct value, Axoloti will suggest the correct value when reloading the objects (File &gt; Reload Objects).</p>
+
+<p><strong>inlets</strong> , <strong>outlets</strong> simply define the inputs and outputs of your object. </p>
+
+<p></p><pre><code class="lang-auto">&lt;inlets&gt;
+    &lt;frac32 name="in" decription="in" /&gt;
+&lt;/inlets&gt;
+&lt;outlets&gt;
+    &lt;frac32 name="out" decription="out" /&gt;
+&lt;/outlets&gt;</code></pre>
+
+<p>Inlets and outlets have a name, can have a description and have a numeric type (tagname).</p>
+
+<p><strong>Parameters</strong></p>
+
+<p></p><pre><code class="lang-auto">    &lt;params&gt;
+       &lt;frac32.s.map name="value"/&gt;
+    &lt;/params&gt;</code></pre>
+
+<p>generates this dial:<br><img src="//community.axoloti.com/uploads/default/original/1X/d0e9b4d382a058e0c8bd2d50472c98bf4bdebbd3.png" width="70" height="84"> </p>
+
+<p>Some parameter types employ a "pfunction", to scale/map/warp a linear parameter space into a range (-64...64) that can be more directly used by the dsp function. </p>
+
+<p>All parameters result in a 32 bit type.</p>
+
+<p><strong>Displays</strong><br>The definitions in the Displays section will show up as data visualizers in the GUI, only reading back from patch to GUI. The value of a Display element can not be changed by the GUI.</p>
+
+<p></p><pre><code class="lang-auto">&lt;displays&gt;
+    &lt;frac32.s.dial name="v" noLabel="true"&gt;
+&lt;/displays&gt;</code></pre>
+
+<p><strong>attribs</strong> <br>The definitions in the Attributes section are used to define constant values or strings (like table name ) <br>Attributes are known at compile time.</p>
+
+<p></p><pre><code class="lang-auto">&lt;attribs&gt;
+   &lt;spinner name="delay" MinValue="1" MaxValue="10000" DefaultValue="100"/&gt;
+&lt;/attribs&gt;</code></pre>
+
+<p>results in :<br><img src="//community.axoloti.com/uploads/default/original/1X/edcc9da42352ffca67103855899dd39f7a96c270.png" width="81" height="26"> <br>In the code section the attribute can be used by adding the prefix attr_ , so in this example that would be <em>attr_delay</em></p>
+
+<p><strong>Types</strong><br>int32<br>bool32<br>frac32<br>frac32buffer<br>[...]</p>
+
+<hr>
+
+<p><strong>Code Sections</strong><br>This is where the actual code lives. </p>
+
+<p>There are three code sections : <br><strong>code.krate</strong>  : control rate, 3000Hz<br><strong>code.srate</strong>  : audio rate ,  48000Hz<br><strong>code.midihandler</strong><br>Code sections can be used together, or left out</p>
+
+<blockquote><p>Sample rates are defined in the firmware <em>app/firmware/axoloti_defines.h</em><br>The sample rate is defined by the macro SAMPLERATE.<br>The number of audio samples corresponding to one control rate sample is defined by the macro BUFSIZE , so a buffersize  16 results a krate of 48000/16 = 3000.</p></blockquote>
+
+<p>This example code simply adds the value of <em>in2</em>  to  <em>in1</em> , and send it to <em>out</em>  (3000 times per second): <br><img src="//community.axoloti.com/uploads/default/original/1X/b722c8fd81b2a9c20a9761306e269460271d9b12.png" width="360" height="55"> <br>Note that the names are prefixed with <strong>inlet_</strong> and <strong>outlet_</strong> , this means they were defined in the outlet/inlet section of the XML. </p>
+
+<blockquote><p>If you look at existing objects, you'll notice a lot of operators. If you're not familiar with C syntax, this list might be useful: <a href="http://www.tutorialspoint.com/cprogramming/c_operators.htm" title="C operators">C operators</a>   </p></blockquote>
+
+<p><strong>declaration , init</strong><br>Sometimes the values used in the code need to be declared and initialized.<br>This is where the <strong>code.declaration</strong> and <strong>code.init</strong> sections are for.<br><img src="//community.axoloti.com/uploads/default/original/1X/8b71aa0d8279b288ffecb0fc8a6800c5e2dbc493.png" width="251" height="146"> <br>This is code is only executed once, when the program starts.</p>
+
+<hr>
+
+<p>Next: <br><strong>102 creating a first object</strong></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/creating-axo-objects/481/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/creating-axo-objects/481/1</link>
+        <pubDate>Sun, 20 Sep 2015 14:49:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-481-1</guid>
+        <source url="http://community.axoloti.com/t/creating-axo-objects/481.rss">Creating AXO objects</source>
+      </item>
+  </channel>
+</rss>

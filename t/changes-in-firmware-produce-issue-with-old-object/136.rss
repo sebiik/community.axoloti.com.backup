@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Changes in firmware produce issue with old object</title>
+    <link>http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136</link>
+    <description>Hi - unfortunately I can&#39;t wrap my brain around this one since my C skills are non-existant.
+
+I had a previously modified math/wrap object that replaced the drop down with inputs. While trying to compile a patch with this object on the new firmware and app, I ran into some errors that made me check out the current version of the math/wrap object and it looks very different. What was a simple edit to the code before is now a puzzle to me.
+
+The old math/wrap object had this section in the code:
+
+          &lt;inlets&gt;
+             &lt;frac32buffer name=&quot;a&quot; description=&quot;a&quot;/&gt;
+          &lt;/inlets&gt;
+          &lt;outlets&gt;
+             &lt;frac32buffer.positive name=&quot;b&quot; description=&quot;quant(a)&quot; SumBuffer=&quot;false&quot;/&gt;
+          &lt;/outlets&gt;
+          &lt;displays/&gt;
+          &lt;params/&gt;
+          &lt;attribs&gt;
+             &lt;spinner name=&quot;bits&quot; MinValue=&quot;0&quot; MaxValue=&quot;27&quot; DefaultValue=&quot;7&quot;/&gt;
+          &lt;/attribs&gt;
+          &lt;code.srate&gt;&lt;![CDATA[   %b%= (%a%&lt;&lt;%bits%) &amp; ((1&lt;&lt;27)-1);
+    ]]&gt;&lt;/code.srate&gt;
+
+I modified it to be:
+ 
+
+          &lt;inlets&gt;
+             &lt;frac32buffer name=&quot;a&quot; description=&quot;a&quot;/&gt;
+    	 &lt;int32 name=&quot;bits&quot; description=&quot;bits&quot;/&gt;
+          &lt;/inlets&gt;
+          &lt;outlets&gt;
+             &lt;frac32buffer.positive name=&quot;b&quot; description=&quot;quant(a)&quot; SumBuffer=&quot;false&quot;/&gt;
+          &lt;/outlets&gt;
+          &lt;displays/&gt;
+          &lt;params/&gt;
+          &lt;attribs/&gt;
+          &lt;code.srate&gt;&lt;![CDATA[   %b%= (%a%&lt;&lt;%bits%) &amp; ((1&lt;&lt;27)-1);
+    ]]&gt;&lt;/code.srate&gt;
+
+the current version is like this:
+
+
+          &lt;inlets&gt;
+             &lt;frac32buffer name=&quot;a&quot; description=&quot;a&quot;/&gt;
+          &lt;/inlets&gt;
+          &lt;outlets&gt;
+             &lt;frac32buffer.positive name=&quot;b&quot; description=&quot;quant(a)&quot;/&gt;
+          &lt;/outlets&gt;
+          &lt;displays/&gt;
+          &lt;params/&gt;
+          &lt;attribs&gt;
+             &lt;spinner name=&quot;bits&quot; MinValue=&quot;0&quot; MaxValue=&quot;27&quot; DefaultValue=&quot;7&quot;/&gt;
+          &lt;/attribs&gt;
+          &lt;code.srate&gt;&lt;![CDATA[   outlet_b= (inlet_a&lt;&lt;attr_bits) &amp; ((1&lt;&lt;27)-1);
+    ]]&gt;&lt;/code.srate&gt;
+
+I adjusted the way the inlets are called but had issues anyway.
+
+     &lt;inlets&gt;
+             &lt;frac32buffer name=&quot;a&quot; description=&quot;a&quot;/&gt;
+    		 &lt;int32 name=&quot;bits&quot; description=&quot;bits&quot;/&gt;
+          &lt;/inlets&gt;
+          &lt;outlets&gt;
+             &lt;frac32buffer.positive name=&quot;b&quot; description=&quot;quant(a)&quot;/&gt;
+          &lt;/outlets&gt;
+          &lt;displays/&gt;
+          &lt;params/&gt;
+          &lt;attribs/&gt;
+          &lt;code.srate&gt;&lt;![CDATA[   outlet_b= (inlet_a&lt;&lt;%bits%) &amp; ((1&lt;&lt;27)-1);
+    ]]&gt;&lt;/code.srate&gt;
+
+The errors I get are &quot;expected primary-expression before &#39;%&#39; token&quot; and &quot; &#39;bits&#39; was not declared in this scope&quot; . 
+
+can you give me some clues that could help formulate the expressions correctly?</description>
+    
+    <lastBuildDate>Fri, 07 Aug 2015 09:44:39 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Changes in firmware produce issue with old object</title>
+        <dc:creator><![CDATA[@alexk alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alexk">@alexk</a> wrote:</p>
+          <blockquote>
+              <p>oh that is awesome. thanks</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136/3</link>
+        <pubDate>Fri, 07 Aug 2015 09:44:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-136-3</guid>
+        <source url="http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136.rss">Changes in firmware produce issue with old object</source>
+      </item>
+      <item>
+        <title>Changes in firmware produce issue with old object</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>just change %bits% to inlet_bits</p>
+
+<p>we are removing the %var% format, since this stop inlets/attributes/parameters/outlets having the same name...<br>which often was pretty confusing  (its why the oscillators inlets used to be called pitchm rather than just pitch... which we couldn't used, because there was a parameter named pitch.</p>
+
+<p>so now always use inlet_x, outlet_x, attrib_x, param_x</p>
+
+<p>p.s. its not a firmware change, its a change to how the code generator works</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136/2</link>
+        <pubDate>Thu, 06 Aug 2015 23:40:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-136-2</guid>
+        <source url="http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136.rss">Changes in firmware produce issue with old object</source>
+      </item>
+      <item>
+        <title>Changes in firmware produce issue with old object</title>
+        <dc:creator><![CDATA[@alexk alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alexk">@alexk</a> wrote:</p>
+          <blockquote>
+              <p>Hi - unfortunately I can't wrap my brain around this one since my C skills are non-existant.</p>
+
+<p>I had a previously modified math/wrap object that replaced the drop down with inputs. While trying to compile a patch with this object on the new firmware and app, I ran into some errors that made me check out the current version of the math/wrap object and it looks very different. What was a simple edit to the code before is now a puzzle to me.</p>
+
+<p>The old math/wrap object had this section in the code:</p>
+
+<pre><code>      &lt;inlets&gt;
+         &lt;frac32buffer name="a" description="a"/&gt;
+      &lt;/inlets&gt;
+      &lt;outlets&gt;
+         &lt;frac32buffer.positive name="b" description="quant(a)" SumBuffer="false"/&gt;
+      &lt;/outlets&gt;
+      &lt;displays/&gt;
+      &lt;params/&gt;
+      &lt;attribs&gt;
+         &lt;spinner name="bits" MinValue="0" MaxValue="27" DefaultValue="7"/&gt;
+      &lt;/attribs&gt;
+      &lt;code.srate&gt;&lt;![CDATA[   %b%= (%a%&lt;&lt;%bits%) &amp; ((1&lt;&lt;27)-1);
+]]&gt;&lt;/code.srate&gt;</code></pre>
+
+<p>I modified it to be:</p>
+
+<pre><code>      &lt;inlets&gt;
+         &lt;frac32buffer name="a" description="a"/&gt;
+	 &lt;int32 name="bits" description="bits"/&gt;
+      &lt;/inlets&gt;
+      &lt;outlets&gt;
+         &lt;frac32buffer.positive name="b" description="quant(a)" SumBuffer="false"/&gt;
+      &lt;/outlets&gt;
+      &lt;displays/&gt;
+      &lt;params/&gt;
+      &lt;attribs/&gt;
+      &lt;code.srate&gt;&lt;![CDATA[   %b%= (%a%&lt;&lt;%bits%) &amp; ((1&lt;&lt;27)-1);
+]]&gt;&lt;/code.srate&gt;</code></pre>
+
+<p>the current version is like this:</p>
+
+<pre><code>      &lt;inlets&gt;
+         &lt;frac32buffer name="a" description="a"/&gt;
+      &lt;/inlets&gt;
+      &lt;outlets&gt;
+         &lt;frac32buffer.positive name="b" description="quant(a)"/&gt;
+      &lt;/outlets&gt;
+      &lt;displays/&gt;
+      &lt;params/&gt;
+      &lt;attribs&gt;
+         &lt;spinner name="bits" MinValue="0" MaxValue="27" DefaultValue="7"/&gt;
+      &lt;/attribs&gt;
+      &lt;code.srate&gt;&lt;![CDATA[   outlet_b= (inlet_a&lt;&lt;attr_bits) &amp; ((1&lt;&lt;27)-1);
+]]&gt;&lt;/code.srate&gt;</code></pre>
+
+<p>I adjusted the way the inlets are called but had issues anyway.</p>
+
+<pre><code> &lt;inlets&gt;
+         &lt;frac32buffer name="a" description="a"/&gt;
+		 &lt;int32 name="bits" description="bits"/&gt;
+      &lt;/inlets&gt;
+      &lt;outlets&gt;
+         &lt;frac32buffer.positive name="b" description="quant(a)"/&gt;
+      &lt;/outlets&gt;
+      &lt;displays/&gt;
+      &lt;params/&gt;
+      &lt;attribs/&gt;
+      &lt;code.srate&gt;&lt;![CDATA[   outlet_b= (inlet_a&lt;&lt;%bits%) &amp; ((1&lt;&lt;27)-1);
+]]&gt;&lt;/code.srate&gt;</code></pre>
+
+<p>The errors I get are "expected primary-expression before '%' token" and " 'bits' was not declared in this scope" . </p>
+
+<p>can you give me some clues that could help formulate the expressions correctly?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136/1</link>
+        <pubDate>Thu, 06 Aug 2015 22:19:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-136-1</guid>
+        <source url="http://community.axoloti.com/t/changes-in-firmware-produce-issue-with-old-object/136.rss">Changes in firmware produce issue with old object</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,409 @@
+<patch-1.0 appVersion="1.0.9">
+   <obj type="filter/lp" uuid="1427779cf086ab83c8b03eeeac69c2a97759c651" name="lp_1" x="812" y="28">
+      <params>
+         <frac32.s.map name="pitch" MidiCC="16" value="-10.0"/>
+         <frac32.u.map name="reso" value="36.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/adsr" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="adsr_1" x="924" y="28">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-21.0"/>
+         <frac32.u.map name="s" value="40.0"/>
+         <frac32.s.map name="r" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/lcdctrl" uuid="e3e1aa60-f366-4efc-9c21-0a8d7fd3e368" name="lcdctrl_1" x="28" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="d4" selection="PB10"/>
+         <combo attributeName="d5" selection="PB14"/>
+         <combo attributeName="d6" selection="PB11"/>
+         <combo attributeName="d7" selection="PB15"/>
+         <combo attributeName="rs" selection="PC0"/>
+         <combo attributeName="e" selection="PC1"/>
+         <spinner attributeName="qsize" value="10"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165ctrl s" uuid="eb8acfa2-9ceb-4178-a577-571f067b2b3d" name="165ctrl_1" x="238" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="data" selection="PA0"/>
+         <combo attributeName="clock" selection="PA1"/>
+         <combo attributeName="latch" selection="PA3"/>
+         <combo attributeName="inh" selection="PA2"/>
+         <spinner attributeName="bits" value="24"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_3" x="28" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="2"/>
+      </attribs>
+   </obj>
+   <obj type="logic/qdecode" uuid="969ec1f5-2d66-4dab-b72f-9c6526e03b90" name="qdecode_1" x="154" y="140">
+      <params/>
+      <attribs>
+         <combo attributeName="rate" selection="full"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_1" x="252" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="10"/>
+      </attribs>
+   </obj>
+   <obj type="logic/qdecode" uuid="969ec1f5-2d66-4dab-b72f-9c6526e03b90" name="qdecode_3" x="378" y="140">
+      <params/>
+      <attribs>
+         <combo attributeName="rate" selection="full"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_9" x="504" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="18"/>
+      </attribs>
+   </obj>
+   <obj type="logic/qdecode" uuid="969ec1f5-2d66-4dab-b72f-9c6526e03b90" name="qdecode_5" x="630" y="140">
+      <params/>
+      <attribs>
+         <combo attributeName="rate" selection="full"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="f5b0622e-53b1-4585-a994-e8f5ff429233" name="object_1" x="756" y="154">
+      <params/>
+      <attribs>
+         <objref attributeName="lcdctrl" obj="lcdctrl_1"/>
+         <table attributeName="ids" table="&quot;lp_1:pitch&quot;,&quot;lp_1:reso&quot;,&quot;adsr_1:a&quot;,&quot;adsr_1:d&quot;,&quot;adsr_1:s&quot;,&quot;adsr_1:r&quot;"/>
+         <table attributeName="menuline" table="&quot;Frq Res Atk Dec Sus Rel &quot;"/>
+      </attribs>
+      <object id="patch/object" uuid="f5b0622e-53b1-4585-a994-e8f5ff429233">
+         <sDescription>Menu manager for 6 parameters</sDescription>
+         <author>Ricard Wanderlof</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="inc0"/>
+            <bool32.rising name="dec0"/>
+            <bool32.rising name="inc1"/>
+            <bool32.rising name="dec1"/>
+            <bool32.rising name="inc2"/>
+            <bool32.rising name="dec2"/>
+            <bool32.rising name="inc3"/>
+            <bool32.rising name="dec3"/>
+            <bool32.rising name="inc4"/>
+            <bool32.rising name="dec4"/>
+            <bool32.rising name="inc5"/>
+            <bool32.rising name="dec5"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="lcdctrl"/>
+            <table name="ids"/>
+            <table name="menuline"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int first;
+const char *keyids[6] = { attr_ids };
+const char *menuline = "\x80" attr_menuline;
+struct KeyValuePair *kvps[6];
+char printstring[5*6];
+void printval(char *str, int i)
+{
+	int digit;
+	
+	if (i < 0) {
+		*str++ = '-';
+		i = -i;
+	} else {
+		*str++ = '+';
+	}
+	
+	//digit = i / 100;
+	//*str++ = '0' + digit;
+	//i -= digit * 100;
+	
+	digit = i / 10;
+	*str++ = '0' + digit;
+	i -= digit * 10;
+	
+	*str++ = '0' + i;
+	*str = '\0';
+}
+void printpar(int par)
+{
+	char *str = &printstring[5 * par]; 
+	printval(str + 1, kvps[par]->ipvp.PEx->value >> 21);
+	attr_lcdctrl.print(str);
+}
+]]></code.declaration>
+         <code.init><![CDATA[first = 1;
+#include "ui.h"
+LogTextMessage("Here i am!");
+LogTextMessage("# params at init time: %d\n", ObjectKvpRoot->apvp.length);]]></code.init>
+         <code.krate><![CDATA[//extern struct KeyValuePair *ObjectKvps[];
+if (first) {
+	first = 0;
+	attr_lcdctrl.print(menuline);
+	LogTextMessage("# params at run time: %d\n", ObjectKvpRoot->apvp.length);
+#if 1
+	for (int i = 0; i < ObjectKvpRoot->apvp.length; i++) {
+		struct KeyValuePair *kvp = (struct KeyValuePair *) (ObjectKvpRoot->apvp.array[i]);
+		LogTextMessage("Param %d: \"%s\" type %d", i, kvp->keyname, kvp->kvptype);
+		//LogTextMessage("Param %d: \"%s\" type %d", i, ObjectKvps[i]->keyname, ObjectKvps[i]->kvptype);
+	}
+#endif
+	for (int i = 0; i < 6; i++) {
+		if (keyids[i]) {
+			for (int j = 0; j < ObjectKvpRoot->apvp.length; j++) {
+				struct KeyValuePair *kvp = (struct KeyValuePair *) (ObjectKvpRoot->apvp.array[j]);
+				if (strcmp(kvp->keyname, keyids[i]) == 0) {
+					LogTextMessage("Found %s for parameter #%d", kvp->keyname, i);
+					kvps[j] = kvp;
+				}
+			}
+		}
+		printstring[i * 5] = 0xc0 + 4 * i; // cursor control for parameter position
+	}
+	
+}
+if (kvps[0] && (inlet_inc0 || inlet_dec0)) {
+	if (inlet_inc0) KVP_Increment(kvps[0]); else KVP_Decrement(kvps[0]);
+	//LogTextMessage("New value %d\n", ObjectKvps[0]->ipvp.PEx->value >> 20);
+	//printstring[0] = '\xc0';
+	//printval(printstring+1, kvps[0]->ipvp.PEx->value >> 21);
+	this->printpar(0);
+}
+if (kvps[1] && (inlet_inc1 || inlet_dec1)) {
+	if (inlet_inc1) KVP_Increment(kvps[1]); else KVP_Decrement(kvps[1]);
+	printpar(1);
+}
+if (kvps[2] && (inlet_inc2 || inlet_dec2)) {
+	if (inlet_inc2) KVP_Increment(kvps[2]); else KVP_Decrement(kvps[2]);
+	printpar(2);
+}
+if (kvps[3] && (inlet_inc3 || inlet_dec3)) {
+	if (inlet_inc3) KVP_Increment(kvps[3]); else KVP_Decrement(kvps[3]);
+	printpar(3);
+}
+if (kvps[4] && (inlet_inc4 || inlet_dec4)) {
+	if (inlet_inc4) KVP_Increment(kvps[4]); else KVP_Decrement(kvps[4]);
+#if 0
+	printpar(4);
+#endif
+}
+if (kvps[5] && (inlet_inc5 || inlet_dec5)) {
+	if (inlet_inc5) KVP_Increment(kvps[5]); else KVP_Decrement(kvps[5]);
+#if 0
+	printpar(5);
+#endif
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_4" x="28" y="182">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="3"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_2" x="252" y="182">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="11"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_10" x="504" y="196">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="19"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="952" y="238">
+      <params>
+         <frac32.s.map name="value" value="15.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_5" x="28" y="252">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="6"/>
+      </attribs>
+   </obj>
+   <obj type="logic/qdecode" uuid="969ec1f5-2d66-4dab-b72f-9c6526e03b90" name="qdecode_2" x="154" y="266">
+      <params/>
+      <attribs>
+         <combo attributeName="rate" selection="full"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_7" x="252" y="266">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="14"/>
+      </attribs>
+   </obj>
+   <obj type="logic/qdecode" uuid="969ec1f5-2d66-4dab-b72f-9c6526e03b90" name="qdecode_4" x="378" y="266">
+      <params/>
+      <attribs>
+         <combo attributeName="rate" selection="full"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_11" x="504" y="266">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="22"/>
+      </attribs>
+   </obj>
+   <obj type="logic/qdecode" uuid="969ec1f5-2d66-4dab-b72f-9c6526e03b90" name="qdecode_6" x="630" y="280">
+      <params/>
+      <attribs>
+         <combo attributeName="rate" selection="full"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_6" x="28" y="308">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="7"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_8" x="252" y="322">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="15"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/165in" uuid="d5a0414b-4490-4f28-9d8b-cb1edee698e6" name="165in_12" x="504" y="322">
+      <params/>
+      <attribs>
+         <objref attributeName="port" obj="165ctrl_1"/>
+         <spinner attributeName="bit" value="23"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="165in_3" outlet="out"/>
+         <dest obj="qdecode_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="165in_4" outlet="out"/>
+         <dest obj="qdecode_1" inlet="b"/>
+      </net>
+      <net>
+         <source obj="qdecode_1" outlet="down"/>
+         <dest obj="object_1" inlet="dec0"/>
+      </net>
+      <net>
+         <source obj="165in_5" outlet="out"/>
+         <dest obj="qdecode_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="165in_6" outlet="out"/>
+         <dest obj="qdecode_2" inlet="b"/>
+      </net>
+      <net>
+         <source obj="qdecode_2" outlet="up"/>
+         <dest obj="object_1" inlet="inc1"/>
+      </net>
+      <net>
+         <source obj="qdecode_2" outlet="down"/>
+         <dest obj="object_1" inlet="dec1"/>
+      </net>
+      <net>
+         <source obj="qdecode_1" outlet="up"/>
+         <dest obj="object_1" inlet="inc0"/>
+      </net>
+      <net>
+         <source obj="165in_1" outlet="out"/>
+         <dest obj="qdecode_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="165in_2" outlet="out"/>
+         <dest obj="qdecode_3" inlet="b"/>
+      </net>
+      <net>
+         <source obj="qdecode_3" outlet="up"/>
+         <dest obj="object_1" inlet="inc2"/>
+      </net>
+      <net>
+         <source obj="qdecode_3" outlet="down"/>
+         <dest obj="object_1" inlet="dec2"/>
+      </net>
+      <net>
+         <source obj="165in_7" outlet="out"/>
+         <dest obj="qdecode_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="165in_8" outlet="out"/>
+         <dest obj="qdecode_4" inlet="b"/>
+      </net>
+      <net>
+         <source obj="qdecode_4" outlet="up"/>
+         <dest obj="object_1" inlet="inc3"/>
+      </net>
+      <net>
+         <source obj="qdecode_4" outlet="down"/>
+         <dest obj="object_1" inlet="dec3"/>
+      </net>
+      <net>
+         <source obj="165in_9" outlet="out"/>
+         <dest obj="qdecode_5" inlet="a"/>
+      </net>
+      <net>
+         <source obj="165in_10" outlet="out"/>
+         <dest obj="qdecode_5" inlet="b"/>
+      </net>
+      <net>
+         <source obj="qdecode_5" outlet="up"/>
+         <dest obj="object_1" inlet="inc4"/>
+         <dest obj="object_1" inlet="inc4"/>
+      </net>
+      <net>
+         <source obj="qdecode_5" outlet="down"/>
+         <dest obj="object_1" inlet="dec4"/>
+         <dest obj="object_1" inlet="dec4"/>
+      </net>
+      <net>
+         <source obj="165in_11" outlet="out"/>
+         <dest obj="qdecode_6" inlet="a"/>
+      </net>
+      <net>
+         <source obj="165in_12" outlet="out"/>
+         <dest obj="qdecode_6" inlet="b"/>
+      </net>
+      <net>
+         <source obj="qdecode_6" outlet="up"/>
+         <dest obj="object_1" inlet="inc5"/>
+         <dest obj="object_1" inlet="inc5"/>
+      </net>
+      <net>
+         <source obj="qdecode_6" outlet="down"/>
+         <dest obj="object_1" inlet="dec5"/>
+         <dest obj="object_1" inlet="dec5"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>29</x>
+      <y>49</y>
+      <width>1070</width>
+      <height>556</height>
+   </windowPos>
+</patch-1.0>

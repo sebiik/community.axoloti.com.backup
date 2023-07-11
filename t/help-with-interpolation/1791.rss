@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Help with interpolation</title>
+    <link>http://community.axoloti.com/t/help-with-interpolation/1791</link>
+    <description>Hello everyone, i feel i&#39;m stumbling over a pebble and i might need some advice.
+
+I&#39;m making a mandelbrot inspired oscillator (basically it iterates over the fundamental equation `z&#39; = z^2 + c` and outputs the result). 
+
+I also found a way to make it tuned (iterating with a certain frequency). To do this i just copied the osc/phasor code and tweaked it to my needs. With this implementation the result looks like a wavetable fed into a sample/hold module (or maybe table/read with no interpolation and a low number of samples).
+
+Similarly with table/read objects, i&#39;d like to implement some way to interpolate between two consecutive values (and this should be easy, since i already have a phasor that drives the pitch)
+See the image for some reference
+
+&lt;img src=&quot;/uploads/default/original/2X/2/2d9ef8634635e48e021d1591e9bfeb6db056e3bf.png&quot; width=&quot;445&quot; height=&quot;452&quot;&gt;
+
+i tried to write some code, but it just does not work like i want, no matter how much tweaking i do (here you have it:)
+
+    Phase = uint32_t
+    phase_t = int32_t 
+    re, im ,re_interp, im_interp = int32_t
+
+`    int32_t phase_t=Phase&gt;&gt;6; // make the phase variable signed int (so i can use it inside SMMUL) - Also, i&#39;m making it smaller
+    outlet_Re=(___SMMUL((re&gt;&gt;1)-(re_interp&gt;&gt;1),phase_t)) +(re_interp)&lt;&lt;5;
+    outlet_Im=(___SMMUL((im&gt;&gt;1)-(im_interp&gt;&gt;1),phase_t)) +(im_interp)&lt;&lt;5; 
+`
+
+If you feel it you can try the object here: &lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/7/7eeb71e4a7c961c47e98a6f09f1af7ec48365cbe.axp&quot;&gt;test_fractal.axp&lt;/a&gt; (11.7 KB)
+
+Any advice on how to fix this?</description>
+    
+    <lastBuildDate>Fri, 03 Jun 2016 21:17:34 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/help-with-interpolation/1791.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Help with interpolation</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Well, that was the idea: the relative distance is calculated with re - re_interp (new value - old value), and this number is multiplied by the phasor. <br>Add this to the old value and (at least in theory) i should obtain a linear interpolation. It does not work, however.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-interpolation/1791/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-interpolation/1791/6</link>
+        <pubDate>Fri, 03 Jun 2016 21:17:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1791-6</guid>
+        <source url="http://community.axoloti.com/t/help-with-interpolation/1791.rss">Help with interpolation</source>
+      </item>
+      <item>
+        <title>Help with interpolation</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>You should be able to use a bit of bit-shifting to calculate the current position between two fixed points, and the relative distances to them, then interpolate between the values at those points.</p>
+
+<p>If you evaluate the value at the next point every time you reach a new point and store that in a variable, that should be all you need, provided you keep moving in the same direction.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-interpolation/1791/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-interpolation/1791/5</link>
+        <pubDate>Fri, 03 Jun 2016 18:08:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1791-5</guid>
+        <source url="http://community.axoloti.com/t/help-with-interpolation/1791.rss">Help with interpolation</source>
+      </item>
+      <item>
+        <title>Help with interpolation</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>I'm a DSP noob, so yes, probably silly suggestions, sorry.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-interpolation/1791/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-interpolation/1791/4</link>
+        <pubDate>Fri, 03 Jun 2016 18:03:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1791-4</guid>
+        <source url="http://community.axoloti.com/t/help-with-interpolation/1791.rss">Help with interpolation</source>
+      </item>
+      <item>
+        <title>Help with interpolation</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Slew is definitely not what i need. A filter might be a solution, but what i want to do is interpolate between samples (Which does not sound like a filter, take for example a filtered square wave and a triangle, they sound vaguely similar but not the same)</p>
+
+<p>Also i want everything inside one object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-interpolation/1791/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-interpolation/1791/3</link>
+        <pubDate>Fri, 03 Jun 2016 17:42:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1791-3</guid>
+        <source url="http://community.axoloti.com/t/help-with-interpolation/1791.rss">Help with interpolation</source>
+      </item>
+      <item>
+        <title>Help with interpolation</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>Couldn't you just apply a small amount of lag/slew? Or low-pass filter it.<br>Amounts to the same thing, I think.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-interpolation/1791/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-interpolation/1791/2</link>
+        <pubDate>Fri, 03 Jun 2016 13:11:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1791-2</guid>
+        <source url="http://community.axoloti.com/t/help-with-interpolation/1791.rss">Help with interpolation</source>
+      </item>
+      <item>
+        <title>Help with interpolation</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Hello everyone, i feel i'm stumbling over a pebble and i might need some advice.</p>
+
+<p>I'm making a mandelbrot inspired oscillator (basically it iterates over the fundamental equation <code>z' = z^2 + c</code> and outputs the result). </p>
+
+<p>I also found a way to make it tuned (iterating with a certain frequency). To do this i just copied the osc/phasor code and tweaked it to my needs. With this implementation the result looks like a wavetable fed into a sample/hold module (or maybe table/read with no interpolation and a low number of samples).</p>
+
+<p>Similarly with table/read objects, i'd like to implement some way to interpolate between two consecutive values (and this should be easy, since i already have a phasor that drives the pitch)<br>See the image for some reference</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/2/2d9ef8634635e48e021d1591e9bfeb6db056e3bf.png" width="445" height="452"></p>
+
+<p>i tried to write some code, but it just does not work like i want, no matter how much tweaking i do (here you have it:)</p>
+
+<pre><code>Phase = uint32_t
+phase_t = int32_t 
+re, im ,re_interp, im_interp = int32_t</code></pre>
+
+<p><code>int32_t phase_t=Phase&gt;&gt;6; // make the phase variable signed int (so i can use it inside SMMUL) - Also, i'm making it smaller<br>    outlet_Re=(___SMMUL((re&gt;&gt;1)-(re_interp&gt;&gt;1),phase_t)) +(re_interp)&lt;&lt;5;<br>    outlet_Im=(___SMMUL((im&gt;&gt;1)-(im_interp&gt;&gt;1),phase_t)) +(im_interp)&lt;&lt;5; <br></code></p>
+
+<p>If you feel it you can try the object here: <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/7/7eeb71e4a7c961c47e98a6f09f1af7ec48365cbe.axp">test_fractal.axp</a> (11.7 KB)</p>
+
+<p>Any advice on how to fix this?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-interpolation/1791/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-interpolation/1791/1</link>
+        <pubDate>Fri, 03 Jun 2016 12:50:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1791-1</guid>
+        <source url="http://community.axoloti.com/t/help-with-interpolation/1791.rss">Help with interpolation</source>
+      </item>
+  </channel>
+</rss>

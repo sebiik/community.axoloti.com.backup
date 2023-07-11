@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Creating variables inside a function [C, memory handling] [Help me]</title>
+    <link>http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080</link>
+    <description>I&#39;m making some functions to handle matrices. My idea was to define a structure like this:
+
+[code]
+typedef struct {	
+	int32_t rows;	
+	int32_t cols;	
+	float *m;
+} matrix_struct;
+[/code]
+The pointer m should contain the address to the various element of the matrix, but since its size it&#39;s arbitrary i&#39;ll have to define an array later on.
+
+At this point i need a function to define exactly a matrix:
+
+[code]
+void matrix_create(int rows, int cols, matrix_struct *M)
+{
+	float matrix[rows*cols];
+	(M -&gt; rows) = rows;
+	(M -&gt; cols) = cols;
+	(M -&gt; m) = &amp;matrix;
+}
+[/code]
+
+Here&#39;s my question: is it okay to define the matrix array this way? Does the float matrix array survive after matrix_create() is executed?
+And if it survives, if i create a temporary matrix to work and call the function at k-rate, will the variable be destroyed at the end of the k-rate cycle or will it fill up memory?</description>
+    
+    <lastBuildDate>Fri, 17 Mar 2017 22:27:33 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Creating variables inside a function [C, memory handling] [Help me]</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Ok thanks, i totally forgot about the heap and stack behaviour.. <br>That's just moving my ignorance esewhere, though, i never ever worked with templates, and from what i read it's quite advanced stuff.</p>
+
+<p>I want to point out that rows and cols are not constants for the compiler, they will depend on the inputs of the object (i want to create a vandermonde matrix to fit some data with a polynomial, and the row size depends on the number of sample points, while the col size depends on the degree of the polynomial, which are in the hands of the user).</p>
+
+<p>At this point i wonder if it's better to defined the float m array outside the matrix_create function, and then pass the pointer to the function:<br></p>
+
+<p></p><pre><code class="lang-auto">matrix_struct M;
+int a = something;
+int b = something_else;
+float MAT1[a*b];
+matrix_create(a, b, &amp;M, MAT1);</code></pre>
+
+<p>That would make the rows and cols variables quite pointless though, if the array size is smaller than the actual rows*cols. </p>
+
+<p>What do you think?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080/3</link>
+        <pubDate>Fri, 17 Mar 2017 22:27:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3080-3</guid>
+        <source url="http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080.rss">Creating variables inside a function [C, memory handling] [Help me]</source>
+      </item>
+      <item>
+        <title>Creating variables inside a function [C, memory handling] [Help me]</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="3080"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sputnki/40/175_1.png" class="avatar">Sputnki:</div>
+<blockquote><p>Does the float matrix array survive after matrix_create() is executed?</p></blockquote></aside>
+
+<p><a href="http://stackoverflow.com/questions/4570366/pointer-to-local-variable">No</a>, it's created on the stack, functions should not return pointer to a variable on the stack in c++. This can cause confusing results...<br>It's better to use c++ templates than doing it this way, that ensures rows and cols are known constants for the compiler.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080/2</link>
+        <pubDate>Fri, 17 Mar 2017 19:46:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3080-2</guid>
+        <source url="http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080.rss">Creating variables inside a function [C, memory handling] [Help me]</source>
+      </item>
+      <item>
+        <title>Creating variables inside a function [C, memory handling] [Help me]</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>I'm making some functions to handle matrices. My idea was to define a structure like this:</p>
+
+<p></p><pre><code class="lang-auto">typedef struct {	
+	int32_t rows;	
+	int32_t cols;	
+	float *m;
+} matrix_struct;</code></pre>
+
+<p>The pointer m should contain the address to the various element of the matrix, but since its size it's arbitrary i'll have to define an array later on.</p>
+
+<p>At this point i need a function to define exactly a matrix:</p>
+
+<p></p><pre><code class="lang-auto">void matrix_create(int rows, int cols, matrix_struct *M)
+{
+	float matrix[rows*cols];
+	(M -&gt; rows) = rows;
+	(M -&gt; cols) = cols;
+	(M -&gt; m) = &amp;matrix;
+}</code></pre>
+
+<p>Here's my question: is it okay to define the matrix array this way? Does the float matrix array survive after matrix_create() is executed?<br>And if it survives, if i create a temporary matrix to work and call the function at k-rate, will the variable be destroyed at the end of the k-rate cycle or will it fill up memory?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080/1</link>
+        <pubDate>Fri, 17 Mar 2017 19:06:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3080-1</guid>
+        <source url="http://community.axoloti.com/t/creating-variables-inside-a-function-c-memory-handling-help-me/3080.rss">Creating variables inside a function [C, memory handling] [Help me]</source>
+      </item>
+  </channel>
+</rss>

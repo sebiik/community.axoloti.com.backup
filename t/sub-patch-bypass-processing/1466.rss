@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Sub patch - bypass/processing</title>
+    <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466</link>
+    <description>It would be great if the subpatch mode: &#39;mono with bypass&#39; could be implemented. I hope I understand it right. Bypass means: The objects inside the subpatch are excludeded from processing, which reduces its processor load to nearly 0%.</description>
+    
+    <lastBuildDate>Fri, 08 Apr 2016 12:50:54 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Ive moved this to a separate topic, as I think its an interesting discussion point.</p>
+
+<p>my fears are pretty much identical to johannes.</p>
+
+<p>(I'll point out, perhaps an obvious thing... its unacceptable that an audio glitch can occur, i.e. we can't do this, and just say, well it happens on some patches and not others, it must work 100%)  </p>
+
+<p>there appear to be a few options when you reactivate.<br>a) re-initialise<br>everything in the patch starts in a known state (good) but it may vary from the state it needs to be.<br>more worryingly, if its the 'normal' init(), then these are not optimised for frequent call. so someone may initialise a large table, or load something from an sdcard ... with could cause a buffer underrun </p>
+
+<p>b) just activate it.<br>almost certainly will cause clicks, as inlet values will have changed (causing potential discontinuity), and internal tables etc will suddenly be getting new data...  these possibly could be coded around by a patch developer, but hard to explain to everyone whats needed </p>
+
+<p>c) fade in.<br>yeah, I thought of this... actually in a slightly different way.<br>I was thinking, of letting the subpatch run for a while ( a few processing cycles), to allow for the data within the patch to 'catchup' , then outlets could be activated.</p>
+
+<p>I consider rather than fade in, as sub patches may not be audio, they could be doing something completely different e.g. midi output/calculations </p>
+
+<p>the issue with my warm up approach, is you can place objects within a subpatch that directly cause outputs (i.e not everything goes via the outlets e.g. audio/out midi/out objects) </p>
+
+<p>also the length of time for a patch to 'warm up' is unknown, a simple voice for a synth, could be immediate, but something with a big delay, could be 15 seconds...</p>
+
+<p>also there are a few other issues..</p>
+
+<p>reverbs/delay - most would expect these to 'ring out' when bypass is applied.<br>(this means in implementation, the dsp() has to be called BUT just not to accept new inputs from inlets or things like midi/in) </p>
+
+<p>midi (and perhaps others)  - just turning on bypass is not quite enough... there is a certain amount of 'state' with midi, e.g. which notes are active and allocated to voices. this would need to be cleared when activating bypass, to avoid oddities when re-activating</p>
+
+<p>midi out (related to above) - if you bypass a subpatch which sends midi out, e.g. note data, then if it has an active note, then when you activate bypass you will need to send a midi note off to avoid a note off.</p>
+
+<p>I think these kind of things highlight the kind of corner-cases that will turn up (over and above the inconsistent cpu load) ... cases that users <strong>will</strong> report as bugs if we supply a bypass feature, and are difficult to explain to users what they need to do.</p>
+
+<p>it would be useful, if others can think of 'corner cases', if we can build a complete list, this will help us determine the solution has to cover... and might even lead to a possible idea for implementation.</p>
+
+<p>also Id point out, if we provided this, this is not some 'advance' feature a few would use (so we could explain constraints etc). this is very likely to be something almost everyone (beginner to advanced) would start using, as they would see it as an alternative to switching patches.  so I think this means it has to be bulletproof and easily understood, and almost invisible to users.</p>
+
+<p>all that said, I do think its a <strong>really</strong> useful feature, and in some cases (e.g. switching synth voices) unlikey to cause many issues.</p>
+
+<p>anyway, I suspect, it needs a bit more thought, and perhaps needs to be something thats thought of as a "key new feature' rather than an easy addition.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/11</link>
+        <pubDate>Fri, 08 Apr 2016 12:50:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-11</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@Jan Jan Hofmann]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jan">@Jan</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="169" data-topic="257"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>But not re-initializing is also likely to result in clicks - for example a filter.</p></blockquote></aside>
+
+<p>I would have tried to quickly fade out input and output of the active subpatch, then switch the subpatch and finally fade in again.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/10</link>
+        <pubDate>Fri, 08 Apr 2016 12:00:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-10</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="159" data-topic="257"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/jan/40/1606_1.png" class="avatar">Jan:</div>
+<blockquote><p>subpatch mode: 'mono with bypass'</p></blockquote></aside>
+
+<p>My fear is greatly varying dsp workloads, causing unanticipated buffer underruns.<br>Re-initializing states 'd make it even worse - for example clearing a delay line. But not re-initializing is also likely to result in clicks - for example a filter. <br>I think it is hard to make the resulting constraints obvious to the user.<br>Unless all cpu cycles are accounted, then it can be ensured that disabling a certain dsp chain creates enough room for another.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/9</link>
+        <pubDate>Fri, 08 Apr 2016 00:00:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-9</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@Jens_Groh]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jens_groh">@Jens_Groh</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for clarifying.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/8</link>
+        <pubDate>Thu, 07 Apr 2016 12:39:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-8</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="164" data-topic="257" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/e480ec/40.png" class="avatar">Jens_Groh:</div>
+<blockquote><p>I meant the number of voices assigned to currently played notes.</p></blockquote></aside>
+
+<p>makes no difference, the oscillators/filters are all constantly being updated regardless of if a note is played or not.<br>all that is happening is the VCA is just multiplying the resulting signal by 0, which when summed with other outputs means its not heard.<br>in this regard, axoloti is like a real modular, the objects are always running, wether you can hear it or not is a different matter <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>you may think this is 'inefficient', but the point is, its constant - no peaks, no troughs ... so its a consistent performance.<br>(of course, if you look at the code at a low level then you will see of course load does vary slightly, but not to a point where it would jeopardise the audio buffer being updated in time...   if an object did do this, it would be considered a 'bad object' <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:">)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/7</link>
+        <pubDate>Thu, 07 Apr 2016 11:35:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-7</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@Jens_Groh]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jens_groh">@Jens_Groh</a> wrote:</p>
+          <blockquote>
+              <p>I meant the number of voices assigned to currently played notes.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/6</link>
+        <pubDate>Thu, 07 Apr 2016 11:01:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-6</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="162" data-topic="257"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/e480ec/40.png" class="avatar">Jens_Groh:</div>
+<blockquote><p>Hmm... doesn't processing load change when the number of active voices in polyphony changes? I would have thought so.</p></blockquote></aside>
+
+<p>yes, which is exactly why you cannot change it at 'runtime', you can only change before you compile/upload to the board</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/5</link>
+        <pubDate>Thu, 07 Apr 2016 10:43:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-5</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@Jens_Groh]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jens_groh">@Jens_Groh</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="160" data-topic="257" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>[...] Id be surprised if it was going to really allow, bypassing  of processing... as I thought one of the central tenets of axoloti, was constant processing load... to ensure, switching things on/off would not potentially result in audio glitches. [...]</p></blockquote></aside>
+
+<p>Hmm... doesn't processing load change when the number of active voices in polyphony changes? I would have thought so.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/4</link>
+        <pubDate>Thu, 07 Apr 2016 06:57:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-4</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@Jan Jan Hofmann]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jan">@Jan</a> wrote:</p>
+          <blockquote>
+              <p>It would be great for stomp-box patches. You could e.g. use one footswitch to select the active modulation subpatch and a second one to select the active distortion subpatch. The processor load would not change drastically. As an axoloti beginner, I'm trying to put everything I need for live guitar-playing in one patch, just to keep things as simple as possible. Such a bypass mode would be a great help.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/3</link>
+        <pubDate>Wed, 06 Apr 2016 20:35:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-3</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="159" data-topic="257" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/jan/40/1606_1.png" class="avatar">Jan:</div>
+<blockquote><p>It would be great if the subpatch mode: 'mono with bypass' could be implemented. I hope I understand it right. Bypass means: The objects inside the subpatch are excludeded from processing, which reduces its processor load to nearly 0%.</p></blockquote></aside>
+
+<p>Im not sure what the intentions were of this, as I don't remember seeing any related code - <a class="mention" href="/users/johannes">@johannes</a>?<br>Id be surprised if it was going to really allow, bypassing  of processing... as I thought one of the central tenets of axoloti, was constant processing load... to ensure, switching things on/off would not potentially result in audio glitches.</p>
+
+<p>... that said, I understand, the use-case for this, IF the user is well aware of the dangerous of switching in and out sub patches.</p>
+
+<p>In principle, it seems trivial to implement, we need to add an bool parameter to the patch, so that it can controlled, and then it just a matter of not calling the submodule dsp() . <br>( there is a small question over , I think, over if the module should be re-initialised when it goes from bypass to active ... as the inputs may have jumped considerably in the meantime whilst it was offline)</p>
+
+<p>I actually think it should be a subpatch property... as I see no reason it should be limited to mono patches, and arguably more useful on poly patches.... you could then have multiple synths, that could be turned on/off.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/2</link>
+        <pubDate>Wed, 06 Apr 2016 11:01:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-2</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+      <item>
+        <title>Sub patch - bypass/processing</title>
+        <dc:creator><![CDATA[@Jan Jan Hofmann]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jan">@Jan</a> wrote:</p>
+          <blockquote>
+              <p>It would be great if the subpatch mode: 'mono with bypass' could be implemented. I hope I understand it right. Bypass means: The objects inside the subpatch are excludeded from processing, which reduces its processor load to nearly 0%.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sub-patch-bypass-processing/1466/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sub-patch-bypass-processing/1466/1</link>
+        <pubDate>Tue, 05 Apr 2016 21:58:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1466-1</guid>
+        <source url="http://community.axoloti.com/t/sub-patch-bypass-processing/1466.rss">Sub patch - bypass/processing</source>
+      </item>
+  </channel>
+</rss>

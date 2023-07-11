@@ -1,0 +1,207 @@
+<objdefs>
+   <obj.normal 
+         id="CVs and POTs" 
+         uuid="1e50a73f3460a00a630adb4c31ad60313c82905f" 
+         sha="d5a077d1b5892162ec9cfa7db5eecc1657bde893">
+      <upgradeSha>26b0e9edf07d4a6d8f04db3682899c48c85cc389</upgradeSha>
+      <sDescription>reads pots and cv inputs of euxoloti</sDescription>
+      <author>Paul</author>
+      <license>BSD</license>
+
+      <inlets/>
+
+      <outlets>
+         <frac32 name="cv1"/>
+         <frac32 name="cv2"/>
+         <frac32 name="cv3"/>
+         <frac32 name="cv4"/>
+         <frac32 name="cv5"/>
+         <frac32 name="cv6"/>
+         <frac32 name="cv7"/>
+         <frac32 name="cv8"/>
+
+         <frac32 name="pot1"/>
+         <frac32 name="pot2"/>
+         <frac32 name="pot3"/>
+         <frac32 name="pot4"/>
+         <frac32 name="pot5"/>
+         <frac32 name="pot6"/>
+         <frac32 name="pot7"/>
+         <frac32 name="pot8"/>
+      </outlets>
+
+      <displays/>
+      <params/>
+
+      <attribs>
+         <combo name="clock_polarity">
+            <MenuEntries>
+               <string>CPOL=0</string>
+            </MenuEntries>
+
+            <CEntries>
+               <string></string>
+            </CEntries>
+         </combo>
+
+         <combo name="clock_phase">
+            <MenuEntries>
+               <string>CPHA=0</string>
+            </MenuEntries>
+
+            <CEntries>
+               <string></string>
+            </CEntries>
+         </combo>
+
+         <combo name="baudrate">
+            <MenuEntries>   
+               <string>FPCLK/64</string>
+            </MenuEntries>
+
+            <CEntries>
+               <string>|(5&lt;&lt;3)</string>
+            </CEntries>
+         </combo>
+
+         <combo name="format">
+            <MenuEntries>
+               <string>LSB first</string>
+            </MenuEntries>
+
+            <CEntries>
+               <string>|SPI_CR1_LSBFIRST</string>
+            </CEntries>
+         </combo>
+
+      </attribs>
+
+      <includes/>
+
+      <code.declaration><![CDATA[
+         uint8_t *txbuf;
+         uint8_t *rxbuf;
+         uint32_t z;
+         uint8_t pin;
+
+         uint32_t pot1, pot2, pot3, pot4, pot5, pot6, pot7, pot8;
+         uint32_t cv1, cv2, cv3, cv4, cv5, cv6, cv7, cv8;
+      ]]></code.declaration>
+      
+      <code.init><![CDATA[
+
+         //org. from spi.axo
+         // setup the spi pins
+         palSetPadMode(GPIOA, 4, PAL_MODE_OUTPUT_PUSHPULL);// NSS
+         palSetPadMode(GPIOA, 5, PAL_MODE_OUTPUT_PUSHPULL);// SCK
+         palSetPadMode(GPIOA, 7, PAL_MODE_OUTPUT_PUSHPULL);// MOSI
+         //palSetPadMode(GPIOA, 4, PAL_MODE_ALTERNATE(5));// NSS
+         palSetPadMode(GPIOA, 5, PAL_MODE_ALTERNATE(5));// SCK
+         palSetPadMode(GPIOA, 6, PAL_MODE_ALTERNATE(5));// MISO
+         palSetPadMode(GPIOA, 7, PAL_MODE_ALTERNATE(5));// MOSI
+
+         static const SPIConfig spicfg = 
+            {NULL, GPIOA, 4, 0 attr_clock__polarity attr_clock__phase attr_baudrate attr_format};
+         // end spi.axo
+
+         static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+         static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));
+         txbuf = _txbuf;
+         rxbuf = _rxbuf;
+
+         // ADC2 CS2 PIN(CV IN)
+         palSetPadMode(GPIOA,2,PAL_MODE_OUTPUT_PUSHPULL);
+         palWritePad(GPIOA,2,1);
+         // ADC1 CS1 PIN(CV IN)
+         palSetPadMode(GPIOA,3,PAL_MODE_OUTPUT_PUSHPULL);
+         palWritePad(GPIOA,3,1); 
+
+         pin = 0;   
+
+         spiStart(&SPID1, &spicfg); // org. from spi.axo
+      ]]></code.init>    
+
+      <code.krate><![CDATA[
+         txbuf[2] = 0b00000000;
+   
+         for(int pin=0; pin<8; pin++){
+    
+            txbuf[0] = pin < 4 ? 0b01100000 : 0b11100000;
+    
+            if (pin % 4 == 0) { txbuf[1] = 0b00000000; } 
+            else if (pin % 4 == 1) { txbuf[1] = 0b00000010; } 
+            else if (pin % 4 == 2) { txbuf[1] = 0b00000001; } 
+            else { txbuf[1] = 0b00000011;}
+      
+            palWritePad(GPIOA,3,0);
+            spiSelect(&SPID1);     
+            spiSend(&SPID1,3,txbuf);
+            spiReceive(&SPID1,3,rxbuf);
+            spiUnselect(&SPID1);
+            palWritePad(GPIOA,3,1);
+
+            z = (rxbuf[1] << 8| rxbuf[0]) << 16;
+
+            switch (pin) {
+               case 0: outlet_pot2 = z; break;
+               case 1: outlet_pot1 = z; break;
+               case 2: outlet_pot3 = z; break;
+               case 3: outlet_pot4 = z; break;
+               case 4: outlet_pot6 = z; break;
+               case 5: outlet_pot5 = z; break;
+               case 6: outlet_pot7 = z; break;
+               case 7: outlet_pot8 = z; break;
+            }
+         }
+         
+         txbuf[2] = 0b00000000;
+      
+         for(int pin=0; pin<8; pin++){
+    
+            txbuf[0] = pin < 4 ? 0b01100000 : 0b11100000;
+    
+            if (pin % 4 == 0) { txbuf[1] = 0b00000000; } 
+            else if (pin % 4 == 1) { txbuf[1] = 0b00000010; } 
+            else if (pin % 4 == 2) { txbuf[1] = 0b00000001; } 
+            else { txbuf[1] = 0b00000011;}
+         
+            palWritePad(GPIOA,2,0);
+            spiSelect(&SPID1);      
+            spiSend(&SPID1,3,txbuf);
+            spiReceive(&SPID1,3,rxbuf);
+            spiUnselect(&SPID1);
+            palWritePad(GPIOA,2,1);
+
+            z = 0x07FFFFFF - ((rxbuf[1] << 8| rxbuf[0]) << 16);
+      
+      
+            switch (pin) {
+               case 0: outlet_cv1 = z; break;
+               case 1: outlet_cv2 = z; break;
+               case 2: outlet_cv3 = z; break;
+               case 3: outlet_cv4 = z; break;
+               case 4: outlet_cv5 = z; break;
+               case 5: outlet_cv6 = z; break;
+               case 6: outlet_cv7 = z; break;
+               case 7: outlet_cv8 = z; break;
+            }
+         
+            chThdSleepMilliseconds(5);
+         }
+      ]]></code.krate>
+
+      <code.srate><![CDATA[
+      ]]></code.srate>
+
+      <code.dispose><![CDATA[
+         //org. from spi.axo
+         spiStop(&SPID1);
+         palSetPadMode(GPIOA, 4, PAL_MODE_INPUT_ANALOG);
+         palSetPadMode(GPIOA, 5, PAL_MODE_INPUT_ANALOG);
+         palSetPadMode(GPIOA, 6, PAL_MODE_INPUT_ANALOG);
+         palSetPadMode(GPIOA, 7, PAL_MODE_INPUT_ANALOG);
+         // end spi.axo
+      ]]></code.dispose>
+      
+   </obj.normal>
+</objdefs>

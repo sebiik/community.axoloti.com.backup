@@ -1,0 +1,153 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="midi/out/clock" uuid="12b916e835bb6fc9fa4f2c858d1d1a72d5cf6d08" name="clock_3" x="14" y="42">
+      <params>
+         <frac32.u.map name="bpm" value="23.5"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+      </attribs>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_2" x="154" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="252" y="42">
+      <params>
+         <int32 name="maximum" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sel/sel b 16 2t D" uuid="16820488-47e6-426c-8c2e-92eef5695211" name="sel_1" x="364" y="42">
+      <params>
+         <bin16 name="p1" value="4369"/>
+         <bin16 name="p2" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="630" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="13.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="envs/adsr1" uuid="8c132eff-2072-413e-84cc-c8bdc90f832b" name="adsr1_1" x="742" y="42">
+      <params>
+         <bool32.tgl name="on" value="1"/>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="2.0"/>
+         <frac32.u.map name="s" value="0.0"/>
+         <frac32.s.map name="r" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="840" y="42">
+      <params>
+         <frac32.u.map name="volume" value="10.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="14" y="182">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="308" y="294" text="TURN gpio/in/analog OFF TO HEAR THE TEMPO GO BACK TO NORMAL"/>
+   <comment type="patch/comment" x="308" y="308" text="AND ALSO THE DIGITAL HARSHNESS IS GONE WHEN ANALOG IS OFF      "/>
+   <obj type="gpio/in/analog" uuid="1c0c845ed2d7e06ae5f377ba13d9d09f4747ac87" name="analog_1" x="84" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="channel" selection="PA4 (ADC1_IN4)"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="ANALOG OFF" x="308" y="336">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="3bcb8a666381ed18b8962eda50b1aa679136f618" name="mux_1" x="406" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/smooth" uuid="6c5d08c282bb08bff24af85b4891447f99bcbc97" name="smooth_1" x="518" y="336">
+      <params>
+         <frac32.u.map name="time" value="13.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="42071f8cb4cfe1f35956c0bd5a313a57e049bec4" name="change_1" x="630" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_1" x="742" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="3"/>
+         <spinner attributeName="cc" value="108"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="clock_3" inlet="run"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="cc_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="clock_3" outlet="pos4ppq"/>
+         <dest obj="change_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="change_2" outlet="trig"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="sel_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="smooth_1" outlet="out"/>
+         <dest obj="change_1" inlet="in"/>
+         <dest obj="cc_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="adsr1_1" outlet="o"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="adsr1_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="sel_1" outlet="o1"/>
+         <dest obj="adsr1_1" inlet="g"/>
+      </net>
+      <net>
+         <source obj="analog_1" outlet="out"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="ANALOG OFF" outlet="o"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="smooth_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>1121</width>
+      <height>694</height>
+   </windowPos>
+</patch-1.0>

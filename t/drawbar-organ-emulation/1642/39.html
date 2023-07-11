@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/drawbar-organ-emulation/1642/39 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:16:00 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Drawbar organ emulation - AxoObject coding - Axoloti Community</title>
+    <meta name="description" content="Continuing discussion from http://community.axoloti.com/t/best-approach-for-additive-organ-patch/1638 
+
+http://electricdruid.net/technical-aspects-of-the-hammond-organ/ http://www.goodeveca.net/RotorOrgan/ToneWheelSpec.h&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="../16424658.html?page=2" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Drawbar organ emulation&#39;" href="../1642.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/smashedtransistors/200/3147_1.png" />
+<meta property="og:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/smashedtransistors/200/3147_1.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/drawbar-organ-emulation/1642/39" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/drawbar-organ-emulation/1642/39" />
+<meta property="og:title" content="Drawbar organ emulation" />
+<meta name="twitter:title" content="Drawbar organ emulation" />
+<meta property="og:description" content="@janifr @johannes I have experimented with multirate processing for my String machines, but this is not a good way to gain CPU in this particular case. The oscillators have lots of harmonics - even at low frequencies - so even with 14 tap interpolators I still have imaging/aliasing 😠     The good news is that I think this can be useful for sine based oscillators:   MultipleDownTest.axp (8.4 KB) 15%CPU    4 1/2 lower octaves (32 to 740Hz) are 16 x downsampled the octave above is 8 x downsam..." />
+<meta name="twitter:description" content="@janifr @johannes I have experimented with multirate processing for my String machines, but this is not a good way to gain CPU in this particular case. The oscillators have lots of harmonics - even at low frequencies - so even with 14 tap interpolators I still have imaging/aliasing 😠     The good news is that I think this can be useful for sine based oscillators:   MultipleDownTest.axp (8.4 KB) 15%CPU    4 1/2 lower octaves (32 to 740Hz) are 16 x downsampled the octave above is 8 x downsam..." />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../../index.html"><img src="../../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="../1642.html">Drawbar organ emulation</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../../c/axoobject-code.html" itemprop="url">
+        <span itemprop="title">AxoObject coding</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-07T18:29:30Z' itemprop='datePublished'>
+             2017-01-07 18:29:30 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Now my patch seems to be synced.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/lokki.html'><b itemprop='author'>lokki</b></a>
+           
+           <time datetime='2017-01-07T18:33:03Z' itemprop='datePublished'>
+             2017-01-07 18:33:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#21</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>yeah, it's there. thanks</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-08T19:37:21Z' itemprop='datePublished'>
+             2017-01-08 19:37:21 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#22</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Just uploaded a new version. Applied tone generator calibration curve for a 1935-1940 organ which I found from the web. I also figured out that I have a fundamental error in my percussion code which I haven't fixed yet.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-09T22:01:09Z' itemprop='datePublished'>
+             2017-01-09 22:01:09 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#23</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi Janifr,</p>
+
+<p>I played with some of your code and with some of Johannes to go in another direction</p>
+
+<p>Here is an experiment to get some paraphonic pipe organ:</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/9/test_PipeOrgan.axp">test_PipeOrgan.axp</a> (20.7 KB)<br>Updated: corrected tuning!</p>
+
+<p>Here is a short audio demo: <a href="https://soundcloud.com/thierry-rochebois-1/axoloti-testpipeorgan" rel="nofollow">excerpt of toccata and fugue on an Axoloti</a> </p>
+
+<p>To get something more like pipe organs i tried some tricks:</p>
+
+<ul>
+<li>I use self phase modulated oscillators. (pipes do not generate sine waves)</li>
+<li>Slight random detune</li>
+<li>Smoother Attack for the lower oscillators (bigger pipes take more time to oscillate).</li>
+<li>Reverb</li>
+</ul>
+
+<p>I'll get some documentation to get a more accurate idea of how stops work in a pipe organ.<br>I think that using self PM osc can be useful for a simple model of basic pipe types (reed/flute).</p>
+
+<hr>
+
+<p><strong>Update:</strong> <br>I added an updated version in the <strong>library/community/tiar/organs/020-ChurchOrgan-tiar.axp</strong><br>It is more widely polyphonic (from MIDI note 5 (F) to MIDI note 114 (F#))<br>It is based on 91 oscillators.<br>It uses different kinds of oscillators depending on the frequency:</p>
+
+<ul>
+<li>pure sine<ul>
+<li>for low freq oscillators to avoid muddy beatings in the basses</li>
+<li>for high freq oscillators</li>
+</ul>
+</li>
+<li>self phase modulated sine oscs (they generate even and odd harmonics).<ul><li>used in for the mid to obtain a full sound.</li></ul>
+</li>
+<li>self square phase modulated (they only have odd harmonics).<ul><li>used in the high mid to have a clear/woody character.<br>These generators roughly simulates the different organ pipes.</li></ul>
+</li>
+</ul>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:3'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-10T20:38:41Z' itemprop='datePublished'>
+             2017-01-10 20:38:41 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#24</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Very impressive SmashedTransistors! I wish our neighbouring church had hear of Axo before of spending 620 000 € for new pipe organ <img src="../../../images/emoji/emoji_one/slight_smile30f4.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>In mean time I have been fulfilling my Ham^H^H^H Drawbar organ fetish and done slight improvements. Manual tapering and foldback are now working as they should.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-10T23:52:54Z' itemprop='datePublished'>
+             2017-01-10 23:52:54 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#25</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Well, i didn't planned at all to do that with the Axoloti... got distracted. I have to refocus on my psyché synth project...</p>
+
+<p>Your work is impressive, the Ham'organ is such a classic.<br>After that, you'll have to add a scanner chorus or/and a rotary speaker effect <img src="../../../images/emoji/emoji_one/wink30f4.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-11T20:37:58Z' itemprop='datePublished'>
+             2017-01-11 20:37:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#26</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Converted my floating point vibrato scanner from my other project to fixed point and rewrote it for my axo patch. Comments appreciated.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/lokki.html'><b itemprop='author'>lokki</b></a>
+           
+           <time datetime='2017-01-11T21:11:00Z' itemprop='datePublished'>
+             2017-01-11 21:11:00 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#27</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>nice! it sounds very good i think. the click at the beginning is a little prominent, at least to my ears. (you cannot remove it i know)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-12T10:40:39Z' itemprop='datePublished'>
+             2017-01-12 10:40:39 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#28</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Added tone generator coil pair leakage.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2017-01-12T11:27:31Z' itemprop='datePublished'>
+             2017-01-12 11:27:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#29</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="27" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/lokki/40/2882_1.png" class="avatar">lokki:</div>
+<blockquote><p>the click at the beginning is a little prominent</p></blockquote></aside>
+
+<p>one subtle approach to reduce the clickyness is not to close all (virtual) key switches simultaneously but spread them a little in time. Mechanical switches will also not close simultaneously and even bounce a bit. <br>In <code>jt/drawbars/switched</code> this is achieved by not evaluating all tonewheel gains at k-rate but only evaluating 1/8th of the tonewheel gains so all tonewheel gains are effectively updated at 1/8th of k-rate. While this is not an accurate model of the keyswitch timing, I think it helps a bit to "decorrelate" the click, and also reduces the computation load.</p>
+
+<p>May I also suggest to consider splitting your hammond/pipe organs into tuning, drawbars, and tonewheels like I did in <code>jt/tuning/...</code> etc, and moving the chorus/vibrato effect into a separate object so it becomes more modular?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-12T12:50:41Z' itemprop='datePublished'>
+             2017-01-12 12:50:41 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#30</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>While spreading switching in time would probably be the best way for a realistick click I personally think it is too costly for cpu. Since I try to save as many cpu cycles as i can I'm not going this way. I made some research with the famous GSi's VB3-plugin and found out that raw generator output (it has configurable output for this) produces quite loud clicks at the beginning and ending of a tone. It gets filtered a lot in the rotary speaker stage, though it is still there. As far as I have understood this clicky sound is part of the famous organ sound.</p>
+
+<p>I was about to create a separate module for the vibrato scanner, but found no way to create new empty object. I probably need some advice.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2017-01-12T12:58:19Z' itemprop='datePublished'>
+             2017-01-12 12:58:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#31</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="30" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/j/e79b87/40.png" class="avatar">janifr:</div>
+<blockquote><p>I personally think it is too costly for cpu.</p></blockquote></aside>
+
+<p>not necessarily, the trick in <code>jt/drawbars/switched</code> actually reduces the cpu load by a factor of 8!</p>
+
+<aside class="quote" data-post="30" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/j/e79b87/40.png" class="avatar">janifr:</div>
+<blockquote><p>but found no way to create new empty object.</p></blockquote></aside>
+
+<p>Create a <code>patch/object</code> object, that creates an embedded object (saved inside the patch), and when ready, selelect "copy to library" in the file menu of the object editor to turn it into a library object.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-12T13:13:14Z' itemprop='datePublished'>
+             2017-01-12 13:13:14 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#32</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks, that way I got it.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-01-12T15:26:03Z' itemprop='datePublished'>
+             2017-01-12 15:26:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#33</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Just uploaded 2 manual version with a bit more modular design. Does anyone have 2 keyboard setup to test it?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-12T23:15:48Z' itemprop='datePublished'>
+             2017-01-12 23:15:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#34</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="29" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/johannes/40/8_1.html" class="avatar">johannes:</div>
+<blockquote><p>May I also suggest to consider splitting your hammond/pipe organs into tuning, drawbars, and tonewheels like I did in jt/tuning/... etc, and moving the chorus/vibrato effect into a separate object so it becomes more modular?</p></blockquote></aside>
+
+<p>I'm still in an "explorative"/"experimentative" phase, but yes, it would be great to have re usable modules for paraphonic organs and other string machines.</p>
+
+<ul>
+<li>paraphonic keyboard</li>
+<li>drawbar/mixture/register : to derive multiple controls from the keyboard to oscillator bank(s)</li>
+<li>tuning bank : tables and/or vibratos/fluctuations (ex: slight pitch variation during attack...)</li>
+<li>envelope bank</li>
+<li>oscillator bank</li>
+</ul>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-19T21:43:16Z' itemprop='datePublished'>
+             2017-01-19 21:43:16 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#35</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="11" data-topic="1642"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/j/e79b87/40.png" class="avatar">janifr:</div>
+<blockquote><p>I've implemented the 91 tonewheels using recursive sine-cosine oscillator in integer math.</p></blockquote></aside>
+
+<p>Hi <a class="mention" href="../../../users/janifr.html">@janifr</a> it's great to see this project evolve so fast.</p>
+
+<p>About the sinewave generation, i've just tested an old trick:<br>cos(2*x) = 2 * (cos(x)^2 - 0.5)</p>
+
+<p>this is frequency doubling by waveshaping.</p>
+
+<p>The direct application consists in generating the 12 lowest tones and to create the higher octaves by iterating this simple formula.</p>
+
+<p>Here is the code for the frequency doubling of "y" a q30 sinewave:</p>
+
+<pre><code>y = __SMMLA(y,  y, 0xF8000000 ) &lt;&lt; 3;
+q30        q30 q30 - 0.5_q28       * 2  and q28-&gt;q30</code></pre>
+
+<p>Here is a small patch with a 91 osc object :<br><a class="attachment" href="../../../uploads/default/original/2X/c/FreqDoublerTest.axp">FreqDoublerTest.axp</a> (6.0 KB) 35% CPU</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-19T22:17:03Z' itemprop='datePublished'>
+             2017-01-19 22:17:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#36</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Fake reverb idea:</p>
+
+<p>The gain envelope for each oscillator is the superposition of two AR envelopes:</p>
+
+<ul>
+<li>a fast AR : anti click</li>
+<li>a slow AR : pseudo reverberation</li>
+</ul>
+
+<p>This is a nice way to get free reverb and use those 91 oscillators.</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/d/FakeReverbTest.axp">FakeReverbTest.axp</a> (9.2 KB) 48%CPU with triple vibrato</p>
+
+<p>Here is a patch that uses this tricks plus a triple vibrato and some allpass filters to get a smooth vibrato. You can connect the object directly to the output (bypass the vibrato effect) to get an idea of how the fake reverb sounds.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/lokki.html'><b itemprop='author'>lokki</b></a>
+           
+           <time datetime='2017-01-20T23:34:48Z' itemprop='datePublished'>
+             2017-01-20 23:34:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#37</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../../users/janifr.html">@janifr</a> and <a class="mention" href="../../../users/smashedtransistors.html">@SmashedTransistors</a></p>
+
+<p>it would be great, although very unintuitively for you <img src="../../../images/emoji/emoji_one/slight_smile30f4.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> if you could release a mono version of your tone wheel organ and string machine stuff. i mean something like a one-voice hammond sound or a one-voice string sound oscillator that one can then easily control in a modular way. (midi control is external, with pitch input)</p>
+
+<p>for <a class="mention" href="../../../users/smashedtransistors.html">@SmashedTransistors</a> stuff i am not sure if his selfpm oscillators covers already the sounds coming from the string machine (minus the effects of course).</p>
+
+<p>hope this makes some sense.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-23T23:34:47Z' itemprop='datePublished'>
+             2017-01-23 23:34:47 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#38</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>You guessed well <a class="mention" href="../../../users/lokki.html">@lokki</a> the Dark Strings patch is based on the selfpm oscillator.<br>I'm working on a DPW waveform generator (see objects\tiar\osc\Osc_Bnk_I ), and i will certainly make a mono version of these ones too.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2017-01-23T23:56:25Z' itemprop='datePublished'>
+             2017-01-23 23:56:25 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#39</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../../users/janifr.html">@janifr</a> <a class="mention" href="../../../users/johannes.html">@johannes</a> I have experimented with multirate processing for my String machines, but this is not a good way to gain CPU in this particular case. The oscillators have lots of harmonics - even at low frequencies - so even with 14 tap interpolators I still have imaging/aliasing <img src="../../../images/emoji/emoji_one/angry30f4.png?v=3" title=":angry:" class="emoji" alt=":angry:"></p>
+
+<hr>
+
+<p>The good news is that I think this can be useful for sine based oscillators:</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/0/MultipleDownTest.axp">MultipleDownTest.axp</a> (8.4 KB) 15%CPU</p>
+
+<ul>
+<li>4 1/2 lower octaves (32 to 740Hz) are 16 x downsampled</li>
+<li>the octave above is 8 x downsampled</li>
+<li>the octave above is 4 x downsampled</li>
+<li>the highest octave is 2 x downsampled</li>
+</ul>
+
+<p>Each stage consists in a 2x interpolator.<br>Linear interpolators are not good enough, they induce strong imaging (i.e. images of the signals above the interpolator's cutoff frequency).<br>The 2x interpolators are based on a 14 tap FIR (for steep transition zone) and two one pole LPF (to remove high frequency imaging, it can be enhanced to a better IIR).</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Drawbar organ emulation'>
+      <hr>
+            <a href="../../hardware-limits-for-heavy-emulator/5175/4.html">Hardware limits for heavy emulator</a>
+            <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../../index.html'>Home</a>
+        <a href="../../../categories.html">Categories</a>
+        <a href="../../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../../tos.html">Terms of Service</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/drawbar-organ-emulation/1642/39 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:16:00 GMT -->
+</html>

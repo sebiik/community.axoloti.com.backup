@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Weird memory allocation issue [ Solved]</title>
+    <link>http://community.axoloti.com/t/weird-memory-allocation-issue-solved/2658</link>
+    <description>I&#39;m not really sure what&#39;s going on in my patch (which i&#39;ll post here: &lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/4/438efe867b9365c6ff67c567b227e8662d15e7d2.axp&quot;&gt;fm for help.axp&lt;/a&gt; (19.9 KB)
+ ) 
+
+Short story: there&#39;s a 2D array (6x3) in which i store some data. 
+The array is defined in local data this way:
+
+[code] int32_t modmatrix[6][3]; //row = source; column = dest [/code]
+
+Problem is: i can write correctly in every position of the array, except for those of row 0
+(example: modmatrix[0][0] , modmatrix[0][1] , modmatrix[0][2] )
+
+I tried experimenting with the code, and i noticed some pretty wild behaviour: 
+&quot;normal&quot; local data section would be like this:
+
+[code]
+some stuff here (variable declarations)
+int32_t mix[3];
+int32_t modmatrix[6][3]; //row = source; column = dest
+some other stuff here (variable declarations)
+[/code]
+When the code is written like this i get the problem mentioned above.
+
+If instead i write this (flipping the two declarations):
+[code]
+some stuff here (variable declarations)
+int32_t modmatrix[6][3]; //row = source; column = dest
+int32_t mix[3];
+some other stuff here (variable declarations)
+[/code]
+
+The object completely stops working and starts to emit a buzzing sound
+
+
+I worked around this issue by making the array 7x3 and not using the first row... But it&#39;s pretty ugly.
+
+
+I&#39;d suspect this is some form of variable overflowing, however i fail to see where this is happening... Can someone give me advice?
+
+**Solution:**
+I had defined mix[3] as a 3 values array. In k-rate i wrote in positions 3, 4, 5 (because that&#39;s what i intended to do from the beginning).
+This overwrites some portions of memory i used for modmatrix array, which was fine.</description>
+    
+    <lastBuildDate>Fri, 16 Dec 2016 22:46:43 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/weird-memory-allocation-issue-solved/2658.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Weird memory allocation issue [ Solved]</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>I'm not really sure what's going on in my patch (which i'll post here: <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/4/438efe867b9365c6ff67c567b227e8662d15e7d2.axp">fm for help.axp</a> (19.9 KB)<br> ) </p>
+
+<p>Short story: there's a 2D array (6x3) in which i store some data. <br>The array is defined in local data this way:</p>
+
+<p></p><pre><code class="lang-auto"> int32_t modmatrix[6][3]; //row = source; column = dest</code></pre>
+
+<p>Problem is: i can write correctly in every position of the array, except for those of row 0<br>(example: modmatrix[0][0] , modmatrix[0][1] , modmatrix[0][2] )</p>
+
+<p>I tried experimenting with the code, and i noticed some pretty wild behaviour: <br>"normal" local data section would be like this:</p>
+
+<p></p><pre><code class="lang-auto">some stuff here (variable declarations)
+int32_t mix[3];
+int32_t modmatrix[6][3]; //row = source; column = dest
+some other stuff here (variable declarations)</code></pre>
+
+<p>When the code is written like this i get the problem mentioned above.</p>
+
+<p>If instead i write this (flipping the two declarations):<br></p>
+
+<p></p><pre><code class="lang-auto">some stuff here (variable declarations)
+int32_t modmatrix[6][3]; //row = source; column = dest
+int32_t mix[3];
+some other stuff here (variable declarations)</code></pre>
+
+<p>The object completely stops working and starts to emit a buzzing sound</p>
+
+<p>I worked around this issue by making the array 7x3 and not using the first row... But it's pretty ugly.</p>
+
+<p>I'd suspect this is some form of variable overflowing, however i fail to see where this is happening... Can someone give me advice?</p>
+
+<p><strong>Solution:</strong><br>I had defined mix[3] as a 3 values array. In k-rate i wrote in positions 3, 4, 5 (because that's what i intended to do from the beginning).<br>This overwrites some portions of memory i used for modmatrix array, which was fine.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/weird-memory-allocation-issue-solved/2658/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/weird-memory-allocation-issue-solved/2658/1</link>
+        <pubDate>Fri, 16 Dec 2016 21:58:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2658-1</guid>
+        <source url="http://community.axoloti.com/t/weird-memory-allocation-issue-solved/2658.rss">Weird memory allocation issue [ Solved]</source>
+      </item>
+  </channel>
+</rss>

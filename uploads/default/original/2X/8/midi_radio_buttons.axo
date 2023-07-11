@@ -1,0 +1,75 @@
+<objdefs appVersion="1.0.8">
+   <obj.normal id="midi_radio_buttons" uuid="a3f68ef3-961b-4666-9daf-8e97edc673f3">
+      <sDescription>Use a span of MIDI CCs as toggling radio buttons, with MIDI parameter feedback.</sDescription>
+      <author>Johannes Taelman</author>
+      <license>BSD</license>
+      <helpPatch>midi_in.axh</helpPatch>
+      <inlets>
+         <bool32 name="select"/>
+      </inlets>
+      <outlets>
+         <int32.positive name="value" description="number of last pressed button, offset from minimum."/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs>
+         <combo name="device" description="Device to send parameter feedback to">
+            <MenuEntries>
+               <string>din</string>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <spinner name="channel" description="MIDI channel to respond to" MinValue="1" MaxValue="16" DefaultValue="0"/>
+         <spinner name="min" description="First CC, inclusive" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         <spinner name="max" description="Last CC, inclusive" MinValue="0" MaxValue="127" DefaultValue="0"/>
+      </attribs>
+      <code.declaration><![CDATA[int32_t _value; 
+int32_t _selected; 
+int32_t ntrig;]]></code.declaration>
+      <code.init><![CDATA[ _value = 0; 
+ _selected = 0;
+ ntrig = 0;]]></code.init>
+      <code.krate><![CDATA[outlet_value = _value;
+
+if (inlet_select && !_selected) {
+	ntrig = 1;
+}
+
+_selected = inlet_select;
+
+if (ntrig > 0) {
+	int max = (attr_max - attr_min);
+	for (int i = 0; i<=max; i++) {
+		MidiSend3((midi_device_t) attr_device, 
+			MIDI_CONTROL_CHANGE + (attr_channel-1),
+			attr_min + i,
+			((_value == i) ? 127 : 0));
+	}
+	ntrig = 0;
+}]]></code.krate>
+      <code.midihandler><![CDATA[if ((status&0xF0) == MIDI_CONTROL_CHANGE) {
+	if (_selected && ((status & 0x0F) == (attr_channel-1)) && (attr_min <= data1) && (data1 <= attr_max)) {
+          if (data2 == 127) {
+          	_value = data1 - attr_min;
+			ntrig = 1;
+          }
+	}
+}]]></code.midihandler>
+   </obj.normal>
+</objdefs>

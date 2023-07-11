@@ -1,0 +1,479 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="210" y="14">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="280" y="14" text="this is just for demoing:"/>
+   <comment type="patch/comment" x="952" y="14" text="here are different ways to retrieve the values, again just for demoing"/>
+   <comment type="patch/comment" x="280" y="28" text="if you send 15 to the &apos;offset&apos; input, gpio 1-15 will be sent as the 16th-30th cc on the list provided in &apos;map&apos; "/>
+   <comment type="patch/comment" x="280" y="42" text="if you send 30 to the &apos;offset&apos; input, gpio 1-15 will be sent as the 31st-45th cc on the list provided in &apos;map&apos;  etc"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_3" x="952" y="42">
+      <params>
+         <frac32.u.map name="value" MidiCC="11" value="23.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="table/alloc 8b sdram" uuid="7af0c2671e20d9c493553cf8b038ebbec89efb7" name="paramtable" x="0" y="56">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="32"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="280" y="56" text="be sure to make the table as big as you have cc numbers"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_3" x="210" y="70">
+      <params>
+         <int32 name="value" value="15"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_1" x="266" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1022" y="84" text="midi cc is set to 11, so gpio analog in 1 (which is mapped to cc11 in the &apos;map&apos; list) is outputted here"/>
+   <comment type="patch/comment" x="1022" y="98" text="the same can be done for any controller on any object"/>
+   <comment type="patch/comment" x="14" y="154" text="this object reads the last value for this cc from the table"/>
+   <comment type="patch/comment" x="294" y="154" text="this is the main object; it reads gpio analog ins 1-15 and distributes them as midi ccs according to the &apos;map&apos; list"/>
+   <comment type="patch/comment" x="28" y="168" text="so as to enable pickup"/>
+   <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_1" x="154" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="paramtable"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="9dfc6c27-3886-46d9-aa22-186bd66adc02" name="reader_4" x="294" y="168">
+      <params/>
+      <attribs>
+         <spinner attributeName="NoOfParms" value="44"/>
+         <table attributeName="map" table="6,10,7,8,9,11,13,12,14,33,1,2,3,4,5,   20,24,21,22,23,25,27,26,28,32,15,16,17,18,19"/>
+         <combo attributeName="pickup" selection="on (connect inlet pval!)"/>
+      </attribs>
+      <object id="patch/object" uuid="9dfc6c27-3886-46d9-aa22-186bd66adc02">
+         <sDescription>Reads all 15 analog inputs and drops them as midi cc messages (mapped).
+Inputs have a threshold, to avoid noise.
+
+9/24/2018</sDescription>
+         <author>burek</author>
+         <license>GPL</license>
+         <inlets>
+            <int32 name="offset"/>
+            <frac32.positive name="pval"/>
+         </inlets>
+         <outlets>
+            <int32.positive name="selector"/>
+            <int32.positive name="ccsoon"/>
+            <bool32 name="activity"/>
+            <frac32.positive name="val"/>
+            <int32.positive name="ccNo"/>
+         </outlets>
+         <displays>
+            <bool32 name="active" description="writing" noLabel="true"/>
+            <int32.label name="on"/>
+         </displays>
+         <params/>
+         <attribs>
+            <spinner name="NoOfParms" MinValue="1" MaxValue="128" DefaultValue="15"/>
+            <table name="map"/>
+            <combo name="pickup">
+               <MenuEntries>
+                  <string>on (connect inlet pval!)</string>
+                  <string>off (jump)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>1</string>
+                  <string>0</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int i,active,lastact,timer,offset,pactive;//,midimode;
+int32_t currval;
+int val[15];
+int waitforpickup;
+
+int map[attr_NoOfParms] = {0};
+
+bool ignore;]]></code.declaration>
+         <code.init><![CDATA[i=0;
+active = -1;
+lastact = -2;
+offset = -1;
+active = 0;
+lastact=0;
+int imap[128] = {attr_map};
+for (i=0;i<=attr_NoOfParms;i++){
+	if (imap[i]>0){
+		map[i] = imap[i];
+	}
+	else map[i] = i+1;
+}
+waitforpickup=0;
+
+
+/* Good Initial Map:
+
+ *  
+ *  
+ *  6,10,7,8,9,11,13,12,14,33,1,2,3,4,5,   20,24,21,22,23,25,27,26,28,32,15,16,17,18,19
+ *  
+ *  
+
+ */]]></code.init>
+         <code.krate><![CDATA[if (offset<0){// we're newly switched on 
+	for(i=0;i<=14;i++){
+		val[i] = adcvalues[i]<<15;
+	//	LogTextMessage("Setting %1D to %3D",map[i+offset],val[i+offset]);
+	}
+	offset = 0;
+}
+
+if (offset!=inlet_offset){
+	if ((inlet_offset+15)<=((attr_NoOfParms<15)?(15):(attr_NoOfParms))){	
+		ignore = 0;
+		offset = inlet_offset;		
+		i=0;
+		outlet_ccsoon = 0;
+		active = -1;
+	}
+	else if (!ignore){ // offset too high
+		LogTextMessage("WARNING: offset %1D too high, only %1D parameters; I will ignore this change!",inlet_offset,((attr_NoOfParms<15)?(15):(attr_NoOfParms)));
+		ignore = 1;
+	}	
+}
+
+if (i==15) i=0;
+
+
+
+if (i==9){
+	currval =  ((adcvalues[9]>>8)<<2);
+	currval = ((currval<4)?0:((currval<10)?1:((currval<20)?2:((currval<28)?3:((currval<32)?4:((currval<40)?5:((currval<48)?6:((currval<56)?7:((currval<60)?8:9)))))))));
+
+		if (currval!=val[i]){
+		val[i] = currval;
+		PatchMidiInHandler(MIDI_DEVICE_INTERNAL,0,MIDI_CONTROL_CHANGE,map[i+offset],__USAT(currval<<1,7));// write to midi cc
+		//LogTextMessage("Selector Switch (%d) goes to %d",map[i+offset],currval);
+	}
+}
+else{
+
+currval = adcvalues[i]<<15; // read one analog input per circ
+
+if (i+offset==active){
+	//LogTextMessage("%d is active",map[active]);
+	timer -= 1<<15;
+	if (waitforpickup == 0){
+		if (abs(currval-val[i])>(1<<17)){ // ignore mini-changes
+			val[i] = currval;
+			
+			if (timer<(1<<23)) timer += 1<<17;//abs(currval-val[ioff]); // small change give you active time
+			
+			if (lastact!=active){
+					lastact = active;
+				//	outlet_ccchg = 1;
+			}
+
+			PatchMidiInHandler(MIDI_DEVICE_INTERNAL,0,MIDI_CONTROL_CHANGE,map[i+offset],__USAT(currval>>20,7));// write to midi cc
+			//outlet_val = currval>>20;
+			//outlet_cc = map[i+offset];
+			
+		}
+	}
+	else if (waitforpickup > 1){
+		waitforpickup--;
+		if (waitforpickup == 2){
+			val[i] = inlet_pval;
+			//LogTextMessage("received pval for %d: %d",map[i+offset],val[i]);
+			PatchMidiInHandler(MIDI_DEVICE_INTERNAL,0,MIDI_CONTROL_CHANGE,map[i+offset],__USAT(val[i]>>20,7));// write to midi cc
+			waitforpickup--;
+		}
+	}
+	else if (waitforpickup == 1){
+		if (abs(val[i]-currval)<(1<<19)){ // we got pickup
+				//LogTextMessage("Gleich!!!");
+				waitforpickup = 0;
+		}
+	}
+}
+else{
+	if (abs(currval-val[i])>(1<<22)){ // to become active, larger chg required	
+		//LogTextMessage("Requesting pval for %d (so far: %d)",map[i+offset],map[active]);
+		active = i+offset;
+
+		//LogTextMessage("active now set to %d",map[active]);
+		
+		disp_on = map[active];
+		
+		if (attr_pickup&&(active!=lastact)) waitforpickup = 3; // how many cycles do you need to wait before actually waiting for pickup
+		else waitforpickup = 0;
+				
+		timer = 1<<23; // for a little while, this is active
+	}
+}
+
+
+if (timer < 0&&active>=0){//...but as time passes, it become inactive again
+	//LogTextMessage("Left %1D at %3D",map[i+offset],currval>>21);
+	val[i]=currval;
+	active=-1;
+}
+
+}
+
+disp_active = (active >= 0);
+outlet_activity = (active >= 0);
+outlet_ccsoon = map[active];
+outlet_selector = val[9]*15;
+{
+int act = ((active>=0)?active:lastact);
+outlet_val = val[act-offset];
+outlet_ccNo = map[act];
+}
+
+i++;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_1" x="952" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="demux/demux 8" uuid="a7c1c9ee4fbbc2ebf3722eeb5c6d8e87033769ac" name="demux_1" x="1400" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="28" y="182" text="else select &quot;pickup OFF&quot;"/>
+   <comment type="patch/comment" x="1022" y="196" text="any time there is a change on any of the analog ins, it will be outputted here"/>
+   <comment type="patch/comment" x="1064" y="210" text="so you could add a demuxer here, if you wanted each value separately"/>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="980" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="448" y="280" text="&lt;- gpio analog ins 1-15 will be sent as midi ccs #1-15 on this list"/>
+   <comment type="patch/comment" x="994" y="336" text="or you get the midi cc you want individually"/>
+   <obj type="midi/in/cc any" uuid="eca13eae3f7625f3ca80cadd19a90de033698aa" name="cc_1" x="952" y="350">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_2" x="1148" y="364">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="112" y="392" text="this object writes any midi cc action into the table, but with a sight delay, so as to avoid too much writing"/>
+   <patchobj type="patch/object" uuid="850f8d1e-261c-497c-98fb-2145e111330e" name="table_1" x="238" y="406">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="850f8d1e-261c-497c-98fb-2145e111330e">
+         <sDescription>if there is any midi cc activity,  &quot;write&quot; triggers after that activity is over for a
+ little while, or whenever the cc number changes; when triggered by cc change, 
+
+&quot;val&quot; and &quot;cc&quot; still deliver the value and cc number from *before* the change.
+
+This is meant to be used for writing midi cc data to a table without writing 
+every minute change.</sDescription>
+         <author>burek</author>
+         <license>GPL</license>
+         <inlets/>
+         <outlets>
+            <int32.positive name="cc"/>
+            <frac32.bipolar name="value"/>
+            <bool32 name="write"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t active,_value,val;
+int8_t _cc,cc;
+bool trig=0,pending=0;]]></code.declaration>
+         <code.init><![CDATA[_cc=cc=0;
+active = _value = val = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_write = 0;
+if (trig){ // midi activity
+	if ((_cc!=cc)&&pending){
+			outlet_write = 1;
+			pending = 0;		
+	}
+	else {
+		cc = _cc;
+		val = _value;
+		trig = 0;
+		pending = 1;
+	}
+	active = 1<<30;		
+}
+else if (active>0) active -= 1<<20;
+
+
+if ((active<=0)&&pending){
+	outlet_write = 1;
+	pending = 0;
+}	
+
+if (outlet_write)	{
+	//LogTextMessage("Writing to table: cc %d: %d",cc,val);
+	}
+
+outlet_value = val;
+outlet_cc = cc;]]></code.krate>
+         <code.midihandler><![CDATA[if (((status&0xF0) == MIDI_CONTROL_CHANGE)&&(data1<107)) {
+  trig = 1;
+  //LogTextMessage("TableWriteTrigger: Midi Activity");
+  _cc = data1;
+  _value = data2<<20;
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4302087a-5815-4302-8b28-9b1bfbd9e0c2" name="write_1" x="322" y="406">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="paramtable"/>
+      </attribs>
+      <object id="patch/object" uuid="4302087a-5815-4302-8b28-9b1bfbd9e0c2">
+         <sDescription>write to table</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index (integer, not fraction)"/>
+            <frac32 name="v" description="value"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[   int ntrig;
+]]></code.declaration>
+         <code.init><![CDATA[   int ntrig = 0;
+]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+   	//LogTextMessage("Writing to table");
+      ntrig=1;
+      if (inlet_a<attr_table.LENGTH)
+         attr_table.array[inlet_a]=__SSAT(inlet_v,28)>>attr_table.GAIN;
+   }
+   if (!(inlet_trig>0)) ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="1176" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/cc hr i" uuid="72d8018c0f072c469fcd902b0423ba8fd5e6433" name="cc_2" x="952" y="532">
+      <params/>
+      <attribs>
+         <spinner attributeName="cc" value="11"/>
+         <spinner attributeName="default" value="0"/>
+      </attribs>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_4" x="1148" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="table_1" outlet="write"/>
+         <dest obj="write_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="table_1" outlet="value"/>
+         <dest obj="write_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="table_1" outlet="cc"/>
+         <dest obj="write_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="reader_4" outlet="val"/>
+         <dest obj="dial_1" inlet="in"/>
+         <dest obj="demux_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="reader_4" outlet="ccNo"/>
+         <dest obj="i_1" inlet="in"/>
+         <dest obj="demux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="cc_1" outlet="value"/>
+         <dest obj="dial_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="cc_1" outlet="cc"/>
+         <dest obj="i_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="cc_2" outlet="midiCC"/>
+         <dest obj="dial_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o0"/>
+         <dest obj="demux_1" inlet="d0"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o1"/>
+         <dest obj="demux_1" inlet="d1"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o2"/>
+         <dest obj="demux_1" inlet="d2"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o3"/>
+         <dest obj="demux_1" inlet="d3"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o4"/>
+         <dest obj="demux_1" inlet="d4"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o5"/>
+         <dest obj="demux_1" inlet="d5"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o6"/>
+         <dest obj="demux_1" inlet="d6"/>
+      </net>
+      <net>
+         <source obj="demux_1" outlet="o7"/>
+         <dest obj="demux_1" inlet="d7"/>
+      </net>
+      <net>
+         <source obj="reader_4" outlet="selector"/>
+         <dest obj="reader_4" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="read_1" outlet="o"/>
+         <dest obj="reader_4" inlet="pval"/>
+      </net>
+      <net>
+         <source obj="reader_4" outlet="ccsoon"/>
+         <dest obj="read_1" inlet="a"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>338</x>
+      <y>34</y>
+      <width>1097</width>
+      <height>692</height>
+   </windowPos>
+</patch-1.0>

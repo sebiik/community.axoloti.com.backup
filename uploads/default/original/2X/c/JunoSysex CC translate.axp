@@ -1,0 +1,639 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="140" y="0" text="Juno Sysex"/>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Puls Type" x="126" y="28">
+      <params>
+         <bool32.tgl name="sendDIN" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="70"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,3,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Saw Type_" x="238" y="28">
+      <params>
+         <bool32.tgl name="sendDIN" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="71"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,4,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Sub Type" x="350" y="28">
+      <params>
+         <bool32.tgl name="sendDIN" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="72"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,5,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Octave" x="462" y="28">
+      <params>
+         <bool32.tgl name="sendDIN" value="1"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="73"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,6,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Filter Freq" x="126" y="154">
+      <params>
+         <bool32.tgl name="sendDIN" value="1"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="74"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,16,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Filter Rez" x="238" y="154">
+      <params>
+         <bool32.tgl name="sendDIN" value="1"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="75"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,17,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Sub  LVL" x="350" y="154">
+      <params>
+         <bool32.tgl name="sendDIN" value="1"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="76"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,7,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="Noise LVL" x="462" y="154">
+      <params>
+         <bool32.tgl name="sendDIN" value="1"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="77"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,8,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="HP" x="126" y="280">
+      <params>
+         <bool32.tgl name="sendDIN" value="1"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="78"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,9,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262" name="chorus rate" x="238" y="280">
+      <params>
+         <bool32.tgl name="sendDIN" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="deviceID" value="4"/>
+         <spinner attributeName="ccNum" value="79"/>
+         <spinner attributeName="ccChnl" value="4"/>
+         <combo attributeName="outUSB" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="777f0c78-6d99-4f36-81cd-da9e571a9262">
+         <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+         <author>chaocrator a.k.a. Valery Marko</author>
+         <license>do what Thou wilt should be the whole of the License</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="sendDIN" noLabel="false"/>
+         </params>
+         <attribs>
+            <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+            <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="ccChnl" MinValue="0" MaxValue="16" DefaultValue="0"/>
+            <combo name="outUSB">
+               <MenuEntries>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+         <code.krate><![CDATA[// SysEx array
+uint8_t sysexArray[10] = {240,65,54,devID,35,32,1,34,dv,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,10); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,10); }
+  ntrig=0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>4</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>134</x>
+      <y>23</y>
+      <width>1146</width>
+      <height>750</height>
+   </windowPos>
+</patch-1.0>

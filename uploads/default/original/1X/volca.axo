@@ -1,0 +1,83 @@
+<objdefs>
+	<obj.normal id="volca" uuid="6a73bf762f82ca75bf59e9f7a02c904fe50726ec" sha="8dc442ffe4df344cef3122f20334de732189ffa4">
+		<sDescription>create volca sync subdivisions. e.g. create 1 to 8 sync pulses for each volca sync.</sDescription>
+		<author>loopmasta</author>
+		<license>BSD</license>
+		<helpPatch/>
+		<inlets>
+			<frac32 name="in" description="input"/>
+		</inlets>
+		<outlets>
+			<int32 name="out" description="trigger"/>
+			<int32 name="div" description="sliced"/>
+			<int32 name="bpm" description="bpm"/>
+		</outlets>
+		<displays/>
+		<params>
+			<int32 name="slice">
+				<MinValue i="1"/>
+				<MaxValue i="8"/>
+			</int32>
+		</params>
+		<attribs/>
+		<code.declaration><![CDATA[
+
+int trigger;
+int count;
+int slave;
+
+int slice;
+
+int bpm;
+
+// vodoo const, (SAMPLERATE / BUFSIZE) 3000 fps, volca 2ppq
+static const int fps_ppq = (SAMPLERATE / BUFSIZE) * 480;
+
+		]]></code.declaration>
+		<code.init><![CDATA[
+
+trigger = 0;
+count = 0;
+slave = 0;
+
+slice = 0;
+bpm = 0;
+
+		]]></code.init>
+		<code.krate><![CDATA[
+
+// count frames
+count += BUFSIZE;
+slave += BUFSIZE;
+
+// wait for volca sync
+if (inlet_in > 0) {
+	if (!trigger) {
+		// compute ppq
+		slice = (count / param_slice);
+
+		// compute bpm
+		bpm = fps_ppq / count;
+
+		// reset master
+		trigger = 1;
+		count = 0;
+		slave = 0;
+	}
+} else {
+	trigger = 0;
+}
+
+// reset slave
+if (slice && slave > slice) {
+	slave = 0;
+}
+
+// used 64 : 0 for better kscope debugging
+outlet_out = trigger ? 64 : 0;
+outlet_div = slave ? 0 : 64;
+outlet_bpm = bpm;
+
+		]]></code.krate>
+	</obj.normal>
+</objdefs>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/up-downsampling/1950/3 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:51:29 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Up/downsampling - AxoObject coding - Axoloti Community</title>
+    <meta name="description" content="I&amp;#39;m testing a 4-fold up/downsampler based on FIR filters, for alias-reduced non-linear effects, and sharing my preliminary results in axoloti-contrib/patches/jt/devel/updownsampler_x4.axp 
+
+I&amp;#39;m using 16-tap filters for b&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="../1950.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Up/downsampling&#39;" href="../1950.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/johannes/200/8_1.png" />
+<meta property="og:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/johannes/200/8_1.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/up-downsampling/1950/3" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/up-downsampling/1950/3" />
+<meta property="og:title" content="Up/downsampling" />
+<meta name="twitter:title" content="Up/downsampling" />
+<meta property="og:description" content="I&#39;m hesitant to add a specific inlet/outlet type for 4x oversampled audio, an alternate approach is dealing with up- and downsampling as well as buffersize re-partitioning at sub-patch boundaries. That&#39;s what PD and Max do. A wire datatype for 4x oversampling seems a bit specific, could be complemented with 2x, 4x, 8x and 16x oversampling wire datatypes in combination with other bufferlengths too. The rainbow is too small to assign an unique color to every combination. So I&#39;m inclined to think t..." />
+<meta name="twitter:description" content="I&#39;m hesitant to add a specific inlet/outlet type for 4x oversampled audio, an alternate approach is dealing with up- and downsampling as well as buffersize re-partitioning at sub-patch boundaries. That&#39;s what PD and Max do. A wire datatype for 4x oversampling seems a bit specific, could be complemented with 2x, 4x, 8x and 16x oversampling wire datatypes in combination with other bufferlengths too. The rainbow is too small to assign an unique color to every combination. So I&#39;m inclined to think t..." />
+
+      <link rel="next" href="../19504658.html?page=2">
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../../index.html"><img src="../../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="../1950.html">Up/downsampling</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../../c/axoobject-code.html" itemprop="url">
+        <span itemprop="title">AxoObject coding</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-07-03T20:01:03Z' itemprop='datePublished'>
+             2016-07-03 20:01:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm testing a 4-fold up/downsampler based on FIR filters, for alias-reduced non-linear effects, and sharing my preliminary results in axoloti-contrib/patches/jt/devel/updownsampler_x4.axp</p>
+
+<p>I'm using 16-tap filters for both up- and downsampling. The coefficients are generated with Scilab:</p>
+
+<pre><code>fs = 48000;
+overx = 4;
+fcut = 15000;
+order = 16;
+// for upsampling: equiripple
+hn_up=eqfir(order,[0 fcut/fs/overx;0.49/overx 0.5],[1 0],[1 8]);
+
+// for downsampling: attenuate aliases harder that we are most sensitive for
+hn_down1=eqfir(order-3,[0 fcut/fs/overx;0.47/overx 0.5],[1 0],[1 1.5]);
+hn_down = conv(hn_down1,{.25 .25 .25 .25});</code></pre>
+
+<p>(and further scaled/rounded to 16 bit coefficients for use with the dual-MAC instructions...)</p>
+
+<p>Filter responses:<br>(upsampling in black, downsampling in blue)<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/7bfe4deec638926d32ab1a76e645d81d54cf4054" href="../../../uploads/default/original/2X/7/7bfe4deec638926d32ab1a76e645d81d54cf4054.png" class="lightbox" title="Pasted image"><img src="../../../uploads/default/optimized/2X/7/7bfe4deec638926d32ab1a76e645d81d54cf4054_1_690x223.png" width="690" height="223"><div class="meta">
+<span class="filename">Pasted image</span><span class="informations">761x247 4.07 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>The motivation for using a different filter than equiripple is that aliases showing up at low frequencies are far more disturbing than aliases above 10kHz, those are likely psychoacoustically masked by other frequencies. <br>The advantage is more evident on a reprojected frequency plot:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/fe01ffb240a46561dd2378901feeaaef195dee6b" href="../../../uploads/default/original/2X/f/fe01ffb240a46561dd2378901feeaaef195dee6b.png" class="lightbox" title="Pasted image"><img src="../../../uploads/default/optimized/2X/f/fe01ffb240a46561dd2378901feeaaef195dee6b_1_690x230.png" width="690" height="230"><div class="meta">
+<span class="filename">Pasted image</span><span class="informations">789x264 5.1 KB</span><span class="expand"></span>
+</div></a></div><br>There should be a better way to compute coefficients, probably using a rough equal loudness contour function as error weights in remez()...</p>
+
+<p>Feedback/suggestions welcome before I re-assemble the test-patch into library objects...</p>
+
+<p>(cross-references to related topics:)<br><aside class="quote" data-post="1" data-topic="1647">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">
+    <a href="../../brickwall-oversampling-filter/1647.html">Brickwall Oversampling Filter</a> <a class="badge-wrapper  bullet" href="../../../c/axoobject-code.html"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" data-drop-close="true" class="badge-category clear-badge" title="Category to discuss coding Axoloti Objects.">AxoObject coding</span></a>
+  </div>
+  <blockquote>Excuse the naive question, but could anyone point me in the direction of a relatively simple filter function that could be applied to an oversampled oscillator before downsampling back to 48kHz? 
+
+a|x
+    <div class="topic-info">
+    </div>
+  </blockquote>
+</aside>
+<br><aside class="quote" data-post="1" data-topic="1357">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">
+    <a href="../../custom-osc-object-oversampling-possible/1357.html">Custom Osc Object Oversampling Possible?</a> <a class="badge-wrapper  bullet" href="../../../c/software.html"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" data-drop-close="true" class="badge-category clear-badge" title="This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. ">Software</span></a>
+  </div>
+  <blockquote>Is it possible to oversample (i.e. use a higher sample-rate that the standard 48kHz), just for a specific object? I'm assuming not, but just wanted to check. 
+
+a|x
+    <div class="topic-info">
+    </div>
+  </blockquote>
+</aside>
+</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:3'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+            <a href="../../upsampling-downsampling-am-i-doing-it-good/2369/2.html">Upsampling / downsampling: am i doing it good?</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-07-04T08:23:14Z' itemprop='datePublished'>
+             2016-07-04 08:23:14 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>That's cool, <a class="mention" href="../../../users/johannes.html">@johannes</a>.<br>Any plans to implement an in/outlet type for 4x oversampled audio, so that multiple oversampled objects can be connected together?</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-07-04T16:24:07Z' itemprop='datePublished'>
+             2016-07-04 16:24:07 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm hesitant to add a specific inlet/outlet type for 4x oversampled audio, an alternate approach is dealing with up- and downsampling as well as buffersize re-partitioning at sub-patch boundaries. That's what PD and Max do. A wire datatype for 4x oversampling seems a bit specific, could be complemented with 2x, 4x, 8x and 16x oversampling wire datatypes in combination with other bufferlengths too. The rainbow is too small to assign an unique color to every combination. So I'm inclined to think that doing this at sub-patch boundaries is a cleaner design pattern.</p>
+
+<p>In the meantime, I believe quite some use-cases can be served using up/downsampling inside object-code.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/Ctrls.html'><b itemprop='author'>Ctrls</b></a>
+           
+           <time datetime='2016-07-05T01:15:47Z' itemprop='datePublished'>
+             2016-07-05 01:15:47 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Great news! I was just about to ask if there had been some initiatives to reduce (audible) aliasing.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SirPrimalform.html'><b itemprop='author'>SirPrimalform</b></a>
+           
+           <time datetime='2016-07-05T11:47:05Z' itemprop='datePublished'>
+             2016-07-05 11:47:05 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>A thought: What would be amazing is if there was some way objects could automatically exist as oversampled versions. It seems theoretically possible as long as everything is done with reference to the sample rate (whether oversampled or native).</p>
+
+<p>EDIT: Ah, just read your post about subpatch boundaries <a class="mention" href="../../../users/johannes.html">@johannes</a>. So would oversampling factor be an attribute on the subpatch and the upsampling/downsampling be automatically included in that? That seems like a great idea if any object could be oversampled by the patcher/firmware. Would we have to account for the difference in frequency ranges or would that be taken care of in the manner I describe at the start of this post?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-07-05T19:48:06Z' itemprop='datePublished'>
+             2016-07-05 19:48:06 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Taking care of different frequency ranges complicates the implementation: sometimes it is most useful to restrict the frequency range to baseband audio, sometimes it is too restrictive. For example, an oversampled oscillator, this would be expected, ultrasonic pitch 'd produce aliases. I can't currently think of a common examples where you want ultrasonic pitch, can anyone think of an application scenario where you'd need this? Still, in case of undersampled audio processing (to reduce dsp load), the frequency range should be reduced.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SirPrimalform.html'><b itemprop='author'>SirPrimalform</b></a>
+           
+           <time datetime='2016-07-05T23:42:30Z' itemprop='datePublished'>
+             2016-07-05 23:42:30 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm not suggesting the frequency range be increased, but rather that the very nature of oversampling would shift the range upwards. If you were to just increase the sample rate 4x then everything would be two octaves higher without some kind of compensation? As long as the frequency is calculated with reference to a sample rate global variable rather than an assumption that the sample rate is 48kHz then things should be automatically ok. Unless I've missed something.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-07-06T06:12:39Z' itemprop='datePublished'>
+             2016-07-06 06:12:39 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>You'd have to divide the phase-increment amount by 4, assuming you were working on an oscillator, I imagine.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SirPrimalform.html'><b itemprop='author'>SirPrimalform</b></a>
+           
+           <time datetime='2016-07-07T11:33:29Z' itemprop='datePublished'>
+             2016-07-07 11:33:29 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>That's another way of doing it, but it still requires the objects to use a global variable so that they'd work as expected when oversampled.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-07-07T11:51:06Z' itemprop='datePublished'>
+             2016-07-07 11:51:06 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I don't know enough about DSP to know if quadrupling the sample-rate would have an effect on e.g. filter cutoff frequencies etc.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SirPrimalform.html'><b itemprop='author'>SirPrimalform</b></a>
+           
+           <time datetime='2016-07-07T12:09:54Z' itemprop='datePublished'>
+             2016-07-07 12:09:54 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>If my understanding is correct, everything frequency related is relative to the sample rate. I guess it wouldn't be too much of a problem if everything was shifted two octaves up, oscillators can always be offset to -24.<br>I'd love to be able to oversample some FM patches to get some super-sharp sounds with less aliasing.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-07-07T12:14:20Z' itemprop='datePublished'>
+             2016-07-07 12:14:20 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I see.</p>
+
+<p>I'd love to port some of the MI Braids code over to Axoloti. Some of the oscillator types from that module are great, and should run easily on the Axo Core, as it's much more powerful than the processor Braids uses.</p>
+
+<p>A lot of Braids' 'digital' oscillator (as opposed to 'virtual analog') types rely on oversampling for antialiasing, so I never tackled them before.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-07-07T12:18:50Z' itemprop='datePublished'>
+             2016-07-07 12:18:50 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../../users/johannes.html">@johannes</a> do you envisage rolling the up/downsampling filters into some kind of builtin function that can be called in object code, or would we just copy-paste the functions into our own objects code?</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/jaffasplaffa.html'><b itemprop='author'>jaffasplaffa</b></a>
+           
+           <time datetime='2016-09-07T16:45:36Z' itemprop='datePublished'>
+             2016-09-07 16:45:36 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="12" data-topic="1950"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">toneburst:</div>
+<blockquote><p>I'd love to port some of the MI Braids code over to Axoloti. Some of the oscillator types from that module are great, and should run easily on the Axo Core, as it's much more powerful than the processor Braids uses.</p></blockquote></aside>
+
+<p><a class="mention" href="../../../users/toneburst.html">@toneburst</a> Have you looked more into the porting of braids code? I was just looking at the specifictions of it. Patching something similar in Axoloti with factory objects would definatly reach the DSP limit. So probably something custom have to be made to achive this. </p>
+
+<p>Anyway, just wanted to know of you had looked more into it <img src="../../../images/emoji/emoji_one/wink5e1f.png?v=2" title=":wink:" class="emoji" alt=":wink:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2016-12-30T19:51:10Z' itemprop='datePublished'>
+             2016-12-30 19:51:10 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi,<br>sorry for digging up this thread.<br>I've already have the same kind of discussion on the JSFX/Reaper forum:<br><a href="http://forum.cockos.com/showthread.php?t=178543" rel="nofollow">Reaper/JSFX oversampling thread</a></p>
+
+<p>In this thread I suggested some solutions and provided some interpolation/decimation filters.</p>
+
+<p>At the moment, I'm experimenting with first order differentiated polynomials and x2 oversampling.</p>
+
+<p>At the interfacing level, I think that using interleaved audio signals is a viable solution:<br><img src="../../../uploads/default/original/2X/8/8509619dda7b1c34c8ca53edcc8e899009680343.jpg" width="289" height="148"></p>
+
+<p>int2_3float is the interpolator (x2 upsampler).<br>It has an ordinary audio input and it has two audio outputs.<br>The audio outputs are interleaved buffers, so that in the s-rate Code section of O2DPHardClip inlet_in1 comes before inlet_in0 (see the objects code).</p>
+
+<p>O2DPHardClip is a x2 oversampled Differentiated Polynomial Hard Clipper</p>
+
+<p>dec2_Bellanger is a x2 decimator (19 taps half band downsampler) it takes a pair of interleaved upsampled audio inputs and outputs an ordinary audio signal.</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/e/int2_3float.axo">int2_3float.axo</a> (967 Bytes) ~500 cycles</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/4/O2DPHardClip.axo">O2DPHardClip.axo</a> (2.9 KB)</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/e/dec2_Bellanger.axo">dec2_Bellanger.axo</a> (1.1 KB) ~1000 cycles</p>
+
+<p>In the near future, i plan to code a bunch of O2DP objects.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-12-30T22:54:44Z' itemprop='datePublished'>
+             2016-12-30 22:54:44 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Interesting...</p>
+
+<p>Another Axoloti custom object coder came up with a slightly different 2x oversampling method, using twin buffers, but not interleaved.</p>
+
+<p>Let me find the GitHub URL.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-12-30T22:57:10Z' itemprop='datePublished'>
+             2016-12-30 22:57:10 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Have a look in<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti-contrib/tree/1.0.11/objects/jho/filter" target="_blank" rel="nofollow">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://avatars0.githubusercontent.com/u/13088270?v=3&amp;s=400" class="thumbnail" width="" height="">
+
+<h3><a href="https://github.com/axoloti/axoloti-contrib/tree/1.0.11/objects/jho/filter" target="_blank" rel="nofollow">axoloti/axoloti-contrib</a></h3>
+
+<p>axoloti-contrib - User contributed objects and patches for Axoloti</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>It's also available from within the Axoloti Patcher, of course.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-12-30T22:58:54Z' itemprop='datePublished'>
+             2016-12-30 22:58:54 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>There was also talk on the forum of a possible new in/outlet port type for oversampled audio signals. Might be worth looking that discussion up.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2016-12-30T23:14:09Z' itemprop='datePublished'>
+             2016-12-30 23:14:09 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks for the link <a class="mention" href="../../../users/toneburst.html">@toneburst</a>, it is quite similar <img src="../../../images/emoji/emoji_one/smiley30f4.png?v=3" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p>I'll give it a try and compare the performance issues: <br>he uses int32_t while i use floats.</p>
+
+<p>As far as i experimented floats on the Axoloti are quite efficient !!</p>
+
+<p>I think that this discussion talks about inlet/outlet port types: <a href="3.html">http://community.axoloti.com/t/up-downsampling/1950/3</a> .</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-12-31T11:52:36Z' itemprop='datePublished'>
+             2016-12-31 11:52:36 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>It would be good to have a standard method for this, that everyone can use.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Up/downsampling'>
+      <hr>
+  </div>
+
+  <div role='navigation' itemscope itemtype='http://schema.org/SiteNavigationElement'>
+      <span itemprop='url'><b><a rel="next" itemprop="name" href="../19504658.html?page=2">next page →</a></b></span>
+  </div>
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../../index.html'>Home</a>
+        <a href="../../../categories.html">Categories</a>
+        <a href="../../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../../tos.html">Terms of Service</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/up-downsampling/1950/3 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:51:29 GMT -->
+</html>

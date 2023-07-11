@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>SOLVED Fedora - Patcher built but cannot compile or go live</title>
+    <link>http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205</link>
+    <description>Was a nightmare to get git to build on Fedora. Finally got patcher to build.
+
+When trying to go live or upload to internal flash it fails with:
+
+Compiling patch... with /home/ryanpg/src/axoloti/axoloti/firmware
+BDIR = /home/ryanpg/src/axoloti/axoloti/build
+FIRMWARE = .
+Build precompiled header
+arm-none-eabi-g++ -nostdlib -fno-exceptions -fno-rtti -mcpu=cortex-m4 -O3 -fomit-frame-pointer -falign-functions=16 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wunused-parameter -DCORTEX_USE_FPU=TRUE -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -mthumb -DTHUMB -std=c++11 -DARM_MATH_CM4 -D__FPU_PRESENT -fno-math-errno -fno-threadsafe-statics -fno-use-cxa-atexit -Wno-unused-parameter -I/home/ryanpg/src/axoloti/axoloti/CMSIS/Include -I/home/ryanpg/src/axoloti/axoloti/CMSIS/DSP_Lib/Include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx/CMSIS/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/kernel/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/GPIOv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/I2Cv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/OTGv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/RTCv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/SPIv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/TIMv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/USARTv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/boards/ST_STM32F4_DISCOVERY -I/home/ryanpg/src/axoloti/axoloti/chibios/ext/fatfs/src -I. -I/home/ryanpg/src/axoloti/axoloti/chibios -I./mutable_instruments -Winvalid-pch -MD -MP -c ./xpatch.h  -o /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch
+arm-none-eabi-g++: fatal error: cannot execute &#39;cc1plus&#39;: execvp: No such file or directory
+compilation terminated.
+make: *** [Makefile.patch:54: /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch] Error 1
+shell task failed, exit value: 2
+Compiling patch failed ( /home/ryanpg/src/axoloti/axoloti/patches/octa_synth.axp )
+
+I can fix that by:
+
+sudo ln -s /usr/libexec/gcc/arm-none-eabi/9.2.0/cc1plus /usr/bin/cc1plus
+
+But, then it fails with:
+
+Generate code complete
+Start compiling patch
+Compiling patch... with /home/ryanpg/src/axoloti/axoloti/firmware
+BDIR = /home/ryanpg/src/axoloti/axoloti/build
+FIRMWARE = .
+Build precompiled header
+arm-none-eabi-g++ -nostdlib -fno-exceptions -fno-rtti -mcpu=cortex-m4 -O3 -fomit-frame-pointer -falign-functions=16 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wunused-parameter -DCORTEX_USE_FPU=TRUE -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -mthumb -DTHUMB -std=c++11 -DARM_MATH_CM4 -D__FPU_PRESENT -fno-math-errno -fno-threadsafe-statics -fno-use-cxa-atexit -Wno-unused-parameter -I/home/ryanpg/src/axoloti/axoloti/CMSIS/Include -I/home/ryanpg/src/axoloti/axoloti/CMSIS/DSP_Lib/Include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx/CMSIS/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/kernel/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/GPIOv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/I2Cv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/OTGv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/RTCv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/SPIv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/TIMv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/USARTv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/boards/ST_STM32F4_DISCOVERY -I/home/ryanpg/src/axoloti/axoloti/chibios/ext/fatfs/src -I. -I/home/ryanpg/src/axoloti/axoloti/chibios -I./mutable_instruments -Winvalid-pch -MD -MP -c ./xpatch.h  -o /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch
+In file included from ./xpatch.h:2:
+./patch.h:20:10: fatal error: stdint.h: No such file or directory
+   20 | #include &lt;stdint.h&gt;
+      |          ^~~~~~~~~~
+compilation terminated.
+make: *** [Makefile.patch:54: /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch] Error 1
+shell task failed, exit value: 2
+Compiling patch failed ( /home/ryanpg/src/axoloti/axoloti/patches/octa_synth.axp ) 
+
+Any pointers?
+
+Thanks!
+Ryan</description>
+    
+    <lastBuildDate>Fri, 06 Dec 2019 01:20:28 +0000</lastBuildDate>
+    <category>Helpdesk</category>
+    <atom:link href="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>SOLVED Fedora - Patcher built but cannot compile or go live</title>
+        <dc:creator><![CDATA[@ryanpg]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ryanpg">@ryanpg</a> wrote:</p>
+          <blockquote>
+              <p>Yes, that was wrong. I got everything working Patcher and all.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/4</link>
+        <pubDate>Fri, 06 Dec 2019 01:20:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6205-4</guid>
+        <source url="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205.rss">SOLVED Fedora - Patcher built but cannot compile or go live</source>
+      </item>
+      <item>
+        <title>SOLVED Fedora - Patcher built but cannot compile or go live</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Did you get Axoloti Patcher to run?</p>
+
+<p>In your first post:<br>sudo ln -s /usr/libexec/gcc/arm-none-eabi/9.2.0/cc1plus /usr/bin/cc1plus</p>
+
+<p>That looks wrong. /user/bin/cc1plus should not point to a cross-compiler.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/3</link>
+        <pubDate>Fri, 06 Dec 2019 01:12:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6205-3</guid>
+        <source url="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205.rss">SOLVED Fedora - Patcher built but cannot compile or go live</source>
+      </item>
+      <item>
+        <title>SOLVED Fedora - Patcher built but cannot compile or go live</title>
+        <dc:creator><![CDATA[@ryanpg]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ryanpg">@ryanpg</a> wrote:</p>
+          <blockquote>
+              <p>Finally got git to build and run.</p>
+
+<p>I had to remove local arm eabi packages.</p>
+
+<p>I had to install:<br>glibc-*.i686<br>libstdc++-*.i686</p>
+
+<p>It built using the build.sh script in platform_linux.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/2</link>
+        <pubDate>Thu, 05 Dec 2019 19:42:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6205-2</guid>
+        <source url="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205.rss">SOLVED Fedora - Patcher built but cannot compile or go live</source>
+      </item>
+      <item>
+        <title>SOLVED Fedora - Patcher built but cannot compile or go live</title>
+        <dc:creator><![CDATA[@ryanpg]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ryanpg">@ryanpg</a> wrote:</p>
+          <blockquote>
+              <p>Was a nightmare to get git to build on Fedora. Finally got patcher to build.</p>
+
+<p>When trying to go live or upload to internal flash it fails with:</p>
+
+<p>Compiling patch... with /home/ryanpg/src/axoloti/axoloti/firmware<br>BDIR = /home/ryanpg/src/axoloti/axoloti/build<br>FIRMWARE = .<br>Build precompiled header<br>arm-none-eabi-g++ -nostdlib -fno-exceptions -fno-rtti -mcpu=cortex-m4 -O3 -fomit-frame-pointer -falign-functions=16 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wunused-parameter -DCORTEX_USE_FPU=TRUE -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -mthumb -DTHUMB -std=c++11 -DARM_MATH_CM4 -D__FPU_PRESENT -fno-math-errno -fno-threadsafe-statics -fno-use-cxa-atexit -Wno-unused-parameter -I/home/ryanpg/src/axoloti/axoloti/CMSIS/Include -I/home/ryanpg/src/axoloti/axoloti/CMSIS/DSP_Lib/Include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx/CMSIS/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/kernel/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/GPIOv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/I2Cv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/OTGv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/RTCv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/SPIv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/TIMv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/USARTv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/boards/ST_STM32F4_DISCOVERY -I/home/ryanpg/src/axoloti/axoloti/chibios/ext/fatfs/src -I. -I/home/ryanpg/src/axoloti/axoloti/chibios -I./mutable_instruments -Winvalid-pch -MD -MP -c ./xpatch.h  -o /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch<br>arm-none-eabi-g++: fatal error: cannot execute 'cc1plus': execvp: No such file or directory<br>compilation terminated.<br>make: *** [Makefile.patch:54: /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch] Error 1<br>shell task failed, exit value: 2<br>Compiling patch failed ( /home/ryanpg/src/axoloti/axoloti/patches/octa_synth.axp )</p>
+
+<p>I can fix that by:</p>
+
+<p>sudo ln -s /usr/libexec/gcc/arm-none-eabi/9.2.0/cc1plus /usr/bin/cc1plus</p>
+
+<p>But, then it fails with:</p>
+
+<p>Generate code complete<br>Start compiling patch<br>Compiling patch... with /home/ryanpg/src/axoloti/axoloti/firmware<br>BDIR = /home/ryanpg/src/axoloti/axoloti/build<br>FIRMWARE = .<br>Build precompiled header<br>arm-none-eabi-g++ -nostdlib -fno-exceptions -fno-rtti -mcpu=cortex-m4 -O3 -fomit-frame-pointer -falign-functions=16 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wunused-parameter -DCORTEX_USE_FPU=TRUE -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -mthumb -DTHUMB -std=c++11 -DARM_MATH_CM4 -D__FPU_PRESENT -fno-math-errno -fno-threadsafe-statics -fno-use-cxa-atexit -Wno-unused-parameter -I/home/ryanpg/src/axoloti/axoloti/CMSIS/Include -I/home/ryanpg/src/axoloti/axoloti/CMSIS/DSP_Lib/Include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx/CMSIS/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/common/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/ports/GCC/ARMCMx/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/kernel/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/include -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32F4xx -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/GPIOv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/I2Cv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/OTGv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/RTCv2 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/SPIv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/TIMv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/os/hal/platforms/STM32/USARTv1 -I/home/ryanpg/src/axoloti/axoloti/chibios/boards/ST_STM32F4_DISCOVERY -I/home/ryanpg/src/axoloti/axoloti/chibios/ext/fatfs/src -I. -I/home/ryanpg/src/axoloti/axoloti/chibios -I./mutable_instruments -Winvalid-pch -MD -MP -c ./xpatch.h  -o /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch<br>In file included from ./xpatch.h:2:<br>./patch.h:20:10: fatal error: stdint.h: No such file or directory<br>   20 | <span class="hashtag">#include</span> <br>      |          ^~~~~~~~~~<br>compilation terminated.<br>make: *** [Makefile.patch:54: /home/ryanpg/src/axoloti/axoloti/build/xpatch.h.gch] Error 1<br>shell task failed, exit value: 2<br>Compiling patch failed ( /home/ryanpg/src/axoloti/axoloti/patches/octa_synth.axp ) </p>
+
+<p>Any pointers?</p>
+
+<p>Thanks!<br>Ryan</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205/1</link>
+        <pubDate>Tue, 03 Dec 2019 20:43:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6205-1</guid>
+        <source url="http://community.axoloti.com/t/solved-fedora-patcher-built-but-cannot-compile-or-go-live/6205.rss">SOLVED Fedora - Patcher built but cannot compile or go live</source>
+      </item>
+  </channel>
+</rss>

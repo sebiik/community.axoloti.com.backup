@@ -1,0 +1,177 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="140" y="56" text="trigger"/>
+   <comment type="patch/comment" x="294" y="56" text="time"/>
+   <comment type="patch/comment" x="420" y="56" text="depth (1 = 1semitone lower)"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="140" y="70">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_4" x="294" y="70">
+      <params>
+         <frac32.s.map name="value" value="38.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_6" x="420" y="70">
+      <params>
+         <frac32.u.map name="value" value="48.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="data" x="672" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="524288"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="audio/in left" uuid="d40e60b7641fe75af4d7c91b45bb038aacafc52e" name="in_1" x="490" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/record" uuid="2f8909f3691be093f0b8cf6532d4acff2dcb1a9f" name="record_1" x="574" y="224">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="126" y="364" text="pitch envelope"/>
+   <comment type="patch/comment" x="238" y="364" text="scale envelope for depth"/>
+   <comment type="patch/comment" x="392" y="364" text="offset so pitch drops from 0"/>
+   <comment type="patch/comment" x="910" y="364" text="crossfade between player and input"/>
+   <obj type="env/d m" uuid="85e82f54dfc28839d300cda777af8907ae2a28d0" name="d_1" x="126" y="378">
+      <params>
+         <frac32.s.map name="d" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_1" x="266" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/-" uuid="3280bb759e9fc189e134300e48dda7e903c9a110" name="-_1" x="392" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/play pitch" uuid="5632a54926261833bbb9fff049e71322c360e57e" name="play_1" x="574" y="378">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="math/gain" uuid="62b1c1a6337c7c8f6aec96408a432477b113cfa0" name="gain_1" x="728" y="378">
+      <params>
+         <frac32.u.map name="amp" value="12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/ahd" uuid="2139369d6de2ba5ddf76e602d1d25df653ca9eed" name="ahd_1" x="910" y="378">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-6.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="drj/math/inv_pos" uuid="ae23d42592d86ae7d7f2202cb1124490774d118a" name="inv_pos_1" x="1008" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="770" y="546" text="dry"/>
+   <comment type="patch/comment" x="896" y="546" text="wet"/>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="770" y="560">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="896" y="560">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="994" y="560">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_1" x="1078" y="560">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="in_1" outlet="wave"/>
+         <dest obj="record_1" inlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="play_1" outlet="wave"/>
+         <dest obj="gain_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="ahd_1" outlet="env"/>
+         <dest obj="inv_pos_1" inlet="in"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="inv_pos_1" outlet="out"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="out_1" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="d_1" inlet="trig"/>
+         <dest obj="play_1" inlet="start"/>
+         <dest obj="ahd_1" inlet="gate"/>
+         <dest obj="record_1" inlet="start"/>
+      </net>
+      <net>
+         <source obj="-_1" outlet="out"/>
+         <dest obj="play_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="gain_1" outlet="out"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="dial_4" outlet="out"/>
+         <dest obj="d_1" inlet="d"/>
+      </net>
+      <net>
+         <source obj="d_1" outlet="env"/>
+         <dest obj="*_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="-_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="dial_6" outlet="out"/>
+         <dest obj="*_1" inlet="b"/>
+         <dest obj="-_1" inlet="in2"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,818 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="0" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="2.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="126" y="42">
+      <params>
+         <int32 name="maximum" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sel/sel dial 8" uuid="8b7d26278459cf6f12cd645dfb68e32df5b46f63" name="sel_1" x="210" y="42">
+      <params>
+         <frac32.u.map name="v0" value="7.0"/>
+         <frac32.u.map name="v1" value="4.0"/>
+         <frac32.u.map name="v2" value="0.0"/>
+         <frac32.u.map name="v3" value="9.0"/>
+         <frac32.u.map name="v4" value="5.0"/>
+         <frac32.u.map name="v5" value="2.0"/>
+         <frac32.u.map name="v6" value="7.0"/>
+         <frac32.u.map name="v7" value="11.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sel/sel dial 8" uuid="8b7d26278459cf6f12cd645dfb68e32df5b46f63" name="sel_2" x="294" y="42">
+      <params>
+         <frac32.u.map name="v0" value="46.5"/>
+         <frac32.u.map name="v1" value="38.0"/>
+         <frac32.u.map name="v2" value="28.0"/>
+         <frac32.u.map name="v3" value="43.5"/>
+         <frac32.u.map name="v4" value="33.0"/>
+         <frac32.u.map name="v5" value="24.0"/>
+         <frac32.u.map name="v6" value="39.5"/>
+         <frac32.u.map name="v7" value="27.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/note" uuid="8181e221d6ee6b2c63e7dbdbf20f69de43c232bf" name="note_1" x="378" y="42">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="1"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="2a29d0fa-9f2d-4904-b8ae-3a2e12730c58" name="alloc_1" x="742" y="56">
+      <params/>
+      <attribs>
+         <spinner attributeName="params" value="8"/>
+         <spinner attributeName="voices" value="5"/>
+         <text attributeName="init">
+            <sText><![CDATA[//note that I've used "<<21" to set the values
+//this is an easy way to set the parameter values in whole numbers as is shown on the readout
+//this is even done for the waveforms, as these are controlled by a fractional output
+//which is routed to an integer input.
+
+//waveform select: sine/tri/saw/square
+array[0]=0<<21;
+array[1]=2<<21;
+array[2]=1<<21;
+array[3]=3<<21;
+//attack
+array[4]=-64<<21;
+array[5]=12<<21;
+array[6]=-48<<21;
+array[7]=0<<21;
+//decay
+array[8]=-16<<21;
+array[9]=0<<21;
+array[10]=-24<<21;
+array[11]=12<<21;
+//sustain
+array[12]=24<<21;
+array[13]=32<<21;
+array[14]=16<<21;
+array[15]=20<<21;
+//release
+array[16]=14<<21;
+array[17]=0<<21;
+array[18]=16<<21;
+array[19]=32<<21;
+//filter cutoff
+array[20]=0<<21;
+array[21]=-16<<21;
+array[22]=-8<<21;
+array[23]=24<<21;
+//filter cutoff envelope width
+array[24]=16<<21;
+array[25]=40<<21;
+array[26]=24<<21;
+array[27]=-48<<21;
+//filter resonance
+array[28]=48<<21;
+array[29]=48<<21;
+array[30]=48<<21;
+array[31]=48<<21;]]></sText>
+         </text>
+      </attribs>
+      <object id="patch/object" uuid="2a29d0fa-9f2d-4904-b8ae-3a2e12730c58">
+         <sDescription>allocate 32bit table in SDRAM memory</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="params" MinValue="1" MaxValue="64" DefaultValue="0"/>
+            <spinner name="voices" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <text name="init"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[static const uint32_t LENGTH = attr_params*attr_voices;
+static const uint32_t LENGTHPOW=8;
+static const uint32_t BITS = 32;
+static const uint32_t GAIN = 0;
+int32_t *array;
+int voices=attr_voices;
+int params=attr_params;]]></code.declaration>
+         <code.init><![CDATA[static int32_t _array[attr_poly][LENGTH] __attribute__ ((section (".sdram")));
+array = &_array[parent->polyIndex][0];
+{ 
+  int i;
+  for(i=0;i<LENGTH;i++) array[i]=0;
+}
+attr_init]]></code.init>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="840" y="56" text="editted the table allocator to set it&apos;s size based on amount of voices and amount of parameters. Adjust to your own patch!"/>
+   <comment type="patch/comment" x="840" y="112" text="edit the init to set the start patch, use save&amp;load table below (first save a patch!) or just hit the &quot;screw it randomise&quot;"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="patch" x="742" y="168">
+      <params>
+         <int32 name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="load" x="910" y="168">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="save" x="1036" y="168">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_1" x="742" y="224">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/polypatchA"/>
+         <table attributeName="suffix" table=".tab"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="910" y="224">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="1036" y="224">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="reset mode" x="756" y="378">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="196" y="420" text="mono voice count for resetting preset to step 1 (set reset off/on on patcher module)"/>
+   <comment type="patch/comment" x="994" y="420" text="poly synth voice (set poly the same or lower then voices in allocator!!)"/>
+   <comment type="patch/comment" x="210" y="434" text="using counter: set amount of steps of the counter to the amount of voices you use"/>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_2" x="602" y="434">
+      <params>
+         <int32 name="maximum" value="5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="84879b55-2485-49d6-9604-d2e629ee51ec" name="last voice mem" x="686" y="434">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="84879b55-2485-49d6-9604-d2e629ee51ec">
+         <sDescription>positive integer control</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>ctrl.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <int32 name="last"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int last;]]></code.declaration>
+         <code.krate><![CDATA[outlet_last=last;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_1" x="756" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/latch" uuid="2a50e4657301542464c6a97931847b5e8e0e6d2b" name="latch_1" x="826" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="494f4c75-34eb-4176-a3a9-3e6eb34a172e" name="patcher_1" x="994" y="434">
+      <params>
+         <bool32.tgl name="reset" value="0"/>
+         <frac32.s.map name="adsr_1:a" value="-64.0"/>
+         <frac32.s.map name="adsr_1:d" value="-20.0"/>
+         <frac32.u.map name="adsr_1:s" value="0.0"/>
+         <frac32.s.map name="adsr_1:r" value="-40.0"/>
+         <frac32.s.map name="blepped2_1:pitch" value="-13.0"/>
+         <frac32.u.map name="*c_1" value="6.5"/>
+         <frac32.s.map name="vcf3_1:pitch" value="-28.0"/>
+         <frac32.u.map name="vcf3_1:reso" value="0.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="poly" selection="5"/>
+         <combo attributeName="midichannel" selection="inherit"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/polyindex" uuid="edc730b5393c31d703572e0c0c88aaced643bd6" name="polyindex_1" x="266" y="0">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="364" y="0" text="used to select the parameter per voice"/>
+         <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="reset" x="140" y="14">
+            <params>
+               <bool32.tgl name="b" onParent="true" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="756" y="14" text="used to reset the preset-selection to the first step-&gt;changes the voice to preset-selection order"/>
+         <patchobj type="patch/object" uuid="a1b31742-4c5f-4852-9fde-77bfd99da3ab" name="max_poly" x="294" y="42">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="a1b31742-4c5f-4852-9fde-77bfd99da3ab">
+               <inlets/>
+               <outlets>
+                  <int32 name="voices"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.krate><![CDATA[outlet_voices=attr_poly;]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="patch/inlet i" uuid="f11927f00c59219df0c50f73056aa19f125540b7" name="patch offset" x="742" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/-" uuid="1643d55e6e7ce1c995a5e66db9f54fd969e6c9b7" name="-_1" x="812" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="sss/math/divremc" uuid="1638b705-df81-436f-acf6-3399bf364363" name="divremc_1" x="882" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="364" y="56" text="used as offset in table to select the next parameter"/>
+         <obj type="midi/in/bend" uuid="7bd8cace52a8c26ed61d80f65e238408d5d621f4" name="bend_1" x="28" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_1" x="112" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="c4833242-68a3-49ab-8d16-d822b009b779" name="latch_3" x="252" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="mem" obj="../last voice mem"/>
+            </attribs>
+            <object id="patch/object" uuid="c4833242-68a3-49ab-8d16-d822b009b779">
+               <sDescription>Copies the input to the output at the rising edge of the trigger input. Keeps the output otherwise.</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>logic.axh</helpPatch>
+               <inlets>
+                  <int32 name="i" description="input"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="mem"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;   int latch;]]></code.declaration>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {attr_mem.last = inlet_i; ntrig=1;}
+if (!(inlet_trig>0)) {ntrig=0;}]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="logic/latch" uuid="2a50e4657301542464c6a97931847b5e8e0e6d2b" name="latch_2" x="392" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_1" x="462" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="271c8b2b-6cfb-40d3-b3fb-46476319ba45" name="+_1" x="532" y="196">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="271c8b2b-6cfb-40d3-b3fb-46476319ba45">
+               <sDescription>add</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>math.axh</helpPatch>
+               <inlets>
+                  <int32 name="in1" description="in1"/>
+                  <int32 name="in2" description="in2"/>
+               </inlets>
+               <outlets>
+                  <int32 name="o1"/>
+                  <int32 name="o2"/>
+                  <int32 name="o3"/>
+                  <int32 name="o4"/>
+                  <int32 name="o5"/>
+                  <int32 name="o6"/>
+                  <int32 name="o7"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.krate><![CDATA[outlet_o1= inlet_in1+inlet_in2 ;
+outlet_o2= inlet_in1+inlet_in2*2 ;
+outlet_o3= inlet_in1+inlet_in2*3 ;
+outlet_o4= inlet_in1+inlet_in2*4 ;
+outlet_o5= inlet_in1+inlet_in2*5 ;
+outlet_o6= inlet_in1+inlet_in2*6 ;
+outlet_o7= inlet_in1+inlet_in2*7 ;]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_1" x="616" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_2" x="742" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_3" x="868" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_4" x="994" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_5" x="1120" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_7" x="1246" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_6" x="1372" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="table/read" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_8" x="1498" y="196">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../alloc_1"/>
+            </attribs>
+         </obj>
+         <obj type="math/+" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_2" x="378" y="462">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="env/adsr m" uuid="98bd39fb828c392b28126d259cb5175e6f6ea34b" name="adsr_1" x="448" y="462">
+            <params>
+               <frac32.s.map name="a" onParent="true" value="0.0"/>
+               <frac32.s.map name="d" onParent="true" value="0.0"/>
+               <frac32.u.map name="s" onParent="true" value="0.0"/>
+               <frac32.s.map name="r" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_1" x="518" y="462">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="sss/osc/blepped2" uuid="7c939c63-6222-4850-b766-157ff238df67" name="blepped2_1" x="616" y="462">
+            <params>
+               <frac32.s.map name="pitch" onParent="true" value="0.0"/>
+               <frac32.s.map name="mod" value="0.0"/>
+               <int32 name="mode" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_2" x="714" y="462">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/+" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_3" x="770" y="462">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_1" x="840" y="462">
+            <params>
+               <frac32.u.map name="amp" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="filter/vcf3" uuid="92455c652cd098cbb682a5497baa18abbf2ef865" name="vcf3_1" x="938" y="462">
+            <params>
+               <frac32.s.map name="pitch" onParent="true" value="0.0"/>
+               <frac32.u.map name="reso" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="1036" y="462">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="1092" y="462">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="polyindex_1" outlet="index"/>
+               <dest obj="-_1" inlet="in1"/>
+               <dest obj="mux_1" inlet="i1"/>
+               <dest obj="latch_3" inlet="i"/>
+            </net>
+            <net>
+               <source obj="max_poly" outlet="voices"/>
+               <dest obj="+_1" inlet="in2"/>
+               <dest obj="divremc_1" inlet="denominator"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o1"/>
+               <dest obj="read_2" inlet="a"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o2"/>
+               <dest obj="read_3" inlet="a"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o3"/>
+               <dest obj="read_4" inlet="a"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o4"/>
+               <dest obj="read_5" inlet="a"/>
+            </net>
+            <net>
+               <source obj="read_1" outlet="o"/>
+               <dest obj="blepped2_1" inlet="mode"/>
+            </net>
+            <net>
+               <source obj="bend_1" outlet="bend"/>
+               <dest obj="+_2" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="note"/>
+               <dest obj="+_2" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="+_2" outlet="out"/>
+               <dest obj="blepped2_1" inlet="pitch"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="gate"/>
+               <dest obj="adsr_1" inlet="gate"/>
+               <dest obj="latch_2" inlet="trig"/>
+               <dest obj="latch_3" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="blepped2_1" outlet="wave"/>
+               <dest obj="*c_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="read_2" outlet="o"/>
+               <dest obj="adsr_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="read_3" outlet="o"/>
+               <dest obj="adsr_1" inlet="d"/>
+            </net>
+            <net>
+               <source obj="read_4" outlet="o"/>
+               <dest obj="adsr_1" inlet="s"/>
+            </net>
+            <net>
+               <source obj="vcf3_1" outlet="out"/>
+               <dest obj="vca_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="read_5" outlet="o"/>
+               <dest obj="adsr_1" inlet="r"/>
+            </net>
+            <net>
+               <source obj="read_6" outlet="o"/>
+               <dest obj="*_2" inlet="b"/>
+            </net>
+            <net>
+               <source obj="adsr_1" outlet="env"/>
+               <dest obj="*_1" inlet="a"/>
+               <dest obj="*_2" inlet="a"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="velocity"/>
+               <dest obj="*_1" inlet="b"/>
+            </net>
+            <net>
+               <source obj="*_1" outlet="result"/>
+               <dest obj="vca_1" inlet="v"/>
+            </net>
+            <net>
+               <source obj="+_3" outlet="out"/>
+               <dest obj="vcf3_1" inlet="pitch"/>
+            </net>
+            <net>
+               <source obj="*_2" outlet="result"/>
+               <dest obj="+_3" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="read_7" outlet="o"/>
+               <dest obj="+_3" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o6"/>
+               <dest obj="read_6" inlet="a"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o5"/>
+               <dest obj="read_7" inlet="a"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o7"/>
+               <dest obj="read_8" inlet="a"/>
+            </net>
+            <net>
+               <source obj="read_8" outlet="o"/>
+               <dest obj="vcf3_1" inlet="reso"/>
+            </net>
+            <net>
+               <source obj="*c_1" outlet="out"/>
+               <dest obj="vcf3_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="vca_1" outlet="o"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="patch offset" outlet="inlet"/>
+               <dest obj="-_1" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="divremc_1" outlet="rem"/>
+               <dest obj="latch_2" inlet="i"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="read_1" inlet="a"/>
+               <dest obj="+_1" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="-_1" outlet="out"/>
+               <dest obj="divremc_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="latch_2" outlet="o"/>
+               <dest obj="mux_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="reset" outlet="o"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+            <Author></Author>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>37</x>
+            <y>290</y>
+            <width>1718</width>
+            <height>511</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="dist/soft" uuid="e680d76a805e4866027cdf654c7efd8b2e54622" name="soft_1" x="1120" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1176" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="56" y="448" text="using last voice mem: inside the patch, with each gate the current polyindex is send to the &quot;last voice mem&quot; module"/>
+   <comment type="patch/comment" x="560" y="546" text="single parameter per voice controller"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="screw it randomise" x="294" y="560">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="40e91aa7-72a9-429a-849b-8c1611608a57" name="read_1" x="392" y="560">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+      <object id="patch/object" uuid="40e91aa7-72a9-429a-849b-8c1611608a57">
+         <sDescription>read from table, linear interpolated</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <bool32 name="rnd"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int rnd;]]></code.declaration>
+         <code.krate><![CDATA[if(inlet_rnd&&!rnd)
+{
+	rnd=1;
+	for(int i=0;i<attr_table.LENGTH;i++)
+	{
+		attr_table.array[i]=(int32_t)(GenerateRandomNumber()>>5);
+	}
+}
+else if(!inlet_rnd){rnd=0;}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="voice" x="546" y="560">
+      <params>
+         <int32 name="value" value="7"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="param" x="602" y="560">
+      <params>
+         <int32 name="value" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="e8e32fae-c565-4d3d-8c02-7ec20840ac79" name="write_2" x="658" y="560">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+      <object id="patch/object" uuid="e8e32fae-c565-4d3d-8c02-7ec20840ac79">
+         <sDescription>write to table</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32 name="voice"/>
+            <int32 name="param"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params>
+            <frac32.s.map name="value"/>
+         </params>
+         <attribs>
+            <objref name="table" description="shared table for all voices and parameters"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int voice;]]></code.declaration>
+         <code.init><![CDATA[int ntrig = 0;
+voice=-1;]]></code.init>
+         <code.krate><![CDATA[int Voice=inlet_voice>=attr_table.voices?attr_table.voices-1:inlet_voice;
+Voice=Voice>=0?Voice:0;
+int prm=inlet_param>=attr_table.params?attr_table.params-1:inlet_param;
+prm=prm>=0?prm:0;
+prm*=attr_table.voices;
+if(!((Voice+prm)==voice))
+{
+	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_value],attr_table.array[Voice+prm],0xFFFD);
+}
+
+voice=Voice+prm;
+
+attr_table.array[Voice+prm]=param_value;]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="patcher_1" outlet="outlet_1"/>
+         <dest obj="soft_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="soft_1" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="voice" outlet="out"/>
+         <dest obj="write_2" inlet="voice"/>
+      </net>
+      <net>
+         <source obj="param" outlet="out"/>
+         <dest obj="write_2" inlet="param"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="counter_1" inlet="trig"/>
+         <dest obj="note_1" inlet="trig"/>
+         <dest obj="counter_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="sel_1" inlet="s"/>
+         <dest obj="sel_2" inlet="s"/>
+      </net>
+      <net>
+         <source obj="sel_1" outlet="o"/>
+         <dest obj="note_1" inlet="note"/>
+      </net>
+      <net>
+         <source obj="sel_2" outlet="o"/>
+         <dest obj="note_1" inlet="velo"/>
+      </net>
+      <net>
+         <source obj="screw it randomise" outlet="o"/>
+         <dest obj="read_1" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="indexed_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="load" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="save" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="patch" outlet="out"/>
+         <dest obj="indexed_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="c"/>
+         <dest obj="latch_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_2" outlet="o"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="latch_1" outlet="o"/>
+         <dest obj="patcher_1" inlet="patch offset"/>
+      </net>
+      <net>
+         <source obj="last voice mem" outlet="last"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="latch_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="reset mode" outlet="o"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>0</y>
+      <width>1736</width>
+      <height>1072</height>
+   </windowPos>
+</patch-1.0>

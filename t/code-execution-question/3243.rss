@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Code execution question</title>
+    <link>http://community.axoloti.com/t/code-execution-question/3243</link>
+    <description>Hey :) 
+
+I have a question about how efficient code is in the different &quot;code windows&quot; in Axoloti. I mean, local/init/k-rate/sample_rate windows.
+
+I was working on a mixer where I used a lot of int32_t&#39;s from local code. Then I tried, just for the fun one if moving them to k-rate window and the DSP usage dropped 2-3%. To  me this seems like it is more efficient to call int32_t(if possible of course) from k-rate code than from local code. 
+
+I know local code is only executed once and krate is update all the time. Is the reason why local code is more &quot;expensive&quot; that it run everything in local section form the start, so basically everything is active? Where the krate is only &quot;activated&quot; when used?
+
+Was just wondering about this. Cause if it is more effective then i might as well put more there than in the local code(when possible of course).</description>
+    
+    <lastBuildDate>Fri, 21 Apr 2017 17:34:27 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/code-execution-question/3243.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Code execution question</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Thanks I will check out the wiki entry. FOr now I am mostly doing the steps to get osm ecool objects working... Latest is this sequencer that loads presets from SD-card <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> But still <strong>very</strong> unstable. I have to find a way to store many presets in one table. But for that I would also have to be able to write to specific locations in the table. the sequencer has 4 presets and they are stored in the array:</p>
+
+<p>PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_attr_legal_name_p1],array[0],0xFFFD);<br>PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_attr_legal_name_p2],array[1],0xFFFD);<br>PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_attr_legal_name_p3],array[2],0xFFFD);<br>PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_attr_legal_name_p4],array[3],0xFFFD);</p>
+
+<p>array[0]=param_p1;<br>array[1]=param_p2;<br>array[2]=param_p3;<br>array[3]=param_p4;</p>
+
+<p>4 presets = 4 samples(or places in the array)</p>
+
+<p>so 64 samples is 4 * 16 = 16 presets</p>
+
+<p>In the array:<br>preset 1 is 0-3<br>preset 2 is 4-7<br>preset 3 is 8-11</p>
+
+<p>Have been trying to do this allday and get it working but with no luck. I did get an advice how to do it, which I think I have to read 10 times more and then try again in a few days.. And I think fo rthat method it is neede to store ALL preset to the table at once. I would like to make one preset, save it to array 0-3    then dial in next preset, then save it to 4-7... But this makes my brain hurt right now <img src="//community.axoloti.com/images/emoji/emoji_one/grimacing.png?v=3" title=":grimacing:" class="emoji" alt=":grimacing:"> I guess it is a kind of overdub, but with data instead of audio.</p>
+
+<p>Sequencer with preset, muahahaaa <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<div class="lazyYT" data-youtube-id="K6fEoTCcwRw" data-youtube-title="Axoloti sequencer presets" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/code-execution-question/3243/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/code-execution-question/3243/7</link>
+        <pubDate>Fri, 21 Apr 2017 17:26:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3243-7</guid>
+        <source url="http://community.axoloti.com/t/code-execution-question/3243.rss">Code execution question</source>
+      </item>
+      <item>
+        <title>Code execution question</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yeah, concentrate on functionality.</p>
+
+<p>as for the optimizer, perhaps read the <a href="https://en.wikipedia.org/wiki/Optimizing_compiler">wiki entry</a> briefly to know what it is, and the kind of things its does (don't worry about the details, this varies by compiler anyway) ... its useful to know of its existence but honestly id treat it as 'out of scope'.</p>
+
+<p>one last thought, be careful of a programming pitfall called 'premature optimisation' , basically trying to optimize code too soon in the dev process, its very easy to do. In this context, I refer to this, as not taking a 'pattern' you think will optimise code and generally using it 'out of habit' ,  as in some contexts it may actually reduce performance.  (optimisation depends on a lot of different factors)</p>
+
+<p>that said, in this particular example - its good programming practice to declare variables in as limited scope as possible... so the declaring the in k/s-rate vars is the 'right thing to do' anyway.</p>
+
+<p>there are quite a few good books on recommend programming guideless/practices, worth reading once you have a firm grip of C/C++, they can really help beginners not fall into very common traps and bad habits. <br>(I don't really have any up to date recommendations, it was a long time ago for me)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/code-execution-question/3243/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/code-execution-question/3243/6</link>
+        <pubDate>Fri, 21 Apr 2017 17:03:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3243-6</guid>
+        <source url="http://community.axoloti.com/t/code-execution-question/3243.rss">Code execution question</source>
+      </item>
+      <item>
+        <title>Code execution question</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="3243"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>in as simple way as possible</p></blockquote></aside>
+
+<p>Yes this is the core... Well, first I have to get things working and I think I got that now, so now I will go into the details of everything. Goal seems always to be keep it simple to "keep it clean". I can already now see that a lot fo the first objects I made can be optimized. I guess this is just a process of understanding it better.</p>
+
+<p>So now I just think I need to get the basics and then all the compiler stuff, I can go into later. Like you say it is too complicated. But I got Xcode installed and some videos to go along that show how to work with c++ in Xcode. On top of that the tutorial from <a href="https://www.sololearn.com/Play/CPlusPlus">https://www.sololearn.com/Play/CPlusPlus</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/code-execution-question/3243/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/code-execution-question/3243/5</link>
+        <pubDate>Fri, 21 Apr 2017 16:14:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3243-5</guid>
+        <source url="http://community.axoloti.com/t/code-execution-question/3243.rss">Code execution question</source>
+      </item>
+      <item>
+        <title>Code execution question</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yeah, learning the 'language' of programming, C, DSP all at once is tricky, but unfortunately programming is about precision, so its pretty vital ... you'll get there, the more you do/read the clearer it becomes.<br>also bare in mind Axoloti is deliberately hiding 'non essential' details, so that can for some subjects add more complication ... of course, for other topics, it simplifies things immensely.</p>
+
+<p>ok, so local data , is a declarative section, its a good idea to get really clear in C the distinction between declaration and code.</p>
+
+<p>for the purpose you are discussing the difference is, do you have to allocate the int32_t (yes its a type too, you wont find in a general C book) when allocating the object (which more correctly is a class, and your defining in local data) or when the function is called (k/s-rate). really neither is 'quicker' as the amount of memory is calculate upfront by the compiler... and even this is not quite the case, since the dsp functions are 'attempted' to be in-lined.</p>
+
+<p>from a 'theoretically' (i.e. your book) from a C standpoint there is no difference, the code should execute at the same speed. (or the different would be ridiculously small)</p>
+
+<p>BUT... if it is quicker, then I would say its down to the compilers optimizer.</p>
+
+<p>what could happen, in the s-rate example, is that the optimizer spots that the variable is only used in one place, and so is able to allocate a register to hold the result, rather than use a memory location (slower).<br>(note: I say could, because theoretically the optimizer could (shoud?)  be intelligent enough to do the same in both scenarios, only checking the assembly output can tell you the truth)</p>
+
+<p>so here is your problem... understanding optimizers is very difficult, even for very experienced programmers... often what you think is going to happen doesn't and its quite possible to try to optimize for a compiler and make it worst! ... or even when a new version of the compiler is introduced, and your optimisation is now invalid.<br>( to optimize really well, you have to really a grounding in assembly, compiler technology, optimizers)</p>
+
+<p>so how do most programmers 'get around this'... <br>well the optimizers are really very intelligent (and constantly improving) so generally you don't care about them... in most programming contexts this is enough, and there are more gains to be made in your own algorithms than squeezing the optimizer. </p>
+
+<p>but my advice to programmers is simple, make your code express your intent as closely as possible, in as simple way as possible... the hope is, if its easy to understand, and in a 'common approach' then the optimizer will be more likely to recognise.</p>
+
+<p>so in your example the reason you should have been declaring in s-rate and not local data is because that is where you need the data... you don't need it in a broader context, and its generally good programming practice to keep the 'scope' of variables as limited as possible (for a variety of reasons, that you can read up on <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) </p>
+
+<p>reading this back, this seems like a really convoluted reply, but unfortunately, once you get into optimizers/in-lining, its really a whole new level... one that many C programmers with years of experience don't even venture into.<br>(but of course, are quite relevant to DSP programming on a CPU with very limited resources... if you did this on a PC, say for aVST, , you'd likely 'get away' with not hearing about any of this stuff)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/code-execution-question/3243/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/code-execution-question/3243/4</link>
+        <pubDate>Fri, 21 Apr 2017 14:38:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3243-4</guid>
+        <source url="http://community.axoloti.com/t/code-execution-question/3243.rss">Code execution question</source>
+      </item>
+      <item>
+        <title>Code execution question</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>From Sputnki description of the diffrent code windows or dropdown menues. SOrry I dont know what you call them. There are 4 of them where you can put code in:<br><img src="//community.axoloti.com/uploads/default/original/2X/5/5b87d013849061d0663262c4072a87afdb18f722.png" width="556" height="56"></p>
+
+<aside class="quote" data-post="1" data-topic="2606"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sputnki/40/175_1.png" class="avatar"><a href="//community.axoloti.com/t/coding-axoloti-objects/2606/1">Coding axoloti objects</a>
+</div>
+<blockquote>
+<p>Local data</p>
+<p>This section of the code is executed once, before inlets, outlets, params and displays are declared. You can use this section to declare variables, constants, functions etc. You can't access i/o (because i/o does still not exist, at this point), but you can access attributes.Example: table/alloc 16b</p>
+</blockquote></aside>
+
+<p>Again I just want to say I am not postulating anything or saying anything is bad.. This is just a question about what is mot efficient.  Allthough now that I think of it, it could also just have been Axoloti just not showing the right DSP usage for a short second.. I have seen that a few times...</p>
+
+<p>Anyway I will try to explain it a bit better... NOW after I took a course last night I will try to use th right language... Form the c++ course I think I understood that an "int" is a variable and I am assuming in32_t is the same? It wasnt mentioned in the course.</p>
+
+<p>Everythin beneath here is from Axolotis editor not a code progam... So the terms I use is from the Axolotis own object editor;</p>
+
+<p>What I had done that day was puttting_ in local code like this:<br>int32_t SUMCHANNELS;</p>
+
+<p>And then in S-rate menu do this:<br>SUMCHANNELS =  ch1+ch2+ch3;</p>
+
+<p>So first declare the variable in local code and the give it a function in s-rate code.</p>
+
+<p>But instead i just put this in the srate and NOTHING in local code:<br>int32_t SUMCHANNELS =  ch1+ch2+ch3;</p>
+
+<p>Both worked;<br>And my question was; is there any difference in efficiency in those 2 ways?</p>
+
+<p>Sorry, I was not clear enough. It sounded like I was saying that doing the k-rate code was more efficient than doing it in local code. It was a question about what is more efficient. I dont know anything about it, but wanted to find out.</p>
+
+<aside class="quote" data-post="2" data-topic="3243"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>I don't know what you mean by 'k-rate is only activated when used' , its always used, its called every k-rate cycle... (of course, your code might have conditional code, but that's your business <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p></blockquote></aside>
+
+<p>Now that I look at that statement, I understand that you dont understand it. It was just a thought; that all local data is processed when going live with a patch, is true, from what i understand from Sputnkis code thread. But if I put the int32_ X in s-rate it was only processed when it variable was used... But I understand it is not how it works. And that thought was based on what I saw.</p>
+
+<p>When I moved some of the int32_t's to srate code I saw the DSP meter drop... BUT When using Axolotis editor and working on several objects in the same patch, you dont always get 100 % right feedback. SOmetimes you have to save the patch and close it and open again and then everything works as supposed. Especailly when working on more complicated stuff. And now that I think of it, I think maybe this was what happened.</p>
+
+<aside class="quote" data-post="2" data-topic="3243"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>(you don't need to do this to code objects, but frankly any discussion of 'optimisation' is going to be pretty difficult without this underlying knowledge)</p></blockquote></aside>
+
+<p>True and that is why I am taking the courses... I have made around 50 objects from mixers to samplers to compressors to noise gates, to wavetable morph stuff... All in the last month, so I can build things even with out using the right langauge. BUt I am certain that everything can be done ALOT more efficient than what I am capable fo right now..... But to understand everything I do need to take a few steps back and take them, understanding the basics... And I am trying. So please bare with me a little while more. It is not my profession. </p>
+
+<p>But I have prcaticed a bit by finding a lot of similar code onhttp://stackoverflow.com/ and tried implementing it into Axoloti. Many of the things worked and some didnt. Tried new random functions I hadnt seen used in Axolti the rand()... Axoloti uses the ()RANDOMnumberGENERATOR() version... And I understand why.. The rand() was really not random at low values... it set to a value between 1-3 i think it was, it just send out a steady 2... Not usable.. But I found some formulas to round any number into nearest power of 2 number.. These are really useful for many things. Stack overflow is nice in general for sourcing things to practice on <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>Allthough I am looking into signing up for a new education, Datalogi, which is very much related. Teaches you algorithms and so on. I hope I can start next year, I just need to take math level A first then I can go. </p>
+
+<p>Right now I am working in public school and really freaking tired of being a puppet of the schoolsystem. They expect more and more from us and gives us less time to do out job. Working with kids this is just a lethal cocktail, that WILL end like a massacre... And I am not gonna wait around for it.  To me it is just too much. Bascially they want the energy of a 20 year old, but with the knowledge of a 70 old and expect you to run like crazy.... So I dont want to work there anymore and I will quit my job soon. And start preparing for going to datalogi university next year.</p>
+
+<aside class="quote" data-post="2" data-topic="3243"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>a last thing... as your learning C/C++ if you want to understand properly what the books are teaching you about variable scope/initialisation relates to Axoloti objects, you will need to look at the xpatch.cpp that is generated... since this is the only way to see the scope of vars, and the dsp code.</p></blockquote></aside>
+
+<p>Yeah maybe I will get back to you on that <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"> I think I need to do the first many courses before I dig into more</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/code-execution-question/3243/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/code-execution-question/3243/3</link>
+        <pubDate>Fri, 21 Apr 2017 13:10:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3243-3</guid>
+        <source url="http://community.axoloti.com/t/code-execution-question/3243.rss">Code execution question</source>
+      </item>
+      <item>
+        <title>Code execution question</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ive moved this from the replies to the user guide, lets keep questions away from that topic, its better to have specific questions in the dedicated category here.</p>
+
+<p>ok, on  to the question... <br></p>
+
+<aside class="quote" data-post="1" data-topic="3243"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>I know local code is only executed once and krate is update all the time. Is the reason why local code is more "expensive" that it run everything in local section form the start, so basically everything is active? Where the krate is only "activated" when used?</p></blockquote></aside>
+
+<p>ok, you need to be more precise in your language here... <br>(I know your beginning, but its important to use the right terms, otherwise its really unclear what your talking about)</p>
+
+<p>in axo objects we only have local data ... and init code... I'm guessing your referring to this? as opposed to k-rate and s-rate code.</p>
+
+<p>you also are solely talking about int32_t which is a data type, and is a declaration , rather than 'code' par se... BUT depending upon what your doing could possible invoke initialisation code. </p>
+
+<aside class="quote" data-post="1" data-topic="3243"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>I know local code is only executed once and krate is update all the time. Is the reason why local code is more "expensive" that it run everything in local section form the start, so basically everything is active? Where the krate is only "activated" when used?</p></blockquote></aside>
+
+<p>this is where the lack of clarity bites I cant really determine your question, and basically if I guess at it (e.g. init code , or local data initialisation is more expensive than k-rate) then your premise is just wrong.  it may be perhaps the way you are measuring is wrong or that you are missing something like compiler optimisation kicking into play.<br>but init code is only executed once, k-rate is executed at 3khz.... <br>I don't know what you mean by 'k-rate is only activated when used' , its always used, its called every k-rate cycle... (of course, your code might have conditional code, but that's your business <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+
+<p>the only other thing to be aware is vars declared in k-rate code, are locals on the stack, so initialised every time you call the k-rate dsp function, though depending on what you do, some of this can be compiler optimised.</p>
+
+<p>a last thing... as your learning C/C++ if you want to understand properly what the books are teaching you about variable scope/initialisation relates to Axoloti objects, you will need to look at the xpatch.cpp that is generated... since this is the only way to see the scope of vars, and the dsp code.<br>... the way to do this is to create a <strong>trivial</strong> patch with just one or two objects, and then look at the code generated, once your understand this, you'll have a much better idea of whats going on.<br>(you don't need to do this to code objects, but frankly any discussion of 'optimisation' is going to be pretty difficult without this underlying knowledge)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/code-execution-question/3243/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/code-execution-question/3243/2</link>
+        <pubDate>Fri, 21 Apr 2017 11:48:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3243-2</guid>
+        <source url="http://community.axoloti.com/t/code-execution-question/3243.rss">Code execution question</source>
+      </item>
+      <item>
+        <title>Code execution question</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Hey <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>I have a question about how efficient code is in the different "code windows" in Axoloti. I mean, local/init/k-rate/sample_rate windows.</p>
+
+<p>I was working on a mixer where I used a lot of int32_t's from local code. Then I tried, just for the fun one if moving them to k-rate window and the DSP usage dropped 2-3%. To  me this seems like it is more efficient to call int32_t(if possible of course) from k-rate code than from local code. </p>
+
+<p>I know local code is only executed once and krate is update all the time. Is the reason why local code is more "expensive" that it run everything in local section form the start, so basically everything is active? Where the krate is only "activated" when used?</p>
+
+<p>Was just wondering about this. Cause if it is more effective then i might as well put more there than in the local code(when possible of course).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/code-execution-question/3243/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/code-execution-question/3243/1</link>
+        <pubDate>Fri, 21 Apr 2017 06:54:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3243-1</guid>
+        <source url="http://community.axoloti.com/t/code-execution-question/3243.rss">Code execution question</source>
+      </item>
+  </channel>
+</rss>

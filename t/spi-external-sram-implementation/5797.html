@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/spi-external-sram-implementation/5797 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:44 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>SPI external SRAM implementation - AxoObject coding - Axoloti Community</title>
+    <meta name="description" content="So I&amp;#39;ve been playing around trying to get a 23LC1024 SPI SRAM chip working with Axoloti running on the STM32F407 Discovery board. 
+
+I know I know, why try using SPI SRAM when the stock Axoloti board has fast and abundant&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="5797.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;SPI external SRAM implementation&#39;" href="5797.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/optimized/2X/4/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7_1_659x500.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/optimized/2X/4/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7_1_659x500.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/spi-external-sram-implementation/5797" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/spi-external-sram-implementation/5797" />
+<meta property="og:title" content="SPI external SRAM implementation" />
+<meta name="twitter:title" content="SPI external SRAM implementation" />
+<meta property="og:description" content="So I&#39;ve been playing around trying to get a 23LC1024 SPI SRAM chip working with Axoloti running on the STM32F407 Discovery board.   I know I know, why try using SPI SRAM when the stock Axoloti board has fast and abundant SDRAM. I do own a stock Axoloti and use it live, and my playing with the Discovery board is mainly for learning purposes. Kindly see below what I&#39;ve got so far...    [image]  Although the code is still quite ineffective the problem is, the SPI read and write actions seem to be u..." />
+<meta name="twitter:description" content="So I&#39;ve been playing around trying to get a 23LC1024 SPI SRAM chip working with Axoloti running on the STM32F407 Discovery board.   I know I know, why try using SPI SRAM when the stock Axoloti board has fast and abundant SDRAM. I do own a stock Axoloti and use it live, and my playing with the Discovery board is mainly for learning purposes. Kindly see below what I&#39;ve got so far...    [image]  Although the code is still quite ineffective the problem is, the SPI read and write actions seem to be u..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="2 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="4 ❤" />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../index.html"><img src="../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="5797.html">SPI external SRAM implementation</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../c/axoobject-code.html" itemprop="url">
+        <span itemprop="title">AxoObject coding</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/sebiiksbcs.html'><b itemprop='author'>sebiiksbcs</b></a>
+           
+           <time datetime='2019-06-17T15:48:11Z' itemprop='datePublished'>
+             2019-06-17 15:48:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>So I've been playing around trying to get a 23LC1024 SPI SRAM chip working with Axoloti running on the STM32F407 Discovery board.</p>
+
+<p>I know I know, why try using SPI SRAM when the stock Axoloti board has fast and abundant SDRAM. I do own a stock Axoloti and use it live, and my playing with the Discovery board is mainly for learning purposes. Kindly see below what I've got so far...</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7" href="../../uploads/default/original/2X/4/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7.png" class="lightbox" title="Screenshot from 2019-06-17 22-57-43.png"><img src="../../uploads/default/optimized/2X/4/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7_1_659x500.png" width="659" height="500"><div class="meta">
+<span class="filename">Screenshot from 2019-06-17 22-57-43.png</span><span class="informations">1356x1028 244 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Although the code is still quite ineffective the problem is, the SPI read and write actions seem to be using up so much CPU. Does anyone have a hint on what I am missing (something about threads? Maybe use spiExchange instead of spiSend/spiReceive?)<br>I did try minimizing redundant function calls and do the whole read write action in k-rate, writing to the frac32[i] buffer in a 'for' loop, but it ended up in roughly the same CPU load.</p>
+
+<p>I am using SPI1 (used SPI2 before, same)</p>
+
+<p>Or is that the best SPI can do on ChibiOS / Axoloti / Discovery? I dare doubt that since the 23LC1024 SRAM works fast (?) and clean e.g. on Teensy 3.X with the Teensy Audio Library?</p>
+
+<p>This is my custom SPI config object code in XML (or download file below):<br><a href="https://pastebin.com/wNzuyYzV" class="onebox" target="_blank" rel="nofollow noopener">https://pastebin.com/wNzuyYzV</a></p>
+
+<p>And here's the 23LC(V)1024 delay test object code in XML (or download file below):<br><a href="https://pastebin.com/WT9dbQdU" class="onebox" target="_blank" rel="nofollow noopener">https://pastebin.com/WT9dbQdU</a></p>
+
+<p><a class="attachment" href="../../uploads/default/original/2X/e/spi1config.axo">spi1config.axo</a> (3.2 KB)<br><a class="attachment" href="../../uploads/default/original/2X/6/spitest2-buffer.axp">spitest2-buffer.axp</a> (10.6 KB)</p>
+
+<p>Thanks in advance, and please do let me know wherever my code sucks!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Blindsmyth.html'><b itemprop='author'>Blindsmyth</b></a>
+           
+           <time datetime='2020-05-01T14:45:32Z' itemprop='datePublished'>
+             2020-05-01 14:45:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hey there, this looks very interesting and considering so many users here run out of sram (and sdram) I am surprised nobody commented here.</p>
+
+<p>Have you ben able to make any progress with your project in the meantime?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/sebiiksbcs.html'><b itemprop='author'>sebiiksbcs</b></a>
+           
+           <time datetime='2020-05-02T09:37:02Z' itemprop='datePublished'>
+             2020-05-02 09:37:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi, actually I didn't follow up on this back then and let it be the way it was, however I now understand more about threads, interrupts, DMA etc. so I might have a look at this again to tune it up a bit. I2S, after all, is basically SPI in a specific configuration, and on the Axo it's stereo in stereo out with hardly any CPU load... this must be the power of DMA and interrupts.</p>
+
+<p>That being said, I believe we're better off just using the Axo's stock SDRAM since it's fast and plenty. Expanding the internally usable SRAM in a useful way would mean delving deep in the firmware and linker (or maybe even lower?) code, besides this SRAM chip I have only speaks SPI, so I doubt there'd even be a way to have the memory available during firmware and patch compilation.</p>
+
+<p>Hope this makes sense, glad to know there are others out there interested in this though!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Blindsmyth.html'><b itemprop='author'>Blindsmyth</b></a>
+           
+           <time datetime='2020-05-02T17:25:16Z' itemprop='datePublished'>
+             2020-05-02 17:25:16 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="3" data-topic="5797"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../user_avatar/community.axoloti.com/sebiiksbcs/40/6295_1.html" class="avatar">sebiiksbcs:</div>
+<blockquote><p>That being said, I believe we're better off just using the Axo's stock SDRAM since it's fast and plenty.</p></blockquote></aside>
+
+<p>I use almost all of that for sampling, so and sram is full too...</p>
+
+<p>since you're busy with spi on axoloti have you ever tested linking to boards via spi? there is an experimental firmware branch, but there wasnt much happeing ever since.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/sebiiksbcs.html'><b itemprop='author'>sebiiksbcs</b></a>
+           
+           <time datetime='2020-05-06T04:26:40Z' itemprop='datePublished'>
+             2020-05-06 04:26:40 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Linking boards is definitely worth looking into. Wondering if CAN would be a viable protocol actually.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Blindsmyth.html'><b itemprop='author'>Blindsmyth</b></a>
+           
+           <time datetime='2020-05-06T17:21:39Z' itemprop='datePublished'>
+             2020-05-06 17:21:39 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>What is CAN?</p>
+
+<p>I think linking 2 boards would be so elegant, just double your resources and you would also have double ins and outs your system.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/sebiiksbcs.html'><b itemprop='author'>sebiiksbcs</b></a>
+           
+           <time datetime='2020-05-07T00:46:15Z' itemprop='datePublished'>
+             2020-05-07 00:46:15 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Looks like CAN is another data transfer protocol and I believe it is used in automotive industry for inter-MCU communication? Anyway since some apps of the venerable Midibox platform use CAN to transfer data between multiple core MCUs I thought this would be a good candidate for Axo as well.</p>
+
+<p>I agree with you that linking boards would be such a performance boost, it's a no-brauner really. Like so many other features, but so little time... I'm sure Johannes is busy enough already.</p>
+
+<p>I'll definitely look into this though, I mean even a rudimentary data exchange (like transferring audio streams between boards directly into the other board's patch) would be so great</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Nosnibor-2.html'><b itemprop='author'>Nosnibor</b></a>
+           
+           <time datetime='2020-05-10T15:37:51Z' itemprop='datePublished'>
+             2020-05-10 15:37:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>The SPI functions (spiSend(), spiReceive() etc.) are from ChibiOS and are meant to be blocking, i.e. spiSend() returns only after all data has been sent. This means two things:<br>1. the CPU (or rather the thread) has to wait for each SPI transaction to finish. This seems wasteful: there is DMA and everything on the chip, and yet the CPU can't do anything else while SPI is active.<br>2. the source code is easily readable: spiSelect(), spiSend(), spiReceive() and spiUnselect() appear in the same order as things happen in realtime. ChibiOS also offers nonblocking SPI access with callbacks and stuff, which can quickly get confusing.<br>Notice that I mentioned the thread has to wait, not the whole CPU. ChibiOS can do multitasking after all. So if we put all SPI stuff in another thread, it won't delay the computation of all the other objects. There is already a factory object that puts code in a separate thread: script/script. Of course for the SPI RAM use some changes are necessary: red inputs and outputs instead of blue, and some mechanism (mutex or something) in the K-rate-code to sync the SPI thread to the main thread. I don't (yet) know enough about ChibiOS to figure that out.</p>
+
+<p>As for linking boards via SPI, that seems to be the intention of the "Multiprocessor stream" and "Multiprocessor sync" connectors. The "stream" connector has SPI, and if we get the CPU not to wait for the hardware, SPI seems a practical interface: fast and no overhead (no start-bit, command-byte, frame checksum, address etc.). It should be possible to swap a block of data each k-rate cycle, maybe enough for stereo audio plus a bunch of control (blue) signals.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/sebiiksbcs.html'><b itemprop='author'>sebiiksbcs</b></a>
+           
+           <time datetime='2020-05-21T13:56:02Z' itemprop='datePublished'>
+             2020-05-21 13:56:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>To answer myself, looks like CAN is too slow to get audio data (at least in axoloti quality format) across.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/sebiiksbcs.html'><b itemprop='author'>sebiiksbcs</b></a>
+           
+           <time datetime='2020-05-21T14:07:08Z' itemprop='datePublished'>
+             2020-05-21 14:07:08 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ok so I have the SPI RAM communication in a separate thread now and voila, it consumes very few CPU cycles.</p>
+
+<blockquote><p> and some mechanism (mutex or something) in the K-rate-code to sync the SPI thread to the main thread. I don't (yet) know enough about ChibiOS to figure that out.</p></blockquote>
+
+<p>I do get audio into the RAM and back out, however as you said I need to sync the thread to the main thread, i.e. make sure each audio block sent and received is in sync with the audio buffers. As of now I basically have a delay+samplerate reducer effect going on.</p>
+
+<p>I am currently using a flag that is set each k-rate when an audio block is fully transfered into the SPI's transmit buffer, then checked inside the thread and cleared when the SPI transfer is finished. Doesn't seem to work the way I expected.</p>
+
+<p>Another option, chSysLock(), would probably block the CPU far too long since I am transferring audio samples mono in blocks of BUFSIZE*2 bytes (resulting in 16bit audio), in other words each spiSend and spiReceive transfers BUFSIZE*2 bytes (plus the instructions and address data making up another 4 bytes). This is because the 23LC1024 has this mode called Sequential Mode in which you can basically keep clocking in as many bytes as you want with the chip auto-incrementing the data address.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/Nosnibor-2.html'><b itemprop='author'>Nosnibor</b></a>
+           
+           <time datetime='2020-05-21T20:08:55Z' itemprop='datePublished'>
+             2020-05-21 20:08:55 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>chSysLock() seems too heavy-handed to me. There should be some simple mechanism like a message or an event flag for this.</p>
+
+<p>(after reading some OS documentation) Ugh, messages are too complicated.<br>The SPI thread could call chEvtWaitAny() to wait for the main thread to copy the data. The main thread calls chEvtSignal() with at least one bit set after it has copied the data. This should release the SPI thread to do its job and return to waiting for the next round.<br>The SPI thread needs to have a higher priority than the main thread, so that it can start the SPI hardware immediately instead of waiting for the main thread to finish its k-rate computations (which would mean that (again) CPU and SPI hardware are not working at the same time, wasting precious CPU cycles).</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/sebiiksbcs.html'><b itemprop='author'>sebiiksbcs</b></a>
+           
+           <time datetime='2020-06-04T01:59:51Z' itemprop='datePublished'>
+             2020-06-04 01:59:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Your suggestion worked!</p>
+
+<p>Now I just need to shorten the wires or make a small breakout board for the SPI RAM because I am still getting pops and clicks likely due to wire noise.</p>
+
+<p>Then I can focus on improving the objects (delay interpolation will be another hurdle).</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='SPI external SRAM implementation'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../index.html'>Home</a>
+        <a href="../../categories.html">Categories</a>
+        <a href="../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../tos.html">Terms of Service</a>
+        <a href="../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/spi-external-sram-implementation/5797 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:44 GMT -->
+</html>

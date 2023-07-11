@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Count samples between zero crossings</title>
+    <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438</link>
+    <description>I&#39;m trying to make a sample counter (k-rate) that counts how many non-zero samples occured since the last zero-crossing.
+What I have so far in `&lt;code.krate&gt;` is:
+
+`if (inlet_in&lt;=0 and xflag == 1){
+outlet_o = 281474976710656/counter*(1&lt;&lt;21);
+counter=1;
+xflag=0;
+}
+if(inlet_in&gt;0 and xflag == 0){
+outlet_o = 281474976710656/counter*(1&lt;&lt;21);
+counter=1;
+xflag=1;
+}
+counter++;`
+
+ultimately, I would want it to output a frequency from the wavelength. hence the division by `counter*(1&lt;&lt;21)`, but that&#39;s no where near the right way to do it, apparently...
+How do I correctly scale the counter value so that it outputs as a value between -64 and 64 from the object, representing the frequency?
+thanks</description>
+    
+    <lastBuildDate>Thu, 10 Sep 2015 16:28:57 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>bipolar  &lt;&lt; 21 and unipolar &lt;&lt; 20</p>
+
+<p>I always have to re-check this myself ... and here is my tip of the day <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile"> </p>
+
+<p>go check midi/in/keyb.axo in the  k-rate code</p>
+
+<pre><code>outlet_note= _note&lt;&lt;21;
+outlet_gate= _gate;
+outlet_gate2= _gate2;
+_gate2 = _gate;
+outlet_velocity= _velo&lt;&lt;20;
+outlet_releaseVelocity= _rvelo&lt;&lt;20;</code></pre>
+
+<p>easy to remember from here, since we know velocity is 0..127 and is unipolar output.</p>
+
+<p><strong>note number</strong> we know is bipolar output in axoloti... but we know its unipolar in midi... but we can see this is taken care of in the midihandler()</p>
+
+<pre><code>_note = data1-64;</code></pre>
+
+<p>so we can see here, that the k-rate handler is actually getting -64 to 67, as we would expect for a bipolar input.</p>
+
+<p>I use this as example, since we all know midi really well, so its really easy to see how Axoloti maps integers into the unipolar/bipolar float representation..</p>
+
+<p>so back to your Q, you just need to scale your 'result' to -64 to 64 then shift it... </p>
+
+<p>the next important part, is how is frequency represented as its obviously scaled, <br>well if we look at osc/sine lin ... we can see it goes zero to 24kHz (due to Nyquist based on 48k)<br>so thats you scaling for your output. very easy because frequency is linear.</p>
+
+<p>important note: I used sine lin, as its frequency... most oscillators/lfos are pitch, which has completely different scaling<br>and you have to be more careful when your doing pitch as this is non-linear.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/9</link>
+        <pubDate>Thu, 10 Sep 2015 16:28:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-9</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@timvets TimVets]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/timvets">@timvets</a> wrote:</p>
+          <blockquote>
+              <p>Hey thetechnobear, <br>so then how do I use it to map to a value between, say 3000 and 2, so that I get <br>something between -64 and 63 coming out of a frac32 outlet?<br>thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/8</link>
+        <pubDate>Thu, 10 Sep 2015 13:55:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-8</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="5" data-topic="438"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/timvets/40/13_1.png" class="avatar">timvets:</div>
+<blockquote><p>I have no idea what 281474976710656 is exactly, just that it represents '64' somehow</p></blockquote></aside>
+
+<p>errm, something seems wrong that is  64 &lt;&lt; 42 ... where as normally we would use 64 &lt;&lt; 21<br>(moral of story.. never use literals like this... always use the calculation form ( e.g. 64 &lt;&lt; 21)  so its clear what they are... <br>there is no efficiency gain, as compiler will optimise constant calculations anyway)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/7</link>
+        <pubDate>Thu, 10 Sep 2015 13:25:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-7</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@alex alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alex">@alex</a> wrote:</p>
+          <blockquote>
+              <p>Not sure what you want exactly, but I think it should be <code>3000/counter</code> if you want the frequency. <br>The inlet should be something that detects zero-crossings. <br>(Then for frequency to midi or -64,64 range it would be useful to have an object :  there is a MTOF function, but not yet a FTOM )</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/6</link>
+        <pubDate>Thu, 10 Sep 2015 10:25:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-6</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@timvets TimVets]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/timvets">@timvets</a> wrote:</p>
+          <blockquote>
+              <p>To be honest, I have no idea what 281474976710656 is exactly, just that it represents '64' somehow... <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile"><br>script/oneliner_k with the following:<br><code>outlet_out=281474976710656/inlet_in;</code><br>is what I used in that Euclidean patterns patch, as per Johannes' suggestion, and it amounts to 64/inlet_in.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/5</link>
+        <pubDate>Thu, 10 Sep 2015 10:17:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-5</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="438"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/timvets/40/13_1.png" class="avatar">timvets:</div>
+<blockquote><p>281474976710656</p></blockquote></aside>
+
+<p>what is this? how are you calculating it?</p>
+
+<aside class="quote" data-post="1" data-topic="438"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/timvets/40/13_1.png" class="avatar">timvets:</div>
+<blockquote><p>281474976710656/counter*(1&lt;&lt;21)</p></blockquote></aside>
+
+<p>is this not the same as </p>
+
+<pre><code> (281474976710656/counter) &lt;&lt; 21</code></pre>
+
+<p>which is easier to read <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile"><br>(id assume the compiler is smart enough to make it this anyway)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/4</link>
+        <pubDate>Thu, 10 Sep 2015 09:59:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-4</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@timvets TimVets]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/timvets">@timvets</a> wrote:</p>
+          <blockquote>
+              <p>maybe the word "samples" was misleading, I mean the 3kHz k-rate values<br>But I believe the question remains the same in both cases...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/3</link>
+        <pubDate>Thu, 10 Sep 2015 09:49:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-3</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@alex alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alex">@alex</a> wrote:</p>
+          <blockquote>
+              <p>you would need s-rate for this, not k-rate.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/2</link>
+        <pubDate>Wed, 09 Sep 2015 16:58:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-2</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+      <item>
+        <title>Count samples between zero crossings</title>
+        <dc:creator><![CDATA[@timvets TimVets]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/timvets">@timvets</a> wrote:</p>
+          <blockquote>
+              <p>I'm trying to make a sample counter (k-rate) that counts how many non-zero samples occured since the last zero-crossing.<br>What I have so far in <code>&lt;code.krate&gt;</code> is:</p>
+
+<p><code>if (inlet_in&lt;=0 and xflag == 1){<br>outlet_o = 281474976710656/counter*(1&lt;&lt;21);<br>counter=1;<br>xflag=0;<br>}<br>if(inlet_in&gt;0 and xflag == 0){<br>outlet_o = 281474976710656/counter*(1&lt;&lt;21);<br>counter=1;<br>xflag=1;<br>}<br>counter++;</code></p>
+
+<p>ultimately, I would want it to output a frequency from the wavelength. hence the division by <code>counter*(1&lt;&lt;21)</code>, but that's no where near the right way to do it, apparently...<br>How do I correctly scale the counter value so that it outputs as a value between -64 and 64 from the object, representing the frequency?<br>thanks</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/count-samples-between-zero-crossings/438/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/count-samples-between-zero-crossings/438/1</link>
+        <pubDate>Wed, 09 Sep 2015 15:25:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-438-1</guid>
+        <source url="http://community.axoloti.com/t/count-samples-between-zero-crossings/438.rss">Count samples between zero crossings</source>
+      </item>
+  </channel>
+</rss>

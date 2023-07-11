@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>K-/S-Rate, CPU Speed, C Code, and Multithreading</title>
+    <link>http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701</link>
+    <description>Hi there. I&#39;m very new to both Axoloti and coding (hoping to learn on the Axoloti), so sorry if what I ask is either obvious or doesn&#39;t make sense. 
+
+Anyways, I&#39;ve been perusing the forums here, and thought of a question I couldn&#39;t find the answer to. In a nutshell, I&#39;m wondering how both the k-rate and s-rate Hz numbers relate to both the number of lines in a code block and the processor&#39;s clock speed.
+
+So far, I&#39;ve picked up that k-rate code is 3 kHz, s-rate is 48 kHz, and the CPU&#39;s clock speed is 168 MHz. For the k-/s-rate numbers, does this mean that the Axoloti board will execute the entire code.krate block for an object 3,000 times a second, and the entire code.srate block 48,000 times a second? Or will it only execute 1 line of code in these blocks 3,000/48,000 times a second? Or will it do something else? Basically, what is it that is being done at the 3/48 kHz rates?
+
+As for the CPU&#39;s clock speed, since it&#39;s much higher than the k-/s-rate speeds I&#39;m assuming that there is some multithreading going on, such that the processor is executing multiple k-/s-rate things at the same time. Is this right? And if so, how does the multithreading work at the broad brush strokes level? Is it that each object has its own thread? Or is it ad hoc what gets its own thread? Or is there something I as a developer will need to do to control this aspect of things? Or is it something else?
+
+Any thoughts you could spare for me would be a huge help. Thanks!
+
+P.S. Feel free to move this to another category if &#39;Developer&#39; isn&#39;t the right one.</description>
+    
+    <lastBuildDate>Wed, 20 Jun 2018 22:36:03 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>K-/S-Rate, CPU Speed, C Code, and Multithreading</title>
+        <dc:creator><![CDATA[@thomas11]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thomas11">@thomas11</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/deadsy">@deadsy</a> Thanks so much for the follow up! I have a good overview of these things now, and a manageable number of files to start looking over for the details.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/5</link>
+        <pubDate>Wed, 20 Jun 2018 22:36:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4701-5</guid>
+        <source url="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701.rss">K-/S-Rate, CPU Speed, C Code, and Multithreading</source>
+      </item>
+      <item>
+        <title>K-/S-Rate, CPU Speed, C Code, and Multithreading</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <blockquote><p>Is that on the right track?</p></blockquote>
+
+<p>Yes.</p>
+
+<blockquote><p>are there two buffers because Axoloti has a stereo out and needs one each for the left and right outs, or for some other reason?</p></blockquote>
+
+<p>well, there are actually 4 defined in ./axoloti/firmware/codec.c</p>
+
+<p></p><pre><code class="lang-auto">int32_t buf[BUFSIZE*2] __attribute__ ((section (".sram2")));
+int32_t buf2[BUFSIZE*2] __attribute__ ((section (".sram2")));
+int32_t rbuf[BUFSIZE*2] __attribute__ ((section (".sram2")));
+int32_t rbuf2[BUFSIZE*2] __attribute__ ((section (".sram2")));</code></pre>
+
+<p>buf/buf2 are for audio output (dac).<br>rbuf/rbuf2 are for audio input (adc).</p>
+
+<p>For both input and output there are 2 buffers so they can operate in the aforementioned ping-pong fashion. While the codec is busy with one buffer the cpu is busy with the other buffer. That's a standard DSP technique and has nothing to do with stereo output.</p>
+
+<p>You will notice a BUFSIZE*2 for the buffers. The x2 is for the left/right stereo channels. The CPU has to compute 2 channels worth of audio data.</p>
+
+<blockquote><p>does the dsp(...) function get generated for each object</p></blockquote>
+
+<p>For each object. </p>
+
+<blockquote><p>where I would find the (I assume .c or .cpp) files that include the dsp(...) function?</p></blockquote>
+
+<p>I find it in ./axoloti/build/xpatch.cpp<br>I'm building the code from source, so it may be different if you have a binary install- but you'll find the generated patch code somewhere amongst the axoloti files. (find | grep xpatch)</p>
+
+<blockquote><p>ThreadDSP</p></blockquote>
+
+<p>./axoloti/firmware/patch.c<br></p>
+
+<p></p><pre><code class="lang-auto">static msg_t ThreadDSP(void *arg) {</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/4</link>
+        <pubDate>Wed, 20 Jun 2018 17:57:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4701-4</guid>
+        <source url="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701.rss">K-/S-Rate, CPU Speed, C Code, and Multithreading</source>
+      </item>
+      <item>
+        <title>K-/S-Rate, CPU Speed, C Code, and Multithreading</title>
+        <dc:creator><![CDATA[@thomas11]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thomas11">@thomas11</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/deadsy">@deadsy</a> Thanks so much for that. I think it gives me a good handle on things. But to double check that I'm on the right page, the main outline is that Axoloti has two buffers, and at any time one of the buffers is being read from (and I assume output through the audio out?) while the other is being written to. ThreadDSP is the function that does the writing, and the way ThreadDSP does this is by calling the PatchProcess function from xpatch.cpp, which in turn calls my k- and s-rate code through the void dsp(...) function you sketched out above. Finally, ThreadDSP checks to see how much time it had left after it finishes writing to the buffer, and uses that to show me the CPU load. Is that on the right track?</p>
+
+<p>Also, reading through your response made me think of a few extra questions. First, are there two buffers because Axoloti has a stereo out and needs one each for the left and right outs, or for some other reason? </p>
+
+<p>Second, does the dsp(...) function get generated for each object in a patch, or for the entire patch? </p>
+
+<p>Third, do you happen to know where I would find the (I assume .c or .cpp) files that include the dsp(...) function? All I've been able to find are the .axo/.axp files that (if I understand correctly) are used to generate the files I'm looking for now.</p>
+
+<p>And last, do you know where I would find the xpatch.cpp file and the file(s) that have the ThreadDSP code? I've found an xpatch.h file under the axoloti-runtime/firmware folder, but this doesn't look to be the file you're talking about. And I haven't had any luck finding ThreadDSP.</p>
+
+<p>Thanks again for the help!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/3</link>
+        <pubDate>Wed, 20 Jun 2018 14:13:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4701-3</guid>
+        <source url="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701.rss">K-/S-Rate, CPU Speed, C Code, and Multithreading</source>
+      </item>
+      <item>
+        <title>K-/S-Rate, CPU Speed, C Code, and Multithreading</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p>I'd preface this by saying that I'm fairly new to the axoloti firmware, so if others have better information/insights please correct me.</p>
+
+<blockquote><p>I'm wondering how both the k-rate and s-rate Hz numbers relate to both the <br>number of lines in a code block and the processor's clock speed.</p></blockquote>
+
+<p>They don't...</p>
+
+<blockquote><p>So far, I've picked up that k-rate code is 3 kHz s-rate is 48 kHz</p></blockquote>
+
+<p>Right. The codec/sai is setup to playback 48000 samples per second.<br>Each sample is a 32 bit fixed point (q5.27) quantity.<br>There are 2 channels of audio.</p>
+
+<p>Some signals in a synth are relatively slow moving, E.g envelopes.<br>We can save memory and cpu by generating them at a slower rate.<br>In axoloti the factor is x16, so the k-rate signals have 3000 values/second.</p>
+
+<blockquote><p>and the CPU's clock speed is 168 MHz.</p></blockquote>
+
+<p>Right. The CPU is actually rated for 180 MHz, but ST in their wisdom made it impossible to run the USB with this CPU speed.</p>
+
+<blockquote><p>For the k-/s-rate numbers, does this mean that the Axoloti board will execute <br>the entire code.krate block for an object 3,000 times a second, and the entire <br>code.srate block 48,000 times a second?</p></blockquote>
+
+<p>Yes. If you write an some object code in the GUI and look at what gets generated you will see the following:</p>
+
+<p></p><pre><code class="lang-auto">void dsp(blah...) {
+  your_krate_code();
+  for(i = 0 i &lt; BUFSIZE; i ++) {
+    your_srate_code();
+  }
+}</code></pre>
+
+<p>ie - your krate code gets called once and the srate code gets called in a 16x loop.<br>Some of the objects don't bother with the srate code. They just do everything (including the srate work) in the krate code specification.</p>
+
+<p>16 x 1/48000 = 1/3 ms of signal. So: an object generating an srate signal must be called 3000 times/second.</p>
+
+<blockquote><p>As for the CPU's clock speed, since it's much higher than the k-/s-rate speeds <br>I'm assuming that there is some multithreading going on</p></blockquote>
+
+<p>Yes, in so far as the firmware uses chibios and chibios supports multiple concurrent tasks/threads.</p>
+
+<blockquote><p>such that the processor is executing multiple k-/s-rate things at the same <br>time. Is this right?</p></blockquote>
+
+<p>No. One thread is responsible for generating the audio buffers and that is "ThreadDSP".</p>
+
+<p>Basically it works as follows:</p>
+
+<p>The codec/SAI needs to be fed at a rate of 48000 samples/second (x 2 channels) to generate clean audio.</p>
+
+<p>The SAI is fed by DMA from memory. The DMA is arranged in double buffering mode. ie: when the SAI is reading from one buffer the CPU can be busy filling in the other buffer. When the SAI is done with one buffer the DMA will be switched to the other buffer, so the CPU has to be done with filling it in before this happens.</p>
+
+<p>Every time the DMA switches buffers an interrupt gets generated. This interrupt wakes up ThreadDSP and tells it to get busy computing the sound and filling in the output buffer the SAI is not currently reading from.</p>
+
+<p>To do this the code calls the patch you have created. See: PatchProcess in xpatch.cpp</p>
+
+<p>That code hooks up all the objects you have created and ultimately computes the 16 samples (x2 channels) needed for the audio output.</p>
+
+<p>When you return from your patch the ThreadDSP code will time how long it took and see how much you beat the deadline by. This gives you the CPU load number.</p>
+
+<p>So- the bigger the patch, the more complex the objects, the greater the number of voices, the longer it will take the CPU to compute the sound. Every 1/3 ms the ThreadDSP code will wake up and will go full speed trying to get the buffer filled before the SAI needs it.</p>
+
+<p>Hope this helps.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/2</link>
+        <pubDate>Wed, 20 Jun 2018 06:04:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4701-2</guid>
+        <source url="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701.rss">K-/S-Rate, CPU Speed, C Code, and Multithreading</source>
+      </item>
+      <item>
+        <title>K-/S-Rate, CPU Speed, C Code, and Multithreading</title>
+        <dc:creator><![CDATA[@thomas11]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thomas11">@thomas11</a> wrote:</p>
+          <blockquote>
+              <p>Hi there. I'm very new to both Axoloti and coding (hoping to learn on the Axoloti), so sorry if what I ask is either obvious or doesn't make sense. </p>
+
+<p>Anyways, I've been perusing the forums here, and thought of a question I couldn't find the answer to. In a nutshell, I'm wondering how both the k-rate and s-rate Hz numbers relate to both the number of lines in a code block and the processor's clock speed.</p>
+
+<p>So far, I've picked up that k-rate code is 3 kHz, s-rate is 48 kHz, and the CPU's clock speed is 168 MHz. For the k-/s-rate numbers, does this mean that the Axoloti board will execute the entire code.krate block for an object 3,000 times a second, and the entire code.srate block 48,000 times a second? Or will it only execute 1 line of code in these blocks 3,000/48,000 times a second? Or will it do something else? Basically, what is it that is being done at the 3/48 kHz rates?</p>
+
+<p>As for the CPU's clock speed, since it's much higher than the k-/s-rate speeds I'm assuming that there is some multithreading going on, such that the processor is executing multiple k-/s-rate things at the same time. Is this right? And if so, how does the multithreading work at the broad brush strokes level? Is it that each object has its own thread? Or is it ad hoc what gets its own thread? Or is there something I as a developer will need to do to control this aspect of things? Or is it something else?</p>
+
+<p>Any thoughts you could spare for me would be a huge help. Thanks!</p>
+
+<p>P.S. Feel free to move this to another category if 'Developer' isn't the right one.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701/1</link>
+        <pubDate>Tue, 19 Jun 2018 21:06:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4701-1</guid>
+        <source url="http://community.axoloti.com/t/k-s-rate-cpu-speed-c-code-and-multithreading/4701.rss">K-/S-Rate, CPU Speed, C Code, and Multithreading</source>
+      </item>
+  </channel>
+</rss>

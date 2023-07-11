@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Migrating to graph-based execution order</title>
+    <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055</link>
+    <description>I&#39;ve been thinking about this a little more. To be honest, I don&#39;t like how it&#39;s done right now, as it is really unintuitive. 
+
+* Depending on the patch, you can get all kinds of weird phasing issues (including the one with my reverb, that initially started this thread). The biggest problem to me is that shifting objects around without changing any of the cables can actually drastically alter the sound (which you just wouldn&#39;t expect to happen!). You might find your patch doesn&#39;t work anymore after &quot;cleaning&quot; it up.
+* Everytime a patch cable goes up/left it will create a 16-sample/1-block delay (`z^-16`). You can get quite a significant overall delay with this and there is currently no indication that this happens. Not only does it create 0,33ms delay per cable, it also eats up significant amounts of memory for larger patches (64 bytes per cable).
+
+**One possible short-term solution** could be to allow users to see and manually specify the processing order.  The GUI could display a number indicating the order of execution in the top right corner of each object. With a right-click, the user could move the object up/down in the processing tree. All of this could be hidden by default and enabled upon request (e.g. by adding a menu option &quot;show processing order&quot; in the titel menu of the window that the user can tick to enable this).
+
+**In the long term**, I think it would be best to apply some graph theory to this. What we really want is to do a [topological sort](https://en.wikipedia.org/wiki/Topological_sorting) of the graph. This, however requires the graph to be a [directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) which is almost certainly not applying here. IMO it would be best to identify the bottlenecks in the graph (portions of the directed graph that have the least parallel edges) and insert the `z^-16` delay there but I&#39;m not entirely sure what algorithm to choose for this. In Native Instruments Reaktor, unit delays are added whenever the user adds a connection that creates feedback. The delay is indicated by a little z symbol next to the input of the node where the feedback path ends.
+&lt;img src=&quot;/uploads/default/original/2X/4/46c5ed8192b7b60957a66366694a076c3dd111dc.png&quot; width=&quot;128&quot; height=&quot;106&quot;&gt; 
+This could be translated to the axoloti patcher as well, but it would require to somehow convert existing patches and that leaves us with the same problem of not knowing where to add the delays.
+
+The JUCE class `juce::AudioProcessorGraph` does the same thing. It builds up a ordered graph and inserts unit delays on the feedback edges. It also does latency compensation, which would be super neat as well. It defines rendering operations (clear buffer, copy buffer, delay buffer, execute node, etc.) and then iterates over the nodes in the graph and builds up a list of rendering operations that define which node to execute when, which buffers can be used multiple times and where to insert delays to compensate for processing latency of the nodes or to allow feedback. The order of processing is updated [with this function](https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L1337), the details about the sorting are [in this function](https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L393).
+
+I know, this is a lot to ask, and those are some pretty substantial changes, but the overall positive effect could be very significant.</description>
+    
+    <lastBuildDate>Tue, 14 Mar 2017 22:24:22 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>I know from a technical standpoint this topic is way out of my depth, however one of things I have found when adding and or coding objects for a patch, that you end up with a mix of objects in your patch where some that have a large scale influence on a patch, and some only a small scale influence. Yet be it all are needed. Would it not be easier to have something that is a bit like a subpatch setup in the patching screen that creates blocks around objects, all the objects in the block are executed in the current way but only within the block, then when it gets to the last object of the block, it goes to the next block that exists in the current order setup. Kind of like a patch of say 5 subpatches, each subpatch is subject to the current standard processing order, but within the subpatch, it has its own order. But instead without subpatches, but creating blocks to contain the objects. This way the blocks can contain as many or as few objects as you want. You may even want blocks in blocks etc.. I guess the idea is that there is something nice about the current setup, but can get a bit messy. !<img src="//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/20</link>
+        <pubDate>Tue, 14 Mar 2017 22:24:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-20</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>Thinking about this a little more... <br>If I understand johannes correctly, that new connection is supposed to serve two tasks: A) transmitting references B) Allowing to overwrite execution orders. I wonder if it is clever to use a single connection type for both, as B) imposes restrictions and odd problems for A) that can only be solved by adding additional rules (which is not ideal). Sometimes A) and B) can even be conflicting.</p>
+
+<p>Lets consider a reader/writer relation between objects (like the delayline read/write objects - basically it's a supply/use relation that applies to all object references, like tables, memory, etc.). The reader reads from a writer that's patched on the same net via object instance reference connections. Lets imagine the bool connection in the following screenshots is the proposed object instance reference connection.</p>
+
+<p>In this first patch, the the transmission of the reference from the writer to the reader is simple.<br><img src="//community.axoloti.com/uploads/default/original/2X/1/1f55f77c05cf93c4d826378901bfcd3cee51eb0f.png" width="189" height="85"><br>In the second patch, we have two readers reading from the same writer. As they are parallel, it is undefined which one is executed first. But they are always executed after the writer.<br><img src="//community.axoloti.com/uploads/default/original/2X/5/57e88bb9268bbc0c42d55275a92d6f125e8d24ff.png" width="208" height="176"><br>If it is important that one reader is executed before the other, we could do this: There is just one writer on the net, so both readers know where to read from.<br><img src="//community.axoloti.com/uploads/default/original/2X/3/3a884b0e1aaedcb4412c970c4c95806b01239c7a.png" width="264" height="88"></p>
+
+<p>Lets consider this patch: B) requires each object to have a object instance reference input and an object instance reference output. However, that means we can have two writers on the same net like on this patch here:<br><img src="//community.axoloti.com/uploads/default/original/2X/c/c017df38e9f9b69203073a07763a1070e1f1f6f8.png" width="256" height="81"> <br>How does the reader know which writer to read from? The problem can be resolved by adding a new rule: A reader reads from the writer patched upstream. (but I think additional rules are always uncool and make things more complicated)</p>
+
+<p>Now we come to the next weird case: Here, each reader will find two writers upstream. We will have modify the rule so that each reader reads from the <strong>first</strong> writer upstream. Now both readers will read from writer2.<br><img src="//community.axoloti.com/uploads/default/original/2X/0/0151feb6d3f370b5ee68b26063d26877513e7de0.png" width="344" height="90"><br>If we want to have reader 1 reading from writer 1 and reader 2 reading from writer 2, we have to choose this topology:<br><img src="//community.axoloti.com/uploads/default/original/2X/7/76a365b722bc6f3ca1e54630f4a1a9e8b9c357ef.png" width="341" height="154"><br>Now it is undefined, if reader1 or reader2 is executed first. Reader 1 could even be executed before writer2. As we can see from the last two examples, it is not possible to have all execution orders and still correctly transmit all object references. This is a case, where A) and B) conflict each other.</p>
+
+<p>Also: What would you do, if you want to have the reader executed before its corresponding writer? </p>
+
+<p>I think this can only be solved by separating the reference transmission (A) and the ordering (B) into two different wires. Why would they be on the same wire after all? A) and B) are two very different things. Here's my proposal:</p>
+
+<h4>Order wire</h4>
+
+<p>Each object has an order input and an order output in its title bar. Order wires are patched bewteen those terminals to define the execution order. Upstream objects are executed first. Order wires can be split (one output can be routed to two inputs) and merged (two outputs can be patched to one single input). That way, all possible execution orders can be realized.</p>
+
+<h4>resource wire</h4>
+
+<p>A resource wire is a wire like any other (bool, srate frac, krate frac, ...). Objects can have outputs if they define a resource (e.g. a table or a memory block). Objects can have inputs to make use of a resource. Now it is possible to have a single object define or use mutiple resources.<br>Resource wires (or reference wires if that sounds better) can be split (one output to two inputs) but not merged. Just like all other wires we have right now.<br>Resource wires don't have a datatype. Internally, a resource wire could simply be the string of the C++ instance defining the resource, just like we have now for tables and delaylines.</p>
+
+<h4>hierarchy</h4>
+
+<p>The hierarchy that defines the execution order would be like this (lower index = higher priority). </p>
+
+<ol>
+<li>order wire</li>
+<li>conventional wire (bool int, frac, audio, resource, etc.)</li>
+<li>maybe midi wires?</li>
+</ol>
+
+<p>If 1 is not present, 2 defines the order. And so on. <br>The final execution order is defined by this rule: An object is executed once all upstream objects are already executed.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/19</link>
+        <pubDate>Tue, 14 Mar 2017 20:38:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-19</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Execution order number on the title bar: I think it is hard to define the renumbering behavior when coping one patch into another, and hard to keep an overview. As a read-only indicator certainly useful when implementing and debugging graph-based sorting, could be kept as a diagnostic option.</p>
+
+<p>Max/pd has distinctly different semantics for audio wires and event message-wires.<br>The trigger approach in Max/pd for event message-wires does not adapt well to simple lfo's/envelopes. Bang~'ing messages can easily lead to unintentional event doubling.<br>Max/pd audio wiring is strict graph-based. I vaguely recall an example in Pd how to force an alternate execution order, I think it was for a thru-zero flanger, using dummy audio wires to/from a subpatch, with a delayread in the subpatch, not extremely elegant.</p>
+
+<p>In terms of cable mess: hiding certain cable type(s) is already implemented, could hide the "object reference" cables, turn on the "show execution order index", and then the only thing missing compared to a pure "execution order index label"-based approach is a way to manipulate execution order that does not involve wires. </p>
+
+<aside class="quote" data-post="14" data-topic="3055"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/90db22/40.png" class="avatar">TheSlowGrowth:</div>
+<blockquote><p>Nevertheless, there is a need to explain to users why their patches suddenly contain those magical, new connections that apparently don't do anything but are needed for a reason that most users won't be able to understand immediately. I guess that is un-avoidable.</p></blockquote></aside>
+
+<p>Sure, such a change needs to align with a major release, like "2.0".</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/18</link>
+        <pubDate>Tue, 14 Mar 2017 20:33:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-18</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>I think I understand what the idea is, and yes the idea is these execution order wires are not really need most of the time.  </p>
+
+<p>But given there is little 'cable management' in Axoloti it's already an untidy mess with complex patches, adding more is not going to help this <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>Also as I said execution order wiring is a mixed metaphor, it's not a data wire - and besides things like trigger/order objects and the numeric numbering I think are more obvious/explicit. <br>(They also have an established presence in some other environments)</p>
+
+<p>I've no issue with object ref wiring e.g. for tables , also midi wiring make sense , as they are linking data together<br>( I think things like tables should be presented as conventional inlets/outlets , so it's possible for example to have an object with 2 table outlets)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/17</link>
+        <pubDate>Tue, 14 Mar 2017 18:53:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-17</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="15" data-topic="3055"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>it'll make the UI overly fussy.</p></blockquote></aside>
+
+<p>If I undestand johannes correctly, that won't happen. The new connection will only be needed for two use cases:</p>
+
+<ol>
+<li>To "transport" references from one object to another, e.g. a delayline read object needs a reference to a delayline write object - this reference is right now defined by entering the name of the write object into the read object. In the future, the "object instance reference connection" could define this relation, where the reader reads from the writer it is patched to via its "object instance reference" terminals (the details of that should be</li>
+<li>To overwrite the execution order that would otherwise be defined by the audio and modulation connections in the processing graph.</li>
+</ol>
+
+<p>With this in mind, most patches won't need any "object instance reference connections" at all and would look exactly like they look right now.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/16</link>
+        <pubDate>Tue, 14 Mar 2017 18:28:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-16</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Whilst it's 'neat' to represent the ordering as connections ( possibly ok internally) , <br>it'll make the UI overly fussy.  also it's mixing metaphors , which tends to lead to confusion. </p>
+
+<p>If they are used, I think they should be on a different layer, a different view. But this breaks your screenshot ideal. </p>
+
+<p>schemes used by others : <br>- numbers on title bar ( toggled on/off) - Reaktor<br>- ordering objects (trigger) - max</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/15</link>
+        <pubDate>Tue, 14 Mar 2017 09:26:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-15</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>Those "object reference connections" are IMO the best way to specify extection order and deal with references to delays, etc. The currently used text entry fields for object references would of course have to be removed. That is what reaktor does for its arrays and it is a tidy concept. More importantly, users will stumble across those connections and start wondering what they do. Effectively that will introduce them to the whole execution order topic at a point where they are ready to understand it. It saves you from over-complicating the first steps with axoloti (you don't even have to mention it). They will eventually stumble unpon the topic when they need it.<br></p>
+
+<aside class="quote" data-post="13" data-topic="3055"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>adding "object instance reference connections" to every object in position order when opening (but possibly redundant connections could be removed)</p></blockquote></aside>
+
+<p>Yes, I think that is pretty much the only way to convert patches to the new system without breaking them. IMO is very important to remove redundant connections and keep them only where they actually make a difference. Otherwise, patches will be extremely messy after the conversion.</p>
+
+<p>Nevertheless, there is a need to explain to users why their patches suddenly contain those magical, new connections that apparently don't do anything but are needed for a reason that most users won't be able to understand immediately. I guess that is un-avoidable. I guess what I'm trying to say is, it is important to have a well structured tutorial at hand. I would even add a little popup message to the patcher that says: Hey, your new version of the patcher intruduces a new type of object connection. Click here to open an example patch. Or: Click here for more information (link leading to a forum post, etc.)<br>This mesage would only appear to users upgrading their patcher. Fresh installs should not show this, as to not over complicate things at the start.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/14</link>
+        <pubDate>Tue, 14 Mar 2017 06:30:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-14</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>I'd like to move towards graph-ordering, my key concerns are:</p>
+
+<ul>
+<li>Being able to migrate patches from position-based execution order to graph-based execution order without a patch-setting switch (that 'd add a parallel universe but not migrate, and is a potential source of user confusion), and without changing the behavior of old patches.</li>
+<li>Being able to explicitly specify execution order. Object benchmarking via <code>patch/cyclecounter</code> is one example where this is useful.</li>
+</ul>
+
+<p>I think it can be addressed by adding a "object instance reference" inlet and outlet on every object (in the title bar of the object). A connection of this type from one object to another would express fixing their execution order. <br>For the algorithm sorting the object order, I think we need to introduce "net class priorities":</p>
+
+<ul>
+<li>highest sorting priority for the "object instance reference connections"</li>
+<li>high sorting priority for the audio connections, k-rate connections</li>
+<li>(perhaps in the future, low sorting priority for midi connections)</li>
+</ul>
+
+<p>A "brute" way to migrate old patches is by adding "object instance reference connections" to every object in position order when opening (but possibly redundant connections could be removed).</p>
+
+<p>Thoughts?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/13</link>
+        <pubDate>Mon, 13 Mar 2017 21:14:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-13</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@lis0r]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lis0r">@lis0r</a> wrote:</p>
+          <blockquote>
+              <p>I'm talking about the experimental branch, with my graph-ordering patch.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/12</link>
+        <pubDate>Thu, 02 Mar 2017 13:42:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-12</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="21" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>The system already works out which objects need feedback,</p></blockquote></aside>
+
+<p>You are referring to the current system? Yes, it does that, but it fails for the xfade axample at the beginning of this thread and it inserts delays where they aren't neccessary. <br><img src="//community.axoloti.com/uploads/default/original/2X/7/7589fe70ef1c48ffdd87a6a2bc0835d62fb06231.png" width="186" height="148">  <img src="//community.axoloti.com/uploads/default/original/2X/3/335265d6321f0596d88c0896cc0622d1ba579ecb.png" width="232" height="83"><br>The left version creates an additional 16 sample delay between the input and the output, even though that's not neccessary. The right version does not.</p>
+
+<p>Delays are only neccessary to split the cyclic processign graph into an acyclic processing graph.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/11</link>
+        <pubDate>Thu, 02 Mar 2017 13:38:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-11</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@lis0r]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lis0r">@lis0r</a> wrote:</p>
+          <blockquote>
+              <p>The current implementation of graph-ordered execution ordering happens PC side. It doesn't latency compensate - pretty difficult to be less resource intensive than not doing something!</p>
+
+<p>The system already works out which objects need feedback, since it stores a 16 (I think) sample buffer between iterations, that gets used as input for the next block.</p>
+
+<p>This means feedback paths are are inherently delayed by 16 samples. I see no way of compensating for that without putting an additional delay on the non-fed back path to synchronise them. That, or redesign the axoloti firmware from the ground up, I guess?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/10</link>
+        <pubDate>Thu, 02 Mar 2017 12:51:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-10</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="19" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>I'd also worry that the memory and latency overheads might surprise the user. It's not like we have the same resources as a PC to throw at this.</p></blockquote></aside>
+
+<p>The actual graph re-organization happens on the PC, not on the axoloti. And a properly organized graph with only a few <code>z^-16</code> delays is actually mroe memory and CPU efficient than the current, unoptimized version. I'm not talking about latency compensation here, that would of course add additional buffers. But only, if objects actually specify a latency, so right now, it would simply create zero overhead. For some stuff, latency compensation is acutally pretty vital.</p>
+
+<aside class="quote" data-post="19" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>it's easy to locate the needs where feedback paths originate, so it should be pretty simple to insert a fixed delay.</p></blockquote></aside>
+
+<p>Do you think so? I'd say that is actually the main problem. Sorting a acyclic gaph of processing nodes is not a problem. The problem is to find out where in the cyclic graph the delays should be inserted in order to turn it into an acyclic graph. When you have feedback somewhere in the graph, that means there is one/more loops. Detecting the loops is easy, when you iterate over the graph and put a mark on already visited nodes. But how do you know where to actually put the delay in? Lets consider this (stupid) patch:</p>
+
+<pre><code>Audio In |----------&gt;| Compressor   |--------------+--------&gt;| Audio out
+                 +--&gt;| Sidechain in |              |
+                 |                                 |
+                 +---| EQ |&lt;----| Echo Delay |&lt;----+</code></pre>
+
+<p>Where would you put the <code>z^-16</code> delay? I would say: preserve the direct audio path and put the delay in the feedback loop. But to an algorithm that patch is just a cyclic graph of 5 nodes connected by 5 edges and none of them has any property to it that makes the position of the <code>z^-16</code> delay obvious. The delay could be added right on the compressor output - that would split the loop as well, but it would delay the audio output uneccesarily and hence it is not desireable from the users view.</p>
+
+<p>My idea would be to identify loops and take the graphical direction and the length of the wires in the patcher as a guide to where to place the delay. That is a good chance of actually inserting it into the "true" feedback path.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/9</link>
+        <pubDate>Thu, 02 Mar 2017 12:42:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-9</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@lis0r]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lis0r">@lis0r</a> wrote:</p>
+          <blockquote>
+              <p>I personally don't find those JUCE functions at all readable - hey mostly seem to be driver functions, palming off the real guts of the algorithm onto other methods and constructors. Then again, I think C++ is an abomination that should be abandoned in a ditch, doused in diesel, and set on fire, so I would say that!</p>
+
+<p>It also seems over complex - axoloti buffers are a fixed size, and it's easy to locate the needs where feedback paths originate, so it should be pretty simple to insert a fixed delay. I just can't quite get my head round which part of the path the have to be placed on to make it work. Intuitively, it feels like the non-feedback path should get the delay, in order to sync up with the feedback, but I have a head full of DeviceTree details right now, and can't flush the caches to think about it properly.</p>
+
+<p>I'd also worry that the memory and latency overheads might surprise the user. It's not like we have the same resources as a PC to throw at this.</p>
+
+<p>Lisa</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/8</link>
+        <pubDate>Thu, 02 Mar 2017 12:22:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-8</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="17" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>also Id really love to hear any ideas you have for taking this forward.</p></blockquote></aside>
+
+<p>I know that this was addressed towards <a class="mention" href="/users/lis0r">@lis0r</a>, but I would really suggest taking a look at the JUCE class from my previous post. It is very readable and does exactly what we want (+latency compensation as well! which is super handy to have), only in C++. JUCE is available under the GPL, so converting the code to Java straight away should actually be possible, even from a licensing standpoint.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/7</link>
+        <pubDate>Thu, 02 Mar 2017 11:49:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-7</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="16" data-topic="2985" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>It should be noted there's a flaw in the version currently merged - I discussed the fix in my fork ( 8e4a27d , 24 Jan) with Johannes, but I don't think it made it in.</p></blockquote></aside>
+
+<p>can you PM me, I did put in the changes you made in your last PR (i.e. the changes you made to Patch.java that were UI unrelated)... you can check if its correct, its on the experimental branch, and its now in PatchModel.java)<br>also Id really love to hear any ideas you have for taking this forward.<br>thanks again<br>Mark</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/6</link>
+        <pubDate>Thu, 02 Mar 2017 11:38:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-6</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>Ah, I see. Good to know this is going to happen someday. I fixed my patches now by shifting the objects around. It works now, but it looks really messy, so any future improvements are very welcome. I considered actually making my own branch and trying to implement the graph sorting, etc. but while I'm fluent with C/C++, I'm not very experienced with Java so I'm probably the wrong person to tackle this.</p>
+
+<p>Just to be clear: I'm really enjoying the axoloti platform, so any criticism is meant positively. I very much appreciate the time that went into making axoloti what it is and I'm hoping to be able to contribute something aswell.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/5</link>
+        <pubDate>Thu, 02 Mar 2017 11:34:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-5</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/lis0r">@lis0r</a> has already kindly produced an implementation which we have merged into a branch. <br>you can also see some comments on the PR <a href="https://github.com/axoloti/axoloti/pull/380">here</a></p>
+
+<p>current thoughts are to use a graph, and then allow the user to 'override' execution order specifically.<br>(this will also allow the user to explicitly see execution order too, which helps alot) </p>
+
+<p>there are quite a few 'edge cases' , and things that need to be considered.. e<br>.g. currently things like tables often 'imply' an order of execution requirement, but these are not coded as connections currently.<br>(Im also familar with Reaktor, and even that has issues, e.g. the 'mess' around initialisation) </p>
+
+<p>anyway, we cannot rush into this.. the current model has its flaws, but most users know how to use it and you can patch accordingly (I have for, nearly 2 years now <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) ... so there we can replace this with a 'half backed' solution, or one that means users have to rewrite existing patches. it has to be done properly.</p>
+
+<p>so I dont really think its how to do it, or even if/when, so much as as 'development time', johannes is already busy on things for the next release, and so I am -  so this has to join the queue, of course, if other developers what to contribute that will speed things along, which is why pull requests are so welcome.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/4</link>
+        <pubDate>Thu, 02 Mar 2017 10:41:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-4</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>I'm skimming the web for what might be useful for this. I found <a href="http://jgrapht.org/" rel="nofollow">JGraphT, a Java-Graph library</a>. I don't know if the patcher is currently using this, but it might offer some good tools for sorting, iterating and converting the graph.<br>I think the hardest part is identifying which edges in the graph represent a feedback path == where to insert the <code>z^-16</code> delays. Here, the x,y position of the objects could indeed be a good indication of where the user thinks the feedback is.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/3</link>
+        <pubDate>Thu, 02 Mar 2017 10:02:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-3</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Agreed <br>and it's going to change , as you say it's not simple, and we also need to ensure old patches are unaffected - so it cannot be rushed in.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/2</link>
+        <pubDate>Thu, 02 Mar 2017 09:50:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-2</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+      <item>
+        <title>Migrating to graph-based execution order</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>I've been thinking about this a little more. To be honest, I don't like how it's done right now, as it is really unintuitive. </p>
+
+<ul>
+<li>Depending on the patch, you can get all kinds of weird phasing issues (including the one with my reverb, that initially started this thread). The biggest problem to me is that shifting objects around without changing any of the cables can actually drastically alter the sound (which you just wouldn't expect to happen!). You might find your patch doesn't work anymore after "cleaning" it up.</li>
+<li>Everytime a patch cable goes up/left it will create a 16-sample/1-block delay (<code>z^-16</code>). You can get quite a significant overall delay with this and there is currently no indication that this happens. Not only does it create 0,33ms delay per cable, it also eats up significant amounts of memory for larger patches (64 bytes per cable).</li>
+</ul>
+
+<p><strong>One possible short-term solution</strong> could be to allow users to see and manually specify the processing order.  The GUI could display a number indicating the order of execution in the top right corner of each object. With a right-click, the user could move the object up/down in the processing tree. All of this could be hidden by default and enabled upon request (e.g. by adding a menu option "show processing order" in the titel menu of the window that the user can tick to enable this).</p>
+
+<p><strong>In the long term</strong>, I think it would be best to apply some graph theory to this. What we really want is to do a <a href="https://en.wikipedia.org/wiki/Topological_sorting" rel="nofollow">topological sort</a> of the graph. This, however requires the graph to be a <a href="https://en.wikipedia.org/wiki/Directed_acyclic_graph" rel="nofollow">directed acyclic graph</a> which is almost certainly not applying here. IMO it would be best to identify the bottlenecks in the graph (portions of the directed graph that have the least parallel edges) and insert the <code>z^-16</code> delay there but I'm not entirely sure what algorithm to choose for this. In Native Instruments Reaktor, unit delays are added whenever the user adds a connection that creates feedback. The delay is indicated by a little z symbol next to the input of the node where the feedback path ends.<br><img src="//community.axoloti.com/uploads/default/original/2X/4/46c5ed8192b7b60957a66366694a076c3dd111dc.png" width="128" height="106"> <br>This could be translated to the axoloti patcher as well, but it would require to somehow convert existing patches and that leaves us with the same problem of not knowing where to add the delays.</p>
+
+<p>The JUCE class <code>juce::AudioProcessorGraph</code> does the same thing. It builds up a ordered graph and inserts unit delays on the feedback edges. It also does latency compensation, which would be super neat as well. It defines rendering operations (clear buffer, copy buffer, delay buffer, execute node, etc.) and then iterates over the nodes in the graph and builds up a list of rendering operations that define which node to execute when, which buffers can be used multiple times and where to insert delays to compensate for processing latency of the nodes or to allow feedback. The order of processing is updated <a href="https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L1337" rel="nofollow">with this function</a>, the details about the sorting are <a href="https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L393" rel="nofollow">in this function</a>.</p>
+
+<p>I know, this is a lot to ask, and those are some pretty substantial changes, but the overall positive effect could be very significant.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055/1</link>
+        <pubDate>Thu, 02 Mar 2017 09:46:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3055-1</guid>
+        <source url="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss">Migrating to graph-based execution order</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,826 @@
+<patch-1.0 appVersion="1.0.11">
+   <comment type="patch/comment" x="518" y="14" text="How to create a big wavetable?"/>
+   <comment type="patch/comment" x="518" y="28" text="1. to start: set &quot;wavesReady&quot; and output-volume to 0 and set the filename for the wavetable combinor"/>
+   <comment type="patch/comment" x="518" y="42" text="Also set the waveform-size at the waveformGenerator and calculate the needed table-size for the amount of waveforms you want to make. (waveformLoader module will expect 127 waveforms)"/>
+   <comment type="patch/comment" x="518" y="56" text="2. set amount of waveforms-per-table at &quot;waveforms&apos; on the &quot;waveformGenerator&quot; module. This will set how many waveforms will be generated at a time and added to the tablecombinor"/>
+   <comment type="patch/comment" x="518" y="70" text="3. use either one of the 3 generators to generate a set of waveforms, the &quot;waveformGenerator&quot; will automatically create these at start-up, has a nice sound and would best be used at the first set of waveforms in the tablecombinor"/>
+   <comment type="patch/comment" x="518" y="84" text="the other two can overwrite the waveforms in the waveformGenerator module, by pressing &quot;create&quot;."/>
+   <comment type="patch/comment" x="518" y="98" text="4. when you&apos;ve created a set, press &quot;get&quot; on the tablecombinor. The waveforms will be added behind the last pre-existing waveforms in the table."/>
+   <comment type="patch/comment" x="518" y="112" text="5. repeat step 3 an 4 to create a 127-waveforms wavetable."/>
+   <comment type="patch/comment" x="518" y="126" text="6. hit &quot;save&quot; on the tablecombinor."/>
+   <comment type="patch/comment" x="980" y="154" text="waveform generators"/>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="14" y="168">
+      <params>
+         <frac32.s.map name="pitch" value="-13.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="364" y="182">
+      <params>
+         <int32 name="value" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="420" y="182">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_2" x="490" y="182">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_1" x="560" y="182">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/BW"/>
+         <table attributeName="suffix" table=".tab"/>
+      </attribs>
+   </obj>
+   <obj type="sss/osc/waveformTableCombinor" uuid="d5e86f67-a694-42d6-b796-f06212394f3b" name="waveformTableCombinor_1" x="728" y="182">
+      <params>
+         <bool32.mom name="get" value="0"/>
+         <bool32.mom name="save" value="0"/>
+         <bool32.mom name="load" value="0"/>
+         <int32 name="wavesReady" value="128"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="1048576"/>
+         <objref attributeName="table" obj="waveformGenerator_1"/>
+      </attribs>
+   </obj>
+   <obj type="sss/osc/waveformGenerator" uuid="d5c727e2-d089-48a7-a388-c613fd7eac55" name="waveformGenerator_1" x="910" y="182">
+      <params>
+         <bool32.mom name="save" value="0"/>
+         <bool32.mom name="load" value="0"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="8192"/>
+         <spinner attributeName="harmonics" value="25"/>
+         <spinner attributeName="waveforms" value="32"/>
+         <spinner attributeName="minharm" value="32"/>
+         <spinner attributeName="maxharm" value="36"/>
+         <spinner attributeName="maxLvl" value="32"/>
+      </attribs>
+   </obj>
+   <obj type="sss/osc/waveformGuitar" uuid="a29f18d9-d8a3-4d78-ae87-0d77f9541054" name="waveformGuitar_1" x="1064" y="182">
+      <params>
+         <bool32.mom name="do" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="waveformGenerator_1"/>
+      </attribs>
+   </obj>
+   <obj type="sss/osc/waveformRandom" uuid="fed7cf3f-93f6-4710-be70-2b3348f864fe" name="waveformRandom_1" x="1190" y="182">
+      <params>
+         <bool32.mom name="create" value="0"/>
+         <int32 name="damp" value="4"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="waveformGenerator_1"/>
+         <combo attributeName="size" selection="8192"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_3" x="112" y="196">
+      <params>
+         <int32 name="maximum" value="64"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_4" x="196" y="196">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="28" y="266">
+      <params>
+         <int32 name="maximum" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_7" x="112" y="266">
+      <params>
+         <int32 name="maximum" value="32"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/patt/gateFiller" uuid="02cfaffd-1bf7-4dfa-ab10-3afb7f0e4405" name="gateFiller_2" x="196" y="266">
+      <params>
+         <frac32.u.map name="filled" value="9.0"/>
+         <int32 name="quant1" value="0"/>
+         <frac32.u.map name="fit" value="40.5"/>
+         <frac32.u.map name="start" value="0.0"/>
+         <frac32.u.map name="step" value="17.5"/>
+         <int32 name="quant2" value="0"/>
+         <bool32.tgl name="gate" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_2" x="280" y="266">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_8" x="112" y="364">
+      <params>
+         <int32 name="value" value="32"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_8" x="728" y="392">
+      <params>
+         <int32 name="maximum" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_10" x="812" y="392">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/patt/gateFiller" uuid="02cfaffd-1bf7-4dfa-ab10-3afb7f0e4405" name="gateFiller_3" x="910" y="392">
+      <params>
+         <frac32.u.map name="filled" value="17.0"/>
+         <int32 name="quant1" value="1"/>
+         <frac32.u.map name="fit" value="33.5"/>
+         <frac32.u.map name="start" value="0.0"/>
+         <frac32.u.map name="step" value="40.0"/>
+         <int32 name="quant2" value="1"/>
+         <bool32.tgl name="gate" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_9" x="1022" y="392">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/patt/rndPattF" uuid="51e68084-34f7-4ce7-b29e-6d2fb66a8b71" name="rndPattF_4" x="1106" y="392">
+      <params>
+         <frac32.u.map name="repeat" value="21.5"/>
+         <int32 name="chance" value="35"/>
+         <frac32.u.map name="change" value="26.5"/>
+         <frac32.s.map name="max" value="17.0"/>
+         <frac32.s.map name="min" value="2.0"/>
+         <bool32.mom name="rnd" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="maxSteps" value="16"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_10" x="1232" y="406">
+      <params>
+         <int32 name="value" value="12"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/divremcPend" uuid="ab6a86c3-8d6a-4605-8d3e-0a3688cf119d" name="divremcPend_4" x="1232" y="462">
+      <params>
+         <bool32.tgl name="pendulum" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_9" x="1036" y="476">
+      <params>
+         <int32 name="value" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_7" x="126" y="504">
+      <params>
+         <int32 name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_6" x="336" y="504">
+      <params>
+         <int32 name="value" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_5" x="462" y="504">
+      <params>
+         <int32 name="value" value="5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="700" y="532">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="15.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_5" x="42" y="560">
+      <params>
+         <int32 name="maximum" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_6" x="126" y="560">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/divremcPend" uuid="ab6a86c3-8d6a-4605-8d3e-0a3688cf119d" name="divremcPend_1" x="210" y="560">
+      <params>
+         <bool32.tgl name="pendulum" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/divremcPend" uuid="ab6a86c3-8d6a-4605-8d3e-0a3688cf119d" name="divremcPend_2" x="336" y="560">
+      <params>
+         <bool32.tgl name="pendulum" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/divremcPend" uuid="ab6a86c3-8d6a-4605-8d3e-0a3688cf119d" name="divremcPend_3" x="462" y="560">
+      <params>
+         <bool32.tgl name="pendulum" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="238" y="658">
+      <params>
+         <int32 name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_3" x="350" y="658">
+      <params>
+         <int32 name="value" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_4" x="462" y="658">
+      <params>
+         <int32 name="value" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/harmony/scalebank2" uuid="d8c63c0c-d8a0-4080-9de2-14cd3a840320" name="scalebank2_1" x="560" y="686">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/lfo/qtsLFO4" uuid="2fe43c1b-c900-4e01-8b43-a677748a2e8f" name="qtsLFO4_1" x="14" y="714">
+      <params>
+         <bool32.tgl name="bip1" value="0"/>
+         <int32.hradio name="s1" value="2"/>
+         <int32 name="m1" value="3"/>
+         <int32 name="d1" value="1"/>
+         <int32 name="o1" value="-4"/>
+         <frac32.s.map name="p1" value="0.0"/>
+         <bool32.tgl name="bip2" value="0"/>
+         <int32.hradio name="s2" value="2"/>
+         <int32 name="m2" value="5"/>
+         <int32 name="d2" value="1"/>
+         <int32 name="o2" value="-4"/>
+         <frac32.s.map name="p2" value="0.0"/>
+         <bool32.tgl name="bip3" value="0"/>
+         <int32.hradio name="s3" value="0"/>
+         <int32 name="m3" value="4"/>
+         <int32 name="d3" value="1"/>
+         <int32 name="o3" value="-2"/>
+         <frac32.s.map name="p3" value="0.0"/>
+         <bool32.tgl name="bip4" value="1"/>
+         <int32.hradio name="s4" value="0"/>
+         <int32 name="m4" value="4"/>
+         <int32 name="d4" value="1"/>
+         <int32 name="o4" value="-3"/>
+         <frac32.s.map name="p4" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/patt/rndPattF" uuid="51e68084-34f7-4ce7-b29e-6d2fb66a8b71" name="rndPattF_1" x="112" y="714">
+      <params>
+         <frac32.u.map name="repeat" value="26.0"/>
+         <int32 name="chance" value="0"/>
+         <frac32.u.map name="change" value="0.0"/>
+         <frac32.s.map name="max" value="5.0"/>
+         <frac32.s.map name="min" value="0.0"/>
+         <bool32.mom name="rnd" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="maxSteps" value="16"/>
+      </attribs>
+   </obj>
+   <obj type="sss/patt/rndPattF" uuid="51e68084-34f7-4ce7-b29e-6d2fb66a8b71" name="rndPattF_2" x="224" y="714">
+      <params>
+         <frac32.u.map name="repeat" value="22.5"/>
+         <int32 name="chance" value="16"/>
+         <frac32.u.map name="change" value="23.5"/>
+         <frac32.s.map name="max" value="38.0"/>
+         <frac32.s.map name="min" value="0.0"/>
+         <bool32.mom name="rnd" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="maxSteps" value="16"/>
+      </attribs>
+   </obj>
+   <obj type="sss/patt/rndPattF" uuid="51e68084-34f7-4ce7-b29e-6d2fb66a8b71" name="rndPattF_3" x="336" y="714">
+      <params>
+         <frac32.u.map name="repeat" value="21.5"/>
+         <int32 name="chance" value="35"/>
+         <frac32.u.map name="change" value="26.5"/>
+         <frac32.s.map name="max" value="32.0"/>
+         <frac32.s.map name="min" value="-8.0"/>
+         <bool32.mom name="rnd" value="0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="maxSteps" value="16"/>
+      </attribs>
+   </obj>
+   <obj type="math/+" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_1" x="490" y="714">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/harmony/46Scales" uuid="04beb739-0fb8-4f93-ba92-fc4b22942182" name="46Scales_1" x="560" y="714">
+      <params/>
+      <attribs>
+         <objref attributeName="scale" obj="scalebank2_1"/>
+      </attribs>
+   </obj>
+   <obj type="sss/patt/gateFiller" uuid="02cfaffd-1bf7-4dfa-ab10-3afb7f0e4405" name="gateFiller_1" x="686" y="714">
+      <params>
+         <frac32.u.map name="filled" value="38.0"/>
+         <int32 name="quant1" value="0"/>
+         <frac32.u.map name="fit" value="26.5"/>
+         <frac32.u.map name="start" value="0.0"/>
+         <frac32.u.map name="step" value="23.5"/>
+         <int32 name="quant2" value="0"/>
+         <bool32.tgl name="gate" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/expoGlide" uuid="04c2a34a-7d12-4af8-a61a-1f704f6154a2" name="expoGlide_1" x="770" y="714">
+      <params>
+         <frac32.u.map name="glide" value="0.8999996185302734"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/divScale" uuid="97ff2f3e-6eae-4065-90c7-0e2abde101ca" name="divScale_3" x="910" y="714">
+      <params>
+         <frac32.s.map name="amp" value="24.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/divScale" uuid="97ff2f3e-6eae-4065-90c7-0e2abde101ca" name="divScale_1" x="1008" y="714">
+      <params>
+         <frac32.s.map name="amp" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/osc/tabletrain" uuid="169807c7-62ab-4b00-9883-3d385973af51" name="tabletrain_1" x="1106" y="714">
+      <params>
+         <frac32.s.map name="pitch" value="-29.0"/>
+         <bool32.tgl name="mult" value="0"/>
+         <int32 name="harm" value="1"/>
+         <int32 name="preset" value="30"/>
+         <int32 name="train" value="1"/>
+         <int32 name="stepTrain" value="20"/>
+         <frac32.u.map name="mixWave" value="0.0"/>
+         <frac32.u.map name="stepWave" value="10.699999809265137"/>
+         <frac32.u.map name="startWave" value="42.5"/>
+         <frac32.u.map name="quant" value="20.5"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="waveformTableCombinor_1"/>
+      </attribs>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="1232" y="714">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_2" x="588" y="1190">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_2" x="154" y="1246">
+      <params>
+         <frac32.s.map name="a" value="22.0"/>
+         <frac32.s.map name="d" value="42.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/harmony/46Scales" uuid="04beb739-0fb8-4f93-ba92-fc4b22942182" name="46Scales_2" x="252" y="1246">
+      <params/>
+      <attribs>
+         <objref attributeName="scale" obj="scalebank2_1"/>
+      </attribs>
+   </obj>
+   <obj type="sss/math/divScale" uuid="97ff2f3e-6eae-4065-90c7-0e2abde101ca" name="divScale_4" x="392" y="1246">
+      <params>
+         <frac32.s.map name="amp" value="29.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/divScale" uuid="97ff2f3e-6eae-4065-90c7-0e2abde101ca" name="divScale_2" x="490" y="1246">
+      <params>
+         <frac32.s.map name="amp" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_1" x="588" y="1246">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/glideMultiExt" uuid="b0be6350-d9b7-4407-b6b5-70011ed760de" name="glideMultiExt_1" x="658" y="1246">
+      <params>
+         <frac32.u.map name="glide" value="12.0"/>
+         <int32.hradio name="mode" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/osc/tabletrain" uuid="169807c7-62ab-4b00-9883-3d385973af51" name="tabletrain_2" x="784" y="1246">
+      <params>
+         <frac32.s.map name="pitch" value="-31.0"/>
+         <bool32.tgl name="mult" value="0"/>
+         <int32 name="harm" value="4"/>
+         <int32 name="preset" value="17"/>
+         <int32 name="train" value="4"/>
+         <int32 name="stepTrain" value="18"/>
+         <frac32.u.map name="mixWave" value="0.0"/>
+         <frac32.u.map name="stepWave" value="21.699999809265137"/>
+         <frac32.u.map name="startWave" value="43.5"/>
+         <frac32.u.map name="quant" value="64.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="waveformTableCombinor_1"/>
+      </attribs>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="910" y="1246">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/filter/combinor" uuid="b57f1e8a-da1a-47e4-abef-a68d99638e3f" name="combinor_1" x="1148" y="1246">
+      <params>
+         <frac32.s.map name="pitch1" value="-12.0"/>
+         <frac32.s.map name="pitch2" value="14.0"/>
+         <frac32.s.map name="cut" value="8.0"/>
+         <frac32.s.map name="feed1" value="22.0"/>
+         <frac32.s.map name="feed2" value="-9.0"/>
+         <frac32.s.map name="res1" value="-34.0"/>
+         <frac32.s.map name="res2" value="-43.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="256 (5.33ms)"/>
+      </attribs>
+   </obj>
+   <obj type="sss/delay/shimmerDelay" uuid="564a039f-d1ad-42f4-a640-2fa9743abc84" name="shimmerDelay_1" x="1260" y="1246">
+      <params>
+         <frac32.s.map name="rate" value="-31.0"/>
+         <frac32.u.map name="feed" value="25.0"/>
+         <frac32.u.map name="slope" value="28.5"/>
+         <frac32.u.map name="depth" value="13.5"/>
+         <frac32.u.map name="spread" value="54.0"/>
+         <frac32.s.map name="damp" value="64.0"/>
+         <frac32.s.map name="panRate" value="-30.0"/>
+         <int32 name="panSpread" value="37"/>
+         <frac32.u.map name="wet" value="0.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="131072 (2.73s)"/>
+         <spinner attributeName="stages" value="8"/>
+      </attribs>
+   </obj>
+   <obj type="disp/scope 128 b" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_1" x="1386" y="1246">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="1526" y="1246">
+      <params>
+         <frac32.u.map name="volume" value="27.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="waveformTableCombinor_1" inlet="save"/>
+      </net>
+      <net>
+         <source obj="button_2" outlet="o"/>
+         <dest obj="waveformTableCombinor_1" inlet="load"/>
+      </net>
+      <net>
+         <source obj="indexed_1" outlet="out"/>
+         <dest obj="waveformTableCombinor_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="indexed_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="tabletrain_1" outlet="out"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="tabletrain_1" outlet="div"/>
+         <dest obj="qtsLFO4_1" inlet="d1"/>
+         <dest obj="divScale_3" inlet="D"/>
+         <dest obj="divScale_1" inlet="D"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="qtsLFO4_1" inlet="HS"/>
+         <dest obj="counter_3" inlet="trig"/>
+         <dest obj="counter_5" inlet="trig"/>
+         <dest obj="counter_1" inlet="trig"/>
+         <dest obj="counter_8" inlet="trig"/>
+         <dest obj="gateFiller_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="c"/>
+         <dest obj="counter_7" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_2" outlet="o"/>
+         <dest obj="divremcPend_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="rndPattF_1" inlet="length"/>
+      </net>
+      <net>
+         <source obj="counter_2" outlet="c"/>
+         <dest obj="rndPattF_3" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="rndPattF_2" inlet="length"/>
+      </net>
+      <net>
+         <source obj="i_4" outlet="out"/>
+         <dest obj="rndPattF_3" inlet="length"/>
+         <dest obj="gateFiller_1" inlet="max"/>
+      </net>
+      <net>
+         <source obj="i_5" outlet="out"/>
+         <dest obj="divremcPend_3" inlet="denominator"/>
+      </net>
+      <net>
+         <source obj="divremcPend_3" outlet="rem"/>
+         <dest obj="rndPattF_3" inlet="count"/>
+         <dest obj="gateFiller_1" inlet="count"/>
+      </net>
+      <net>
+         <source obj="i_6" outlet="out"/>
+         <dest obj="divremcPend_2" inlet="denominator"/>
+      </net>
+      <net>
+         <source obj="i_7" outlet="out"/>
+         <dest obj="divremcPend_1" inlet="denominator"/>
+      </net>
+      <net>
+         <source obj="divremcPend_1" outlet="rem"/>
+         <dest obj="rndPattF_1" inlet="count"/>
+      </net>
+      <net>
+         <source obj="divremcPend_2" outlet="rem"/>
+         <dest obj="rndPattF_2" inlet="count"/>
+      </net>
+      <net>
+         <source obj="46Scales_1" outlet="note"/>
+         <dest obj="expoGlide_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="rndPattF_1" outlet="v"/>
+         <dest obj="latch_1" inlet="i"/>
+         <dest obj="gateFiller_2" inlet="filled"/>
+         <dest obj="gateFiller_3" inlet="filled"/>
+         <dest obj="gateFiller_1" inlet="filled"/>
+         <dest obj="tabletrain_1" inlet="harm"/>
+         <dest obj="tabletrain_1" inlet="train"/>
+         <dest obj="tabletrain_1" inlet="stepTrain"/>
+      </net>
+      <net>
+         <source obj="rndPattF_2" outlet="v"/>
+         <dest obj="latch_2" inlet="i"/>
+         <dest obj="tabletrain_1" inlet="stepWave"/>
+         <dest obj="tabletrain_1" inlet="startWave"/>
+      </net>
+      <net>
+         <source obj="counter_3" outlet="c"/>
+         <dest obj="counter_4" inlet="trig"/>
+         <dest obj="counter_6" inlet="r"/>
+      </net>
+      <net>
+         <source obj="counter_4" outlet="o"/>
+         <dest obj="divremcPend_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="counter_5" outlet="c"/>
+         <dest obj="counter_6" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_6" outlet="o"/>
+         <dest obj="divremcPend_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="counter_4" outlet="c"/>
+         <dest obj="rndPattF_2" inlet="rnd"/>
+         <dest obj="counter_1" inlet="r"/>
+         <dest obj="counter_5" inlet="r"/>
+         <dest obj="counter_8" inlet="r"/>
+      </net>
+      <net>
+         <source obj="counter_6" outlet="c"/>
+         <dest obj="rndPattF_1" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="gateFiller_1" outlet="v"/>
+         <dest obj="expoGlide_1" inlet="glideOFF"/>
+      </net>
+      <net>
+         <source obj="expoGlide_1" outlet="out"/>
+         <dest obj="tabletrain_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="divScale_1" outlet="out"/>
+         <dest obj="tabletrain_1" inlet="mixWave"/>
+      </net>
+      <net>
+         <source obj="ad_1" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+         <dest obj="divScale_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="gateFiller_2" outlet="v"/>
+         <dest obj="counter_2" inlet="trig"/>
+         <dest obj="ad_1" inlet="trig"/>
+         <dest obj="gateFiller_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_7" outlet="o"/>
+         <dest obj="gateFiller_2" inlet="count"/>
+      </net>
+      <net>
+         <source obj="i_8" outlet="out"/>
+         <dest obj="gateFiller_2" inlet="max"/>
+      </net>
+      <net>
+         <source obj="counter_7" outlet="c"/>
+         <dest obj="counter_2" inlet="r"/>
+      </net>
+      <net>
+         <source obj="shimmerDelay_1" outlet="outL"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="shimmerDelay_1" outlet="outR"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="combinor_1" inlet="in1"/>
+         <dest obj="combinor_1" inlet="in4"/>
+      </net>
+      <net>
+         <source obj="tabletrain_2" outlet="out"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="46Scales_2" outlet="note"/>
+         <dest obj="glideMultiExt_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="combinor_1" inlet="in2"/>
+         <dest obj="combinor_1" inlet="in3"/>
+      </net>
+      <net>
+         <source obj="ad_2" outlet="env"/>
+         <dest obj="vca_2" inlet="v"/>
+         <dest obj="divScale_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="gateFiller_3" outlet="v"/>
+         <dest obj="ad_2" inlet="trig"/>
+         <dest obj="counter_9" inlet="trig"/>
+         <dest obj="latch_1" inlet="trig"/>
+         <dest obj="latch_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_9" outlet="o"/>
+         <dest obj="rndPattF_4" inlet="count"/>
+      </net>
+      <net>
+         <source obj="i_9" outlet="out"/>
+         <dest obj="rndPattF_4" inlet="length"/>
+         <dest obj="gateFiller_3" inlet="max"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="46Scales_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="rndPattF_3" outlet="v"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="rndPattF_4" outlet="v"/>
+         <dest obj="46Scales_2" inlet="pitch"/>
+         <dest obj="divremcPend_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="tabletrain_2" outlet="div"/>
+         <dest obj="qtsLFO4_1" inlet="d2"/>
+         <dest obj="divScale_4" inlet="D"/>
+         <dest obj="divScale_2" inlet="D"/>
+      </net>
+      <net>
+         <source obj="divScale_2" outlet="out"/>
+         <dest obj="tabletrain_2" inlet="mixWave"/>
+      </net>
+      <net>
+         <source obj="glideMultiExt_1" outlet="out"/>
+         <dest obj="combinor_1" inlet="cut"/>
+         <dest obj="tabletrain_2" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="latch_1" outlet="o"/>
+         <dest obj="tabletrain_2" inlet="harm"/>
+         <dest obj="tabletrain_2" inlet="train"/>
+      </net>
+      <net>
+         <source obj="divScale_3" outlet="out"/>
+         <dest obj="divScale_1" inlet="add"/>
+      </net>
+      <net>
+         <source obj="qtsLFO4_1" outlet="w1"/>
+         <dest obj="divScale_3" inlet="add"/>
+      </net>
+      <net>
+         <source obj="qtsLFO4_1" outlet="w4"/>
+         <dest obj="divScale_4" inlet="in"/>
+         <dest obj="combinor_1" inlet="pitch2"/>
+      </net>
+      <net>
+         <source obj="qtsLFO4_1" outlet="w3"/>
+         <dest obj="divScale_3" inlet="in"/>
+         <dest obj="combinor_1" inlet="pitch1"/>
+      </net>
+      <net>
+         <source obj="divScale_4" outlet="out"/>
+         <dest obj="divScale_2" inlet="add"/>
+      </net>
+      <net>
+         <source obj="qtsLFO4_1" outlet="w2"/>
+         <dest obj="divScale_4" inlet="add"/>
+      </net>
+      <net>
+         <source obj="i_10" outlet="out"/>
+         <dest obj="divremcPend_4" inlet="denominator"/>
+      </net>
+      <net>
+         <source obj="divremcPend_4" outlet="rem"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="latch_2" outlet="o"/>
+         <dest obj="tabletrain_2" inlet="stepWave"/>
+         <dest obj="tabletrain_2" inlet="startWave"/>
+         <dest obj="tabletrain_2" inlet="stepTrain"/>
+      </net>
+      <net>
+         <source obj="combinor_1" outlet="out"/>
+         <dest obj="shimmerDelay_1" inlet="in"/>
+         <dest obj="scope_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="counter_9" outlet="c"/>
+         <dest obj="rndPattF_4" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="counter_8" outlet="c"/>
+         <dest obj="counter_10" inlet="trig"/>
+         <dest obj="gateFiller_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_10" outlet="o"/>
+         <dest obj="gateFiller_3" inlet="count"/>
+      </net>
+      <net>
+         <source obj="counter_10" outlet="c"/>
+         <dest obj="counter_9" inlet="r"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1296</width>
+      <height>1000</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,173 @@
+<patch-1.0 appVersion="1.0.11">
+   <comment type="patch/comment" x="168" y="0" text="+ master in out"/>
+   <obj type="osc/phasor compl" uuid="11940ece0e29f3fae0d3c8e1fdabd63cacac5b48" name="phasor_1" x="14" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="-36.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="220c4387-af16-4041-8d06-4e2ac03f8a2f" name="mix_5" x="168" y="14">
+      <params>
+         <bool32.tgl name="1oo" value="1"/>
+         <frac32.u.map name="gain1" value="32.0"/>
+         <frac32.u.map name="send1" value="0.0"/>
+         <bool32.tgl name="2oo" value="0"/>
+         <frac32.u.map name="gain2" value="0.0"/>
+         <frac32.u.map name="send2" value="0.0"/>
+         <bool32.tgl name="3oo" value="0"/>
+         <frac32.u.map name="gain3" value="0.0"/>
+         <frac32.u.map name="send3" value="0.0"/>
+         <bool32.tgl name="4oo" value="0"/>
+         <frac32.u.map name="gain4" value="0.0"/>
+         <frac32.u.map name="send4" value="0.0"/>
+         <frac32.u.map name="return" value="32.0"/>
+         <frac32.u.map name="master" value="64.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="220c4387-af16-4041-8d06-4e2ac03f8a2f">
+         <sDescription>4 input s-rate mixer</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32buffer name="m"/>
+            <frac32buffer name="r" description="return in"/>
+            <frac32buffer name="1" description="input 1"/>
+            <frac32buffer name="2" description="input 2"/>
+            <frac32buffer name="3" description="input 3"/>
+            <frac32buffer name="4" description="input 4"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="m" description="mix out"/>
+            <frac32buffer name="s" description="send out"/>
+            <frac32buffer name="o"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="1oo"/>
+            <frac32.u.map name="gain1">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="send1"/>
+            <bool32.tgl name="2oo"/>
+            <frac32.u.map name="gain2">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="send2"/>
+            <bool32.tgl name="3oo"/>
+            <frac32.u.map name="gain3">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="send3"/>
+            <bool32.tgl name="4oo"/>
+            <frac32.u.map name="gain4">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="send4"/>
+            <frac32.u.map name="return"/>
+            <frac32.u.map name="master"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[{   
+    // main mix
+
+    // on/off for inlet 1
+    if(param_1oo){ 
+    int32_t  
+    accum = ___SMMUL(inlet_1,param_gain1);
+    }
+    
+    int32_t
+    accum = ___SMMLA(inlet_2,param_gain2,accum);
+;   accum = ___SMMLA(inlet_3,param_gain3,accum);
+;   accum = ___SMMLA(inlet_4,param_gain4,accum);
+;   accum = ___SMMLA(inlet_r,param_return,accum);
+;   outlet_m=  __SSAT( (accum<<5),28);
+}
+{   
+    // send
+    int32_t  
+    accum = ___SMMUL(inlet_1,param_send1);
+    accum = ___SMMLA(inlet_2,param_send2,accum);
+;   accum = ___SMMLA(inlet_3,param_send3,accum);
+;   accum = ___SMMLA(inlet_4,param_send4,accum);
+;   outlet_s=  __SSAT((accum<<5),28);
+}
+
+{   
+    // master out
+    int32_t  
+    accum = ___SMMUL(inlet_m,param_master);
+;   outlet_o=  __SSAT((accum<<5),28);
+}]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="disp/kscope 128 b" uuid="e71f3dd9bc5b799ad703079e63fb929dd75def0" name="kscope_1" x="266" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/phasor compl" uuid="11940ece0e29f3fae0d3c8e1fdabd63cacac5b48" name="phasor_2" x="14" y="112">
+      <params>
+         <frac32.s.map name="pitch" value="-12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/phasor compl" uuid="11940ece0e29f3fae0d3c8e1fdabd63cacac5b48" name="phasor_3" x="14" y="210">
+      <params>
+         <frac32.s.map name="pitch" value="12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/kscope 128 b" uuid="e71f3dd9bc5b799ad703079e63fb929dd75def0" name="kscope_2" x="266" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/phasor compl" uuid="11940ece0e29f3fae0d3c8e1fdabd63cacac5b48" name="phasor_4" x="14" y="308">
+      <params>
+         <frac32.s.map name="pitch" value="36.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="518" y="574" text="Lav om så o hedder m så m routes to m"/>
+   <nets>
+      <net>
+         <source obj="phasor_1" outlet="phasor0"/>
+         <dest obj="mix_5" inlet="1"/>
+      </net>
+      <net>
+         <source obj="phasor_2" outlet="phasor0"/>
+         <dest obj="mix_5" inlet="2"/>
+      </net>
+      <net>
+         <source obj="phasor_3" outlet="phasor0"/>
+         <dest obj="mix_5" inlet="3"/>
+      </net>
+      <net>
+         <source obj="phasor_4" outlet="phasor0"/>
+         <dest obj="mix_5" inlet="4"/>
+      </net>
+      <net>
+         <source obj="mix_5" outlet="s"/>
+         <dest obj="kscope_2" inlet="in"/>
+         <dest obj="mix_5" inlet="r"/>
+      </net>
+      <net>
+         <source obj="mix_5" outlet="m"/>
+         <dest obj="mix_5" inlet="m"/>
+      </net>
+      <net>
+         <source obj="mix_5" outlet="o"/>
+         <dest obj="kscope_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>200</x>
+      <y>216</y>
+      <width>878</width>
+      <height>676</height>
+   </windowPos>
+</patch-1.0>

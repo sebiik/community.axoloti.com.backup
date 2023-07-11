@@ -1,0 +1,1943 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="3e7b6bc9-7630-44ab-a3a3-857c65be5a9d" name="BPMext_1" x="0" y="14">
+      <params>
+         <int32 name="BPM" value="144"/>
+         <int32 name="vari1" value="48"/>
+         <int32 name="vari2" value="384"/>
+         <int32 name="vari3" value="3"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="3e7b6bc9-7630-44ab-a3a3-857c65be5a9d">
+         <sDescription>simple master clock source in BPM.
+outputs pulses for beat, triplets, fourths and a variable rate multiplier.</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>lfo.axh</helpPatch>
+         <inlets>
+            <int32 name="BPM"/>
+            <bool32.rising name="reset" description="reset phase"/>
+            <int32 name="vari3"/>
+         </inlets>
+         <outlets>
+            <bool32 name="beat" description="square wave"/>
+            <bool32 name="trips"/>
+            <bool32 name="fours"/>
+            <bool32 name="32"/>
+            <bool32 name="64"/>
+            <bool32 name="vari1"/>
+            <bool32 name="vari2"/>
+            <bool32 name="vari3"/>
+            <int32 name="rate3"/>
+            <int32.positive name="timing"/>
+            <frac32 name="delaybase"/>
+            <frac32 name="ratebase"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="BPM">
+               <MinValue i="0"/>
+               <MaxValue i="500"/>
+            </int32>
+            <int32 name="vari1">
+               <MinValue i="1"/>
+               <MaxValue i="128"/>
+            </int32>
+            <int32 name="vari2">
+               <MinValue i="1"/>
+               <MaxValue i="384"/>
+            </int32>
+            <int32 name="vari3">
+               <MinValue i="1"/>
+               <MaxValue i="128"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t Phase;
+uint32_t r;
+int rate1=3;
+int rate2=4;
+uint32_t freq;]]></code.declaration>
+         <code.init><![CDATA[Phase = 0;
+   r = 1;]]></code.init>
+         <code.krate><![CDATA[{	 
+	int BPM=param_BPM+inlet_BPM;
+	BPM=BPM>0?BPM:1;
+	
+      if (inlet_reset && r) {
+         Phase = 0;
+         r = 0;
+      } else {
+         if (!inlet_reset) r = 1;
+         
+         freq=(uint32_t)(1<<30)/(22500/BPM);
+         Phase += freq>>2;
+      }
+      outlet_beat= (Phase>0)?1:0;
+      outlet_trips=((Phase*rate1)>0)?1:0;
+      outlet_fours=((Phase*rate2)>0)?1:0;
+      outlet_32=((Phase<<5)>0)?1:0;
+      outlet_64=((Phase<<6)>0)?1:0;
+      outlet_vari1=((Phase*param_vari1)>0)?1:0;
+      outlet_vari2=((Phase*param_vari2)>0)?1:0;
+      outlet_vari3=((Phase*(inlet_vari3+param_vari3))>0)?1:0;
+      outlet_rate3=inlet_vari3<<4;
+   }
+   outlet_timing=(uint64_t)(1<<30)*(1<<17)/freq;
+   outlet_delaybase=(uint64_t)(1<<30)*(1<<17)/freq;
+   outlet_ratebase=freq>>2;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="sequence count" x="294" y="14">
+      <params>
+         <int32 name="max" value="96"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="420" y="14" text="max count=96 as each sequence is 96 steps long (24 per beat)"/>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="table name" x="784" y="14">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="0:/Dseq001.tab"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="LOAD" x="938" y="14">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="1008" y="14">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="baseq_1"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="1134" y="14" text="loads sequence table from SDcard (can be found at axoloti forum in sss-contribs)"/>
+   <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="patt select division" x="294" y="98">
+      <params>
+         <int32 name="max" value="24"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="10cb6b2d-4339-43d7-8c60-8dc1c03499ff" name="retrigger chance" x="434" y="126">
+      <params>
+         <frac32.u.map name="chance" value="4.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="10cb6b2d-4339-43d7-8c60-8dc1c03499ff">
+         <sDescription>uniform distributed (white) noise, triggered generation. Range -64..64</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <bool32 name="rand"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="chance"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = (int32_t)(GenerateRandomNumber())>>4;
+ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) { if(val==0){val = ((int32_t)(GenerateRandomNumber()>>5))<param_chance?1:0;}else{val=0;} ntrig=1;}
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_rand= val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="fc49ef37-75f0-4867-8e3d-f3aa66ab0d45" name="retrig range" x="518" y="126">
+      <params>
+         <int32 name="max" value="8"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="fc49ef37-75f0-4867-8e3d-f3aa66ab0d45">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;
+]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;
+]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = ((int32_t)(GenerateRandomNumber()% (param_max-1))+1)*6;
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="fc49ef37-75f0-4867-8e3d-f3aa66ab0d45" name="retrig range_" x="588" y="126">
+      <params>
+         <int32 name="max" value="4"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="fc49ef37-75f0-4867-8e3d-f3aa66ab0d45">
+         <sDescription>uniform distributed (white) noise, k-rate generation. Range 0..(n-1)</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="v" description="random value"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="max" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;
+]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+ntrig = 0;
+]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      if (param_max) 
+         val = 1<<((int32_t)(GenerateRandomNumber()% (param_max)));
+      else val = 0;
+      ntrig=1;
+   }
+   else if (!(inlet_trig>0)) ntrig=0;
+   outlet_v = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="trig division" x="658" y="126">
+      <params>
+         <int32 name="max" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="countExt_4" x="784" y="126">
+      <params>
+         <int32 name="max" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="4085f233-fa74-4b6f-827d-6d0496590f5a" name="count retrigger" x="910" y="126">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4085f233-fa74-4b6f-827d-6d0496590f5a">
+         <sDescription>Copies the input to the output at the rising edge of the trigger input. Keeps the output otherwise.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>logic.axh</helpPatch>
+         <inlets>
+            <int32 name="count" description="input"/>
+            <int32 name="in"/>
+            <int32 name="max"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <int32 name="o" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;   int latch;]]></code.declaration>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {latch = inlet_count-inlet_max; ntrig=1;}
+if (!(inlet_trig>0)) ntrig=0;
+if(inlet_trig){
+outlet_o= latch+inlet_in;
+}
+else if(!inlet_trig){outlet_o=inlet_count;}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="pattern count" x="294" y="182">
+      <params>
+         <int32 name="max" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/patt/rndPattF" uuid="51e68084-34f7-4ce7-b29e-6d2fb66a8b71" name="pattern generator" x="294" y="266">
+      <params>
+         <frac32.u.map name="repeat" value="64.0"/>
+         <int32 name="chance" value="9"/>
+         <frac32.u.map name="change" value="53.0"/>
+         <frac32.u.map name="nonMemRnd" value="3.5"/>
+         <frac32.u.map name="size" value="42.0"/>
+         <frac32.u.map name="freeze" value="2.5"/>
+         <frac32.u.map name="maxFreeze" value="2.0"/>
+         <bool32.mom name="rnd" value="0"/>
+         <frac32.u.map name="CV" value="0.0"/>
+         <frac32.s.map name="max" value="16.0"/>
+         <frac32.s.map name="min" value="0.0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="maxSteps" value="64"/>
+      </attribs>
+   </obj>
+   <obj type="sel/sel i 16" uuid="630930cb677ad1f222ad83b8f84d26a7aa92cafc" name="sel_1" x="406" y="266">
+      <params>
+         <int32.small name="i0" value="47"/>
+         <int32.small name="i1" value="48"/>
+         <int32.small name="i2" value="49"/>
+         <int32.small name="i3" value="50"/>
+         <int32.small name="i4" value="51"/>
+         <int32.small name="i5" value="52"/>
+         <int32.small name="i6" value="53"/>
+         <int32.small name="i7" value="54"/>
+         <int32.small name="i8" value="55"/>
+         <int32.small name="i9" value="56"/>
+         <int32.small name="i10" value="57"/>
+         <int32.small name="i11" value="58"/>
+         <int32.small name="i12" value="59"/>
+         <int32.small name="i13" value="60"/>
+         <int32.small name="i14" value="61"/>
+         <int32.small name="i15" value="46"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="preset" x="602" y="266">
+      <params>
+         <int32 name="value" value="2211"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="b94a9b8e9adcb7d18868c0ee808a9b211b65578d" name="+_1" x="658" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="728" y="266" text="select a preset-sequence from the table"/>
+   <comment type="patch/comment" x="728" y="280" text="allows for combining different presets with channels"/>
+   <comment type="patch/comment" x="0" y="294" text="clock multiplied in times of 3 for corresponding BPM rate"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel1" x="686" y="350">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel2" x="742" y="350">
+      <params>
+         <int32 name="value" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel3" x="798" y="350">
+      <params>
+         <int32 name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel4" x="854" y="350">
+      <params>
+         <int32 name="value" value="3"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel5" x="910" y="350">
+      <params>
+         <int32 name="value" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel6" x="966" y="350">
+      <params>
+         <int32 name="value" value="5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel7" x="1022" y="350">
+      <params>
+         <int32 name="value" value="6"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="channel8" x="1078" y="350">
+      <params>
+         <int32 name="value" value="7"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1134" y="350" text="select a preset-channel for each of the 8 trigger channels"/>
+   <comment type="patch/comment" x="1134" y="364" text="allows for combining different channels with presets"/>
+   <obj type="sss/seq/baseq" uuid="93d55977-2922-4943-ae7d-4437c6261ad0" name="baseq_1" x="686" y="406">
+      <params/>
+      <attribs>
+         <combo attributeName="mode" selection="rst"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="882" y="420" text="outputs the triggers being generated by the sequencer (single pulse, not gates!)"/>
+   <comment type="patch/comment" x="882" y="434" text="the triggers have the value of the given velocity"/>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_7" x="882" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_8" x="952" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_9" x="1022" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_10" x="1092" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_11" x="1162" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_12" x="1232" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_13" x="1302" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262" name="+_14" x="1372" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4227fbc2-bcf7-43d7-b9ce-ad3a3cdc9262">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1>0?1:0;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="1442" y="448" text="converts velocity-sensitive triggers in normal off/on triggers"/>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="kick2" x="882" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-39.0"/>
+         <frac32.s.map name="decay" value="-4.0"/>
+         <frac32.s.map name="shell" value="47.0"/>
+         <frac32.u.map name="env" value="31.0"/>
+         <frac32.s.map name="pitch" value="-1.0"/>
+         <frac32.s.map name="freq" value="9.0"/>
+         <frac32.u.map name="mod" value="64.0"/>
+         <int32.hradio name="mode" value="0"/>
+         <frac32.u.map name="gain" value="64.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="env"/>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.pitch name="freq" description="bass frequency"/>
+            <frac32.u.map name="mod" description="shell fm to bass"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+
+int32_t phs1;
+int32_t shell;
+int32_t bass;]]></code.declaration>
+         <code.init><![CDATA[val = 0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>9))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val, param_decay)<<1;
+
+}
+
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>8;
+if ((inlet_trig>0)&&!trg)
+{
+	phs1=0;
+	bass=0;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+int32_t p1;
+MTOFEXTENDED(param_pitch+inlet_pitch,p1)
+
+int32_t fm=___SMMUL(shell,param_mod)<<5;]]></code.krate>
+         <code.srate><![CDATA[int32_t r1,r2;
+phs1-=p1>>2;
+switch(param_mode){
+case 0: SINE2TINTERP(phs1,r1);r1=r1>>2;break;
+case 1: r1=phs1>0?phs1:-phs1;r1=-(r1-(1<<30))>>1;break;
+case 2: r1=-phs1>>2;break;
+case 3: r1=phs1>0?(1<<29):-(1<<29);break;
+
+}
+int32_t freq;
+MTOFEXTENDED(__SSAT(param_freq+inlet_pitch+(___SMMUL(shell,param_env)<<5)+(___SMMUL(fm,r1)<<3),28),freq);
+bass+=freq;
+
+
+SINE2TINTERP(bass,r2)
+
+int32_t ts=___SMMUL(r2,val);
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="kick1" x="980" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-53.0"/>
+         <frac32.s.map name="decay" value="-4.0"/>
+         <frac32.s.map name="shell" value="-25.0"/>
+         <frac32.u.map name="env" value="50.5"/>
+         <frac32.s.map name="pitch" value="-17.0"/>
+         <frac32.s.map name="freq" value="-36.0"/>
+         <frac32.u.map name="mod" value="29.0"/>
+         <int32.hradio name="mode" value="1"/>
+         <frac32.u.map name="gain" value="57.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="env"/>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.pitch name="freq" description="bass frequency"/>
+            <frac32.u.map name="mod" description="shell fm to bass"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+
+int32_t phs1;
+int32_t shell;
+int32_t bass;]]></code.declaration>
+         <code.init><![CDATA[val = 0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>9))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val, param_decay)<<1;
+
+}
+
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>8;
+if ((inlet_trig>0)&&!trg)
+{
+	phs1=0;
+	bass=0;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+int32_t p1;
+MTOFEXTENDED(param_pitch,p1)
+
+int32_t fm=___SMMUL(shell,param_mod)<<5;]]></code.krate>
+         <code.srate><![CDATA[int32_t r1,r2;
+phs1-=p1>>2;
+switch(param_mode){
+case 0: SINE2TINTERP(phs1,r1);r1=r1>>2;break;
+case 1: r1=phs1>0?phs1:-phs1;r1=-(r1-(1<<30))>>1;break;
+case 2: r1=-phs1>>2;break;
+case 3: r1=phs1>0?(1<<29):-(1<<29);break;
+
+}
+int32_t freq;
+MTOFEXTENDED(__SSAT(param_freq+(___SMMUL(shell,param_env)<<5)+(___SMMUL(fm,r1)<<3),28),freq);
+bass+=freq;
+
+
+SINE2TINTERP(bass,r2)
+
+int32_t ts=___SMMUL(r2,val);
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="toms" x="1078" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-54.0"/>
+         <frac32.s.map name="decay" value="-42.0"/>
+         <frac32.s.map name="freq" value="12.0"/>
+         <frac32.s.map name="env" value="15.0"/>
+         <frac32.u.map name="res" value="22.5"/>
+         <int32.hradio name="mode" value="0"/>
+         <frac32.s.map name="pitch" value="-16.0"/>
+         <frac32.s.map name="shell" value="-15.0"/>
+         <frac32.u.map name="gain" value="38.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.s.map.pitch name="freq" description="noise filter frequency"/>
+            <frac32.s.map name="env" description="send shell envelope to filter cutoff frequency"/>
+            <frac32.u.map.filterq name="res" description="noise filter resonance envelope amount (decays back to zero in the time set by the noise decay parameter)"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+int32_t low;
+int32_t band;
+int32_t res;
+int32_t phs1;
+int32_t shell;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+low = 0;
+band = 0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>4))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val-(val>>7), param_decay)<<1;
+
+}
+res=___SMMUL(res,param_decay)<<1;
+res-=res>>8;
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>7;
+if ((inlet_trig>0)&&!trg)
+{
+	low = 0;
+	band = 0;
+	res=param_res;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+
+int32_t damp = (0x80<<24) - (res<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(param_freq+(___SMMUL(shell,param_env)<<3),alpha);
+SINE2TINTERP(alpha,freq);
+
+int32_t p1;
+MTOFEXTENDED(param_pitch,p1)]]></code.krate>
+         <code.srate><![CDATA[phs1+=p1;
+
+int32_t r1;
+SINE2TINTERP(phs1,r1)
+int32_t ns=(int32_t)GenerateRandomNumber()>>1;
+ns=___SMMUL(ns,___SMMUL(ns,ns)<<1)<<1;
+ns+=ns>0?-(1<<27):(1<<27);
+
+int32_t in1 = ns-(___SMMUL(shell,(ns>>1))<<5);
+in1=___SMMUL(val,in1)<<5;
+int32_t notch = in1 - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+
+
+int32_t ts;
+switch(param_mode){
+	case 0: ts=low;break;
+	case 1: ts=band;break;
+	case 2: ts=high;break;
+	case 3: ts=notch;break;
+}
+//ts=___SMMUL(ts,val)<<5;
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="snare" x="1176" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-53.0"/>
+         <frac32.s.map name="decay" value="-21.0"/>
+         <frac32.s.map name="freq" value="8.0"/>
+         <frac32.s.map name="env" value="10.0"/>
+         <frac32.u.map name="res" value="37.0"/>
+         <int32.hradio name="mode" value="0"/>
+         <frac32.s.map name="pitch" value="-2.0"/>
+         <frac32.s.map name="shell" value="-26.0"/>
+         <frac32.u.map name="gain" value="26.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.s.map.pitch name="freq" description="noise filter frequency"/>
+            <frac32.s.map name="env" description="send shell envelope to filter cutoff frequency"/>
+            <frac32.u.map.filterq name="res" description="noise filter resonance envelope amount (decays back to zero in the time set by the noise decay parameter)"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+int32_t low;
+int32_t band;
+int32_t res;
+int32_t phs1;
+int32_t shell;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+low = 0;
+band = 0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>4))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val-(val>>7), param_decay)<<1;
+
+}
+res=___SMMUL(res,param_decay)<<1;
+res-=res>>8;
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>7;
+if ((inlet_trig>0)&&!trg)
+{
+	low = 0;
+	band = 0;
+	res=param_res;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+
+int32_t damp = (0x80<<24) - (res<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(param_freq+(___SMMUL(shell,param_env)<<3),alpha);
+SINE2TINTERP(alpha,freq);
+
+int32_t p1;
+MTOFEXTENDED(param_pitch,p1)]]></code.krate>
+         <code.srate><![CDATA[phs1+=p1;
+
+int32_t r1;
+SINE2TINTERP(phs1,r1)
+int32_t ns=(int32_t)GenerateRandomNumber()>>1;
+ns=___SMMUL(ns,___SMMUL(ns,ns)<<1)<<1;
+ns+=ns>0?-(1<<27):(1<<27);
+
+int32_t in1 = ns-(___SMMUL(shell,(ns>>1))<<5);
+in1=___SMMUL(val,in1)<<5;
+int32_t notch = in1 - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+
+
+int32_t ts;
+switch(param_mode){
+	case 0: ts=low;break;
+	case 1: ts=band;break;
+	case 2: ts=high;break;
+	case 3: ts=notch;break;
+}
+//ts=___SMMUL(ts,val)<<5;
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="closed hat" x="1274" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-64.0"/>
+         <frac32.s.map name="decay" value="-39.0"/>
+         <frac32.u.map name="tail" value="11.0"/>
+         <frac32.s.map name="freq" value="49.0"/>
+         <frac32.s.map name="env" value="17.0"/>
+         <frac32.u.map name="res" value="17.5"/>
+         <int32.hradio name="mode" value="2"/>
+         <frac32.s.map name="pitch" value="54.0"/>
+         <frac32.s.map name="shell" value="-23.0"/>
+         <frac32.u.map name="gain" value="20.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.u.map name="tail"/>
+            <frac32.s.map.pitch name="freq" description="noise filter frequency"/>
+            <frac32.s.map name="env" description="send shell envelope to filter cutoff frequency"/>
+            <frac32.u.map.filterq name="res" description="noise filter resonance envelope amount (decays back to zero in the time set by the noise decay parameter)"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+int32_t low;
+int32_t band;
+int32_t res;
+int32_t phs1;
+int32_t shell;
+int32_t vil;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+low = 0;
+band = 0;
+vil=0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>4))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val-(val>>7), param_decay)<<1;
+	int32_t tmp=___SMMUL(vil, param_decay)<<1;
+	vil = tmp+(___SMMUL(vil-tmp,param_tail)<<5);
+}
+res=___SMMUL(res,param_decay)<<1;
+res-=res>>8;
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>7;
+if ((inlet_trig>0)&&!trg)
+{
+	low = 0;
+	band = 0;
+	res=param_res;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	vil =1<<23;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+
+int32_t damp = (0x80<<24) - (res<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(param_freq+(___SMMUL(shell,param_env)<<3),alpha);
+SINE2TINTERP(alpha,freq);
+int32_t vl=val>vil?val:vil;
+int32_t p1;
+MTOFEXTENDED(param_pitch+inlet_pitch,p1)]]></code.krate>
+         <code.srate><![CDATA[phs1+=p1;
+
+int32_t r1;
+SINE2TINTERP(phs1,r1)
+int32_t ns=(int32_t)GenerateRandomNumber()>>1;
+ns=___SMMUL(ns,___SMMUL(ns,ns)<<1)<<1;
+ns+=ns>0?-(1<<27):(1<<27);
+
+int32_t in1 = ns-(___SMMUL(shell,(ns>>1))<<5);
+in1=___SMMUL(vl,in1)<<5;
+int32_t notch = in1 - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+
+
+int32_t ts;
+switch(param_mode){
+	case 0: ts=low;break;
+	case 1: ts=band;break;
+	case 2: ts=high;break;
+	case 3: ts=notch;break;
+}
+//ts=___SMMUL(ts,val)<<5;
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="open hat" x="1372" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-64.0"/>
+         <frac32.s.map name="decay" value="-19.0"/>
+         <frac32.u.map name="tail" value="33.5"/>
+         <frac32.s.map name="freq" value="51.0"/>
+         <frac32.s.map name="env" value="24.0"/>
+         <frac32.u.map name="res" value="56.5"/>
+         <int32.hradio name="mode" value="1"/>
+         <frac32.s.map name="pitch" value="51.0"/>
+         <frac32.s.map name="shell" value="-6.0"/>
+         <frac32.u.map name="gain" value="50.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.u.map name="tail"/>
+            <frac32.s.map.pitch name="freq" description="noise filter frequency"/>
+            <frac32.s.map name="env" description="send shell envelope to filter cutoff frequency"/>
+            <frac32.u.map.filterq name="res" description="noise filter resonance envelope amount (decays back to zero in the time set by the noise decay parameter)"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+int32_t low;
+int32_t band;
+int32_t res;
+int32_t phs1;
+int32_t shell;
+int32_t vil;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+low = 0;
+band = 0;
+vil=0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>4))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val-(val>>7), param_decay)<<1;
+	int32_t tmp=___SMMUL(vil, param_decay)<<1;
+	vil = tmp+(___SMMUL(vil-tmp,param_tail)<<5);
+}
+res=___SMMUL(res,param_decay)<<1;
+res-=res>>8;
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>7;
+if ((inlet_trig>0)&&!trg)
+{
+	low = 0;
+	band = 0;
+	res=param_res;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	vil =1<<23;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+
+int32_t damp = (0x80<<24) - (res<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(param_freq+(___SMMUL(shell,param_env)<<3),alpha);
+SINE2TINTERP(alpha,freq);
+int32_t vl=val>vil?val:vil;
+int32_t p1;
+MTOFEXTENDED(param_pitch+inlet_pitch,p1)]]></code.krate>
+         <code.srate><![CDATA[phs1+=p1;
+
+int32_t r1;
+SINE2TINTERP(phs1,r1)
+int32_t ns=(int32_t)GenerateRandomNumber()>>1;
+ns=___SMMUL(ns,___SMMUL(ns,ns)<<1)<<1;
+ns+=ns>0?-(1<<27):(1<<27);
+
+int32_t in1 = ns-(___SMMUL(shell,(ns>>1))<<5);
+in1=___SMMUL(vl,in1)<<5;
+int32_t notch = in1 - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+
+
+int32_t ts;
+switch(param_mode){
+	case 0: ts=low;break;
+	case 1: ts=band;break;
+	case 2: ts=high;break;
+	case 3: ts=notch;break;
+}
+//ts=___SMMUL(ts,val)<<5;
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="cymbal" x="1470" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-61.0"/>
+         <frac32.s.map name="decay" value="-42.0"/>
+         <frac32.u.map name="tail" value="25.0"/>
+         <frac32.s.map name="freq" value="28.0"/>
+         <frac32.s.map name="env" value="6.0"/>
+         <frac32.u.map name="res" value="30.5"/>
+         <int32.hradio name="mode" value="1"/>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.s.map name="shell" value="-35.0"/>
+         <frac32.u.map name="gain" value="32.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.u.map name="tail"/>
+            <frac32.s.map.pitch name="freq" description="noise filter frequency"/>
+            <frac32.s.map name="env" description="send shell envelope to filter cutoff frequency"/>
+            <frac32.u.map.filterq name="res" description="noise filter resonance envelope amount (decays back to zero in the time set by the noise decay parameter)"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+int32_t low;
+int32_t band;
+int32_t res;
+int32_t phs1;
+int32_t shell;
+int32_t vil;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+low = 0;
+band = 0;
+vil=0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>4))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val-(val>>7), param_decay)<<1;
+	int32_t tmp=___SMMUL(vil, param_decay)<<1;
+	vil = tmp+(___SMMUL(vil-tmp,param_tail)<<5);
+}
+res=___SMMUL(res,param_decay)<<1;
+res-=res>>8;
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>7;
+if ((inlet_trig>0)&&!trg)
+{
+	low = 0;
+	band = 0;
+	res=param_res;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	vil =1<<23;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+
+int32_t damp = (0x80<<24) - (res<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(param_freq+(___SMMUL(shell,param_env)<<3),alpha);
+SINE2TINTERP(alpha,freq);
+int32_t vl=val>vil?val:vil;
+int32_t p1;
+MTOFEXTENDED(param_pitch+inlet_pitch,p1)]]></code.krate>
+         <code.srate><![CDATA[phs1+=p1;
+
+int32_t r1;
+SINE2TINTERP(phs1,r1)
+int32_t ns=(int32_t)GenerateRandomNumber()>>1;
+ns=___SMMUL(ns,___SMMUL(ns,ns)<<1)<<1;
+ns+=ns>0?-(1<<27):(1<<27);
+
+int32_t in1 = ns-(___SMMUL(shell,(ns>>1))<<5);
+in1=___SMMUL(vl,in1)<<5;
+int32_t notch = in1 - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+
+
+int32_t ts;
+switch(param_mode){
+	case 0: ts=low;break;
+	case 1: ts=band;break;
+	case 2: ts=high;break;
+	case 3: ts=notch;break;
+}
+//ts=___SMMUL(ts,val)<<5;
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90" name="percussion" x="1568" y="518">
+      <params>
+         <frac32.s.map name="hold" value="-32.0"/>
+         <frac32.s.map name="decay" value="-20.0"/>
+         <frac32.s.map name="freq" value="17.0"/>
+         <frac32.s.map name="env" value="13.0"/>
+         <frac32.u.map name="res" value="22.5"/>
+         <int32.hradio name="mode" value="1"/>
+         <frac32.s.map name="pitch" value="4.0"/>
+         <frac32.s.map name="shell" value="9.0"/>
+         <frac32.u.map name="gain" value="38.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e6f69554-ebe1-40a1-8f8b-48034ac8ac90">
+         <sDescription>snare module</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.kdecaytime.exp name="hold" description="noise hold"/>
+            <frac32.s.map.kdecaytime.exp name="decay" description="noise decay (decay time for both amplitude after hold as well as resonance amount without a hold time)"/>
+            <frac32.s.map.pitch name="freq" description="noise filter frequency"/>
+            <frac32.s.map name="env" description="send shell envelope to filter cutoff frequency"/>
+            <frac32.u.map.filterq name="res" description="noise filter resonance envelope amount (decays back to zero in the time set by the noise decay parameter)"/>
+            <int32.hradio name="mode" description="SVF filter mode (lowpass,bandpass,highpass,notch)">
+               <MaxValue i="4"/>
+            </int32.hradio>
+            <frac32.s.map.pitch name="pitch" description="pitch of internal sine generator"/>
+            <frac32.s.map.kdecaytime.exp name="shell" description="decay time for sine shell"/>
+            <frac32.u.map name="gain" description="add gain to entire signal for fatter snares"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t cnt;
+bool trg;
+int32_t hold;
+int32_t low;
+int32_t band;
+int32_t res;
+int32_t phs1;
+int32_t shell;]]></code.declaration>
+         <code.init><![CDATA[val = 0;
+low = 0;
+band = 0;]]></code.init>
+         <code.krate><![CDATA[if(cnt>0){
+	cnt=___SMMUL(param_hold,cnt-(cnt>>4))<<1;
+	//cnt-=cnt>>3;
+}
+else{cnt=0;
+	val = ___SMMUL(val-(val>>7), param_decay)<<1;
+
+}
+res=___SMMUL(res,param_decay)<<1;
+res-=res>>8;
+shell=___SMMUL(shell,param_shell)<<1;
+shell-=shell>>7;
+if ((inlet_trig>0)&&!trg)
+{
+	low = 0;
+	band = 0;
+	res=param_res;
+	trg=1;
+	cnt=1<<20;
+	val =1<<27;
+	shell=1<<27;
+}
+else if(inlet_trig<1){trg=0;}
+
+int32_t damp = (0x80<<24) - (res<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(param_freq+(___SMMUL(shell,param_env)<<3),alpha);
+SINE2TINTERP(alpha,freq);
+
+int32_t p1;
+MTOFEXTENDED(param_pitch,p1)]]></code.krate>
+         <code.srate><![CDATA[phs1+=p1;
+
+int32_t r1;
+SINE2TINTERP(phs1,r1)
+int32_t ns=(int32_t)GenerateRandomNumber()>>1;
+ns=___SMMUL(ns,___SMMUL(ns,ns)<<1)<<1;
+ns+=ns>0?-(1<<27):(1<<27);
+
+int32_t in1 = ns-(___SMMUL(shell,(ns>>1))<<5);
+in1=___SMMUL(val,in1)<<5;
+int32_t notch = in1 - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+
+
+int32_t ts;
+switch(param_mode){
+	case 0: ts=low;break;
+	case 1: ts=band;break;
+	case 2: ts=high;break;
+	case 3: ts=notch;break;
+}
+//ts=___SMMUL(ts,val)<<5;
+
+ts+=___SMMUL(shell,r1);
+ts=__SSAT(ts+__SSAT(__SSAT(___SMMUL(param_gain,ts),21)<<8,28),28);
+int32_t tsq31 = ts<<3;
+int32_t tsq31p3 = ___SMMUL(tsq31,___SMMUL(tsq31,tsq31));
+outlet_out = ts + (ts>>1) - (tsq31p3)>>1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="81d62e7f-3187-4eb0-9085-b13bccc0a9a5" name="mix_1" x="1666" y="518">
+      <params>
+         <frac32.u.map name="gain1" value="22.0"/>
+         <frac32.u.map name="gain2" value="33.5"/>
+         <frac32.u.map name="gain3" value="34.0"/>
+         <frac32.u.map name="gain4" value="34.5"/>
+         <frac32.u.map name="gain5" value="21.5"/>
+         <frac32.u.map name="gain6" value="23.5"/>
+         <frac32.u.map name="gain7" value="24.5"/>
+         <frac32.u.map name="gain8" value="23.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="81d62e7f-3187-4eb0-9085-b13bccc0a9a5">
+         <sDescription>8 input s-rate mixer, square gain scale</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32buffer name="in1" description="input 1"/>
+            <frac32buffer name="in2" description="input 2"/>
+            <frac32buffer name="in3" description="input 3"/>
+            <frac32buffer name="in4" description="input 4"/>
+            <frac32buffer name="in5" description="input 5"/>
+            <frac32buffer name="in6" description="input 6"/>
+            <frac32buffer name="in7" description="input 7"/>
+            <frac32buffer name="in8" description="input 8"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="mix out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map.squaregain name="gain1">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+            <frac32.u.map.squaregain name="gain2">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+            <frac32.u.map.squaregain name="gain3">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+            <frac32.u.map.squaregain name="gain4">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+            <frac32.u.map.squaregain name="gain5">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+            <frac32.u.map.squaregain name="gain6">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+            <frac32.u.map.squaregain name="gain7">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+            <frac32.u.map.squaregain name="gain8">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.squaregain>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[int32_t accum = ___SMMUL(inlet_in1,param_gain1);
+   accum = ___SMMLA(inlet_in2,param_gain2,accum);
+;   accum = ___SMMLA(inlet_in3,param_gain3,accum);
+;   accum = ___SMMLA(inlet_in4,param_gain4,accum);
+;   accum = ___SMMLA(inlet_in5,param_gain5,accum);
+;   accum = ___SMMLA(inlet_in6,param_gain6,accum);
+;   accum = ___SMMLA(inlet_in7,param_gain7,accum);
+;   accum = ___SMMLA(inlet_in8,param_gain8,accum);
+;   outlet_out=  (accum<<1);]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="f860b2e7-9617-4523-9fb0-1d1e81ed5c7d" name="comp_2" x="1764" y="518">
+      <params>
+         <frac32.u.map name="gainIn" value="28.0"/>
+         <frac32.u.map name="tresh" value="34.0"/>
+         <frac32.u.map name="ratio" value="64.0"/>
+         <frac32.u.map name="expand" value="64.0"/>
+         <frac32.u.map name="slope" value="64.0"/>
+         <frac32.s.map name="release" value="-64.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="f860b2e7-9617-4523-9fb0-1d1e81ed5c7d">
+         <sDescription>Dynamic range compressor. Gain calculation only. Envelope follower, attack, decay and VCA are not included.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>comp.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in"/>
+            <frac32 name="release"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="gainIn"/>
+            <frac32.u.map name="tresh"/>
+            <frac32.u.map name="ratio"/>
+            <frac32.u.map name="expand"/>
+            <frac32.u.map name="slope"/>
+            <frac32.s.map.lfopitch name="release"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t frac_log(int32_t a) {
+	Float_t f;
+	f.f = a;
+	int32_t r1 = ((f.parts.exponent&0x7F)-18) << 24;
+	int32_t r3 = logt[f.parts.mantissa>>15]<<10;
+	return r1 + r3;
+}
+
+int32_t frac_exp(int32_t a) {
+	int8_t s = (a>>24)+4;
+	uint8_t ei = a>>16;
+	if (s>=0)
+	     return expt[ei]<<s;
+	else return expt[ei]>>(-s);
+}
+int32_t accum;
+int i;
+int32_t prev;
+int32_t step;
+int32_t lp;
+int32_t follow;]]></code.declaration>
+         <code.init><![CDATA[accum=0;]]></code.init>
+         <code.krate><![CDATA[int32_t rel;
+MTOF(-param_release-inlet_release,rel)
+/*
+for(i=0;i<BUFSIZE;i++){
+	int32_t in=inlet_in[i];
+	in=__SSAT(in+__SSAT(__SSAT(___SMMUL(in,param_gainIn)<<5,24)<<4,29),29);
+	in=in>0?in:-in;
+	accum=in>accum?in:(accum+(___SMMUL(in-accum,rel)>>4));
+	
+}
+
+int32_t inlog = frac_log(accum);
+int32_t treshlog = frac_log(param_tresh);
+int32_t over = inlog-treshlog;
+
+int32_t gain;
+if (over<0){
+	over=over<-(3<<25)?-(3<<25):over;
+	int32_t tmp=frac_exp(over+(___SMMUL(___SMMUL(over>>1,___SMMUL(over,over))-(over>>1),param_slope)<<5))<<8;
+	tmp=(___SMMUL(tmp,-0x80000+frac_exp(-___SMMUL(over,param_ratio)<<5))<<5);
+	gain = 0x80000+(___SMMUL(tmp,param_expand)<<5);
+} else {
+	gain = frac_exp(-___SMMUL(over,param_ratio)<<5);
+}
+gain = (gain<<8);
+
+step = (gain - prev)>>4;
+   int32_t D = prev;
+   prev = gain;
+for(i=0;i<BUFSIZE;i++){
+	lp=D<lp?D:(lp+(___SMMUL(D-lp,rel)>>4));
+	int32_t in=inlet_in[i];
+	in=__SSAT(in+__SSAT(__SSAT(___SMMUL(in,param_gainIn)<<5,24)<<4,28),28);
+	outlet_out[i] =  __SSAT(___SMMUL(in,lp)<<5,28);
+	D += step;
+}
+*/]]></code.krate>
+         <code.srate><![CDATA[int32_t in=inlet_in;
+	in=__SSAT(in+__SSAT(__SSAT(___SMMUL(in,param_gainIn)<<5,24)<<4,29),29);
+	in=in>0?in:-in;
+	accum=in>accum?in:(accum+(___SMMUL(in-accum,rel)>>2));
+	
+
+
+int32_t inlog = frac_log(accum);
+int32_t treshlog = frac_log(param_tresh);
+int32_t over = inlog-treshlog;
+
+int32_t gain;
+if (over<0){
+	over=(over>>3)*7;
+	int32_t tmp=frac_exp(over+(___SMMUL(___SMMUL(over>>1,___SMMUL(over,over))-(over>>1),param_slope)<<5))<<8;
+	tmp=(___SMMUL(tmp,-0x80000+frac_exp(-___SMMUL(over,param_ratio)<<5))<<5);
+	gain = 0x80000+(___SMMUL(tmp,param_expand)<<5);
+} else {
+	gain = frac_exp(-___SMMUL(over,param_ratio)<<5);
+}
+gain = (gain<<8);
+
+
+   int32_t D = gain;
+
+
+	lp=D<lp?D:(lp+(___SMMUL(D-lp,rel)>>4));
+	in=inlet_in;
+	in=__SSAT(in+__SSAT(__SSAT(___SMMUL(in,param_gainIn)<<5,24)<<4,28),28);
+	outlet_out =  __SSAT(___SMMUL(in,lp)<<5,28);
+	D += step;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="dist/soft" uuid="e680d76a805e4866027cdf654c7efd8b2e54622" name="soft_1" x="1862" y="518">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="1918" y="518">
+      <params>
+         <frac32.u.map name="volume" value="24.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="252" y="798" text="select how to load. rst will reset the table at startup, after which you need to load the table."/>
+   <comment type="patch/comment" x="252" y="812" text="when creating a patch, at first time start-up select &quot;rst&quot;, load the table and go &quot;un-live&quot; again"/>
+   <comment type="patch/comment" x="224" y="826" text="after this, set it to &quot;keep&quot; and uncheck the load-switch. This will save lots of time when going live"/>
+   <comment type="patch/comment" x="882" y="910" text="just some drum modules I wrote to test the module"/>
+   <comment type="patch/comment" x="882" y="924" text="NOTE! most sequences don&apos;t trigger all channels!!!"/>
+   <comment type="patch/comment" x="882" y="938" text="most used: kick1,snare, open hihat, closed hihat and cymbals"/>
+   <nets>
+      <net>
+         <source obj="table name" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="LOAD" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="BPMext_1" outlet="vari1"/>
+         <dest obj="sequence count" inlet="trig"/>
+         <dest obj="patt select division" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="sequence count" outlet="o"/>
+         <dest obj="count retrigger" inlet="count"/>
+      </net>
+      <net>
+         <source obj="+_7" outlet="out"/>
+         <dest obj="kick2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="+_8" outlet="out"/>
+         <dest obj="kick1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="+_10" outlet="out"/>
+         <dest obj="snare" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="+_11" outlet="out"/>
+         <dest obj="closed hat" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="+_12" outlet="out"/>
+         <dest obj="open hat" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="+_9" outlet="out"/>
+         <dest obj="toms" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="+_13" outlet="out"/>
+         <dest obj="cymbal" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="kick"/>
+         <dest obj="+_7" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="basskick"/>
+         <dest obj="+_8" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="toms"/>
+         <dest obj="+_9" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="snares"/>
+         <dest obj="+_10" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="openHH"/>
+         <dest obj="+_11" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="closedHH"/>
+         <dest obj="+_12" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="cymbals"/>
+         <dest obj="+_13" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="baseq_1" outlet="percussions"/>
+         <dest obj="+_14" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="soft_1" outlet="out"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="comp_2" outlet="out"/>
+         <dest obj="soft_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="kick2" outlet="out"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="kick1" outlet="out"/>
+         <dest obj="mix_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="toms" outlet="out"/>
+         <dest obj="mix_1" inlet="in3"/>
+      </net>
+      <net>
+         <source obj="snare" outlet="out"/>
+         <dest obj="mix_1" inlet="in4"/>
+      </net>
+      <net>
+         <source obj="closed hat" outlet="out"/>
+         <dest obj="mix_1" inlet="in5"/>
+      </net>
+      <net>
+         <source obj="open hat" outlet="out"/>
+         <dest obj="mix_1" inlet="in6"/>
+      </net>
+      <net>
+         <source obj="cymbal" outlet="out"/>
+         <dest obj="mix_1" inlet="in7"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="comp_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+_14" outlet="out"/>
+         <dest obj="percussion" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="percussion" outlet="out"/>
+         <dest obj="mix_1" inlet="in8"/>
+      </net>
+      <net>
+         <source obj="channel1" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn1"/>
+      </net>
+      <net>
+         <source obj="channel2" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn2"/>
+      </net>
+      <net>
+         <source obj="channel3" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn3"/>
+      </net>
+      <net>
+         <source obj="channel4" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn4"/>
+      </net>
+      <net>
+         <source obj="channel5" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn5"/>
+      </net>
+      <net>
+         <source obj="channel6" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn6"/>
+      </net>
+      <net>
+         <source obj="channel7" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn7"/>
+      </net>
+      <net>
+         <source obj="channel8" outlet="out"/>
+         <dest obj="baseq_1" inlet="chn8"/>
+      </net>
+      <net>
+         <source obj="sequence count" outlet="c"/>
+         <dest obj="pattern generator" inlet="rnd"/>
+         <dest obj="patt select division" inlet="r"/>
+      </net>
+      <net>
+         <source obj="patt select division" outlet="c"/>
+         <dest obj="pattern count" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="pattern count" outlet="o"/>
+         <dest obj="pattern generator" inlet="count"/>
+      </net>
+      <net>
+         <source obj="pattern count" outlet="max"/>
+         <dest obj="pattern generator" inlet="length"/>
+      </net>
+      <net>
+         <source obj="pattern generator" outlet="v"/>
+         <dest obj="sel_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="baseq_1" inlet="p1"/>
+         <dest obj="baseq_1" inlet="p2"/>
+         <dest obj="baseq_1" inlet="p3"/>
+         <dest obj="baseq_1" inlet="p4"/>
+         <dest obj="baseq_1" inlet="p5"/>
+         <dest obj="baseq_1" inlet="p6"/>
+         <dest obj="baseq_1" inlet="p7"/>
+         <dest obj="baseq_1" inlet="p8"/>
+         <dest obj="baseq_1" inlet="pV"/>
+      </net>
+      <net>
+         <source obj="BPMext_1" outlet="vari2"/>
+         <dest obj="trig division" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="retrigger chance" outlet="rand"/>
+         <dest obj="countExt_4" inlet="r"/>
+         <dest obj="count retrigger" inlet="trig"/>
+         <dest obj="retrig range" inlet="trig"/>
+         <dest obj="retrig range_" inlet="trig"/>
+         <dest obj="trig division" inlet="r"/>
+      </net>
+      <net>
+         <source obj="countExt_4" outlet="o"/>
+         <dest obj="count retrigger" inlet="in"/>
+      </net>
+      <net>
+         <source obj="countExt_4" outlet="max"/>
+         <dest obj="count retrigger" inlet="max"/>
+      </net>
+      <net>
+         <source obj="count retrigger" outlet="o"/>
+         <dest obj="baseq_1" inlet="clock"/>
+      </net>
+      <net>
+         <source obj="BPMext_1" outlet="vari3"/>
+         <dest obj="retrigger chance" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="retrig range" outlet="v"/>
+         <dest obj="countExt_4" inlet="MaxCount"/>
+      </net>
+      <net>
+         <source obj="trig division" outlet="c"/>
+         <dest obj="countExt_4" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="retrig range_" outlet="v"/>
+         <dest obj="trig division" inlet="MaxCount"/>
+      </net>
+      <net>
+         <source obj="preset" outlet="out"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="sel_1" outlet="o"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1849</width>
+      <height>1096</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Supergran - live input granular delay/processor</title>
+    <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660</link>
+    <description>Hi all,
+
+Here&#39;s my latest project, supergran. It&#39;s a granular effect based on 3 new objects I made: a retriggerable, syncable dual buffer, a granular player,  and a new clock object for sync.
+
+It&#39;s got tons of parameters with lots of random/probability based options. It uses most of the axo&#39;s processing (the processing jumps up when lots of grains are playing). It&#39;s capable of playing up to 18 grains at once. Grains can be huge or tiny. 
+
+It&#39;s working pretty solidly, and I&#39;ve tried to keep everything as modulate-able and click free as possible.
+
+I&#39;ve uploaded the patch set to a standard 1/4 division delay as a good starting point for playing around with its features.
+
+A note on the clock syncing - it syncs the buffer length to the clock. The buffer length is 4 bars long, and the time based inlets are scaled from 0 to 4bars. The sync always locks to the nearest whole bpm. The time parameter dials have a &#39;z&#39; integer parameter, this will scale the knobs to a smaller range. I like to have the z set to 2, giving a dial range of 0 to 1bar. So if the dial is at 32, the time would be half a bar. If dial is at 16, the time would be 1/4 bar.
+Generally, dial settings for any time parameter that are multiples of 2 give nicely synced times. But other settings would give you unsynced times (that will still change with the bpm. If that makes sense).
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/c/c4c1fccf757cc8f8e1e81a8f939f5b8eed6cba94.axp&quot;&gt;supergran v1.0 upload.axp&lt;/a&gt; (105.1 KB)
+
+
+Here&#39;s a run down of its parameters and what they do:
+
+CLOCK
+The sync will automatically switch to the last started clock. When the patch loads it will use the bpm setting. If midi clock is started, a tempo is tapped, or the bpm parameter is changed, the sync will switch.
+- tap tempo. Tap a new tempo!
+- bpm. Type in a new bpm
+- revert to midi. If a midi clock is running in the background and you&#39;ve tapped a different tempo, pressing this will go back to the midi clock.
+
+MIXER 
+- dry/wet
+- buffer/grain. This is the wet output, a blend of the delayed buffer and the grain playback. Mostly you&#39;ll want this at maximum for granular stuff. 
+- volume.
+
+DELAY/FEEDBACK
+- delay time. This is the main delay time setting
+- feedback
+- feedback type. At minimum the feedback control will feedback the delayed buffer playback, pre granulator. This results in repeats not being reprocessed by the granulator (a pitched delay will not keep stepping up in pitch as it feeds back). At maximum the feedback is post granulator and is reprocessed (a pitched delay will keep stepping up in pitch as it feeds back).
+- freeze repeat. When turned on the buffer is frozen and the current repeat is looped. While the repeat is frozen you can use the &#39;grain pos&#39; parameter to select a different repeat.
+
+DIRECT MODE
+
+- direct mode on. When direct mode is on the grain player stops following the delay time and is static. playback is frozen at the current position. 
+- grain pos. When direct mode is on, this will select a new position for the frozen grains. You can use it to scrub through the buffer.
+- grain trigger. When direct mode is on and you trigger this the frozen grains will jump to the current delay position. Play around with it to understand.
+
+BUFFER
+- freeze buffer. When turned on the buffer stops recording and holds whatever is in the buffer (the last 4 bars of input)
+- replace. While the buffer is frozen this acts as a momentary record button, replacing what is in the buffer with new input whenever it is held down.
+
+GRAINS
+
+- grainsize. This is the size of the grain. In the patch this is scaled (by the dial&#39;s z parameter) to a maximum of 1/2 a bar. Decrease the z paramater for longer grains.
+- density. At 0 the grains will crossfade perfectly for good stretching/pitch shifting. Below 0 and the grains will spread apart further and further. Above 0 and grains will squash together and overlap more. The density is scaled directly from the grain size. If the grain size is a multiple of 2, and the density is a multiple of 2 you should get nicely synced rhythms.
+- disintegrate. This is the probability a grain doesn&#39;t trigger. At 0 all grains trigger. At 32 there&#39;s a 50/50 chance a grain will not trigger.
+- spray. This adds a random offset to each grains start position. Nice for high densities.
+- reverse grains. This increases the probability that a grain will be reversed. At 0 grains play forwards, at 64 grains play reversed. At 32 the grains will alternate between forward and reversed. Inbetween these settings it will be a random probability. The clock will still be forward (you can reverse this elsewhere).
+- shape. This controls the grain envelopes. At 0 the shape is a triangle, as you increase the dial it gets more and more trapezoid. At max it is almost square.
+- curve. Adds an s shaped curve to the shape. A triangle will become a smooth hump. Having this on is slightly more expensive, so maximum grains goes down to 15.
+
+PITCH
+
+- pitch. Changes the pitch of grains in semitones
+- pitch spray. Adds randomness to each grain&#39;s pitch
+
+TIME
+- reverse delay. This reverses the clock and the grains for traditional reverse delay effects. If grains are already reversed (by the reverse grains setting) they will play forwards. So for a normal reverse delay keep &#39;reverse grains&#39; at 0 and turn this on.
+- stretch. Stretches or compresses the delay repeats. It is scaled like pitch (-12 is half speed, +12 is double speed. Both this and the reverse delay setting are resynced to the delay time. If stretch is above 0 it will loop until the next repeat.
+- corrupt probability. Increases the probability that a grain&#39;s position is set by the corrupt time instead of the delay clock. At maximum you get a kind of rhythmic freezing effect. Play with it!
+-corrupt time. Controls the speed of the rhythmic freezing.
+
+GRAIN ECHO
+This is a separate delay that just the grain&#39;s are sent to. I like using short times for reverb ish effects
+- grain echo volume
+- grain echo feedback
+- grain echo time
+- feed grain echo back to granulator. This can get pretty mental, be careful!
+
+SHUFFLE
+This is like spray, but on the clock rather than the grains
+- shuffle probability. Increases the chance a randomly different slice of the buffer is played. 
+- shuffle range. The range of the shuffle. At 32 it would shuffle within the last 1/2 bar of input. At 16 it would shuffle from the last 1/4 bar of input.
+- shuffle size. Controls how big the shuffle&#39;s slices are. So, if the shuffle range is 64 (one bar) and shuffle size is 16 (1/4 bar) it would play random 1/4 bar slices from the last bar of input. Confusing, have a play around!
+
+RANDOM OCTAVE
+
+- random octave probability. The probability a grain plays at a different octave
+- octave time. Changes the rate at which a random octave is chosen. At 0 each grain will have a random octave applied. At 16 it would change the random octave every 1/4 bar.
+- octave mode. Controls the octave direction. 0 = octaves above pitch setting. 1= octaves below pitch setting. 2= octaves randomly either side of pitch setting.
+- octave range. Controls the range of the random octave
+
+LFO
+
+(I highly recommend plugging an lfo into other parameters and experimenting, this is kept simple)
+
+- LFO time.
+- LFO wave. 0= triangle, 1=sine, 2= square
+- lfo to grain time. Traditional delay time modulation but on the grain playback
+- lfo to grain echo time
+- lfo to delayed buffer time
+
+EXTRA SETTINGS
+(Because it doesn&#39;t have enough parameters already...)
+- save buffer to sd card
+- load buffer from sdcard (remember, if buffer is not frozen it will get over written)
+- all grains on. Stops grains from stopping when they are supposed to. Leads to all kinds of craziness.
+- mute grains
+- density range. Only affects the densities below 0, allowing really slow grain triggering at low densities
+- don&#39;t loop when stretching faster. Stops the stretch mechanism from looping.
+- resync stretch/reverse to delay time or corruption time. When off (default) and stretched/reversed the delay resyncs at the same speed as the delay. When on it resyncs to the corruption time.
+-lo fi pitch interpolation. When off interpolation is smooth. When on you&#39;re more likely to get aliasing, depending on what the pitch is doing. Sometimes it sounds nice.
+
+Right, I think that&#39;s everything.
+
+Here&#39;s some screenshots:
+
+&lt;img src=&quot;/uploads/default/original/2X/d/d6abfaf28c8ed3328cca2ab3f2fc67cb21bdb53b.JPG&quot; width=&quot;690&quot; height=&quot;92&quot;&gt;
+&lt;img src=&quot;/uploads/default/original/2X/5/5c5f84f2b3f5c299621787369719691d14d617e1.JPG&quot; width=&quot;690&quot; height=&quot;327&quot;&gt;
+&lt;img src=&quot;/uploads/default/original/2X/f/f14ae0f84d674690e131c03081c57b32f4400529.JPG&quot; width=&quot;690&quot; height=&quot;239&quot;&gt;
+&lt;img src=&quot;/uploads/default/original/2X/6/6e1e50d2d409309a9389fa747d05f5c46780043a.JPG&quot; width=&quot;690&quot; height=&quot;298&quot;&gt;</description>
+    
+    <lastBuildDate>Mon, 26 Sep 2022 20:07:08 +0000</lastBuildDate>
+    <category>Your Music/Projects</category>
+    <atom:link href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@floodcomics www.floodcomics.com]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/floodcomics">@floodcomics</a> wrote:</p>
+          <blockquote>
+              <p>This looks mental, can't wait to try it!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/14</link>
+        <pubDate>Mon, 26 Sep 2022 20:07:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-14</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@staxl]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/staxl">@staxl</a> wrote:</p>
+          <blockquote>
+              <p>Wow! Seems really exciting! A good occassion to dig out my axo again. Thanks for sharing this!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/13</link>
+        <pubDate>Mon, 26 Sep 2022 15:00:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-13</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@reubenfinger]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/reubenfinger">@reubenfinger</a> wrote:</p>
+          <blockquote>
+              <p>Awesome Matt, very excited to give it a bash.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/12</link>
+        <pubDate>Thu, 22 Sep 2022 17:00:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-12</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@trimardius]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/trimardius">@trimardius</a> wrote:</p>
+          <blockquote>
+              <p>Very nice! I’d love to hear some sounds! Thanks for sharing.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/11</link>
+        <pubDate>Wed, 21 Sep 2022 18:12:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-11</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>So, here it is, supergran stereo v1!</p>
+
+<p>Everything is stereo!</p>
+
+<p>All probability based stuff is stereo (separate probability for each side), so stereo spray, pitch spray, random octave, shuffle, corrupt, grain reverse.<br>You can switch off the stereo on these individually.</p>
+
+<p>Most time controls have a right offset control to delay one side for ping pong style effects.</p>
+
+<p>Random pan - increases the chance a grain will be panned to a random position</p>
+
+<p>Width - subtly offsets the delay time for left/right. Not noticeable if lots of stereo stuff is going on, but widens the repeats otherwise</p>
+
+<p>Swap feedback channels - left is fed back to right, etc.</p>
+
+<p>2x multi wave, multi destination, synced lfos with pulsewidth. Each lfo can be sent to any 2 destinations! Triangle, sine, square waves. All respond to pulsewidth (triangles turn into ramps, etc).</p>
+
+<p>Presets! Save and load presets. Glide between them!</p>
+
+<p>Full midi - sync, responds to cc's on channel 13 (can change this), same cc number as the label on the dial. Also responds to notes on the same channel for preset changing (notes are more fun than program changes because they're more easily sequenced!).</p>
+
+<p>I'll try and do a more full write up on the controls at some point, but enjoy. if shit gets weird turn the feedback down quickly!</p>
+
+<p>Hope the forum doesn't break again!</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/a29ceef45ac7045dd2c489684cf72810788d631d" href="//community.axoloti.com/uploads/default/original/2X/a/a29ceef45ac7045dd2c489684cf72810788d631d.JPG" class="lightbox" title="sgran stereo 1.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/a/a29ceef45ac7045dd2c489684cf72810788d631d_1_690x317.JPG" width="690" height="317"><div class="meta">
+<span class="filename">sgran stereo 1.JPG</span><span class="informations">1599x736 240 KB</span><span class="expand"></span>
+</div></a></div><br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/12d60b1ed3c04a6b7ea118e619a7f769cce01d3d" href="//community.axoloti.com/uploads/default/original/2X/1/12d60b1ed3c04a6b7ea118e619a7f769cce01d3d.JPG" class="lightbox" title="sgran stereo 2.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/1/12d60b1ed3c04a6b7ea118e619a7f769cce01d3d_1_690x325.JPG" width="690" height="325"><div class="meta">
+<span class="filename">sgran stereo 2.JPG</span><span class="informations">1599x754 242 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/5/57a46ed747fddde5a5a022516c3f9398746db72a.axp">supergran stereo v1.0.axp</a> (217.3 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/10</link>
+        <pubDate>Wed, 21 Sep 2022 16:59:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-10</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>A little update - i've got a stereo version of supergran coming, it's sounding ace. I've got the patch working well in my hardware, but I'll make a version with on screen controls when I get the time and upload (hopefully) soon.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/9</link>
+        <pubDate>Fri, 24 Jun 2022 10:33:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-9</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@reubenfinger]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/reubenfinger">@reubenfinger</a> wrote:</p>
+          <blockquote>
+              <p>Hats Off Matt.....thank you again, will try as soon as time allows, it looks "SuperBuff"</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/8</link>
+        <pubDate>Sat, 30 Apr 2022 18:56:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-8</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>So, I got distracted adapting the patch for my hardware controls (a lot of parameters to fit into 4 faders/4 knobs and some buttons!) but here's a new patch!</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/2/28890cad654a94145c33e09b8701a8dcc6ba7dc0.axp">supergran v2.5 upload.axp</a> (113.0 KB)</p>
+
+<p>Changes -</p>
+
+<p>I've combined the freeze repeat and direct mode into a new 'freeze mode'.  </p>
+
+<p>Freeze mode parameters:</p>
+
+<p>Freeze - turn on to freeze at the current position</p>
+
+<p>Grain trigger - when pressed the freeze position jumps to the current delay position.  If you see what I mean.</p>
+
+<p>Freeze position - direct control of the freeze position, 0-64 on the dial = 0 - 4 bars in the buffer</p>
+
+<p>Freeze scrub - this is similar to the freeze position parameter, but it is relative to the last selected freeze position. It will select a new freeze position within a range either side of the current position. Confusing! In effect, if you turn on the freeze and then turn this dial, you can scrub 1/2 a bar either side of the frozen position.</p>
+
+<p>Freeze size - set the size of the freeze. If at 0 it will freeze at the grain size. (This is how the direct mode worked before) If larger than 0 it will freeze a slice of the buffer, like a repeater. (This is more like how the freeze repeat button worked before).</p>
+
+<p>Extra settings:</p>
+
+<p>Hold when frozen - when this is on, the buffer is also held when freeze is turned on. When off, the buffer will keep recording when frozen.</p>
+
+<p>Scrub amount - reduces the 'width' of the freeze scrub dial - it's currently set so the dial scrubs 1/2 a bar either side of the freeze position.</p>
+
+<p>Other changes:</p>
+
+<p>I've changed the attenuation for different densities. It lowers the volume of the granulator when lots of grains are playing (higher densities), and boosts it a little when the density control is below 0. There's also some compression, to try and control things when they get too loud. But it's still possible to get into tricky situations with feedback... It's hard to get this right, I'm still experimenting.</p>
+
+<p>The density parameter has been re-scaled so that it's a more even, spread out range when it's above 0.   </p>
+
+<p>If anyone has any cool granular ideas I could implement, let me know! I've been playing around with the patch a lot, and it's working pretty solidly. I've adapted it for my hardware, with full midi cc input/output (It sounds ace with a load of automation!). It has presets with 'preset glide' where all parameters do a synced glide to the new settings when you change presets. I'll do a video and upload that patch at some point once it's finished.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/cea22b4399fd6dbac9eb48c1012baca6a3dc746f" href="//community.axoloti.com/uploads/default/original/2X/c/cea22b4399fd6dbac9eb48c1012baca6a3dc746f.JPG" class="lightbox" title="sg1.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/c/cea22b4399fd6dbac9eb48c1012baca6a3dc746f_1_690x330.JPG" width="690" height="330"><div class="meta">
+<span class="filename">sg1.JPG</span><span class="informations">1581x757 168 KB</span><span class="expand"></span>
+</div></a></div><br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/1e0df48e739110502138c8c93634c48f2fba5c19" href="//community.axoloti.com/uploads/default/original/2X/1/1e0df48e739110502138c8c93634c48f2fba5c19.JPG" class="lightbox" title="sg2.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/1/1e0df48e739110502138c8c93634c48f2fba5c19_1_690x315.JPG" width="690" height="315"><div class="meta">
+<span class="filename">sg2.JPG</span><span class="informations">1582x724 187 KB</span><span class="expand"></span>
+</div></a></div><br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/5a833b6d354690c844b31ea6004d179b2b1e0b78" href="//community.axoloti.com/uploads/default/original/2X/5/5a833b6d354690c844b31ea6004d179b2b1e0b78.JPG" class="lightbox" title="sg3.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/5/5a833b6d354690c844b31ea6004d179b2b1e0b78_1_690x330.JPG" width="690" height="330"><div class="meta">
+<span class="filename">sg3.JPG</span><span class="informations">1582x757 170 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/7</link>
+        <pubDate>Sat, 30 Apr 2022 09:27:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-7</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@TTotelka]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ttotelka">@TTotelka</a> wrote:</p>
+          <blockquote>
+              <p>awesome, I´ll be waiting.<br>By the way, I also loved the disposition of the displays and controls all together on the top of the patch, it makes using it easier.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/6</link>
+        <pubDate>Wed, 30 Mar 2022 08:16:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-6</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>Thanks, glad you like it! I've been having so much fun playing around, lots of happy accidents. I kept getting lost making sounds when I was testing stuff <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>I've actually got a little update coming:</p>
+
+<p>I realised a lot of the higher densities are bunched up at the top range of the density control, so I've rescaled that. The density control has more sweet spots that way. </p>
+
+<p>And i've reworked the attenuation for when density is high so that it's based more directly on how many grains are playing, and has some slight compression when things get out of hand with feedback.</p>
+
+<p>I'll upload soon</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/5</link>
+        <pubDate>Wed, 30 Mar 2022 08:03:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-5</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@TTotelka]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ttotelka">@TTotelka</a> wrote:</p>
+          <blockquote>
+              <p>WOW.<br>I´ve also been playing with this type of effect lately (triggered by the harassment I´m receiving from social media with the microcosm), but I didn´t come even close to get something as complete as this.<br>Congratulations man, I just tried it and It has so many posibilities.<br>Thanks for sharing, really <img src="//community.axoloti.com/images/emoji/twitter/smiley.png?v=5" title=":smiley:" class="emoji" alt=":smiley:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/4</link>
+        <pubDate>Wed, 30 Mar 2022 07:18:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-4</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@reubenfinger]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/reubenfinger">@reubenfinger</a> wrote:</p>
+          <blockquote>
+              <p>Cheers Matt, this looks awesome, can't wait</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/3</link>
+        <pubDate>Sun, 20 Mar 2022 21:23:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-3</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>I forgot to mention - if you want a faster response  for non-delay style effects it works really nicely if you set delay to 0 and the 'reverse grains' dial to maximum</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/2</link>
+        <pubDate>Sun, 20 Mar 2022 13:02:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-2</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+      <item>
+        <title>Supergran - live input granular delay/processor</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>Hi all,</p>
+
+<p>Here's my latest project, supergran. It's a granular effect based on 3 new objects I made: a retriggerable, syncable dual buffer, a granular player,  and a new clock object for sync.</p>
+
+<p>It's got tons of parameters with lots of random/probability based options. It uses most of the axo's processing (the processing jumps up when lots of grains are playing). It's capable of playing up to 18 grains at once. Grains can be huge or tiny. </p>
+
+<p>It's working pretty solidly, and I've tried to keep everything as modulate-able and click free as possible.</p>
+
+<p>I've uploaded the patch set to a standard 1/4 division delay as a good starting point for playing around with its features.</p>
+
+<p>A note on the clock syncing - it syncs the buffer length to the clock. The buffer length is 4 bars long, and the time based inlets are scaled from 0 to 4bars. The sync always locks to the nearest whole bpm. The time parameter dials have a 'z' integer parameter, this will scale the knobs to a smaller range. I like to have the z set to 2, giving a dial range of 0 to 1bar. So if the dial is at 32, the time would be half a bar. If dial is at 16, the time would be 1/4 bar.<br>Generally, dial settings for any time parameter that are multiples of 2 give nicely synced times. But other settings would give you unsynced times (that will still change with the bpm. If that makes sense).</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/c/c4c1fccf757cc8f8e1e81a8f939f5b8eed6cba94.axp">supergran v1.0 upload.axp</a> (105.1 KB)</p>
+
+<p>Here's a run down of its parameters and what they do:</p>
+
+<p>CLOCK<br>The sync will automatically switch to the last started clock. When the patch loads it will use the bpm setting. If midi clock is started, a tempo is tapped, or the bpm parameter is changed, the sync will switch.<br>- tap tempo. Tap a new tempo!<br>- bpm. Type in a new bpm<br>- revert to midi. If a midi clock is running in the background and you've tapped a different tempo, pressing this will go back to the midi clock.</p>
+
+<p>MIXER <br>- dry/wet<br>- buffer/grain. This is the wet output, a blend of the delayed buffer and the grain playback. Mostly you'll want this at maximum for granular stuff. <br>- volume.</p>
+
+<p>DELAY/FEEDBACK<br>- delay time. This is the main delay time setting<br>- feedback<br>- feedback type. At minimum the feedback control will feedback the delayed buffer playback, pre granulator. This results in repeats not being reprocessed by the granulator (a pitched delay will not keep stepping up in pitch as it feeds back). At maximum the feedback is post granulator and is reprocessed (a pitched delay will keep stepping up in pitch as it feeds back).<br>- freeze repeat. When turned on the buffer is frozen and the current repeat is looped. While the repeat is frozen you can use the 'grain pos' parameter to select a different repeat.</p>
+
+<p>DIRECT MODE</p>
+
+<ul>
+<li>direct mode on. When direct mode is on the grain player stops following the delay time and is static. playback is frozen at the current position. </li>
+<li>grain pos. When direct mode is on, this will select a new position for the frozen grains. You can use it to scrub through the buffer.</li>
+<li>grain trigger. When direct mode is on and you trigger this the frozen grains will jump to the current delay position. Play around with it to understand.</li>
+</ul>
+
+<p>BUFFER<br>- freeze buffer. When turned on the buffer stops recording and holds whatever is in the buffer (the last 4 bars of input)<br>- replace. While the buffer is frozen this acts as a momentary record button, replacing what is in the buffer with new input whenever it is held down.</p>
+
+<p>GRAINS</p>
+
+<ul>
+<li>grainsize. This is the size of the grain. In the patch this is scaled (by the dial's z parameter) to a maximum of 1/2 a bar. Decrease the z paramater for longer grains.</li>
+<li>density. At 0 the grains will crossfade perfectly for good stretching/pitch shifting. Below 0 and the grains will spread apart further and further. Above 0 and grains will squash together and overlap more. The density is scaled directly from the grain size. If the grain size is a multiple of 2, and the density is a multiple of 2 you should get nicely synced rhythms.</li>
+<li>disintegrate. This is the probability a grain doesn't trigger. At 0 all grains trigger. At 32 there's a 50/50 chance a grain will not trigger.</li>
+<li>spray. This adds a random offset to each grains start position. Nice for high densities.</li>
+<li>reverse grains. This increases the probability that a grain will be reversed. At 0 grains play forwards, at 64 grains play reversed. At 32 the grains will alternate between forward and reversed. Inbetween these settings it will be a random probability. The clock will still be forward (you can reverse this elsewhere).</li>
+<li>shape. This controls the grain envelopes. At 0 the shape is a triangle, as you increase the dial it gets more and more trapezoid. At max it is almost square.</li>
+<li>curve. Adds an s shaped curve to the shape. A triangle will become a smooth hump. Having this on is slightly more expensive, so maximum grains goes down to 15.</li>
+</ul>
+
+<p>PITCH</p>
+
+<ul>
+<li>pitch. Changes the pitch of grains in semitones</li>
+<li>pitch spray. Adds randomness to each grain's pitch</li>
+</ul>
+
+<p>TIME<br>- reverse delay. This reverses the clock and the grains for traditional reverse delay effects. If grains are already reversed (by the reverse grains setting) they will play forwards. So for a normal reverse delay keep 'reverse grains' at 0 and turn this on.<br>- stretch. Stretches or compresses the delay repeats. It is scaled like pitch (-12 is half speed, +12 is double speed. Both this and the reverse delay setting are resynced to the delay time. If stretch is above 0 it will loop until the next repeat.<br>- corrupt probability. Increases the probability that a grain's position is set by the corrupt time instead of the delay clock. At maximum you get a kind of rhythmic freezing effect. Play with it!<br>-corrupt time. Controls the speed of the rhythmic freezing.</p>
+
+<p>GRAIN ECHO<br>This is a separate delay that just the grain's are sent to. I like using short times for reverb ish effects<br>- grain echo volume<br>- grain echo feedback<br>- grain echo time<br>- feed grain echo back to granulator. This can get pretty mental, be careful!</p>
+
+<p>SHUFFLE<br>This is like spray, but on the clock rather than the grains<br>- shuffle probability. Increases the chance a randomly different slice of the buffer is played. <br>- shuffle range. The range of the shuffle. At 32 it would shuffle within the last 1/2 bar of input. At 16 it would shuffle from the last 1/4 bar of input.<br>- shuffle size. Controls how big the shuffle's slices are. So, if the shuffle range is 64 (one bar) and shuffle size is 16 (1/4 bar) it would play random 1/4 bar slices from the last bar of input. Confusing, have a play around!</p>
+
+<p>RANDOM OCTAVE</p>
+
+<ul>
+<li>random octave probability. The probability a grain plays at a different octave</li>
+<li>octave time. Changes the rate at which a random octave is chosen. At 0 each grain will have a random octave applied. At 16 it would change the random octave every 1/4 bar.</li>
+<li>octave mode. Controls the octave direction. 0 = octaves above pitch setting. 1= octaves below pitch setting. 2= octaves randomly either side of pitch setting.</li>
+<li>octave range. Controls the range of the random octave</li>
+</ul>
+
+<p>LFO</p>
+
+<p>(I highly recommend plugging an lfo into other parameters and experimenting, this is kept simple)</p>
+
+<ul>
+<li>LFO time.</li>
+<li>LFO wave. 0= triangle, 1=sine, 2= square</li>
+<li>lfo to grain time. Traditional delay time modulation but on the grain playback</li>
+<li>lfo to grain echo time</li>
+<li>lfo to delayed buffer time</li>
+</ul>
+
+<p>EXTRA SETTINGS<br>(Because it doesn't have enough parameters already...)<br>- save buffer to sd card<br>- load buffer from sdcard (remember, if buffer is not frozen it will get over written)<br>- all grains on. Stops grains from stopping when they are supposed to. Leads to all kinds of craziness.<br>- mute grains<br>- density range. Only affects the densities below 0, allowing really slow grain triggering at low densities<br>- don't loop when stretching faster. Stops the stretch mechanism from looping.<br>- resync stretch/reverse to delay time or corruption time. When off (default) and stretched/reversed the delay resyncs at the same speed as the delay. When on it resyncs to the corruption time.<br>-lo fi pitch interpolation. When off interpolation is smooth. When on you're more likely to get aliasing, depending on what the pitch is doing. Sometimes it sounds nice.</p>
+
+<p>Right, I think that's everything.</p>
+
+<p>Here's some screenshots:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/d6abfaf28c8ed3328cca2ab3f2fc67cb21bdb53b" href="//community.axoloti.com/uploads/default/original/2X/d/d6abfaf28c8ed3328cca2ab3f2fc67cb21bdb53b.JPG" class="lightbox" title="sg 1.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/d/d6abfaf28c8ed3328cca2ab3f2fc67cb21bdb53b_1_690x92.JPG" width="690" height="92"><div class="meta">
+<span class="filename">sg 1.JPG</span><span class="informations">1579x211 29.8 KB</span><span class="expand"></span>
+</div></a></div><br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/5c5f84f2b3f5c299621787369719691d14d617e1" href="//community.axoloti.com/uploads/default/original/2X/5/5c5f84f2b3f5c299621787369719691d14d617e1.JPG" class="lightbox" title="sg 2.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/5/5c5f84f2b3f5c299621787369719691d14d617e1_1_690x327.JPG" width="690" height="327"><div class="meta">
+<span class="filename">sg 2.JPG</span><span class="informations">1581x750 206 KB</span><span class="expand"></span>
+</div></a></div><br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/f14ae0f84d674690e131c03081c57b32f4400529" href="//community.axoloti.com/uploads/default/original/2X/f/f14ae0f84d674690e131c03081c57b32f4400529.JPG" class="lightbox" title="sg 3.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/f14ae0f84d674690e131c03081c57b32f4400529_1_690x239.JPG" width="690" height="239"><div class="meta">
+<span class="filename">sg 3.JPG</span><span class="informations">1581x549 144 KB</span><span class="expand"></span>
+</div></a></div><br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/6e1e50d2d409309a9389fa747d05f5c46780043a" href="//community.axoloti.com/uploads/default/original/2X/6/6e1e50d2d409309a9389fa747d05f5c46780043a.JPG" class="lightbox" title="sg 4.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/6/6e1e50d2d409309a9389fa747d05f5c46780043a_1_690x298.JPG" width="690" height="298"><div class="meta">
+<span class="filename">sg 4.JPG</span><span class="informations">1580x684 159 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660/1</link>
+        <pubDate>Sun, 20 Mar 2022 12:31:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7660-1</guid>
+        <source url="http://community.axoloti.com/t/supergran-live-input-granular-delay-processor/7660.rss">Supergran - live input granular delay/processor</source>
+      </item>
+  </channel>
+</rss>

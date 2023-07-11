@@ -1,0 +1,445 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="322" y="14" text="these objects just clears the leds on the launchpad connected to the axo - can be ignored"/>
+   <obj type="rbrt/patching/loadbang" uuid="45d1f29d-ac62-4e5b-86f8-2201d2f6c689" name="loadbang_1" x="322" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="timer/pulselength" uuid="ca68725237d8ba8407773340801660a9fd9b0dba" name="pulselength_1" x="448" y="28">
+      <params>
+         <frac32.s.map name="delay" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="84539e4a-89ff-40c9-a625-b82716c522be" name="clear_1" x="560" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb host port / LP"/>
+      </attribs>
+      <object id="patch/object" uuid="84539e4a-89ff-40c9-a625-b82716c522be">
+         <sDescription>sets a right row button on the &apos;launchpad&apos; to the defined color</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="clear"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>usb host port / LP</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t b;
+uint8_t prevb;
+uint8_t map[64];
+int i;
+int length;
+int ntrig;
+int ntrig2;]]></code.declaration>
+         <code.init><![CDATA[{ 
+  int i;
+  for(i=0;i<64;i++) 
+  map[i] = (((i >> 3)<< 3) + i);
+}
+
+i = 666;]]></code.init>
+         <code.krate><![CDATA[b  = 0;
+if (((b != prevb ) || (inlet_clear > 0)) && (!ntrig))
+{
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((0 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((1 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((2 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((3 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((4 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((5 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((6 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON, ((7 << 4) + 8), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (104), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (105), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (106), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (107), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (108), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (109), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (110), b);
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE, (111), b);
+	ntrig = 1; prevb=b;i = 0;
+	}
+	length = (64 > 64) ?  64 : 64;
+
+//clear
+if ((inlet_clear > 0) && !ntrig2) { ntrig2 = 1;i = 0;}
+ 
+  if (i < length){
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON ,map[(i + (0))],0);
+i += 1;
+  }
+  else i = 666;
+if (!(inlet_clear > 0 )) ntrig2 = 0;
+else ntrig2 = 0;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="812" y="28" text="thrus the launchpad to the DIN - can be ignored"/>
+   <obj type="tb/midi/utils/midithru" uuid="b3868bd5-625c-4482-9948-a34e59fe2a21" name="midithru_1" x="812" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="input" selection="usb host port 1"/>
+         <combo attributeName="output" selection="din"/>
+         <combo attributeName="led" selection="on"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="0" y="126" text="this is a custom object that recieves some midi notes from another axo to switch the mux below to choose the patch"/>
+   <comment type="patch/comment" x="924" y="126" text="audio thru - can be ignored"/>
+   <comment type="patch/comment" x="28" y="140" text="index chooses the patch to load"/>
+   <comment type="patch/comment" x="252" y="140" text="index gate actually loads the patch"/>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="896" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="980" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="14" y="168" text="this could be swapped for midi/in/keyb object. Midi notes 64 -  80 would load the corresponding patch. (midi note 64=0 in axoloti land)"/>
+   <patchobj type="patch/object" uuid="125111dd-8d1c-44d4-9bc9-00d7921a0251" name="note_1" x="196" y="182">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="125111dd-8d1c-44d4-9bc9-00d7921a0251">
+         <sDescription>Monophonic MIDI keyboard note input, gate, velocity and release velocity</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <int32 name="index"/>
+            <bool32 name="indexgate"/>
+            <bool32 name="initrig" description="key pressed?"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int mode;
+int modegate;
+int ccv;
+uint8_t _gate;]]></code.declaration>
+         <code.init><![CDATA[_gate = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_index=mode;
+outlet_indexgate=modegate;
+
+if ((_gate>0)&&(ccv>0)) {outlet_initrig= 1;}
+else {outlet_initrig=0;}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + 8) && (data2)) {
+	if (data1 ==108) {
+		_gate=1;
+	}
+	if ((data1>40)&&(data1<45)){
+		mode=(data1-41);
+		modegate=1;
+	}
+	if ((data1>56)&&(data1<61)){
+		mode=(data1-57+4);
+		modegate=1;
+	}
+	if ((data1>72)&&(data1<77)){
+		mode=(data1-73+8);
+		modegate=1;
+	}
+	if ((data1>88)&&(data1<93)){
+		mode=(data1-89+12);
+		modegate=1;
+	}
+}
+
+else if (((status == MIDI_NOTE_ON + 8) && (!data2))||          (status == MIDI_NOTE_OFF + (8))) {
+	
+		_gate=0;
+		modegate=0;
+	
+}
+
+
+if ((status == (8) + MIDI_CONTROL_CHANGE)&&(data1 == 107)) { ccv = data2<<20;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="434" y="280" text="the string objects are the patch paths on the sd card, to determine which patch to load - chosen by the mux below. some of them currently load the init patch again (just to give me room for future patches)"/>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="224" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/malcolmsniece upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_2" x="378" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/malcolmsdaughter upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_3" x="532" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/malcolms grandaughter upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_4" x="686" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/malcolm betty upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_5" x="840" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/malcolm abletoned upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_6" x="994" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_7" x="1148" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_8" x="1302" y="294">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_9" x="224" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_10" x="378" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_11" x="532" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_12" x="686" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_13" x="840" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_15" x="994" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_14" x="1148" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_16" x="1302" y="364">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="532" y="448" text="the mux chooses which patch to load. it&apos;s a custom mux but only because the factory one only goes up to 8 and I wanted 16"/>
+   <patchobj type="patch/object" uuid="29183862-b258-4970-b387-8e819f48ad2c" name="mux_1" x="546" y="462">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="29183862-b258-4970-b387-8e819f48ad2c">
+         <sDescription>input multiplexer. Output is i1 when s &lt; 1, i[i] when....</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>mux.axh</helpPatch>
+         <inlets>
+            <charptr32 name="i0" description="input 0"/>
+            <charptr32 name="i1" description="input 1"/>
+            <charptr32 name="i2" description="input 2"/>
+            <charptr32 name="i3" description="input 3"/>
+            <charptr32 name="i4" description="input 4"/>
+            <charptr32 name="i5" description="input 5"/>
+            <charptr32 name="i6" description="input 6"/>
+            <charptr32 name="i7" description="input 7"/>
+            <charptr32 name="i8"/>
+            <charptr32 name="i9"/>
+            <charptr32 name="i10"/>
+            <charptr32 name="i11"/>
+            <charptr32 name="i12"/>
+            <charptr32 name="i13"/>
+            <charptr32 name="i14"/>
+            <charptr32 name="i15"/>
+            <int32.positive name="s" description="select"/>
+         </inlets>
+         <outlets>
+            <charptr32 name="o" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[switch(inlet_s>0?inlet_s:0){
+      case 0: outlet_o= (char *)inlet_i0;break;
+      case 1: outlet_o= (char *)inlet_i1;break;
+      case 2: outlet_o= (char *)inlet_i2;break;
+      case 3: outlet_o= (char *)inlet_i3;break;
+      case 4: outlet_o= (char *)inlet_i4;break;
+      case 5: outlet_o= (char *)inlet_i5;break;
+      case 6: outlet_o= (char *)inlet_i6;break;
+      case 7: outlet_o= (char *)inlet_i7;break;
+      case 8: outlet_o= (char *)inlet_i8;break;
+      case 9: outlet_o= (char *)inlet_i9;break;
+      case 10: outlet_o= (char *)inlet_i10;break;
+      case 11: outlet_o= (char *)inlet_i11;break;
+      case 12: outlet_o= (char *)inlet_i12;break;
+      case 13: outlet_o= (char *)inlet_i13;break;
+      case 14: outlet_o= (char *)inlet_i14;break;
+      case 15: outlet_o= (char *)inlet_i15;break;
+      default: outlet_o= (char *)inlet_i15;break;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="252" y="574" text="this loads the init patch if needed -can ignore"/>
+   <obj type="patch/load" uuid="634bf1f8c313920d7f19fc402ba937fd1ee27802" name="load_3" x="252" y="588">
+      <params/>
+      <attribs>
+         <table attributeName="filename" table="/init malcolm upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="952" y="644" text="this loads the patch from the sd card - the string mux chooses which patch"/>
+   <obj type="patch/load fn" uuid="12a194acdd5b94470e044f98e8e025d0dac65e18" name="load_2" x="952" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="note_1" outlet="index"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="note_1" outlet="initrig"/>
+         <dest obj="load_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="loadbang_1" outlet="pulse"/>
+         <dest obj="pulselength_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="mux_1" inlet="i0"/>
+      </net>
+      <net>
+         <source obj="c_2" outlet="out"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="c_3" outlet="out"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="c_4" outlet="out"/>
+         <dest obj="mux_1" inlet="i3"/>
+      </net>
+      <net>
+         <source obj="c_5" outlet="out"/>
+         <dest obj="mux_1" inlet="i4"/>
+      </net>
+      <net>
+         <source obj="c_6" outlet="out"/>
+         <dest obj="mux_1" inlet="i5"/>
+      </net>
+      <net>
+         <source obj="c_7" outlet="out"/>
+         <dest obj="mux_1" inlet="i6"/>
+      </net>
+      <net>
+         <source obj="c_8" outlet="out"/>
+         <dest obj="mux_1" inlet="i7"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="load_2" inlet="fn"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="right"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="c_9" outlet="out"/>
+         <dest obj="mux_1" inlet="i8"/>
+      </net>
+      <net>
+         <source obj="c_10" outlet="out"/>
+         <dest obj="mux_1" inlet="i9"/>
+      </net>
+      <net>
+         <source obj="c_11" outlet="out"/>
+         <dest obj="mux_1" inlet="i10"/>
+      </net>
+      <net>
+         <source obj="c_12" outlet="out"/>
+         <dest obj="mux_1" inlet="i11"/>
+      </net>
+      <net>
+         <source obj="c_13" outlet="out"/>
+         <dest obj="mux_1" inlet="i12"/>
+      </net>
+      <net>
+         <source obj="c_15" outlet="out"/>
+         <dest obj="mux_1" inlet="i13"/>
+      </net>
+      <net>
+         <source obj="c_14" outlet="out"/>
+         <dest obj="mux_1" inlet="i14"/>
+      </net>
+      <net>
+         <source obj="c_16" outlet="out"/>
+         <dest obj="mux_1" inlet="i15"/>
+      </net>
+      <net>
+         <source obj="pulselength_1" outlet="pulse"/>
+         <dest obj="clear_1" inlet="clear"/>
+      </net>
+      <net>
+         <source obj="note_1" outlet="indexgate"/>
+         <dest obj="load_2" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

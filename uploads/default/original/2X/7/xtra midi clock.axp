@@ -1,0 +1,57 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="gpio/serial/config" uuid="8ec617bbe7b552a58656442e87513d8b4c69833a" name="serial.begin_1" x="42" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="baudrate" selection="31250"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="42" y="98">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="1074ef77-c7a9-4c1e-ab10-2d270e15e514" name="5___" x="126" y="98">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="1074ef77-c7a9-4c1e-ab10-2d270e15e514">
+         <sDescription>script that serves as an extra MIDI OUT port</sDescription>
+         <author>Johannes Taelman, Florian Bruenig</author>
+         <license>BSD</license>
+         <helpPatch>script.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="24ppq"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[void SendMidi1(uint8_t b0){
+  sdPut(&SD2,b0);
+}
+
+uint32_t old_24ppq;]]></code.declaration>
+         <code.init><![CDATA[old_24ppq = 0;]]></code.init>
+         <code.krate><![CDATA[if (inlet_24ppq && !old_24ppq){
+   SendMidi1(MIDI_TIMING_CLOCK);
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="5___" inlet="24ppq"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>400</width>
+      <height>400</height>
+   </windowPos>
+</patch-1.0>

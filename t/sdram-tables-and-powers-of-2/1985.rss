@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>SDRAM Tables and Powers of 2</title>
+    <link>http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985</link>
+    <description>Do tables stored in SDRAM always need to be powers of 2 in length, or can they be of arbitrary size?
+
+I want to make a version of the &#39;alloc 16b sdram load&#39; object to load 8-bit data from a binary file, but I&#39;d rather not waste a load of SDRAM by allocating more space than required.
+
+The file-loading will be integrated into a custom object, so there&#39;s no need for the loaded data to be accessible from a table load/play etc. object.
+
+a|x</description>
+    
+    <lastBuildDate>Tue, 12 Jul 2016 19:12:10 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>SDRAM Tables and Powers of 2</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>No need to apologise- it's all useful information.</p>
+
+<p>The scaling-via-bit-shifting makes a lot of sense.</p>
+
+<p>I'm not planning to traverse through the data in the sense of playing back a table of audio data, anyway. The binary file will store a number of different kinds of data, including character strings, and pointers to encoded audio streams within the array, so it's quite an obscure use-case.</p>
+
+<p>Since we're only talking 8k, I'm not too worried about a possible few kb of waste, now I think about it.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/5</link>
+        <pubDate>Tue, 12 Jul 2016 19:12:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1985-5</guid>
+        <source url="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985.rss">SDRAM Tables and Powers of 2</source>
+      </item>
+      <item>
+        <title>SDRAM Tables and Powers of 2</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="1985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">toneburst:</div>
+<blockquote><p>How does the optimisation you mention work, incidentally?</p></blockquote></aside>
+
+<p>all to do with bit shifting, a quick looks (on one table/read) looks like its using it to scale the Q27 to the size of the table.<br>e.g. imagine going from 0..64 to a table that was 123 in size, you'd need to divide, whereas a shift is much faster.</p>
+
+<p>note: I've not reviewed all the objects, so there may be other optimisations, but this was the 'obvious' one.  (just look at usages of LENGTHPOW). Id suspect that the int access its possibly not as relevant BUT why scaled input are used is a completely different question l)</p>
+
+<p>anyway have a look at the code, the non-interp versions are not that daunting.</p>
+
+<p>of course your 'main issue' in terms of wasting memory, is that standard arrays do not dynamically allocate.... mainly for the 'reason',  you might as well allocate the size of your largest data set/sample.</p>
+
+<p>where this logic fails , is when using lots of samples (etc) ,  then theory should be the allocated size should be the max of the COMBINED sample set... I suppose you could load these into one array however. (then use appropriate indexing)<br>oops, these thoughts, get off-topic quite quickly  - sorry <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/4</link>
+        <pubDate>Tue, 12 Jul 2016 18:59:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1985-4</guid>
+        <source url="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985.rss">SDRAM Tables and Powers of 2</source>
+      </item>
+      <item>
+        <title>SDRAM Tables and Powers of 2</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>Cool, thanks.</p>
+
+<p>I realised I may be able to get away with a fixed 8kb size (8192 bytes), anyway, but good to know.</p>
+
+<p>How does the optimisation you mention work, incidentally?</p>
+
+<p>I'm going to be reading data from SDRAM at a fraction of K-rate, so optimisation isn't really necessary, especially if there's some form of tradeoff in some other area (processor cycles, etc.).</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/3</link>
+        <pubDate>Tue, 12 Jul 2016 16:56:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1985-3</guid>
+        <source url="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985.rss">SDRAM Tables and Powers of 2</source>
+      </item>
+      <item>
+        <title>SDRAM Tables and Powers of 2</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>the read/write objects are optimised for (and will only work with ) powers of 2.<br>but no , arrays don't generally need to be n^2, if you are planning on using your own access objects.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/2</link>
+        <pubDate>Tue, 12 Jul 2016 15:00:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1985-2</guid>
+        <source url="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985.rss">SDRAM Tables and Powers of 2</source>
+      </item>
+      <item>
+        <title>SDRAM Tables and Powers of 2</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <p>Do tables stored in SDRAM always need to be powers of 2 in length, or can they be of arbitrary size?</p>
+
+<p>I want to make a version of the 'alloc 16b sdram load' object to load 8-bit data from a binary file, but I'd rather not waste a load of SDRAM by allocating more space than required.</p>
+
+<p>The file-loading will be integrated into a custom object, so there's no need for the loaded data to be accessible from a table load/play etc. object.</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985/1</link>
+        <pubDate>Tue, 12 Jul 2016 08:41:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1985-1</guid>
+        <source url="http://community.axoloti.com/t/sdram-tables-and-powers-of-2/1985.rss">SDRAM Tables and Powers of 2</source>
+      </item>
+  </channel>
+</rss>

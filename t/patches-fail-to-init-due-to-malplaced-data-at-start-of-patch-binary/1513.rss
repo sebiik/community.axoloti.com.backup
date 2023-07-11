@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Patches fail to init due to malplaced data at start of patch binary</title>
+    <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513</link>
+    <description>This thread: http://community.axoloti.com/t/maximum-patch-size/1483/12 started out as a question about the maximum size of a patch, but in the end I determined that there is bug in ramlink.ld, which puts a couple of arrays before the patch init function. The net result is that when the firmware calls PATCHMAINLOC to initialize the patch, the data in the arrays (pointers) are interpreted as code, which is then run before the actual init function, which can potentially wreck havoc with patch initialization.
+
+Problems I&#39;ve seen include:
+
+* Axoloti Core crashes and/or restarts
+* Patch performs init properly but refuses to run
+
+The fix is simple, simply put the arrays in question after the text segment in the patch binary, so that PATCHMAINLOC is actually the start of the patch init function.
+
+I&#39;ve got a patch ready in my github repository (https://github.com/polluxsynth/axoloti/tree/fix-patch-init) which I&#39;ve tested with complete success in my own setup. @johannes, let me know if you want me to rework it, or raise an issue in the Axoloti github repository, etc.</description>
+    
+    <lastBuildDate>Mon, 18 Apr 2016 04:30:04 +0000</lastBuildDate>
+    <category>Helpdesk</category>
+    <atom:link href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Patches fail to init due to malplaced data at start of patch binary</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Ok. Thanks <a class="mention" href="/users/johannes">@johannes</a>!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/7</link>
+        <pubDate>Mon, 18 Apr 2016 04:30:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1513-7</guid>
+        <source url="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss">Patches fail to init due to malplaced data at start of patch binary</source>
+      </item>
+      <item>
+        <title>Patches fail to init due to malplaced data at start of patch binary</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for the detailed diagnosis and the pull request with a fix!<br>I was away, merging pull requests is done manually.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/6</link>
+        <pubDate>Sun, 17 Apr 2016 14:08:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1513-6</guid>
+        <source url="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss">Patches fail to init due to malplaced data at start of patch binary</source>
+      </item>
+      <item>
+        <title>Patches fail to init due to malplaced data at start of patch binary</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="1513" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote>
+<aside class="quote" data-post="3" data-topic="1513"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>ah, I thought of just doing that, but then I read the patch submission guidelines and it mentioned bringing up the corresponding issue here and subsequently as an issue in the github patch tracking system,</p></blockquote></aside><p>I wrote that <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"> </p>
+</blockquote></aside>
+
+<p>Ah. <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<p><aside class="quote"><blockquote><p>reality is, on one here raises github issues, so its never a complete list... and I don't have time, to raise an issue for every bug mentioned on here, then fix, then close it. so the github issues tends to be used for things we know about, but are not fixing now.<br>[ ... ]<br>(I think <a class="mention" href="/users/johannes">@johannes</a> is probably away/busy, as unusually, he has not merged my latest PR yet)</p></blockquote></aside></p>
+
+<p>Ok, I submitted a pull request, which was apparently merged within five minutes, so either <a class="mention" href="/users/johannes">@johannes</a> is back, or there is some form of automatic merge functionality (but then why would your PR not have been merged).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/5</link>
+        <pubDate>Sun, 17 Apr 2016 11:25:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1513-5</guid>
+        <source url="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss">Patches fail to init due to malplaced data at start of patch binary</source>
+      </item>
+      <item>
+        <title>Patches fail to init due to malplaced data at start of patch binary</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="1513"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>ah, I thought of just doing that, but then I read the patch submission guidelines and it mentioned bringing up the corresponding issue here and subsequently as an issue in the github patch tracking system,</p></blockquote></aside>
+
+<p>I wrote that <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"> <br>I suspect <a class="mention" href="/users/johannes">@johannes</a> has already read this, so is aware of the issue,so a bit redundant.</p>
+
+<p>but if you want to be fully correct, raise an issue on the github issue, and you can then just link to the post here. then raise a pull request, and cross reference the issues  (you can check in with a fix/closes #issue number) </p>
+
+<p>reality is, on one here raises github issues, so its never a complete list... and I don't have time, to raise an issue for every bug mentioned on here, then fix, then close it. so the github issues tends to be used for things we know about, but are not fixing now.</p>
+
+<p>alternatively, I can always add the change to the PR, I already have open....</p>
+
+<p>(I think <a class="mention" href="/users/johannes">@johannes</a> is probably away/busy, as unusually, he has not merged my latest PR yet)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/4</link>
+        <pubDate>Sun, 17 Apr 2016 06:59:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1513-4</guid>
+        <source url="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss">Patches fail to init due to malplaced data at start of patch binary</source>
+      </item>
+      <item>
+        <title>Patches fail to init due to malplaced data at start of patch binary</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="1513" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>you can issue a pull request, which <a class="mention" href="/users/johannes">@johannes</a> can then accept</p></blockquote></aside>
+
+<p>Yeah, I thought of just doing that, but then I read the patch submission guidelines and it mentioned bringing up the corresponding issue here and subsequently as an issue in the github patch tracking system, so I thought I'd go that way unless <a class="mention" href="/users/johannes">@johannes</a> is fine with skipping some parts of the process in this case.</p>
+
+<p>I've commented on the other stuff in the original thread.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/3</link>
+        <pubDate>Sat, 16 Apr 2016 21:49:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1513-3</guid>
+        <source url="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss">Patches fail to init due to malplaced data at start of patch binary</source>
+      </item>
+      <item>
+        <title>Patches fail to init due to malplaced data at start of patch binary</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>you can issue a pull request, which <a class="mention" href="/users/johannes">@johannes</a> can then accept</p>
+
+<p>as per other thread, it might be worth (as well as moving ctor/dtor, who's position is arbitrary) , adding a </p>
+
+<pre><code>    PROVIDE(__code_start = .);</code></pre>
+
+<p>and then the patch start can be derived from that... rather than hardcode the start address.<br>(I think this will work,  however, Ive not tried it)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/2</link>
+        <pubDate>Sat, 16 Apr 2016 21:15:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1513-2</guid>
+        <source url="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss">Patches fail to init due to malplaced data at start of patch binary</source>
+      </item>
+      <item>
+        <title>Patches fail to init due to malplaced data at start of patch binary</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>This thread: <a href="//community.axoloti.com/t/maximum-patch-size/1483/12">http://community.axoloti.com/t/maximum-patch-size/1483/12</a> started out as a question about the maximum size of a patch, but in the end I determined that there is bug in ramlink.ld, which puts a couple of arrays before the patch init function. The net result is that when the firmware calls PATCHMAINLOC to initialize the patch, the data in the arrays (pointers) are interpreted as code, which is then run before the actual init function, which can potentially wreck havoc with patch initialization.</p>
+
+<p>Problems I've seen include:</p>
+
+<ul>
+<li>Axoloti Core crashes and/or restarts</li>
+<li>Patch performs init properly but refuses to run</li>
+</ul>
+
+<p>The fix is simple, simply put the arrays in question after the text segment in the patch binary, so that PATCHMAINLOC is actually the start of the patch init function.</p>
+
+<p>I've got a patch ready in my github repository (https://github.com/polluxsynth/axoloti/tree/fix-patch-init) which I've tested with complete success in my own setup. <a class="mention" href="/users/johannes">@johannes</a>, let me know if you want me to rework it, or raise an issue in the Axoloti github repository, etc.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513/1</link>
+        <pubDate>Sat, 16 Apr 2016 21:05:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1513-1</guid>
+        <source url="http://community.axoloti.com/t/patches-fail-to-init-due-to-malplaced-data-at-start-of-patch-binary/1513.rss">Patches fail to init due to malplaced data at start of patch binary</source>
+      </item>
+  </channel>
+</rss>

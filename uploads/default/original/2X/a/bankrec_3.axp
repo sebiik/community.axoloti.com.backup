@@ -1,0 +1,399 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="rec" x="644" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="1048576"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="350" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="462" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="recording" x="854" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="602" y="168" text="rec will &apos;arm&apos; recording"/>
+   <obj type="rbrt/midi/in/keyb zone poly" uuid="59a541ab-344b-407b-8c52-8b4156642d4e" name="keyb_2" x="182" y="196">
+      <params/>
+      <attribs>
+         <spinner attributeName="startNote" value="0"/>
+         <spinner attributeName="endNote" value="127"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="602" y="196" text="next will start recording,"/>
+   <comment type="patch/comment" x="602" y="210" text="or when already recording,jump to the next slot"/>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="has sample" x="854" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="b4a06fed-49a3-4707-95c3-20c0f8ba2344" name="lrec_1" x="644" y="224">
+      <params>
+         <bool32.tgl name="protect" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="rec"/>
+      </attribs>
+      <object id="patch/object" uuid="b4a06fed-49a3-4707-95c3-20c0f8ba2344">
+         <sDescription>records audio to a table with nice fade-ins and -outs.
+the table can be divided into 1,2,4 or 8 slots.
+when &apos;sync&apos; is enabled,recording will be synced to phase of the signal connected to &apos;pos&apos;,
+and after &apos;rec&apos; is zero,recording will continue until the starting point is reached.
+after recording is done,the length if the recording in samples is sent out,
+as well as the length of the recording (in fraction of the table&apos;s size).
+meanwhile,the input signal is overdubbed and faded out ,so NO CLICKS!
+set the length of the fade-out/overdub period with &apos;release&apos;,
+the length of the fade-in of the recording with &apos;attack&apos;.</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>loop_multi.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="wave" description="audio in"/>
+            <bool32.risingfalling name="rec" description="record,set tempo"/>
+            <bool32 name="next"/>
+            <int32 name="key"/>
+            <bool32.rising name="reset"/>
+         </inlets>
+         <outlets>
+            <bool32 name="rec" description="recording state,pre - fadeout"/>
+            <frac32.positive name="remain" description="remaining recording-time for the selected slot"/>
+            <bool32 name="full"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="protect"/>
+         </params>
+         <attribs>
+            <objref name="table" description="table to record to "/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[bool rec;
+uint32_t recpos;
+uint32_t offset;
+uint32_t rec_offset;
+uint32_t rec_max;
+uint8_t shift;
+uint32_t start;
+uint32_t starthold;
+bool mode;
+
+bool recstate;
+uint32_t shold;
+uint32_t rhold;
+int32_t env;
+
+int32_t _ap;
+int32_t phase;
+
+static const uint32_t LENGTHPOW = 9;
+static const uint32_t LENGTH = 1<<9;
+static const uint32_t LENGTHMASK = (1<<9)-1;
+static const uint32_t BITS = 32;
+static const uint32_t GAIN = 0;
+int32_t array[LENGTH];
+
+int8_t slot;
+int8_t key;
+
+bool rtrig;
+bool itrig;
+bool ntrig;
+bool full;
+bool safe;]]></code.declaration>
+         <code.init><![CDATA[rec_max = attr_table.LENGTH ;
+shift =     (27-attr_table.LENGTHPOW);
+slot = -1;]]></code.init>
+         <code.krate><![CDATA[full = array [(inlet_key << 2) +1] ? 1 : 0;
+safe = (!full || !param_protect);
+if ((inlet_rec && !rec) && safe)	rec = 1;
+
+if (rec) {
+	if ((inlet_next && !ntrig) && safe) {		
+			 offset = offset + recpos;
+			 array [inlet_key << 2] = offset << shift;
+			array [(key << 2) + 1] = recpos << shift;
+			key = inlet_key;
+			recpos = 0;		
+			ntrig = 1;
+	}
+}
+if (!inlet_next) ntrig = 0;
+
+if (!inlet_rec && rec) {
+	rec = 0; 
+	array [(key << 2) + 1] = recpos << shift;
+}
+
+ 
+        outlet_rec = rec ;
+
+outlet_remain = (rec_max - (recpos + offset ))<< shift;
+
+        // reset
+        if (inlet_reset && !rtrig) {rtrig = 1;offset = 0;key = 0;}
+        if (!inlet_reset) rtrig = 0;
+
+	   outlet_full = full;]]></code.krate>
+         <code.srate><![CDATA[//record   
+
+if (rec) {
+ attr_table.array[recpos + offset] =  __SSAT(inlet_wave,28 )>>attr_table.GAIN;
+ recpos ++;    
+}]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_2" x="1526" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1162" y="266" text="blocks playback of the key recorded to"/>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="remain" x="854" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="const/i" uuid="e202f44b2df17ae0b3e663b98ea6b14c8ff00408" name="i_3" x="1148" y="294">
+      <params/>
+      <attribs>
+         <spinner attributeName="value" value="255"/>
+      </attribs>
+   </obj>
+   <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_1" x="1260" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="bc939bdf-3ccb-4f39-ae8a-3b681fd42532" name="patcher_1" x="1372" y="294">
+      <params>
+         <frac32.s.map name="ldrive_1:speed" value="64.0"/>
+         <bool32.tgl name="ldrive_1:1shot" value="0"/>
+      </params>
+      <attribs>
+         <combo attributeName="poly" selection="4"/>
+         <combo attributeName="midichannel" selection="inherit"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet i" uuid="f11927f00c59219df0c50f73056aa19f125540b7" name="block" x="98" y="70">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="pmj/math/!=" uuid="a6bce4ca-b34c-4278-b11e-826bb468e587" name="!=_1" x="238" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="rbrt/midi/in/keyb zone i" uuid="507b5da7-595d-46ab-808e-6b038d7fe2d1" name="keyb_1" x="42" y="126">
+            <params/>
+            <attribs>
+               <spinner attributeName="startNote" value="0"/>
+               <spinner attributeName="endNote" value="127"/>
+            </attribs>
+         </obj>
+         <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="420" y="140">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="rbrt/math/&lt;&lt; i c" uuid="984d06ee-2b58-4536-822a-bb4d9e119250" name="&lt;&lt;_2" x="658" y="182">
+            <params>
+               <int32 name="shift" value="2"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="rbrt/data/tableread 4" uuid="e273ffa8-7368-4748-ba60-f5fa6e082deb" name="tableread_1" x="770" y="182">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../lrec_1"/>
+               <spinner attributeName="offset" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="rbrt/looper/ldrive flex" uuid="b2b61bd5-a26d-4c90-a68f-844c09672372" name="ldrive_1" x="910" y="182">
+            <params>
+               <frac32.s.map name="speed" onParent="true" value="64.0"/>
+               <bool32.tgl name="1shot" onParent="true" value="0"/>
+            </params>
+            <attribs>
+               <objref attributeName="table" obj="../rec"/>
+            </attribs>
+         </obj>
+         <obj type="table/read interp" uuid="42918ec2255011ae3787cc5488c9b29980d796a8" name="read_2" x="1078" y="182">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../rec"/>
+            </attribs>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="1218" y="182">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="keyb_1" outlet="note"/>
+               <dest obj="!=_1" inlet="in2"/>
+               <dest obj="&lt;&lt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="ldrive_1" outlet="pos"/>
+               <dest obj="read_2" inlet="a"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="gate"/>
+               <dest obj="and_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="read_2" outlet="o"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="block" outlet="inlet"/>
+               <dest obj="!=_1" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="!=_1" outlet="out"/>
+               <dest obj="and_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="and_1" outlet="o"/>
+               <dest obj="ldrive_1" inlet="play"/>
+               <dest obj="ldrive_1" inlet="r2start"/>
+            </net>
+            <net>
+               <source obj="&lt;&lt;_2" outlet="out"/>
+               <dest obj="tableread_1" inlet="offset"/>
+            </net>
+            <net>
+               <source obj="tableread_1" outlet="v0"/>
+               <dest obj="ldrive_1" inlet="offset"/>
+            </net>
+            <net>
+               <source obj="tableread_1" outlet="v1"/>
+               <dest obj="ldrive_1" inlet="range"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>-128</x>
+            <y>102</y>
+            <width>1580</width>
+            <height>717</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1666" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="406" y="336">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="784" y="392" text="if &apos;protect&apos; is enabled,"/>
+   <comment type="patch/comment" x="406" y="406" text="resets &apos;slot&apos; to 0 and clears memory"/>
+   <comment type="patch/comment" x="784" y="406" text="you can only record to slots that are empty , or move to the next slot."/>
+   <obj type="rbrt/data/tcopy" uuid="d4c37687-69fd-442f-b560-b32c25224396" name="tcopy_1" x="644" y="420">
+      <params>
+         <int32 name="src" value="0"/>
+         <int32 name="dst" value="0"/>
+         <int32 name="range" value="512"/>
+         <bool32.tgl name="splat" value="0"/>
+         <bool32.tgl name="clear" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="src" obj="lrec_1"/>
+         <objref attributeName="dst" obj="lrec_1"/>
+         <spinner attributeName="speed" value="1"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="784" y="434" text="the audio data is stored  to a table defined in the recorder,"/>
+   <comment type="patch/comment" x="784" y="448" text="the start-and end points are stored in the recorder (and can be referenced by the name of the recorder)"/>
+   <comment type="patch/comment" x="784" y="462" text="this data is stored in blocks of 4, referenced by the pressed physical key"/>
+   <nets>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="patcher_1" inlet="block"/>
+      </net>
+      <net>
+         <source obj="lrec_1" outlet="rec"/>
+         <dest obj="recording" inlet="in"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="right"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="+_2" inlet="in1"/>
+         <dest obj="lrec_1" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="patcher_1" outlet="outlet_1"/>
+         <dest obj="+_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="+_2" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="tcopy_1" inlet="trig"/>
+         <dest obj="lrec_1" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="keyb_2" outlet="currentNote"/>
+         <dest obj="mux_1" inlet="i2"/>
+         <dest obj="lrec_1" inlet="key"/>
+      </net>
+      <net>
+         <source obj="lrec_1" outlet="remain"/>
+         <dest obj="remain" inlet="in"/>
+      </net>
+      <net>
+         <source obj="lrec_1" outlet="full"/>
+         <dest obj="has sample" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb_2" outlet="noteOn"/>
+         <dest obj="lrec_1" inlet="next"/>
+      </net>
+      <net>
+         <source obj="keyb_2" outlet="currentGate"/>
+         <dest obj="lrec_1" inlet="rec"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Patch/preset proper use</title>
+    <link>http://community.axoloti.com/t/patch-preset-proper-use/1254</link>
+    <description>Putting this in here as it is in regards to a specific AXO and it&#39;s intended usage.
+
+I have a synth subpatch.  In this subpatch, I&#39;ve set presets for different synth sounds.  I would like to embed this subpatch in my main patch, but have a radio button (or sequenced perhaps) method of changing the preset within the subpatch.   I have added the patch/preset object, connected it an i_2 radio button and a button for the trigger.   I&#39;ve enabled &quot;parameter on parent&quot; to pass those controls through to the main patch.
+
+Then, I realized that it doesn&#39;t appear to work at all the way I expected.  recreate:
+Set presets 1 and 2 to obviously distinct sounding values
+add patch/preset object
+Add i_2 radiobutton object
+add button object
+connect radiobutton to preset input
+connect button to trigger
+
+The radiobuttons appear to have no impact on the preset number, and erratically, clicking the button will flip the value of the radiobutton to a different state.
+
+Is there a different type I should be using for the preset number input on the patch/preset object?  It would appear to be an integer, and is green, as is the output of the radiobutton object.
+
+I&#39;d appreciate any advice you might have!</description>
+    
+    <lastBuildDate>Fri, 11 Mar 2016 12:04:58 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/patch-preset-proper-use/1254.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Patch/preset proper use</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Will look into this issue.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-preset-proper-use/1254/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-preset-proper-use/1254/6</link>
+        <pubDate>Fri, 11 Mar 2016 12:04:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1254-6</guid>
+        <source url="http://community.axoloti.com/t/patch-preset-proper-use/1254.rss">Patch/preset proper use</source>
+      </item>
+      <item>
+        <title>Patch/preset proper use</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="1254"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/brucethehoon/40/1506_1.png" class="avatar">brucethehoon:</div>
+<blockquote><p>C:\DESKTO~1\axoloti/build/xpatch.cpp:2837:43: error: 'class rootc::instancehoonsynthsub2__1::voice' has no member named 'ApplyPreset'        if ((inlet_trig&gt;0) &amp;&amp; !ntrig) {parent-&gt;ApplyPreset(inlet_preset) ; ntrig=1;}</p></blockquote></aside>
+
+<p>this looks like a bug...Id guess (without checking the code yet) for some reason the sub patcher don't have the ApplyPreset method. bit busy to take a look now, <a class="mention" href="/users/johannes">@johannes</a> thoughts?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-preset-proper-use/1254/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-preset-proper-use/1254/5</link>
+        <pubDate>Fri, 11 Mar 2016 09:37:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1254-5</guid>
+        <source url="http://community.axoloti.com/t/patch-preset-proper-use/1254.rss">Patch/preset proper use</source>
+      </item>
+      <item>
+        <title>Patch/preset proper use</title>
+        <dc:creator><![CDATA[@brucethehoon Andrew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/brucethehoon">@brucethehoon</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for getting back to me!</p>
+
+<a href="http://imgur.com/wQA8NFL" target="_blank"><img src="https://i.imgur.com/wQA8NFL.jpg" alt="Imgur" height="243" width="617"></a>
+
+<p>I've actually gotten this to work correctly when running the subpatch on its own. It's only when running in poly mode that the parent patch fails with:<br>    C:\DESKTO~1\axoloti/build/xpatch.cpp: In member function 'void rootc::instancehoonsynthsub2__1::voice::instancepreset__1::dsp(int32_t, int32_t)':<br>    C:\DESKTO~1\axoloti/build/xpatch.cpp:2837:43: error: 'class rootc::instancehoonsynthsub2__1::voice' has no member named 'ApplyPreset'<br>        if ((inlet_trig&gt;0) &amp;&amp; !ntrig) {parent-&gt;ApplyPreset(inlet_preset) ; ntrig=1;}<br>                                               ^<br>    make: *** [C:\DESKTO~1\axoloti/build/xpatch.bin] Error 1<br>    shell task failed, exit value: 1<br>    Compiling patch failed ( F:\axoloti\Patches\HoonSynth\hoonsynth.axp ) </p>
+
+<p>Unsure what I might be doing wrong - I understand that in reality I would not be able to hit the radio buttons in each instance of the subpatches, but even hard coding it with a crtl/i set to 2 (my desired preset for this instrument) and triggering it right off will work when running the subpatch by itself, but not when running it from the parent.</p>
+
+<p>EEEK!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-preset-proper-use/1254/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-preset-proper-use/1254/3</link>
+        <pubDate>Thu, 10 Mar 2016 22:31:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1254-3</guid>
+        <source url="http://community.axoloti.com/t/patch-preset-proper-use/1254.rss">Patch/preset proper use</source>
+      </item>
+      <item>
+        <title>Patch/preset proper use</title>
+        <dc:creator><![CDATA[@anon5189335]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/anon5189335">@anon5189335</a> wrote:</p>
+          <blockquote>
+              <p>Can you post a screenshot of how you connected it?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-preset-proper-use/1254/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-preset-proper-use/1254/2</link>
+        <pubDate>Thu, 10 Mar 2016 21:48:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1254-2</guid>
+        <source url="http://community.axoloti.com/t/patch-preset-proper-use/1254.rss">Patch/preset proper use</source>
+      </item>
+      <item>
+        <title>Patch/preset proper use</title>
+        <dc:creator><![CDATA[@brucethehoon Andrew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/brucethehoon">@brucethehoon</a> wrote:</p>
+          <blockquote>
+              <p>Putting this in here as it is in regards to a specific AXO and it's intended usage.</p>
+
+<p>I have a synth subpatch.  In this subpatch, I've set presets for different synth sounds.  I would like to embed this subpatch in my main patch, but have a radio button (or sequenced perhaps) method of changing the preset within the subpatch.   I have added the patch/preset object, connected it an i_2 radio button and a button for the trigger.   I've enabled "parameter on parent" to pass those controls through to the main patch.</p>
+
+<p>Then, I realized that it doesn't appear to work at all the way I expected.  recreate:<br>Set presets 1 and 2 to obviously distinct sounding values<br>add patch/preset object<br>Add i_2 radiobutton object<br>add button object<br>connect radiobutton to preset input<br>connect button to trigger</p>
+
+<p>The radiobuttons appear to have no impact on the preset number, and erratically, clicking the button will flip the value of the radiobutton to a different state.</p>
+
+<p>Is there a different type I should be using for the preset number input on the patch/preset object?  It would appear to be an integer, and is green, as is the output of the radiobutton object.</p>
+
+<p>I'd appreciate any advice you might have!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-preset-proper-use/1254/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-preset-proper-use/1254/1</link>
+        <pubDate>Thu, 10 Mar 2016 20:25:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1254-1</guid>
+        <source url="http://community.axoloti.com/t/patch-preset-proper-use/1254.rss">Patch/preset proper use</source>
+      </item>
+  </channel>
+</rss>

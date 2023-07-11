@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Axo as MIDI multi clock</title>
+    <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749</link>
+    <description>Hi gang,
+Firstly, my programming skills and technical understanding are hovering just above zero, so please forgive any silly questions.
+
+What I would like to patch is a few (2, 3, maybe 4) separate MIDI clock OUTs - not USB MIDI.
+I assume that MIDI being a digital set of messages should be able to be sent to any DIGITAL OUT, not just the default DIN MIDI out.
+
+I found the internal MIDI clock object, found the BPM generator and the midi/out/clock.
+The last one has a few choices, but that&#39;s where I hit the wall.
+DIN is obvious, USB - not interested, internal port 1 and 2 - I read can be sued to send midi to other Axo objects. How? 
+
+- How do I define what is the considered an &quot;internal port 1&quot; of example?
+
+- Am I able to &quot;steal&quot; the clock from the &quot;internal port 1&quot; and send it to a digital OUT?
+
+Of course I would like to be able to all use the &quot;song position&quot; and set that to for example 8 bars, so I get a phase sync as well as the clock. But that&#39;s later - I assume a synced pulse LFO could be used for that.
+
+So, why...
+I want to use two sequencers (Akai and Octatrack) both using a synced, but separate clocks, so I can stop one of them, load a new project (while the other is happily playing) and then start it with the new project and have it follow the phase and the clock.
+I&#39;m happy to set the BPM for the whole set using the computer, changing BPM live would be great of course, but probably well beyond me.
+
+The more the merrier, but if only 2 can be made &quot;int port 1 and 2&quot; I can live with that.
+
+Any help will be greatly appreciated.</description>
+    
+    <lastBuildDate>Tue, 02 Aug 2022 11:03:13 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Axo as MIDI multi clock</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>Hey I realized that my modded midi out object was actually buggy but like this it should be working.</p>
+
+<p>It's a mod of <a class="mention" href="/u/drjustice">@DrJustice</a> clock tx object. I only did 24ppq, start and stop. </p>
+
+<p> <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/7/7be08c5f637cf41d09c85972359bfc2bb485e734.axp">xtra midi clock.axp</a> (1.7 KB)</p>
+
+<p>I also put an exampel of out/cc thin, to understand how to mod factory midi objects to send midi on PA2.</p>
+
+<p>You have to define your midi send in local data:</p>
+
+<p>void SendMidi1(uint8_t b0){<br>  sdPut(&amp;SD2,b0);<br>}</p>
+
+<p>or like this for 3 bytes</p>
+
+<p>void SendMidi3(uint8_t b0,uint8_t b1,uint8_t b2){<br>  sdPut(&amp;SD2,b0);<br>  sdPut(&amp;SD2,b1);<br>  sdPut(&amp;SD2,b2);<br>}</p>
+
+<p>And then you just switch MidiSend1 (or 2 or 3) around to SendMidiX, get rid of the devices part and voila your piping out midi on your serial pin!</p>
+
+<p>A more elegant solution would be to send all the midi to the internal port and then mod a thru object to pipe the midi from the internal port, to the serial port. Then you don't have to make a new object each time you wanna use the serial pin.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/7</link>
+        <pubDate>Tue, 02 Aug 2022 11:03:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7749-7</guid>
+        <source url="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss">Axo as MIDI multi clock</source>
+      </item>
+      <item>
+        <title>Axo as MIDI multi clock</title>
+        <dc:creator><![CDATA[@unruhe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/unruhe">@unruhe</a> wrote:</p>
+          <blockquote>
+              <p>Thanks.</p>
+
+<p><span class="mention">@Hugo_Contributions</span></p>
+
+<p>Yeah, the hardware is no problem, I've built MIDI splitters before.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/6</link>
+        <pubDate>Sun, 17 Jul 2022 23:48:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7749-6</guid>
+        <source url="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss">Axo as MIDI multi clock</source>
+      </item>
+      <item>
+        <title>Axo as MIDI multi clock</title>
+        <dc:creator><![CDATA[@unruhe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/unruhe">@unruhe</a> wrote:</p>
+          <blockquote>
+              <p>Thanks, I may have to use USB for one of the sequencers. I'm "old school" and like the DIN, and only one seq I have has USB.</p>
+
+<p>And, yes, you understood correctly.</p>
+
+<p>Actually using Ableton Link, without the computer, would be good for me, it's stable, solid and has phase sync as well.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/5</link>
+        <pubDate>Sun, 17 Jul 2022 23:44:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7749-5</guid>
+        <source url="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss">Axo as MIDI multi clock</source>
+      </item>
+      <item>
+        <title>Axo as MIDI multi clock</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="7749"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/r/82dd89/40.png" class="avatar">reubenfinger:</div>
+<blockquote><p>Check this post and also file/community/hug/midi_io from the axo menu <br> should get you where you want to go, initially at least:</p></blockquote></aside>
+
+<p>You will need a custom object if you wanna use this. </p>
+
+<p>I have one I think, I can post this tomorrow when I’m back home.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/4</link>
+        <pubDate>Sun, 17 Jul 2022 20:08:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7749-4</guid>
+        <source url="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss">Axo as MIDI multi clock</source>
+      </item>
+      <item>
+        <title>Axo as MIDI multi clock</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>So, if I'm understanding correctly, you want to generate two midi clocks on the axoloti, and then send them out separately to two hardware devices?</p>
+
+<p>I can't help with the digital outputs as I've never done that. (Reubenfinger's link should help with that). But a couple of alternative ideas (both use usb which you say you aren't interested in, but I thought would be worth mentioning) -</p>
+
+<ul>
+<li><p>if one of the devices has class compliant usb midi you could have one connected to din, and one connected to the usb host, and then just use those outputs on the objects.</p></li>
+<li><p>you could use a usb midi interface to give more din outputs. And then send out on the relevant usb host ports. I have a 4 output one that works well with axoloti.</p></li>
+</ul>
+
+<p>Regarding the internal midi bus - this is just a midi loopback. Whatever is sent to it comes straight back to the the same internal port's input. You can 'steal' the messages and do what you want with them but in this case I'm not sure how this would be better than just sending them straight from the original input, if that makes sense.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/3</link>
+        <pubDate>Sun, 17 Jul 2022 09:41:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7749-3</guid>
+        <source url="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss">Axo as MIDI multi clock</source>
+      </item>
+      <item>
+        <title>Axo as MIDI multi clock</title>
+        <dc:creator><![CDATA[@reubenfinger]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/reubenfinger">@reubenfinger</a> wrote:</p>
+          <blockquote>
+              <p>Check this post and also file/community/hug/midi_io from the axo menu <br> should get you where you want to go, initially at least:</p>
+
+<aside class="quote" data-topic="1903" data-slug="hugo-contributions" data-post="2"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/h/b38774/40.png" class="avatar"><a href="//community.axoloti.com/t/hugo-contributions/1903/2" rel="nofollow noopener">Hugo Contributions</a>
+</div>
+<blockquote><p>hug/midi_io/extra_midi_io.axp  this patch is a fixed version of the archived patch: archive/tests/io/extra_midi_input.axh  it is an example patch on how to configure gpio pins to use as extra MIDI IO ports.  Refer to the midi specification (2014 update, <a href="https://mitxela.com/other/ca33.pdf" rel="nofollow noopener">found it here</a>) on how to build the required external hardware. It's really not a lot, just a couple of resistors and one small chip (an optocoupler).   <a href="//community.axoloti.com/uploads/default/original/2X/c/cff3595684c9cd176dd54fcc8177fb815b7c5e16.jpg" title="midi_out.jpg" rel="nofollow noopener">[image]</a> <a href="//community.axoloti.com/uploads/default/original/2X/1/1e33647da1d920652b89a9dfb193a4a2711a062e.jpg" title="midi_in.jpg" rel="nofollow noopener">[image]</a></p></blockquote></aside>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/2</link>
+        <pubDate>Sun, 17 Jul 2022 08:29:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7749-2</guid>
+        <source url="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss">Axo as MIDI multi clock</source>
+      </item>
+      <item>
+        <title>Axo as MIDI multi clock</title>
+        <dc:creator><![CDATA[@unruhe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/unruhe">@unruhe</a> wrote:</p>
+          <blockquote>
+              <p>Hi gang,<br>Firstly, my programming skills and technical understanding are hovering just above zero, so please forgive any silly questions.</p>
+
+<p>What I would like to patch is a few (2, 3, maybe 4) separate MIDI clock OUTs - not USB MIDI.<br>I assume that MIDI being a digital set of messages should be able to be sent to any DIGITAL OUT, not just the default DIN MIDI out.</p>
+
+<p>I found the internal MIDI clock object, found the BPM generator and the midi/out/clock.<br>The last one has a few choices, but that's where I hit the wall.<br>DIN is obvious, USB - not interested, internal port 1 and 2 - I read can be sued to send midi to other Axo objects. How? </p>
+
+<ul>
+<li><p>How do I define what is the considered an "internal port 1" of example?</p></li>
+<li><p>Am I able to "steal" the clock from the "internal port 1" and send it to a digital OUT?</p></li>
+</ul>
+
+<p>Of course I would like to be able to all use the "song position" and set that to for example 8 bars, so I get a phase sync as well as the clock. But that's later - I assume a synced pulse LFO could be used for that.</p>
+
+<p>So, why...<br>I want to use two sequencers (Akai and Octatrack) both using a synced, but separate clocks, so I can stop one of them, load a new project (while the other is happily playing) and then start it with the new project and have it follow the phase and the clock.<br>I'm happy to set the BPM for the whole set using the computer, changing BPM live would be great of course, but probably well beyond me.</p>
+
+<p>The more the merrier, but if only 2 can be made "int port 1 and 2" I can live with that.</p>
+
+<p>Any help will be greatly appreciated.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axo-as-midi-multi-clock/7749/1</link>
+        <pubDate>Sun, 17 Jul 2022 02:09:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7749-1</guid>
+        <source url="http://community.axoloti.com/t/axo-as-midi-multi-clock/7749.rss">Axo as MIDI multi clock</source>
+      </item>
+  </channel>
+</rss>

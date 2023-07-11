@@ -1,0 +1,169 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="env/adsr" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="adsr_1" x="266" y="56">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-21.0"/>
+         <frac32.u.map name="s" value="32.0"/>
+         <frac32.s.map name="r" value="21.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/adsr" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="adsr_2" x="392" y="56">
+      <params>
+         <frac32.s.map name="a" value="-23.0"/>
+         <frac32.s.map name="d" value="25.0"/>
+         <frac32.u.map name="s" value="32.0"/>
+         <frac32.s.map name="r" value="21.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/hd" uuid="819e2ee2c29202649dec31560d8be9a92528ef15" name="hd_1" x="504" y="168">
+      <params>
+         <frac32.s.map name="d" onParent="true" value="-46.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/keyb zone lru" uuid="36a44968a4f8b980273e94dca846b7544a3c45d2" name="keyb_3" x="0" y="224">
+      <params/>
+      <attribs>
+         <spinner attributeName="startNote" value="0"/>
+         <spinner attributeName="endNote" value="127"/>
+      </attribs>
+   </obj>
+   <obj type="logic/flipflop" uuid="f9b15363f5ee203152e062c08a8846f0074b0ea5" name="flipflop_1" x="140" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="tiar/osc/SelfPM" uuid="4c69df16-7b2a-40bd-9058-ec85890055db" name="SelfPM_1" x="266" y="266">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.s.map name="fb1" value="51.0"/>
+         <frac32.s.map name="fb0" value="-3.0">
+            <modulators>
+               <modulation sourceName="touchmod" modName="" value="96.0"/>
+            </modulators>
+         </frac32.s.map>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="tiar/osc/SelfPM" uuid="4c69df16-7b2a-40bd-9058-ec85890055db" name="SelfPM_2" x="392" y="266">
+      <params>
+         <frac32.s.map name="pitch" value="-12.0"/>
+         <frac32.s.map name="fb1" value="-54.0"/>
+         <frac32.s.map name="fb0" value="2.0">
+            <modulators>
+               <modulation sourceName="touchmod" modName="" value="128.0"/>
+            </modulators>
+         </frac32.s.map>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_3" x="644" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/glide" uuid="cfa0324c7cc8ebfd6e03c6b92f41115e3172d0d9" name="glide_3" x="140" y="294">
+      <params>
+         <frac32.u.map name="time" onParent="true" value="16.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="742" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="644" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/cc" uuid="6096d217701cbdf251a9ab6ba029af78c5722a56" name="cc_1" x="42" y="434">
+      <params/>
+      <attribs>
+         <spinner attributeName="cc" value="2"/>
+         <spinner attributeName="default" value="0"/>
+      </attribs>
+   </obj>
+   <obj type="patch/modsource" uuid="c98f018a8d204ef6df1bf7008af6fd7d20f12fe4" name="touchmod" x="168" y="476">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="adsr_1" outlet="env"/>
+         <dest obj="SelfPM_1" inlet="fbMod"/>
+      </net>
+      <net>
+         <source obj="flipflop_1" outlet="o"/>
+         <dest obj="glide_3" inlet="en"/>
+      </net>
+      <net>
+         <source obj="keyb_3" outlet="note"/>
+         <dest obj="glide_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb_3" outlet="gate"/>
+         <dest obj="flipflop_1" inlet="reset"/>
+         <dest obj="hd_1" inlet="trig"/>
+         <dest obj="adsr_1" inlet="gate"/>
+         <dest obj="adsr_2" inlet="gate"/>
+      </net>
+      <net>
+         <source obj="keyb_3" outlet="gate2"/>
+         <dest obj="flipflop_1" inlet="set"/>
+      </net>
+      <net>
+         <source obj="glide_3" outlet="out"/>
+         <dest obj="SelfPM_1" inlet="pitch"/>
+         <dest obj="SelfPM_2" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="hd_1" outlet="env"/>
+         <dest obj="vca_3" inlet="v"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="adsr_2" outlet="env"/>
+         <dest obj="SelfPM_2" inlet="fbMod"/>
+      </net>
+      <net>
+         <source obj="SelfPM_1" outlet="wave"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="SelfPM_2" outlet="wave"/>
+         <dest obj="vca_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="cc_1" outlet="midiCC"/>
+         <dest obj="touchmod" inlet="v"/>
+      </net>
+      <net>
+         <source obj="cc_1" outlet="trig"/>
+         <dest obj="touchmod" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="vca_3" outlet="o"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>normal</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <HasMidiChannelSelector>true</HasMidiChannelSelector>
+      <NPresets>0</NPresets>
+      <NPresetEntries>0</NPresetEntries>
+      <NModulationSources>1</NModulationSources>
+      <NModulationTargetsPerSource>1</NModulationTargetsPerSource>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>242</x>
+      <y>22</y>
+      <width>1015</width>
+      <height>746</height>
+   </windowPos>
+</patch-1.0>

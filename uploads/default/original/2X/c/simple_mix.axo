@@ -1,0 +1,36 @@
+<objdefs>
+   <obj.normal id="simple_mix" uuid="6b4dd3da59f98e54900f6c20031f38f4624fa364" sha="479fc45a4d36c8ec5e891834d52fa725d1c25de7">
+      <sDescription>Mixes two audio streams to one output</sDescription>
+      <author>Joren Six</author>
+      <license>BSD</license>
+      <inlets>
+         <frac32buffer name="in1" description="input"/>
+         <frac32buffer name="in2" description="input"/>
+      </inlets>
+      <outlets>
+         <frac32buffer name="out" description="output"/>
+      </outlets>
+      <displays/>
+      <attribs/>
+      <code.srate><![CDATA[
+
+      // Capture the first input, it is encoded as a signed 
+      // 32bit integer of which 27 bits are used. 
+      // so to convert it to an interval [-1.0f , 1.0f] 
+      // the following can be done:
+      float input_one = (inlet_in1 / (float) (1<<27));
+      // same for the second input which arrives at inlet_in2
+      // note that the code generator automatically provides the 
+      // array indexing. The line below is automatically converted to
+      // float input_two = (inlet_in2[buffer_index] / (float) (1<<27));
+      float input_two = (inlet_in2 / (float) (1<<27));
+
+      // mixing is simply taking the sum of the two signals
+      float mixed = input_one + input_two;
+       
+      // The following transforms the [-1.0f ; 1.0f] interval
+      // to the axoloti convention interval of [-(1<<27) ; (1<<27)-1]
+      outlet_out = (int32_t) (mixed * (1<<27));
+]]></code.srate>
+   </obj.normal>
+</objdefs>

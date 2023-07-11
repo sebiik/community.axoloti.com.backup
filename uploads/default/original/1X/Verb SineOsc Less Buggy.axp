@@ -1,0 +1,127 @@
+<patch-1.0>
+   <obj type="midi/in/keyb" sha="b8deb97637e54be31fcb62e849e4fa406e72256e" name="keyb1" x="98" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" sha="edec4a9d5f533ea748cd564ce8c69673dd78742f" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="osc_1" x="224" y="56">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" sha="c904cdd24d65968df2f5796e107db3747dd691a6" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="364" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="filter/vcf3" sha="2a5cccf4517f54d2450ab7518925f49e4c41c837" uuid="92455c652cd098cbb682a5497baa18abbf2ef865" name="vcf3_1" x="490" y="56">
+      <params>
+         <frac32.s.map name="pitch" value="12.0"/>
+         <frac32.u.map name="reso" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="stomps/reverb1" uuid="6e81e7f992c3263b7e94d97493b9d3e8f62559ba" name="obj_1" x="630" y="56">
+      <params>
+         <bool32.tgl name="on" value="1"/>
+         <frac32.u.map name="amt" value="54.0"/>
+         <frac32.u.map name="decay" value="41.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" sha="b933bb91801a126126313c11f773158b5ca2face" name="dac~_1" x="770" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="env/adsr" sha="2c4b16047d03b574d8a72b651f130895749eb670" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="AmpEnv" x="364" y="126">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-64.0"/>
+         <frac32.u.map name="s" value="64.0"/>
+         <frac32.s.map name="r" value="-47.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b" sha="a7ce66703f067983726298da17fabab409dca3dc" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_2" x="812" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 4" sha="c1ded2a50cb2b058c897705ff88aa058628ed10a" uuid="d464e7be146a755212e37afdb57a018c87b3f54" name="FilterMod" x="490" y="210">
+      <params>
+         <frac32.u.map name="gain1" value="0.0"/>
+         <frac32.u.map name="gain2" value="19.5"/>
+         <frac32.u.map name="gain3" value="15.0"/>
+         <frac32.u.map name="gain4" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="812" y="406" text="BUGGY OUT"/>
+   <obj type="disp/scope 128 b" sha="a7ce66703f067983726298da17fabab409dca3dc" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_3" x="812" y="420">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="env/adsr" sha="2c4b16047d03b574d8a72b651f130895749eb670" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="FilterEnv" x="490" y="476">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="-64.0"/>
+         <frac32.u.map name="s" value="0.0"/>
+         <frac32.s.map name="r" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="keyb1" outlet="gate"/>
+         <dest obj="AmpEnv" inlet="gate"/>
+         <dest obj="FilterEnv" inlet="gate"/>
+      </net>
+      <net>
+         <source obj="AmpEnv" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vcf3_1" outlet="out"/>
+         <dest obj="obj_1" inlet="inL"/>
+         <dest obj="obj_1" inlet="inR"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="vcf3_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="FilterEnv" outlet="env"/>
+         <dest obj="FilterMod" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="FilterMod" outlet="out"/>
+         <dest obj="vcf3_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="obj_1" outlet="outL"/>
+         <dest obj="scope_2" inlet="in"/>
+         <dest obj="dac~_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="obj_1" outlet="outR"/>
+         <dest obj="dac~_1" inlet="right"/>
+         <dest obj="scope_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb1" outlet="note"/>
+         <dest obj="osc_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="osc_1" outlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>141</x>
+      <y>23</y>
+      <width>1456</width>
+      <height>832</height>
+   </windowPos>
+</patch-1.0>

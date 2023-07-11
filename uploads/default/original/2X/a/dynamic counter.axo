@@ -1,0 +1,43 @@
+<objdefs>
+   <obj.normal id="dynamic counter" uuid="5ce3406f0bf9385cd5284c5079d0a25e506adced" sha="b086e6f596fa81295db70161133f39771f9cad8e">
+      <upgradeSha>77a4b4804913310c0ec3fcc53592eed1cd8af148</upgradeSha>
+      <sDescription>cyclic up counter with dynamic maximum</sDescription>
+      <author>Johannes Taelman and Carlos Dalla-Fiore</author>
+      <license>BSD</license>
+      <helpPatch></helpPatch>
+      <inlets>
+         <int32 name="max" description="cycle maximum"/>
+         <bool32.rising name="trig" description="trigger"/>
+         <bool32.rising name="r" description="reset"/>
+      </inlets>
+      <outlets>
+         <int32 name="o" description="output"/>
+         <bool32.pulse name="c" description="carry pulse"/>
+      </outlets>
+      <displays/>
+      <params>
+      </params>
+      <attribs/>
+      <code.declaration><![CDATA[   int ntrig;
+   int rtrig;
+   int count;
+   int maximum;
+]]></code.declaration>
+      <code.init><![CDATA[    count=0;
+   ntrig = 0;
+   rtrig = 0;
+   maximum = 0;
+]]></code.init>
+      <code.krate><![CDATA[outlet_c=0;
+      maximum = inlet_max;
+if ((inlet_trig>0) && !ntrig) {
+   count += 1; if (count>=maximum) {count = 0; outlet_c = 1;}
+   ntrig=1;
+}
+else if (!(inlet_trig>0)) ntrig=0;
+if ((inlet_r>0) && !rtrig) {count=0; rtrig = 1;}
+else if (!(inlet_r>0)) rtrig=0;
+outlet_o= count;
+]]></code.krate>
+   </obj.normal>
+</objdefs>

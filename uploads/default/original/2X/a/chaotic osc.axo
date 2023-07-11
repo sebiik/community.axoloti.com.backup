@@ -1,0 +1,116 @@
+<objdefs appVersion="1.0.9">
+   <obj.normal id="chaotic osc" uuid="b1fb3267-8dee-4162-9261-c38db3aa4b1b">
+      <sDescription>Chaotic oscillator structured as |Wall|--kkkkk--(M1)--hhhhh--(M2) (wall-spring1-mass1-spring2-mass2 )</sDescription>
+      <author>Sputnki</author>
+      <license>BSD</license>
+      <inlets>
+         <bool32.rising name="r" description="reset"/>
+      </inlets>
+      <outlets>
+         <frac32 name="x1"/>
+         <frac32 name="x2"/>
+         <frac32 name="v1"/>
+         <frac32 name="v2"/>
+         <frac32 name="a1"/>
+         <frac32.positive name="a2"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.s.map.ratio name="time" description="Time factor (set this to some number!)"/>
+         <frac32.s.map.ratio name="x0" description="Initial displacement for Mass 2 (set this to some number!)"/>
+         <frac32.u.map name="k" description="Elastic coefficient for spring 1"/>
+         <frac32.u.map name="h" description="Elastic coefficient for spring 2"/>
+         <frac32.u.map name="M1" description="Mass 1"/>
+         <frac32.u.map name="M2" description="Mass 2"/>
+      </params>
+      <attribs/>
+      <code.declaration><![CDATA[int32_t LA; //length of the first spring at rest
+int32_t LB; //length of the second spring at rest
+
+
+int32_t X1; //position of the first mass
+int32_t X2; //position of the second mass
+
+int32_t V1; //velocity of the first mass
+int32_t V2; //velocity of the second mass
+
+int32_t A1; //acceleration of the first mass
+int32_t A2; //acceleration of the second mass
+
+int32_t DX1; //X1-LA
+int32_t DX2; //X2-X1-LB
+
+int32_t M1; //mass 1
+int32_t M2; //mass 2
+
+
+bool rtrig; ]]></code.declaration>
+      <code.init><![CDATA[LA=1<<28; //length of the first spring at rest
+LB=1<<28; //length of the second spring at rest
+
+
+X1=LA; //position of the first mass
+X2=LA+LB; //position of the second mass
+
+V1=0; //velocity of the first mass
+V2=0; //velocity of the second mass
+
+A1=0; //acceleration of the first mass
+A2=0; //acceleration of the second mass
+
+DX1=X1-LA; //X1-LA
+DX2=X2-X1-LB; //X2-X1-LB
+
+M1=1<<21; //mass 1 
+M2=1<<21; //mass 2
+
+bool rtrig=0; ]]></code.init>
+      <code.krate><![CDATA[if (inlet_r&&!rtrig)
+{
+	X1=LA; //position of the first mass
+	X2=LA+LB+param_x0; //position of the second mass
+	V1=0; //velocity of the first mass
+	V2=0; //velocity of the second mass
+	A1=0; //acceleration of the first mass
+	A2=0; //acceleration of the second mass
+	
+	DX1=X1-LA>>8; //X1-LA
+	DX2=X2-X1-LB>>8; //X2-X1-LB
+	rtrig=1;
+}
+else if (!inlet_r)
+{
+	rtrig=0;
+}
+
+M1=param_M1;
+if (!M1)
+M1=1<<21;
+
+M2=param_M2;
+if (!M2)
+M2=1<<21;
+
+
+A1=(param_h*DX2-param_k*DX1)*281474976710656/M1;
+A2=-param_h*DX2*281474976710656/M2;
+
+V1+=___SMMUL(A1,param_time);
+V2+=___SMMUL(A2,param_time);
+
+X1+=___SMMUL(V1,param_time);
+X2+=___SMMUL(V2,param_time);
+
+DX1=X1-LA<<4; 
+DX2=X2-X1-LB<<4; 
+
+
+outlet_x1=X1-LA;
+outlet_x2=X2-LA-LB;
+outlet_a1=A1;
+outlet_a2=A2;
+outlet_v1=V1;
+outlet_v2=V2;
+]]></code.krate>
+   </obj.normal>
+</objdefs>

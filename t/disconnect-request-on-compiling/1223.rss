@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Disconnect request on compiling</title>
+    <link>http://community.axoloti.com/t/disconnect-request-on-compiling/1223</link>
+    <description>I&#39;m having a weird persistent issue with taking patches live. My device behaves normally for small patches that compile quickly, but often disconnects suddenly when larger patches are used (especially containing subpatches). I&#39;ve run into the SRAM limitations and cleaned things up, removed preset allocations, so it&#39;s not that. In fact, there&#39;s no error message at all and it&#39;s left  me scratching my head. Here&#39;s a sample output (abridged for clarity):
+
+    USB device found
+    connected
+    Authentic Axoloti Core
+    ...
+    Firmware version: 1.0.0.1, crc=0x12D13CA6, entrypoint=0x20011000
+    ...
+    Generate code complete
+    Start compiling patch
+    Compiling patch... with /Applications/Axoloti.app/Contents/Java/firmware
+    ...
+    arm-none-eabi-objcopy -O binary /Users/matthew/Documents/axoloti/build/xpatch.elf     /Users/matthew/Documents/axoloti/build/xpatch.bin
+    Done compiling patch
+    Start uploading patch
+    bin path: /Users/matthew/Documents/axoloti/build/xpatch.bin
+    block uploaded @ 0x20011000 length 32768
+    block uploaded @ 0x20019000 length 11056
+    Done uploading patch
+    Start starting patch
+    Disconnect request
+    Done starting patch
+    Start locking
+    Done locking
+
+
+As you can see, everything goes normally up to the `Disconnect request` after uploading. The behavior seems semi-random, as the same patch will sometimes load successfully and sometimes fail after changing nothing. I have noticed that I can sort of tell when it&#39;s going to fail by the &quot;rhythm&quot; or timing of the output – something is taking longer than it should perhaps. That seems strongly suggestive to me of a race condition, but I couldn&#39;t be sure which part.
+
+After the output finishes, the patch returns to editable mode after flashing &quot;live&quot; for a fraction of a second, and the Axoloti window shows the &quot;connect&quot; button in the inactive state. Clicking &quot;connect&quot; will sometimes successfully reconnect and sometimes cause the program to hard freeze for 30 seconds or so, afterwards it usually spits out a message, I think about the serial number or firmware (though I couldn&#39;t repro to grab the error message just now). After the latter error, it requires the board to be physically disconnected and reconnected before it will work again.
+
+Anyway, I&#39;ve been able to work around this in the past by being patient and trying to compile several times, but my latest patch simply won&#39;t go live on the board, so here I am. Are there any known issues like this? How can I further debug?
+
+Just some quick system details: I&#39;m on a 2011 Macbook Pro, OS X 10.10.1, connecting directly via USB (no hub). I&#39;m using the 1.0.6 build, though I recall seeing the same thing on 1.0.4.
+
+Thanks kindly!</description>
+    
+    <lastBuildDate>Sun, 06 Mar 2016 13:40:48 +0000</lastBuildDate>
+    <category>Helpdesk</category>
+    <atom:link href="http://community.axoloti.com/t/disconnect-request-on-compiling/1223.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Disconnect request on compiling</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Is the patch running, even though disconnect from the UI?<br>also when you reconnect to the board, does it give you a set of error codes?<br>we really needs details... as obviously this is not 'normal conditions', so we need to know how you get into this condition.</p>
+
+<p>generally, te compile errors (including memory) are not the only way a patch can fail, or become disconnected... <br>Ive also encountered occasions where I get this, and continue to reduce resources, and they start working. similarly, patches which use to much cpu Ive had 'crash' the board... and of course, issues with custom code Ive written... and of course, your correct it <strong>could</strong> be a race condition.</p>
+
+<p>These are reasonable 'rare' but I guess we have to remember this stuff is not 'interpreted code' with the board having lots of 'protection' we are running native code to achieve the most out of the available hardware.</p>
+
+<p>I know this is all very general, but then your report doesn't really give much to go on....</p>
+
+<p>what you would need to do is start taking things out of the patch, and reducing it to the essence of what makes it crash.<br>once you have a small patch which demonstrates the issue, you can post it here...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/disconnect-request-on-compiling/1223/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/disconnect-request-on-compiling/1223/2</link>
+        <pubDate>Sun, 06 Mar 2016 13:40:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1223-2</guid>
+        <source url="http://community.axoloti.com/t/disconnect-request-on-compiling/1223.rss">Disconnect request on compiling</source>
+      </item>
+      <item>
+        <title>Disconnect request on compiling</title>
+        <dc:creator><![CDATA[@matthewcieplak Matthew Cieplak]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/matthewcieplak">@matthewcieplak</a> wrote:</p>
+          <blockquote>
+              <p>I'm having a weird persistent issue with taking patches live. My device behaves normally for small patches that compile quickly, but often disconnects suddenly when larger patches are used (especially containing subpatches). I've run into the SRAM limitations and cleaned things up, removed preset allocations, so it's not that. In fact, there's no error message at all and it's left  me scratching my head. Here's a sample output (abridged for clarity):</p>
+
+<pre><code>USB device found
+connected
+Authentic Axoloti Core
+...
+Firmware version: 1.0.0.1, crc=0x12D13CA6, entrypoint=0x20011000
+...
+Generate code complete
+Start compiling patch
+Compiling patch... with /Applications/Axoloti.app/Contents/Java/firmware
+...
+arm-none-eabi-objcopy -O binary /Users/matthew/Documents/axoloti/build/xpatch.elf     /Users/matthew/Documents/axoloti/build/xpatch.bin
+Done compiling patch
+Start uploading patch
+bin path: /Users/matthew/Documents/axoloti/build/xpatch.bin
+block uploaded @ 0x20011000 length 32768
+block uploaded @ 0x20019000 length 11056
+Done uploading patch
+Start starting patch
+Disconnect request
+Done starting patch
+Start locking
+Done locking</code></pre>
+
+<p>As you can see, everything goes normally up to the <code>Disconnect request</code> after uploading. The behavior seems semi-random, as the same patch will sometimes load successfully and sometimes fail after changing nothing. I have noticed that I can sort of tell when it's going to fail by the "rhythm" or timing of the output – something is taking longer than it should perhaps. That seems strongly suggestive to me of a race condition, but I couldn't be sure which part.</p>
+
+<p>After the output finishes, the patch returns to editable mode after flashing "live" for a fraction of a second, and the Axoloti window shows the "connect" button in the inactive state. Clicking "connect" will sometimes successfully reconnect and sometimes cause the program to hard freeze for 30 seconds or so, afterwards it usually spits out a message, I think about the serial number or firmware (though I couldn't repro to grab the error message just now). After the latter error, it requires the board to be physically disconnected and reconnected before it will work again.</p>
+
+<p>Anyway, I've been able to work around this in the past by being patient and trying to compile several times, but my latest patch simply won't go live on the board, so here I am. Are there any known issues like this? How can I further debug?</p>
+
+<p>Just some quick system details: I'm on a 2011 Macbook Pro, OS X 10.10.1, connecting directly via USB (no hub). I'm using the 1.0.6 build, though I recall seeing the same thing on 1.0.4.</p>
+
+<p>Thanks kindly!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/disconnect-request-on-compiling/1223/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/disconnect-request-on-compiling/1223/1</link>
+        <pubDate>Sun, 06 Mar 2016 09:52:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1223-1</guid>
+        <source url="http://community.axoloti.com/t/disconnect-request-on-compiling/1223.rss">Disconnect request on compiling</source>
+      </item>
+  </channel>
+</rss>

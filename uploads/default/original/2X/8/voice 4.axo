@@ -1,0 +1,173 @@
+<objdefs appVersion="1.0.9">
+   <obj.normal id="voice 4" uuid="d52f8684-70a8-487b-a565-c5182040c12b">
+      <sDescription>4 voice 64 step sequencer. each voice has an independent loop length, reset time and clock devide factor.
+side-buttons:
+				(1-4) press to select voice
+				(5) LENGTH: hold down and press any step to set loop length
+				(6) RESET: hold down and press green area to set reset fator (8/16/32/64/128/256/512/1024)
+				(7) CLOCK: hold down and press red area to set clock devide factor (1/2/3/.../14/15/16)
+				(8) REC: hold down and press any step to live record into the sequence</sDescription>
+      <author>Beat Rossmy</author>
+      <license>BSD</license>
+      <inlets>
+         <bool32 name="focus" description="focus enables interaction via LP"/>
+         <int32 name="pos24ppq"/>
+      </inlets>
+      <outlets>
+         <bool32 name="gateA"/>
+         <bool32 name="gateB"/>
+         <bool32 name="gateC"/>
+         <bool32 name="gateD"/>
+      </outlets>
+      <displays>
+         <bool32 name="focus" noLabel="true"/>
+      </displays>
+      <params>
+         <bool32.tgl name="midi_out" noLabel="true"/>
+      </params>
+      <attribs>
+         <combo name="device">
+            <MenuEntries>
+               <string>usb host port / LP</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+            </CEntries>
+         </combo>
+         <spinner name="midi_channel" MinValue="0" MaxValue="0" DefaultValue="0"/>
+         <spinner name="root_note" MinValue="0" MaxValue="0" DefaultValue="0"/>
+      </attribs>
+      <code.declaration><![CDATA[
+#define LP_CHANNEL   0
+#define LP_RAPIDCH   2
+#define REFRESH_TIME 150
+
+#define CLEAR 	     0
+#define OFF          0
+#define REDdim       13
+#define REDfull      15
+#define ORANGEfull   47
+#define AMBERlow     29
+#define AMBERdim     46
+#define AMBERfull    63
+#define YELLOWfull   62
+#define GREENdim     28
+#define GREENfull    60
+
+#define STEPmode     0
+#define LENGTHmode   1
+#define RESETmode    2
+#define CLOCKmode    3
+#define RECmode      4
+
+struct Voice {
+	uint8_t divider = 6;
+	uint16_t reset = 1024;
+	uint8_t length = 64;
+	uint8_t pos = 0;
+	uint32_t ghost_pos;
+	uint8_t pattern[64];
+	
+	uint8_t getStep () {return (ghost_pos%divider<divider-1)?pattern[pos]:0;} // return active step
+	
+	void setPos (uint32_t _pos) {ghost_pos = _pos; pos = calcPos(_pos);}
+	void setDivider (uint8_t _divider) {divider = (_divider>0)?_divider:1;}
+	void setLength (uint8_t _pos) {length = _pos+1;}
+	void setStep () {pattern[pos] = 100;}
+	//void setStep (uint32_t _pos, uint8_t _value) {pattern[calcPos(_pos)] = _value;}
+
+	uint8_t calcPos (uint32_t _pos) {return ((_pos/divider)%reset)%length;}
+	void toggleStep (uint8_t _pos) {if (_pos<64) pattern[_pos] = (pattern[_pos]==0)?100:0;}
+};
+
+bool focus;
+uint32_t pos_shadow;
+uint16_t timer;
+bool updated;
+
+uint8_t voice;
+uint8_t editMode;
+Voice seq[4];
+
+uint8_t ui[72];
+
+void calculateUI (Voice* v) {
+	// matrix
+	for (int p=0; p<64; p++) {
+		if (editMode==RESETmode && p>55) ui[p] = (8<<(p-56)==v->reset)?REDfull:REDdim;
+		else if (editMode==CLOCKmode && p>47) ui[p] = (p-47==v->divider)?GREENfull:GREENdim;
+		else ui[p] = (v->pattern[p]>0)?AMBERfull:OFF;
+	}
+	// voice
+	for (int p=0; p<4; p++) ui[64+p] = (p==voice)?AMBERfull:AMBERlow;
+	// modes
+	ui[68] = (editMode==LENGTHmode)?GREENfull:GREENdim;
+	ui[69] = (editMode==RESETmode)?REDfull:REDdim;
+	ui[70] = (editMode==CLOCKmode)?GREENfull:GREENdim;
+	ui[71] = (editMode==RECmode)?REDfull:REDdim;
+	// pos
+	ui[v->pos] = (v->pattern[v->pos]>0)?GREENfull:AMBERdim;
+	// length
+	if (editMode==LENGTHmode) ui[v->length-1] = GREENfull;
+}
+
+void drawUI () {
+	for (int p=0; p<72; p+=2) MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON+LP_RAPIDCH, ui[p], ui[p+1]);
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON+LP_CHANNEL, 0, ui[0]);
+}
+]]></code.declaration>
+      <code.init><![CDATA[
+timer = 0;
+updated = false;
+
+pos_shadow = -1;
+editMode = 0;
+voice = 0;
+]]></code.init>
+      <code.krate><![CDATA[
+focus = (inlet_focus>0)?true:false;
+disp_focus = inlet_focus;
+
+outlet_gateA = ((seq[0].getStep())>0)? 0x07FFFFFF:0;
+outlet_gateB = ((seq[1].getStep())>0)? 0x07FFFFFF:0;
+outlet_gateC = ((seq[2].getStep())>0)? 0x07FFFFFF:0;
+outlet_gateD = ((seq[3].getStep())>0)? 0x07FFFFFF:0;
+
+if (inlet_pos24ppq != pos_shadow) {
+	pos_shadow = inlet_pos24ppq;
+	for (int v=0; v<4; v++) seq[v].setPos(pos_shadow);
+	updated = false;
+}
+
+if (focus && !updated && timer>REFRESH_TIME) {
+	calculateUI(&seq[voice]);
+	drawUI();
+	timer = 0;
+	updated = true;
+} else timer++;
+]]></code.krate>
+      <code.midihandler><![CDATA[
+if (focus) {
+	if ((status == MIDI_NOTE_ON + LP_CHANNEL) && (data2)) {
+		uint8_t y = data1>>4;
+		uint8_t x = data1%16;
+		if (x<8 && y<8) {
+			if (editMode==STEPmode) seq[voice].toggleStep(x+(y<<3));
+			else if (editMode==LENGTHmode) seq[voice].setLength(x+(y<<3));
+			else if (editMode==RESETmode && y==7) seq[voice].reset = 8<<x;
+			else if (editMode==CLOCKmode && y>5) seq[voice].setDivider(((y-6)<<3)+(x+1));
+			else if (editMode==RECmode) seq[voice].setStep();
+		}
+		else if (x==8) {
+			if (y<4 && voice!=y) voice = y;
+			else if (y>3) editMode = y-3;
+		}
+	} else if (((status == MIDI_NOTE_ON + LP_CHANNEL) && (!data2))||(status == MIDI_NOTE_OFF + LP_CHANNEL)) {
+		uint8_t y = data1>>4;
+		uint8_t x = data1%16;
+		if (x==8 && y>3) editMode = 0;
+	}	
+}
+]]></code.midihandler>
+   </obj.normal>
+</objdefs>

@@ -1,0 +1,57 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="cc to sysex" uuid="a32732b0-5912-4a1d-9b96-8c88fd682274">
+      <sDescription>a prototype of object that converts incoming CC messages to Roland-style SysEx and sends them 
+(this particular one is for Reverb Send level of HandSonic HPD-15). 
+can send either to MIDI DIN or to USB, but since they require different sending methods, it is unconventionally controlled by sendDIN parameter – when it&apos;s active, SysEx messages go to DIN port, otherwise they go to USB. 
+for even moar details, see comments to K-rate code. 
+this is 2020-03-11 version.</sDescription>
+      <author>chaocrator a.k.a. Valery Marko</author>
+      <license>do what Thou wilt should be the whole of the License</license>
+      <inlets/>
+      <outlets/>
+      <displays/>
+      <params>
+         <bool32.tgl name="sendDIN" noLabel="true"/>
+      </params>
+      <attribs>
+         <spinner name="ccNum" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         <spinner name="ccChnl" MinValue="1" MaxValue="16" DefaultValue="0"/>
+         <spinner name="deviceID" MinValue="0" MaxValue="127" DefaultValue="16"/>
+         <combo name="outUSB">
+            <MenuEntries>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <code.declaration><![CDATA[uint8_t devID;
+uint8_t dv;
+uint8_t cs;
+int ntrig;]]></code.declaration>
+      <code.init><![CDATA[devID = {attr_deviceID - 1};]]></code.init>
+      <code.krate><![CDATA[// black magick: roland checksum 
+// 76 and 204 are precalculated values for this particular SysEx message
+cs = (dv<=76)?(76-dv):(204-dv);
+// end black magick
+
+// SysEx array
+uint8_t sysexArray[13] = {240,65,devID,0,46,18,1,0,48,3,dv,cs,247};
+
+// sending to DIN and to USB are different,
+// so we use sendDIN parameter to decide how to send
+if (ntrig) { 
+	if (param_sendDIN==1) { sdWrite(&SDMIDI,sysexArray,13); }
+     else { MidiSendSysEx(attr_outUSB,sysexArray,13); }
+  ntrig=0;
+}]]></code.krate>
+      <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == attr_ccNum)&&((attr_ccChnl - 1) == attr_midichannel)) { dv = data2; ntrig = 1;}]]></code.midihandler>
+   </obj.normal>
+</objdefs>

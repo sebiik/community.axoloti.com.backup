@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Connecting the LKM1638 board</title>
+    <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242</link>
+    <description>Now that I&#39;ve finished writing my book, it&#39;s time for me to build some actual instruments with Axoloti. I&#39;ll use this topic to document the process of connecting the LKM1638 board, so you have a starting point if you are interested in building an instrument with it. 
+
+You can buy these boards for around €7 at [DealExtreme](http://www.dx.com/p/8x-digital-tube-8x-key-8x-double-color-led-module-81873). The specs of these boards:
+
+* 8x 7-segment display
+* 8x double-color green/red LED
+* 8x button
+
+A great thing is that the boards can be chained, so you could use two of them to create a 16-step sequencer. The boards use the SPI bus on the Axoloti, so you will only need 4 GPIO ports.
+
+&lt;img src=&quot;/uploads/default/original/2X/8/876579da82dd1aca7a708a908bcb1f1cdbeecc4c.jpg&quot; width=&quot;690&quot; height=&quot;328&quot;&gt;
+
+**Creating Objects**
+My goal is to develop some objects to work with this board. Some ideas:
+
+* Send text to the 7-segment display
+* Use the buttons as toggles, LEDs will show which toggle is on/off
+* Use the buttons as a mini keyboard to play notes
+* Use the buttons to toggle notes on/off in a sequencer.
+
+A good starting point to work with this board, and create objects is this old test patch made by @johannes.
+ 
+https://github.com/axoloti/axoloti/blob/master/archive/tests/io/spi_lkm1638.axh
+
+If you connect the board to the Axoloti Core and run the patch, you&#39;ll get something like the photo below. The sel/sel b 16 objects reflect the state of the LEDs. Buttons can be used to cycle through the LED colors.
+
+&lt;img src=&quot;/uploads/default/original/2X/6/66a7eb48d6ca526d17a15ddfe88b4721aeab88a5.jpg&quot; width=&quot;690&quot; height=&quot;366&quot;&gt;
+
+**Circuit Diagram**
+
+* Connect VCC to VDD (RED)
+* Connect GND to GND (Black)
+* Connect STBO to PA4 (Blue)
+* Connect CLK to PA5 (Green)
+* Connect DIO to both PA6 and PA7 (Yellow)
+
+&lt;img src=&quot;/uploads/default/original/2X/d/df8d298227e85db5f8a53bfdb57ed25657358c08.png&quot; width=&quot;583&quot; height=&quot;500&quot;&gt;
+
+**Patches**
+
+You&#39;ll need to add a gpio/spi/config object to every patch you want to use with this board. These are the settings for the object:
+
+* clock_polarity: CPOL=0
+* clock_phase: CPHA=0
+* baudrate: FPCLK/128
+* format: LSB first
+
+**Toggle Object**
+
+The first object I&#39;m working on is a toggle object. The object will output booleans so you can use the 8 buttons on the board as toggles. The LEDs on the board will also reflect the state (on/off) of the toggle. A basic patch for the object looks like the screenshot below, I&#39;ll post the object once I&#39;m finished writing code + testing.
+
+&lt;img src=&quot;/uploads/default/original/2X/0/0e3d1786b92387caa2a7eb82b547b328b073e6ad.png&quot; width=&quot;520&quot; height=&quot;500&quot;&gt;</description>
+    
+    <lastBuildDate>Thu, 05 Nov 2020 13:32:25 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>It's been a while since I've used the board. Think I did have some crashes during development, but that's was a long time ago.</p>
+
+<p>I also have the SPI errors in the console when opening patches with my objects. Not sure how to fix those, as the firmware is not documented that well.</p>
+
+<p>The original patch by Johannes is based on some code from a Raspberry Pi library, but don't know if it was really optimised to run on Axoloti. It was mainly a quick example on how to use SPI.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/29">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/29</link>
+        <pubDate>Thu, 05 Nov 2020 13:32:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-29</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>I used the exact same strategy...You never had crashes?<br>I only update the name/display on patch load, making sure I cannot really quickly load another patch (eg. by accidentaly not debouncing my switch)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/28">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/28</link>
+        <pubDate>Thu, 05 Nov 2020 10:16:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-28</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Just looked at the patches I used on my synth. I have a patch bank with a startup patch that contains the <strong>axoloti/axoloti/blob/master/archive/tests/io/spi_lkm1638.axh</strong> script object and SPI config. The patches I use for playing the synth with my objects are loaded with the <strong>patch/load i</strong> object.</p>
+
+<p>As far as I can remember, the display object was not made to update frequently. I only use it to show the patch name when it becomes active.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/27">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/27</link>
+        <pubDate>Thu, 05 Nov 2020 09:40:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-27</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>my gut feeling says the board needs a "reset" or a "clear" either before a new patch load trigger is sent or as a reset before running any of the LKM1638 object code.</p>
+
+<p>the reason that I think it is this is that I can always run a patch the first time it loads. This is the only reproducable pattern I can find...<br>so:<br>1. reset axo (usb cable out/in) flash patch running has got nothing to do with LKM1638<br>2. load a patch setting the display using <a class="mention" href="/u/janvantomme">@janvantomme</a>'s  lkm1638-display-toggle-leds<br>3. display shows nothing, is outlined above as a possible bug, the rest of the patch works fine<br>4. loading the </p>
+
+<p><aside class="quote" data-post="14" data-topic="1242"><blockquote><p>axoloti/axoloti/blob/master/archive/tests/io/spi_lkm1638.axh</p></blockquote></aside></p>
+
+<p>script, suddenly my text set in the previous patch pops up. This explains something is kept on the lkm1638 and transferred between patches, but it should be reset!<br>5. the patch works fine (buttons toggle LEDS, I can set them using the seq objects, but it should not display anything on the 7-segment display, yet it displays text from the first patch<br>6. load the first patch again.... no problem, I can switch back and forth between these two patches no problem at all<br>6. if I load <em>another</em> patch with different text in the  lkm1638-display-toggle-leds it crashes sometime, sometimes not... it becomes unstable...but it will crash after 2 or 3  display updates the latest</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/26">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/26</link>
+        <pubDate>Thu, 29 Oct 2020 09:59:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-26</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>HI I just hooked up my LKM1638 board I had lying around to my axo. It randomly crashes, sometimes before I update the text on the display. I'm using the adaptations <a class="mention" href="/u/andrewchi">@AndrewChi</a> suggested. </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/384943188571939f75ee256ec563a47c5a27f8bc" href="//community.axoloti.com/uploads/default/original/2X/3/384943188571939f75ee256ec563a47c5a27f8bc.jpg" class="lightbox" title="image.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/3/384943188571939f75ee256ec563a47c5a27f8bc_1_375x500.jpg" width="375" height="500"><div class="meta">
+<span class="filename">image.jpg</span><span class="informations">759x1012 286 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>I'm trying to have it display the current patchname and would love to have the buttons switch presets inside each patch.<br>I succeed sometimes in switching patch, sometimes it updates the name, sometimes not.</p>
+
+<p>The AXO log just says </p>
+
+<p>"Disconnect request"</p>
+
+<p>and the axo becomes unresponsive until reset</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/9/97497fed365755703f8aceb1acfce6518633fc1d.png" width="607" height="347"></p>
+
+<p>I tried adding various delays, pulselengths etc... all crashes.</p>
+
+<p>Even if I do not "use" the object, but just let it sit in the patch, it crashes, also when completely unconnected.<br>When I remove the object all is fine...</p>
+
+<p>I'm using the lkm1638_full but I've had similar problems with the other object, and in that case axo was also logging some other SPI related errors, like:</p>
+
+<blockquote><pre><code>&gt; Error: object "spi.begin_1" attribute "clock_polarity", value "0 when idle" unmatched
+&gt; Error: object "spi.begin_1" attribute "clock_phase", value "first clock transition is the first data capture edge" unmatched</code></pre></blockquote>
+
+<p>not in the case of lkm1638_full</p>
+
+<p>any hints?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/25</link>
+        <pubDate>Thu, 29 Oct 2020 09:21:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-25</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@AndrewChi]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andrewchi">@AndrewChi</a> wrote:</p>
+          <blockquote>
+              <p>Okay, I was a bit fast...<br>When the patch became a bit more complex it didnt work anymore with the pulse object as described above.</p>
+
+<p>I figured out the CPU spike when updating the display was actually caused by the Sleep command in the code.<br>I commented out all chThdSleepMilliseconds in the <em>//update text</em> in the K-rate  code of the object.</p>
+
+<p>I now use a timer/delayed pulse object to update the display to keep the update rate slow, and this seems to work, when the delay is set above 100ms.</p>
+
+<p>Could maybe be of help for someone who is experimenting with the LKM board too.</p>
+
+<p>Happy patching!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/24</link>
+        <pubDate>Thu, 29 Aug 2019 15:00:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-24</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@AndrewChi]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andrewchi">@AndrewChi</a> wrote:</p>
+          <blockquote>
+              <p>Hi <a class="mention" href="/u/aslanov">@aslanov</a>,<br>Thanks so much for your object and <a class="mention" href="/u/janvantomme">@janvantomme</a> for the original ones.</p>
+
+<p>I found a very simple solution for the update display problem:<br>I used a pulse/lfsburst4 object to trigger the update input and it works. No cpu spikes whatsoever!<br>I guess 'normal' triggers were too long...</p>
+
+<p>Has anyone experienced that LED 8 is lighting up when sending update display messages?<br>My LKM board is slightly different (also very cheap and only red LEDs). I guess it's the board's design? Or could I perhaps change something in the code to change this behaviour? I'm just starting out with code so any help/insight would be really great! Thanks.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/23</link>
+        <pubDate>Thu, 29 Aug 2019 11:58:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-23</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@Mindsetup]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mindsetup">@Mindsetup</a> wrote:</p>
+          <blockquote>
+              <p>Okay, so not possible to use to of these chips. I might have to do an 8 step sequencer then. Or find some hacky way to use the 8 as 16. Or maybe its easy to just patch so i can have 16 step pattern i can browse with the 8 steps.</p>
+
+<p>Thanks for your help. I had a year long pause from axoloti and now excited again to find some time to create something awesome.<br>Have you continued making the guide btw?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/22</link>
+        <pubDate>Thu, 24 Jan 2019 13:49:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-22</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Don't think that will be possible. These board use the SPI protocol for communication. On the Axoloti, this protocol is implemented using the 4 gpio I've used here.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/21</link>
+        <pubDate>Thu, 24 Jan 2019 13:44:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-21</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@Mindsetup]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mindsetup">@Mindsetup</a> wrote:</p>
+          <blockquote>
+              <p>But it is possible to use two of these boards when theyre not chained? How many gpios would they use that way?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/20</link>
+        <pubDate>Thu, 24 Jan 2019 13:31:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-20</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>It's not possible with these objects. Two chained boards will only take up 4 gpio. Code will need some changes to be able to send data to, or read from two boards.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/19</link>
+        <pubDate>Thu, 24 Jan 2019 13:05:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-19</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@Mindsetup]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mindsetup">@Mindsetup</a> wrote:</p>
+          <blockquote>
+              <p>Is it possible yet to chain two LKM1638 boards to get 16 steps and get the both displays to work also? I can't write my own objects. How many gpios would it use?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/18</link>
+        <pubDate>Wed, 23 Jan 2019 13:19:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-18</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@tibosizz KAICHENGGUO]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tibosizz">@tibosizz</a> wrote:</p>
+          <blockquote>
+              <p>I only know the basics of C programming as well. The hardest thing now will be figuring out what functions to use to talk to the board via the SPI port<a href="http://www.allicdata.com" rel="nofollow noopener">.</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/17</link>
+        <pubDate>Tue, 18 Dec 2018 07:22:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-17</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@aslanov Christian Herzog]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/aslanov">@aslanov</a> wrote:</p>
+          <blockquote>
+              <p>Hi, I put some work into the original objects provided by <a class="mention" href="/u/janvantomme">@janvantomme</a>. It is now possible to update the text display while the object is live. I am using this with a string mux object to display the name of the currently selected patch. I have also added inputs for both LED colors and an inlet to clear the text display. </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/d62c1686b0dadbf7c282f2ae8ff2339e405395d2" href="//community.axoloti.com/uploads/default/original/2X/d/d62c1686b0dadbf7c282f2ae8ff2339e405395d2.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/d/d62c1686b0dadbf7c282f2ae8ff2339e405395d2_1_647x500.png" width="647" height="500"><div class="meta">
+<span class="filename">image.png</span><span class="informations">904x698 52.7 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>What I did not manage to solve is that the patch will crash if you update the display too frequently/quickly. I was able to make it more tolerant by adding sleep-commands in a couple of places, this is for sure not the right way to do it. However, this is not a problem for me since I am triggering the patches with a midi floorboard, my feet are slow enough not to exceed the max frequency <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> if anybody is interested in using this object and is more fund of programming, this can certainly be solved. <br>Here are the links to the object and an example patch:</p>
+
+<p><a href="https://drive.google.com/open?id=1guf-pVEfgmgyP35_5G2FVB0M0Rj-FdoU" rel="nofollow noopener">lkm 1638 object</a><br><a href="https://drive.google.com/open?id=1guf-pVEfgmgyP35_5G2FVB0M0Rj-FdoU" rel="nofollow noopener">lkm 1638 example patch</a></p>
+
+<p>Thanks to <a class="mention" href="/u/janvantomme">@janvantomme</a> for his work with this display module!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/16</link>
+        <pubDate>Sat, 24 Mar 2018 10:41:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-16</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@aslanov Christian Herzog]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/aslanov">@aslanov</a> wrote:</p>
+          <blockquote>
+              <p>That worked, thanks a lot!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/15</link>
+        <pubDate>Wed, 17 Jan 2018 20:30:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-15</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Can you try with this patch Johannes made? I sometimes had to run that one first in order for things to work.</p>
+
+<aside class="onebox githubblob">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti/blob/master/archive/tests/io/spi_lkm1638.axh" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <h4><a href="https://github.com/axoloti/axoloti/blob/master/archive/tests/io/spi_lkm1638.axh" target="_blank" rel="nofollow noopener">axoloti/axoloti/blob/master/archive/tests/io/spi_lkm1638.axh</a></h4>
+<pre><code class="lang-axh">&lt;patch-1.0&gt;
+   &lt;comment type="patch/comment" name="connect PA4 to STB0" x="28" y="14"/&gt;
+   &lt;comment type="patch/comment" name="PA5 to CLK" x="70" y="28"/&gt;
+   &lt;comment type="patch/comment" name="PA6 and PA7 to DIO" x="70" y="42"/&gt;
+   &lt;comment type="patch/comment" name="VDD to VCC" x="70" y="56"/&gt;
+   &lt;comment type="patch/comment" name="GND to GND" x="70" y="70"/&gt;
+   &lt;obj type="gpio/spi/config" sha="8491453740b6fc6b2fcf5de6e9eb65baa370f6e4" name="spi.begin_1" x="28" y="98"&gt;
+      &lt;params/&gt;
+      &lt;attribs&gt;
+         &lt;combo attributeName="clock_polarity" selection="0 when idle"/&gt;
+         &lt;combo attributeName="clock_phase" selection="first clock transition is the first data capture edge"/&gt;
+         &lt;combo attributeName="baudrate" selection="FPCLK/128"/&gt;
+         &lt;combo attributeName="format" selection="LSB first"/&gt;
+      &lt;/attribs&gt;
+   &lt;/obj&gt;
+   &lt;obj type="script/script2" sha="1478c410b77725959c034de4a2456dd1198e9080" name="script2_1" x="168" y="98"&gt;
+      &lt;params/&gt;
+      &lt;attribs&gt;
+         &lt;text attributeName="script"&gt;
+            &lt;sText&gt;&lt;![CDATA[uint8_t *txbuf;
+</code></pre>
+
+  This file has been truncated. <a href="https://github.com/axoloti/axoloti/blob/master/archive/tests/io/spi_lkm1638.axh" target="_blank" rel="nofollow noopener">show original</a>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/14</link>
+        <pubDate>Wed, 17 Jan 2018 09:06:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-14</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@aslanov Christian Herzog]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/aslanov">@aslanov</a> wrote:</p>
+          <blockquote>
+              <p>Hi Jan, I am trying to get the LEDs and the display to work with the objects provided by you. I finally managed to hook this unit up to my axoloti and while the buttons are working, I get no response from neither the LEDS nor the  7-segment displays. I checked the unit with an arduino and it is just working fine. </p>
+
+<p>I am using the example patches together with the exact same unit as shown in the photos, sourced from deal extreme a while ago. Any ideas?  Any input appreciated, thanks, Christian</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/13</link>
+        <pubDate>Sun, 14 Jan 2018 15:48:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-13</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>There's no way to control two boards at the same time for now. And I don't plan on developing that since I don't need it for my synth. But I think you can adapt my code if you want to chain two boards.</p>
+
+<p>This is a piece of code from my objects.</p>
+
+<pre><code>void tm1638_send_command(uint8_t x){
+	SPID1.spi-&gt;CR1 |= SPI_CR1_BIDIOE;
+	spiSelect(&amp;SPID1);
+	txbuf[0] = x;
+	spiSend(&amp;SPID1,1,&amp;txbuf[0]);
+	spiUnselect(&amp;SPID1);
+}</code></pre>
+
+<p>And this is the same function from this Raspberry PI library. ( <a href="https://github.com/mjoldfield/pi-tm1638/blob/master/src/tm1638.c" rel="nofollow">https://github.com/mjoldfield/pi-tm1638/blob/master/src/tm1638.c</a> ) You'll notice that the first parameter in this function, the variable <code>t</code> is a reference to a single board when they are chained together.</p>
+
+<pre><code>static void tm1638_send_command(const tm1638_p t, uint8_t x)
+{
+	bcm2835_gpio_write(t-&gt;strobe, LOW);
+	delayMicroseconds(1);
+
+	tm1638_send_raw(t, x);
+	bcm2835_gpio_write(t-&gt;strobe, HIGH);
+
+	delayMicroseconds(1);
+}</code></pre>
+
+<p>My code uses the SPI API from the Axoloti firmware, the other code uses a BCM2835 GPIO library for the Raspberry PI that does something similar. You'll probably find a lot of Arduino code to work with the LKM1638 boards online that might help you figure things out.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/12</link>
+        <pubDate>Fri, 12 Aug 2016 14:29:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-12</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@alifeinbinary Andrew Halliwell]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alifeinbinary">@alifeinbinary</a> wrote:</p>
+          <blockquote>
+              <p>Brilliant stuff, Jan! At this point I might be of some help. I'd like to think I'm good at testing and debugging after years of doing web development <img src="/images/emoji/emoji_one/wink.png?v=2" title=":wink:" class="emoji" alt=":wink:"> Super excited to try this out! You haven't mentioned whether two LKM1638 boards can be daisy chained together yet so I assume there isn't that capability yet. Do you know what's involved to make two units "talk" to one another? I could work on that part. I'm aiming to build a polysynth with built-in 64 step sequencer so 16 toggles would be ideal.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/11</link>
+        <pubDate>Wed, 10 Aug 2016 22:12:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-11</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>A bit hard to see in this smartphone picture, but I've got the display working tonight. Only thing I need to do now is creating a dedicated object to set the text.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/b4b87f86be6556d49ff7bcb32a3c6a71c140b03c" href="//community.axoloti.com/uploads/default/original/2X/b/b4b87f86be6556d49ff7bcb32a3c6a71c140b03c.jpg" class="lightbox" title="CphWaoyWIAEY4ts.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/b/b4b87f86be6556d49ff7bcb32a3c6a71c140b03c_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">CphWaoyWIAEY4ts.jpg</span><span class="informations">960x720 102 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/10</link>
+        <pubDate>Wed, 10 Aug 2016 19:25:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-10</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>I've just posted some objects to work with the LKM1638 board to the community library. Feedback is welcome.</p>
+
+<aside class="quote" data-topic="1045" data-slug="janvantomme-contributions" data-post="4"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/janvantomme/40/10_1.png" class="avatar"><a href="//community.axoloti.com/t/janvantomme-contributions/1045/4">Janvantomme contributions</a>
+</div>
+<blockquote><p>jv/lkm1638  Some objects to work with the <a href="//community.axoloti.com/t/connecting-the-lkm1638-board/1242">LKM1638 board</a>.   Status  there may be small bugs…    Version  1.0.10   Description  Constrains a value to not exceed a maximum and minimum value.     jv/lkm1636/lkm1638-buttons: Reads the state of the buttons of the LKM1638 board.  jv/lkm1636/lkm1638-leds: Set the LEDs of the LKM1638 board individually.  jv/lkm1636/lkm1638-buttons-leds: Reads the state of the buttons of the LKM1638 board, and lights up the corresponding LED when the button is pressed.  j…</p></blockquote></aside>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/9</link>
+        <pubDate>Wed, 10 Aug 2016 18:57:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-9</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Now that I've finished building my synth, I had some time to develop some objects to work with the LKM1638 board. I'll need to clean up the code and document everything a bit better, and then I'll publish them to the community library. This is what I've got so far:</p>
+
+<ul>
+<li>Read when buttons are pressed, no LED output.</li>
+<li>Read when buttons are pressed, LED output.</li>
+<li>LED output, no button interaction.</li>
+<li>Use buttons and LEDs as toggles.</li>
+</ul>
+
+<p>The 7-segment display doesn't work yet, but I hope to make that work soon.</p>
+
+<p>Here's some videos of the objects in action.</p>
+
+<iframe src="https://player.vimeo.com/video/173932174" width="640" height="360" frameborder="0" title="Axoloti + LKM1638: Set LEDs Individually" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+
+<iframe src="https://player.vimeo.com/video/173932173" width="640" height="360" frameborder="0" title="Axoloti + LKM1638: Light Organ" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+
+<iframe src="https://player.vimeo.com/video/173932171" width="640" height="360" frameborder="0" title="Axoloti + LKM1638: Light up LED when button is pressed" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+
+<iframe src="https://player.vimeo.com/video/173932172" width="640" height="360" frameborder="0" title="Axoloti + LKM1638: Toggle Leds" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/8</link>
+        <pubDate>Fri, 08 Jul 2016 16:47:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-8</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>I designed the white buttons myself, and printed them on my 3D printer. Just a plastic prototype for now, will print them in elastic material when I finish the synth.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/7</link>
+        <pubDate>Sat, 30 Apr 2016 13:09:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-7</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@alifeinbinary Andrew Halliwell]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alifeinbinary">@alifeinbinary</a> wrote:</p>
+          <blockquote>
+              <p>That looks fantastic, bravo! I'm going to take a stab at developing the object to accommodate two LKM1638 boards because my intention is to have a functional 16 step sequencer. Getting both displays working would be overkill, for me at least. I will prioritise the functionality of the LEDs and buttons first. Where did you get your white buttons from? I see what you mean regarding the removal of the 10 pin connector, will try to not fry my second board <img src="/images/emoji/emoji_one/stuck_out_tongue.png?v=2" title=":stuck_out_tongue:" class="emoji" alt=":stuck_out_tongue:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/6</link>
+        <pubDate>Thu, 28 Apr 2016 20:33:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-6</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+      <item>
+        <title>Connecting the LKM1638 board</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Haven't had the chance to do a lot of programming on the objects lately. Currently building a new dedicated synth with Axoloti that will use one of the LKM1638 boards as a control. When the synth is finished, I'll start programming again.</p>
+
+<p>I'll stick with using one board for now, my second one got damaged while desoldering the connectors. If you want to solder the LKM board directly to the Axoloti, it's better to remove the black plastic part, end solder the wires directly to the pins and bend them over so you can mount it inside a case.</p>
+
+<p>I did some tests with a lasercut top plate and 3D printed buttons as well.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4434b142e99dd635353fbb41b8161edda564b5dd" href="//community.axoloti.com/uploads/default/original/2X/4/4434b142e99dd635353fbb41b8161edda564b5dd.jpg" class="lightbox" title="CeZXG2JXIAQnTFF.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/4434b142e99dd635353fbb41b8161edda564b5dd_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">CeZXG2JXIAQnTFF.jpg</span><span class="informations">960x720 86.7 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-the-lkm1638-board/1242/5</link>
+        <pubDate>Thu, 28 Apr 2016 19:41:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1242-5</guid>
+        <source url="http://community.axoloti.com/t/connecting-the-lkm1638-board/1242.rss">Connecting the LKM1638 board</source>
+      </item>
+  </channel>
+</rss>

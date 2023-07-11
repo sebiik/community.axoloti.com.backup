@@ -1,0 +1,93 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="spi1config" uuid="dfb0e9b4-7362-431e-aadc-4dfc87d9d35d">
+      <sDescription>Configures a SPI interface via SPI driver 1. Pin mapping: PA15=NSS PB3=SCK PB4=MISO PB5=MOSI</sDescription>
+      <author>Johannes Taelman</author>
+      <license>BSD</license>
+      <inlets/>
+      <outlets/>
+      <displays/>
+      <params/>
+      <attribs>
+         <combo name="clock_polarity">
+            <MenuEntries>
+               <string>CPOL=0</string>
+               <string>CPOL=1</string>
+            </MenuEntries>
+            <CEntries>
+               <string> </string>
+               <string>|SPI_CR1_CPOL</string>
+            </CEntries>
+         </combo>
+         <combo name="clock_phase">
+            <MenuEntries>
+               <string>CPHA=0</string>
+               <string>CPHA=1</string>
+            </MenuEntries>
+            <CEntries>
+               <string> </string>
+               <string>|SPI_CR1_CPHA</string>
+            </CEntries>
+         </combo>
+         <combo name="baudrate">
+            <MenuEntries>
+               <string>FPCLK/2</string>
+               <string>FPCLK/4</string>
+               <string>FPCLK/8</string>
+               <string>FPCLK/16</string>
+               <string>FPCLK/32</string>
+               <string>FPCLK/64</string>
+               <string>FPCLK/128</string>
+               <string>FPCLK/256</string>
+            </MenuEntries>
+            <CEntries>
+               <string>|(0&lt;&lt;3)</string>
+               <string>|(1&lt;&lt;3)</string>
+               <string>|(2&lt;&lt;3)</string>
+               <string>|(3&lt;&lt;3)</string>
+               <string>|(4&lt;&lt;3)</string>
+               <string>|(5&lt;&lt;3)</string>
+               <string>|(6&lt;&lt;3)</string>
+               <string>|(7&lt;&lt;3)</string>
+            </CEntries>
+         </combo>
+         <combo name="format">
+            <MenuEntries>
+               <string>MSB first</string>
+               <string>LSB first</string>
+            </MenuEntries>
+            <CEntries>
+               <string> </string>
+               <string>|SPI_CR1_LSBFIRST</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <depends>
+         <depend>SPID2</depend>
+         <depend>SPID1</depend>
+      </depends>
+      <code.init><![CDATA[// setup the pins
+palSetPadMode(GPIOA, 15, PAL_MODE_OUTPUT_PUSHPULL);// NSS
+//palSetPadMode(GPIOB, 3, PAL_MODE_OUTPUT_PUSHPULL);// SCK
+
+//palSetPadMode(GPIOB,4,PAL_MODE_INPUT); //seb test MISO
+
+//palSetPadMode(GPIOB, 5, PAL_MODE_OUTPUT_PUSHPULL);// MOSI
+
+//palSetPadMode(GPIOA, 15, PAL_MODE_ALTERNATE(5));// NSS
+palSetPadMode(GPIOB, 3, PAL_MODE_ALTERNATE(5));// SCK
+palSetPadMode(GPIOB, 4, PAL_MODE_ALTERNATE(5));// MISO
+palSetPadMode(GPIOB, 5, PAL_MODE_ALTERNATE(5));// MOSI
+
+static const SPIConfig spi1cfg =
+    {NULL, GPIOA, 15, 0 attr_clock__polarity attr_clock__phase attr_baudrate attr_format};
+
+
+spiStart(&SPID1, &spi1cfg);]]></code.init>
+      <code.dispose><![CDATA[spiStop(&SPID1);
+
+palSetPadMode(GPIOA, 15, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOB, 3, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOB, 4, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOB, 5, PAL_MODE_INPUT_ANALOG);]]></code.dispose>
+   </obj.normal>
+</objdefs>

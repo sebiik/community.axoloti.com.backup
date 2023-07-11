@@ -1,0 +1,146 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="new2" x="28" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="32"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/i radio 8 h" uuid="81c4cf13a2d0e267b327a4663a711c2f96f7f9b7" name="Index" x="224" y="168">
+      <params>
+         <int32.hradio name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="Bit  " x="364" y="168">
+      <params>
+         <int32 name="value" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="Write value" x="462" y="168">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_3" x="546" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2" name="write_2" x="644" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="new2"/>
+      </attribs>
+      <object id="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2">
+         <sDescription>write to table</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="index" description="index (integer, not fraction)"/>
+            <int32 name="bit"/>
+            <bool32 name="v"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;]]></code.declaration>
+         <code.init><![CDATA[int ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      ntrig=1;
+      if (inlet_index  < attr_table.LENGTH)
+         // (attr_table.array[ inlet_index ]=__SSAT(inlet_v  ,28)>>attr_table.GAIN);
+         // (attr_table.array[ inlet_index & (1 << inlet_bit) ]=__SSAT(inlet_v  ,28)>>attr_table.GAIN);
+         // ( bool & (1 << inlet_bit)(attr_table.array[ inlet_index ]=__SSAT(inlet_v  ,28)>>attr_table.GAIN)) ; No good
+         // (attr_table.array[ inlet_index ] & 1 << inlet_bit) =__SSAT(inlet_v  ,28)>>attr_table.GAIN;
+         
+         (attr_table.array[ inlet_index ] & 1 << inlet_bit) =__SSAT(inlet_v  ,28)>>attr_table.GAIN;
+   }
+   if (!(inlet_trig>0)) ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a" name="Read" x="798" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="t" obj="new2"/>
+      </attribs>
+      <object id="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a">
+         <sDescription>note to a scale</sDescription>
+         <author>Mark Harris</author>
+         <license>BSD</license>
+         <helpPatch>note scale.axh</helpPatch>
+         <inlets>
+            <int32 name="index"/>
+            <int32 name="bit"/>
+         </inlets>
+         <outlets>
+            <int32 name="sc"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="t"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t hold;
+
+int InitPreset;]]></code.declaration>
+         <code.init><![CDATA[hold = 0;]]></code.init>
+         <code.krate><![CDATA[/*
+ * Pitched up +72 to make a simple solution for pitch down.
+ * THis gives a range of -5 octave in the low range and infinite in the top range.
+ * It's scaled back at the end of the algorithm, by adding -72.
+ */
+
+outlet_sc = attr_t.array[inlet_index] & (1 << inlet_bit);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_3" x="910" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="Read" outlet="sc"/>
+         <dest obj="i_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="Index" outlet="out"/>
+         <dest obj="Read" inlet="index"/>
+         <dest obj="write_2" inlet="index"/>
+      </net>
+      <net>
+         <source obj="Bit  " outlet="out"/>
+         <dest obj="Read" inlet="bit"/>
+         <dest obj="write_2" inlet="bit"/>
+      </net>
+      <net>
+         <source obj="Write value" outlet="o"/>
+         <dest obj="change_3" inlet="in"/>
+         <dest obj="write_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="change_3" outlet="trig"/>
+         <dest obj="write_2" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>128</x>
+      <y>93</y>
+      <width>1135</width>
+      <height>703</height>
+   </windowPos>
+</patch-1.0>

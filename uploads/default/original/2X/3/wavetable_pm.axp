@@ -1,0 +1,267 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="tb/wave/wavetable load" uuid="79be5e1d-3c11-489e-9cae-5c2e69d60ddc" name="wavetable_1" x="182" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="waves" selection="256"/>
+         <combo attributeName="size" selection="2048"/>
+         <file attributeName="filename" file="/Users/lokki/16bit2048/bowedmetal.raw"/>
+      </attribs>
+   </obj>
+   <obj type="midi/in/touch" uuid="7e3a4d718388f6d5213accadf5a80121a7c35cc9" name="touch_1" x="420" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/keyb zone lru" uuid="36a44968a4f8b980273e94dca846b7544a3c45d2" name="keyb_1" x="182" y="196">
+      <params/>
+      <attribs>
+         <spinner attributeName="startNote" value="0"/>
+         <spinner attributeName="endNote" value="127"/>
+      </attribs>
+   </obj>
+   <obj type="audio/outconfig" uuid="eace67e3304afaa1bb695b444e9345f2d8adaf00" name="outconfig_1" x="910" y="224">
+      <params/>
+      <attribs>
+         <combo attributeName="headphones" selection="-30dB"/>
+         <combo attributeName="mode" selection="Stereo"/>
+      </attribs>
+   </obj>
+   <obj type="env/hd" uuid="819e2ee2c29202649dec31560d8be9a92528ef15" name="hd_1" x="574" y="238">
+      <params>
+         <frac32.s.map name="d" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/tri cheap" uuid="9d5f09ac82b4951ee329feab93af35896b44e8a6" name="tri_1" x="378" y="294">
+      <params>
+         <frac32.s.map name="pitch" value="43.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="b073d0d7-4051-403b-bf27-b72511133d7b" name="wavetable_2" x="700" y="294">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.u.map name="windex" value="0.0"/>
+         <bool32.tgl name="xfade" value="0"/>
+         <bool32.tgl name="interp" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="wavetable_1"/>
+      </attribs>
+      <object id="patch/object" uuid="b073d0d7-4051-403b-bf27-b72511133d7b">
+         <sDescription>play a wavetable, which has been loaded by  wave/wavetable load/
+crossfade will fade beween waves. (~ double cpu load).
+note: you can use as a single wave oscillator by just loadng 1 wave</sDescription>
+         <author>Mark Harris</author>
+         <license>GPL</license>
+         <helpPatch>wavetable.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="pitch" description="pitch "/>
+            <frac32.positive name="windex" description="wave index"/>
+            <frac32buffer name="freq" description="frequency"/>
+            <frac32buffer name="phase"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="o" description="wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.pitch name="pitch" description="pitch" noLabel="true"/>
+            <frac32.u.map name="windex" description="wavetable index"/>
+            <bool32.tgl name="xfade" description="crossfade between waves"/>
+            <bool32.tgl name="interp"/>
+         </params>
+         <attribs>
+            <objref name="table" description="wavetable load object"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t phase;
+uint32_t lastPhase;
+uint32_t WAVESMASK,WAVESZ;
+
+uint32_t wt1, new_wt1;
+uint32_t wt2, new_wt2;
+uint32_t mwt, new_mwt;
+uint32_t cwt, new_cwt;
+uint32_t wt1m, new_wt1m;
+uint32_t wt2m, new_wt2m;]]></code.declaration>
+         <code.init><![CDATA[WAVESMASK = (~ (( 1 << (21 - (attr_table.WAVESPOW - 6) ) ) - 1));
+WAVESZ = (1 << (21 - (attr_table.WAVESPOW - 6)));
+
+phase=0;
+lastPhase = 1 << 31;
+new_wt1 = 0;
+new_wt2 = 0;
+new_wt1m = (1 << attr_table.SIZEPOW ) - 1;
+new_wt2m = (1 << attr_table.SIZEPOW ) - 1;
+new_mwt = 0;
+new_cwt = 64 << 21;
+
+wt1 = new_wt1; 
+wt2 = new_wt2; 
+mwt = new_mwt; 
+cwt = new_cwt; 
+wt1m = new_wt1m; 
+wt2m = new_wt2m;]]></code.init>
+         <code.krate><![CDATA[uint32_t freq;
+MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+
+uint32_t w =inlet_windex + param_windex;
+w = w > (64 << 21) ? (64<<21) - (w - (64<<21)) : w;
+
+
+
+new_wt1 = w & WAVESMASK;
+uint32_t wsi = __USAT(new_wt1,27) >> (27-attr_table.LENGTHPOW);
+new_wt1m = (wsi + (1 << attr_table.SIZEPOW) ) -1 ;
+
+
+if(param_xfade) {
+	new_wt2 = new_wt1 + WAVESZ;
+
+	if (new_wt2 >= (64 << 21)) {
+		new_wt2 = new_wt1;
+		new_mwt = 128 << 20;
+		new_cwt = 0; 
+		
+	} else {
+		uint32_t d  = w - (w & WAVESMASK);
+		uint32_t dp  = d << attr_table.WAVESPOW ;
+		new_mwt = ((128<<20) - dp);
+		new_cwt = dp;
+	}
+	uint32_t wsi = __USAT(new_wt2,27) >> (27-attr_table.LENGTHPOW);
+	new_wt2m = (wsi + (1 << attr_table.SIZEPOW) ) -1 ;
+}]]></code.krate>
+         <code.srate><![CDATA[//phasor
+int32_t phasor;
+phase += (freq>>0) + inlet_freq;
+phasor= (phase + (inlet_phase<<4)) >>5;
+
+//trig at new cycle
+if(lastPhase > phase) {
+	wt1 = new_wt1; 
+	wt2 = new_wt2; 
+	wt1m = new_wt1m; 
+	wt2m = new_wt2m; 
+	mwt = new_mwt; 
+	cwt = new_cwt; 
+}
+lastPhase = phase;
+
+//div number of entries
+phasor = phasor >> attr_table.WAVESPOW;
+
+
+//read interp - wt1
+int32_t swt1;
+{
+	
+uint32_t asat = __USAT(phasor + wt1,27);
+int index = asat >> (27-attr_table.LENGTHPOW);
+int32_t y1 = attr_table.array[index] << attr_table.GAIN;
+int32_t y2;
+if (param_interp) y2 = attr_table.array[(index+1) & wt1m] << attr_table.GAIN;
+int frac = (asat - (index << (27 - attr_table.LENGTHPOW))) << (attr_table.LENGTHPOW + 3);
+
+swt1 = ___SMMUL(y1,(1 << 30) - frac);
+if (param_interp) swt1 = ___SMMLA(y2,frac,swt1);
+else swt1 = ___SMMLA(y1,frac,swt1);
+
+}
+
+if(param_xfade) {
+	int32_t swt2;
+
+	// read interp wt2
+	uint32_t asat = __USAT(phasor + wt2,27);
+	int index = asat >> (27-attr_table.LENGTHPOW);
+	int32_t y1 = attr_table.array[index] << attr_table.GAIN;
+	int32_t y2;
+if (param_interp)y2 = attr_table.array[(index+1) & wt2m] << attr_table.GAIN;
+	int frac = (asat - (index << (27 - attr_table.LENGTHPOW))) << (attr_table.LENGTHPOW + 3);
+	
+	swt2 = ___SMMUL(y1,(1 << 30) - frac);
+	if (param_interp) swt2 = ___SMMLA(y2,frac,swt2);
+	else swt2 = ___SMMLA(y1,frac,swt2);
+	
+
+	//xfade between swt1 swt2
+     int64_t a = (int64_t)swt2 * cwt;
+     a += (int64_t)swt1 * mwt;
+     outlet_o= a >> (27 - 2);
+}
+else {
+	outlet_o = swt1 << 2;	
+}]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_2" x="504" y="322">
+      <params>
+         <frac32.u.map name="amp" value="3.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="3ac307b9f782049739ed62504081b96d580ea336" name="*_2" x="630" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="840" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="924" y="350">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="wavetable_2" inlet="pitch"/>
+         <dest obj="tri_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate"/>
+         <dest obj="hd_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="wavetable_2" outlet="o"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="hd_1" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="right"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="touch_1" outlet="o"/>
+         <dest obj="wavetable_2" inlet="windex"/>
+         <dest obj="*_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="tri_1" outlet="wave"/>
+         <dest obj="*c_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*_2" outlet="result"/>
+         <dest obj="wavetable_2" inlet="phase"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="*_2" inlet="b"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>410</x>
+      <y>0</y>
+      <width>952</width>
+      <height>692</height>
+   </windowPos>
+</patch-1.0>

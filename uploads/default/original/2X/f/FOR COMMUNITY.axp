@@ -1,0 +1,340 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="alloc" x="14" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="32"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="midi/out/clock" uuid="12b916e835bb6fc9fa4f2c858d1d1a72d5cf6d08" name="clock_1" x="154" y="14">
+      <params>
+         <frac32.u.map name="bpm" value="25.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="cb20ae2d-c03b-4a68-aded-76f52000b1d7" name="div3_1" x="294" y="14">
+      <params>
+         <int32 name="div" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="cb20ae2d-c03b-4a68-aded-76f52000b1d7">
+         <sDescription>NEW CLOCK DIVIDER WITH LOGIC CHANGE</sDescription>
+         <author>Jaffasplaffa</author>
+         <license>BSD</license>
+         <helpPatch>mux.axh</helpPatch>
+         <inlets>
+            <int32 name="ppq"/>
+            <int32.positive name="d1" description="select"/>
+            <int32.positive name="d2"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o"/>
+         </outlets>
+         <displays>
+            <int32.label name="div" noLabel="true"/>
+         </displays>
+         <params>
+            <int32 name="div" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="256"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t ppqX;
+int32_t DIV;
+
+   int ptrig;
+   int32_t pval;]]></code.declaration>
+         <code.init><![CDATA[ptrig = 0;
+pval = 0;]]></code.init>
+         <code.krate><![CDATA[// Homemade Clock Divider in integer numbers 		//
+// Must be fed with clock from MClock 96ppq output	//
+// Or else the timing texts on the right wont be right	//
+
+DIV = inlet_ppq/param_div; // Only for this version change for newer ones so it can run faster //
+	
+
+
+
+if ((pval != DIV)&(!ptrig)) { 
+  outlet_o = 1;
+  pval = DIV;
+  ptrig = 1;
+} else {
+  ptrig = 0;
+  outlet_o = 0;
+}
+
+
+// Display clock divider+input //
+disp_div= inlet_d1+inlet_d2+param_div;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="420" y="14">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="05c64905-289c-459d-93f7-2c97bc033f79" name="read_1" x="518" y="14">
+      <params>
+         <bin16 name="p1" value="4369"/>
+         <bin16 name="p2" value="1028"/>
+         <bin16 name="p3" value="64"/>
+         <bin16 name="p4" value="1024"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="alloc"/>
+      </attribs>
+      <object id="patch/object" uuid="05c64905-289c-459d-93f7-2c97bc033f79">
+         <sDescription>read from table, nearest neighbour</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index"/>
+            <int32 name="in"/>
+         </inlets>
+         <outlets>
+            <int32 name="chain"/>
+            <bool32 name="1"/>
+            <bool32 name="2"/>
+            <bool32 name="3"/>
+            <bool32 name="4"/>
+         </outlets>
+         <displays>
+            <int32.bar16 name="v"/>
+         </displays>
+         <params>
+            <bin16 name="p1"/>
+            <bin16 name="p2"/>
+            <bin16 name="p3"/>
+            <bin16 name="p4"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int prev;]]></code.declaration>
+         <code.krate><![CDATA[disp_v=inlet_in;
+int32_t PRESET = inlet_a;
+
+if ((inlet_in>=0)&&(inlet_in<16)) {   
+   outlet_1=param_p1&(1<<inlet_in);
+   outlet_2=param_p2&(1<<inlet_in);
+   outlet_3=param_p3&(1<<inlet_in);
+   outlet_4=param_p4&(1<<inlet_in);
+} 
+
+outlet_chain = inlet_in-16;
+
+
+
+if(!(PRESET==prev)){
+
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p1],attr_table.array[0+PRESET],0xFFFD);
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p2],attr_table.array[1+PRESET],0xFFFD);
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p3],attr_table.array[2+PRESET],0xFFFD);
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p4],attr_table.array[3+PRESET],0xFFFD);
+
+}
+prev=PRESET;
+
+
+attr_table.array[0+PRESET]=param_p1;
+attr_table.array[1+PRESET]=param_p2;
+attr_table.array[2+PRESET]=param_p3;
+attr_table.array[3+PRESET]=param_p4;
+
+
+
+   
+   
+   // outlet_1= attr_table.array[__USAT(inlet_a,attr_table.LENGTHPOW)]<<attr_table.GAIN;
+   // outlet_2= attr_table.array[__USAT(inlet_a+1,attr_table.LENGTHPOW)]<<attr_table.GAIN;
+   // outlet_3= attr_table.array[__USAT(inlet_a+2,attr_table.LENGTHPOW)]<<attr_table.GAIN;
+   // outlet_4= attr_table.array[__USAT(inlet_a+3,attr_table.LENGTHPOW)]<<attr_table.GAIN;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_4" x="742" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="tools/text" uuid="26dce175-9b8a-4646-9954-49bc948a3b87" name="text_1" x="742" y="70">
+      <params/>
+      <attribs>
+         <text attributeName="text">
+            <sText><![CDATA[/*
+ * 
+ * Presets WITHIN the table:
+ * Each preset consists of 4 parameters
+ * So 1X4 positions in the array
+ * To load a preset skip 4 values ahead
+ * 
+ */]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="14" y="98">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="f1e8a598-09a2-47ea-8f5e-ae98bf316cce" name="PRESET CONTROL" x="308" y="140">
+      <params>
+         <int32 name="Preset" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="f1e8a598-09a2-47ea-8f5e-ae98bf316cce">
+         <sDescription>positive integer control</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>ctrl.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <int32.positive name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="Preset" description="Preset IN table, NOT on sd card offset by *4">
+               <MinValue i="1"/>
+               <MaxValue i="32"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= (param_Preset-1)*4;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="LOAD/SAVE" x="14" y="252">
+      <params>
+         <int32 name="value" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="SAVE" x="84" y="252">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_3" x="168" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_1" x="266" y="252">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="/Tab/Seq3/16b"/>
+         <table attributeName="suffix" table=".seq"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="476" y="252">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="630" y="252">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc"/>
+      </attribs>
+   </obj>
+   <obj type="osc/brds/saw" uuid="ed06f020-7e68-4db6-836a-95a85e200cfb" name="saw_1" x="280" y="350">
+      <params>
+         <frac32.s.map name="pitch" value="4.76837158203125E-7"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="jaffa/env/d1" uuid="32a3f700-d151-4005-822a-e055548f2518" name="d1_1" x="392" y="350">
+      <params>
+         <bool32.tgl name="on" value="-58720255"/>
+         <frac32.s.map name="d" value="7.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="476" y="350">
+      <params>
+         <frac32.u.map name="volume" value="5.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="280" y="504" text="Info"/>
+   <comment type="patch/comment" x="280" y="518" text="each lane in the sequencer is a place in the array so for each preset it takes 4 array places"/>
+   <comment type="patch/comment" x="280" y="532" text="So the PRESET CONTROL object jumps 4 places ahead in the array everytime you go a preset forward"/>
+   <comment type="patch/comment" x="280" y="546" text="so if you want 16 presets, you need to set the table size to 16 X 4 = 64 samples"/>
+   <comment type="patch/comment" x="287" y="563" text="Then you"/>
+   <comment type="patch/comment" x="280" y="588" text="LOAD/SAVE:"/>
+   <comment type="patch/comment" x="280" y="602" text="this saves the 16X4=64 samples unto SD-card."/>
+   <comment type="patch/comment" x="280" y="644" text="This can also be used for other objects for saving presets of specific objects to sd card and recalling WITH NO SKIPPING"/>
+   <nets>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="d1_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="d1_1" outlet="o"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="indexed_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="LOAD/SAVE" outlet="out"/>
+         <dest obj="change_3" inlet="in"/>
+         <dest obj="indexed_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="change_3" outlet="trig"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="SAVE" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="PRESET CONTROL" outlet="out"/>
+         <dest obj="read_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="clock_1" outlet="pos4ppq"/>
+         <dest obj="div3_1" inlet="ppq"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="clock_1" inlet="run"/>
+      </net>
+      <net>
+         <source obj="div3_1" outlet="o"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="read_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="read_1" outlet="1"/>
+         <dest obj="d1_1" inlet="t"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>31</x>
+      <y>28</y>
+      <width>1123</width>
+      <height>760</height>
+   </windowPos>
+</patch-1.0>

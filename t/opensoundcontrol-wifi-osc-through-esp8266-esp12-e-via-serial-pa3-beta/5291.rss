@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+    <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291</link>
+    <description>---codes edited---
+hello,
+I played with esp8266 since one year, make some OSC controllers. Now i began to implement an axoloti object to com over serial with esp.
+it&#39;s based on modified Paul&#39;s object &quot;euxo/1-2/midi/button_pot&quot;. I used a WeMos clone as esp board.
+Basically ESP12-E get float OSC messages and convert to 27bit (positive K-rate) incoded in 4x7bit bytes (midi data style),
+ESP send serial.write (128+outlet number) &quot;start byte&quot; then send 4 data bytes (0 -127). So each OSC message received by ESP send a 5 bytes packet to Axoloti RX PA3. then OSC Axoloti object parse the packet and feed the outlets.
+This offtenly work, but some time freeze aquire data (esp still receive osc). I need to improve this with your help.
+**&quot;EDIT&quot;**, now it&#39;s much more stable, I guess the other loaded objets made redondant serial declarations or something like that.
+Wiring diagram :
+&lt;img src=&quot;/uploads/default/original/2X/f/fed79b19c0048475bc9416150a418459022a9d95.jpg&quot; width=&quot;478&quot; height=&quot;499&quot;&gt;
+I use a dedicate offline wifi router and I send osc messages with Lemur from ipad3 (broadcast Ip 192. 168. 0. 255) : /axo1, /axo2 ... /axo16
+XML code of the object :
+[code]
+&lt;axoObject id=&quot;test OSC sÃ©rial receive&quot; uuid=&quot;d7ee3bc0-7466-4dbe-8769-bb5e15631a44&quot;&gt;
+   &lt;sDescription&gt;enable serial2( PA2/PA3 = SD2, baudrate: 115200) to communicate with esp-12 (esp8266) to recieve 16 float Osc messages : /axo1 ... /axo16&lt;/sDescription&gt;
+   &lt;author&gt;Gael&lt;/author&gt;
+   &lt;license&gt;BSD&lt;/license&gt;
+   &lt;inlets/&gt;
+   &lt;outlets&gt;
+      &lt;frac32.positive name=&quot;axo1&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo2&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo3&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo4&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo5&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo6&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo7&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo8&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo9&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo10&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo11&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo12&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo13&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo14&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo15&quot;/&gt;
+      &lt;frac32.positive name=&quot;axo16&quot;/&gt;
+   &lt;/outlets&gt;
+   &lt;displays/&gt;
+   &lt;params/&gt;
+   &lt;attribs/&gt;
+   &lt;depends&gt;
+      &lt;depend&gt;SD2&lt;/depend&gt;
+   &lt;/depends&gt;
+   &lt;code.declaration&gt;&lt;![CDATA[uint32_t axo1,axo2,axo3,axo4,axo5,axo6,axo7,axo8,axo9,axo10,axo11,axo12,axo13,axo14,axo15,axo16;
+uint8_t ch; // channel code for outlet 128 + channel number
+uint8_t inData[4] = { 0 }; // incomming datas for 27bit value
+
+msg_t ThreadX2(){
+#if CH_USE_REGISTRY
+  chRegSetThreadName(&quot;euxo button pot&quot;); // define thread name
+#endif
+//sdPut(&amp;SD2,0xFF);
+while(!chThdShouldTerminate()){
+	while(!sdGetWouldBlock(&amp;SD2) ){
+		ch = sdGet(&amp;SD2);
+		switch((uint8_t) ch) { // Parsing start bytes
+  		 case 129 : // axo1 start code : 128 + 1 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo1 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 130 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo2 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 131 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo3 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 132 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo4 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 133 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo5 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 134 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo6 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 135 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo7 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 136 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo8 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 137 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo9 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 138 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo10 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 139 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo11 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 140 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo12 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 141 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo13 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 142 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo14 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 143 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo15 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 144 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo16 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           default : 
+        	   break; //printf(&quot;error&quot;);        
+   		 }
+	}
+     chThdSleepMilliseconds(1);
+  }
+  chThdExit((msg_t)0);
+}
+
+static msg_t EuxoButPot(void *arg) {
+((attr_parent *)arg)-&gt;ThreadX2();
+}
+WORKING_AREA(waEuxoButPot, 256);
+Thread *Thd;]]&gt;&lt;/code.declaration&gt;
+   &lt;code.init&gt;&lt;![CDATA[palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7)|PAL_MODE_INPUT);// RX
+palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));// TX
+
+static const SerialConfig sd2Cfg = {115200, 0, 0, 0}; // set to midi baud rate but works also with higher baud rates.
+sdStart(&amp;SD2, &amp;sd2Cfg);
+
+Thd = chThdCreateStatic(waEuxoButPot, sizeof(waEuxoButPot),NORMALPRIO, EuxoButPot, (void *)this);]]&gt;&lt;/code.init&gt;
+   &lt;code.dispose&gt;&lt;![CDATA[chThdTerminate(Thd);
+chThdWait(Thd);
+sdStop(&amp;SD2);]]&gt;&lt;/code.dispose&gt;
+   &lt;code.krate&gt;&lt;![CDATA[outlet_axo1 = this-&gt;axo1;
+outlet_axo2 = this-&gt;axo2;
+outlet_axo3 = this-&gt;axo3;
+outlet_axo4 = this-&gt;axo4;
+outlet_axo5 = this-&gt;axo5;
+outlet_axo6 = this-&gt;axo6;
+outlet_axo7 = this-&gt;axo7;
+outlet_axo8 = this-&gt;axo8;
+outlet_axo9 = this-&gt;axo9;
+outlet_axo10 = this-&gt;axo10;
+outlet_axo11 = this-&gt;axo11;
+outlet_axo12 = this-&gt;axo12;
+outlet_axo13 = this-&gt;axo13;
+outlet_axo14 = this-&gt;axo14;
+outlet_axo15 = this-&gt;axo15;
+outlet_axo16 = this-&gt;axo16;]]&gt;&lt;/code.krate&gt;
+&lt;/axoObject&gt;
+[/code]
+Should I need to process some kind of checksum, use a more efficient parsing or implement a call/response protocol ?
+and is there some &quot;if (Serial.available() &gt;9) ...&quot; ? any other idea?
+I&#39;m more habit to Arduino IDE than C compiller, I red all topics about serial com (gpio PA2/PA3), but there is still a lot of shadows in my mind.
+Thank you.
+
+Here my work in progress arduino schetch, if you want to try this at home (now all 16 channels axo1, axo2 ... axo16 implement) : 
+ [code]
+/*---------------------------------------------------------------------------------------------
+  Based on Open Sound Control (OSC) library for the ESP8266/ESP32
+  https://github.com/CNMAT/OSC
+  Receiving open sound control (OSC) bundles on the ESP8266/ESP32
+  and serial com to Axoloti DSP
+  Gael Jaton 2018
+  code is in the public domain.
+  --------------------------------------------------------------------------------------------- */
+#ifdef ESP8266
+#include &lt;ESP8266WiFi.h&gt;
+#else
+#include &lt;WiFi.h&gt;
+#endif
+#include &lt;WiFiUdp.h&gt;
+#include &lt;OSCMessage.h&gt;
+#include &lt;OSCBundle.h&gt;
+#include &lt;OSCData.h&gt;
+
+char ssid[] = &quot;NUMERICABLE-A7A6&quot;;            // your network SSID (name)
+char pass[] = &quot;DD0258CE42F43E8AE7EACD4D4D&quot;;  // your network password
+byte serialData[4] = { 0 };
+//byte inbyte = 0;
+unsigned long nextmillis = 50;
+// A UDP instance to let us send and receive packets over UDP
+WiFiUDP Udp;
+//const IPAddress outIp(192, 168, 0, 255);     // remote IP of your computer
+//const unsigned int outPort = 8888;         // remote port to receive OSC
+const unsigned int localPort = 8000;        // local port to listen for OSC packets (actually not used for sending)
+OSCErrorCode error;
+int ledState;              // LOW means led is *on*
+#define BUILTIN_LED 2
+
+
+void setup() {
+  pinMode(BUILTIN_LED, OUTPUT);
+  digitalWrite(BUILTIN_LED, ledState);    // turn *on* led
+  Serial.begin(115200);
+  // Connect to WiFi network
+  Serial.println();
+  Serial.println();
+  Serial.print(&quot;Connecting to &quot;);
+  Serial.println(ssid);
+  WiFi.begin(ssid, pass);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(BUILTIN_LED, 1);
+    delay(100);
+    digitalWrite(BUILTIN_LED, 0);
+    delay(100);
+    Serial.print(&quot;.&quot;);
+  }
+  //    IPAddress ip(192, 168, 0, 11); ////////////////////////////////////////////
+  //    IPAddress routeur(192, 168, 0, 1);
+  //    IPAddress subnet(255, 255, 255, 0);
+  //    WiFi.config(ip, routeur, subnet);
+  Serial.println(&quot;&quot;);
+  Serial.println(&quot;WiFi connected&quot;);
+  Serial.println(&quot;IP address: &quot;);
+  Serial.println(WiFi.localIP());
+
+  Serial.println(&quot;Starting UDP&quot;);
+  Udp.begin(localPort);
+  Serial.print(&quot;Local port: &quot;);
+#ifdef ESP32
+  Serial.println(localPort);
+#else
+  Serial.println(Udp.localPort());
+#endif
+}
+
+void serialSendToAxo(byte startByte, uint32_t msg32) { // send to axoloti start byte include message number, then send 4 messages of 7bit data
+  serialData[0] = msg32 &gt;&gt; 26 &amp; B01111111; // pack into buf string as 4 x 7bit bytes
+  serialData[1] = msg32 &gt;&gt; 19 &amp; B01111111;
+  serialData[2] = msg32 &gt;&gt; 12 &amp; B01111111;
+  serialData[3] = msg32 &gt;&gt; 5 &amp; B01111111;
+  Serial.write((byte)startByte); Serial.write((byte)serialData[0]); Serial.write((byte)serialData[1]); Serial.write((byte)serialData[2]); Serial.write((byte)serialData[3]);
+}
+
+void axo1(OSCMessage &amp;msg) {
+  uint32_t msg32 = msg.getFloat(0) * 0xffffffff;
+  int ledState = 1023 - 1023 * msg.getFloat(0);
+  analogWrite(2, ledState);
+  serialSendToAxo(129, msg32);
+}
+void axo2(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(130, msg32); }
+void axo3(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(131, msg32); }
+void axo4(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(132, msg32); }
+void axo5(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(133, msg32); }
+void axo6(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(134, msg32); }
+void axo7(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(135, msg32); }
+void axo8(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(136, msg32); }
+void axo9(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(137, msg32); }
+void axo10(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(138, msg32); }
+void axo11(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(139, msg32); }
+void axo12(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(140, msg32); }
+void axo13(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(141, msg32); }
+void axo14(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(142, msg32); }
+void axo15(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(143, msg32); }
+void axo16(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(144, msg32); }
+
+void loop() {
+  OSCBundle bundle;
+  int size = Udp.parsePacket();
+  if (size &gt; 0) {
+    while (size--) {
+      bundle.fill(Udp.read());
+    }
+    if (!bundle.hasError()) {
+      bundle.dispatch(&quot;/axo1&quot;, axo1);
+      bundle.dispatch(&quot;/axo2&quot;, axo2);
+      bundle.dispatch(&quot;/axo3&quot;, axo3);
+      bundle.dispatch(&quot;/axo4&quot;, axo4);
+      bundle.dispatch(&quot;/axo5&quot;, axo5);
+      bundle.dispatch(&quot;/axo6&quot;, axo6);
+      bundle.dispatch(&quot;/axo7&quot;, axo7);
+      bundle.dispatch(&quot;/axo8&quot;, axo8);
+      bundle.dispatch(&quot;/axo9&quot;, axo9);
+      bundle.dispatch(&quot;/axo10&quot;, axo10);
+      bundle.dispatch(&quot;/axo11&quot;, axo11);
+      bundle.dispatch(&quot;/axo12&quot;, axo12);
+      bundle.dispatch(&quot;/axo13&quot;, axo13);
+      bundle.dispatch(&quot;/axo14&quot;, axo14);
+      bundle.dispatch(&quot;/axo15&quot;, axo15);
+      bundle.dispatch(&quot;/axo16&quot;, axo16);
+    }
+    else {
+      error = bundle.getError();
+      //Serial.print(&quot;error: &quot;);
+      //Serial.println(error);
+    }
+  }
+  if (WiFi.status() != 3 ) {
+    analogWrite(2, 1023);
+    delay(100);
+    analogWrite(2, 0);
+    delay(100);
+  }
+}
+[/code]
+
+TODO :
+*more tests with different controllers
+*try access point &quot;WiFi.softAPConfig(local_IP, gateway, subnet)&quot; provide by ESP for more mobility...</description>
+    
+    <lastBuildDate>Sun, 31 Jan 2021 15:30:54 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@orginita]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/orginita">@orginita</a> wrote:</p>
+          <blockquote>
+              <p>instead of letting a router communicate, can it be communicated to another wemos d1 mini so as to be able to use midi communication even through midi devices without a pc such as a keyboard to a sound module?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/14</link>
+        <pubDate>Sun, 31 Jan 2021 15:30:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-14</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@mantaraffu manta]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mantaraffu">@mantaraffu</a> wrote:</p>
+          <blockquote>
+              <p>yes, of course I've change all the parameter on the arduino code. the esp is connected and I've tried to send data from max and from touchdesigner without success. this, 3 months ago. I'll try today and I'll let you know. thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/13</link>
+        <pubDate>Sun, 19 Apr 2020 13:03:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-13</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@weasel79 blender]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/weasel79">@weasel79</a> wrote:</p>
+          <blockquote>
+              <p>hah i don't know how i missed this before. awesome work <a class="mention" href="/u/gael">@Gael</a> hoping to try this out one day..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/12</link>
+        <pubDate>Sat, 01 Feb 2020 21:38:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-12</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Gael]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gael">@Gael</a> wrote:</p>
+          <blockquote>
+              <p>yeah it's a bit more complicated. you have to set SSID and password of your wifi network (wifi router or wifi switch) in the code of the esp8266 (in arduino ide)... it require some skill in arduino programming, and osc protocol knowlegde.<br>have you follow the project page tips :    <a href="https://github.com/gaeljaton/OSC-Esp12-Axoloti" rel="nofollow noopener">https://github.com/gaeljaton/OSC-Esp12-Axoloti</a> ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/11</link>
+        <pubDate>Sat, 01 Feb 2020 14:43:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-11</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@mantaraffu manta]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mantaraffu">@mantaraffu</a> wrote:</p>
+          <blockquote>
+              <p>maybe I'm missing something. I've just put the osc object in a simple patch, but it doesn't work any suggestion?<a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/a/a95ffddfef996618dbb12b96cc80f9d1ced574c1.axp">test_osc.axp</a> (3.9 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/10</link>
+        <pubDate>Tue, 07 Jan 2020 11:27:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-10</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Gael]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gael">@Gael</a> wrote:</p>
+          <blockquote>
+              <p>'Update' <br>I tried various accessPoint settings for ESP receiver, I got much more lost UDP packets than using a router. So I 'll developp code as station ESP only. If you want to try this, grab a dedicate offline router, even without password (security is not critical for this application). Some of old internet boxes can be setup as simple standalone wifi router, recycling is life.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/9</link>
+        <pubDate>Thu, 03 Jan 2019 12:14:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-9</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Suburb_Animal Vincent Palumbo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/suburb_animal">@Suburb_Animal</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/gael">@Gael</a> <br>The lemur editor is a free application, you can download it here: <br><a href="https://liine.net/en/downloads/lemur" class="onebox" target="_blank" rel="nofollow noopener">https://liine.net/en/downloads/lemur</a><br>That github above is not mine it's an example of a lemur loader that send lemur patch through OSC</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/8</link>
+        <pubDate>Wed, 02 Jan 2019 09:04:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-8</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Gael]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gael">@Gael</a> wrote:</p>
+          <blockquote>
+              <p>oh great! I also begin a Github folder for this project : <a href="https://github.com/gaeljaton/OSC-Esp12-Axoloti" rel="nofollow noopener">https://github.com/gaeljaton/OSC-Esp12-Axoloti</a> <br>I don't have the lemur editor , nude version was installed on my ipad for a theatre project... <br>I'll have a look on your git!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/7</link>
+        <pubDate>Mon, 31 Dec 2018 20:03:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-7</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Suburb_Animal Vincent Palumbo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/suburb_animal">@Suburb_Animal</a> wrote:</p>
+          <blockquote>
+              <p>Great work Gael!<br>I'll give it a try once I'll have my nodeMCU up and running.<br>I'm thinking about making a kind of OSCQuery through Serial.<br><strong>OSCQuery</strong> is a OSC message that ask the recipient to send a list of prefixes.<br>I want to make an object that generate those address for <strong>each available parameters</strong> and pass it to the arduino.<br>The list would be sent on request or when a new patch is loaded</p>
+
+<p>The NodeMCU will make a table of those prefixes with their serial equivalent that would be an index instead of a prefix.<br>(in order to shorten the messages in serial)</p>
+
+<p>The NodeMCU would receive OSC messages and would parse it to the right index corresponding to the prefix.<br>For example: <br>    serial index 1 would be /osc1/pitch <br>    Lemur would send an /osc1/pitch value (in float)<br>    NodeMCU would send 1 value (in 27bits)</p>
+
+<p>Since Lemur can also receive a whole lemur patch through OSC i'm also thinking about storing them in the NodeMCU and send the corresponding patch:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://github.com/cassiel/sifaka/tree/master/example-code/stanton" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://avatars0.githubusercontent.com/u/658505?s=400&amp;v=4" width="" height="" class="thumbnail">
+
+<h3><a href="https://github.com/cassiel/sifaka/tree/master/example-code/stanton" target="_blank" rel="nofollow noopener">cassiel/sifaka</a></h3>
+
+<p>Contribute to cassiel/sifaka development by creating an account on GitHub.</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>But that's another story</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/6</link>
+        <pubDate>Mon, 31 Dec 2018 19:00:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-6</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Gael]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gael">@Gael</a> wrote:</p>
+          <blockquote>
+              <p>Yes, I use this library, very stable and no surprise.<br>Custom protocol have much more resolution than midi : OSC 32bit float =&gt; 27bit k-rate positive outlet (whereas midi CC provide only 7bit res and 14bit for HiRes CC). So I can use most of the precision of OSC messages for smooth controls.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/5</link>
+        <pubDate>Wed, 26 Dec 2018 17:26:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-5</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@natcl]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/natcl">@natcl</a> wrote:</p>
+          <blockquote>
+              <p>Ah got it, the esp does the osc to midi conversion.<br>I might have a look at it at some point.<br>A good starting point is the official Arduino OSC library:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://github.com/CNMAT/OSC" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://avatars0.githubusercontent.com/u/2192199?s=400&amp;v=4" width="" height="" class="thumbnail">
+
+<h3><a href="https://github.com/CNMAT/OSC" target="_blank" rel="nofollow noopener">CNMAT/OSC</a></h3>
+
+<p>OSC: Arduino and Teensy implementation of OSC encoding - CNMAT/OSC</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/4</link>
+        <pubDate>Wed, 26 Dec 2018 16:58:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-4</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Gael]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gael">@Gael</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="5291" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/natcl/40/634_1.png" class="avatar">natcl:</div>
+<blockquote><p>OSC over serial usually use SLIP to encode/decode the serial stream, is that what you are using ?</p></blockquote></aside>
+
+<p>Nope, it's a custom protocol, looks like midi CC message but data is on 4x7bit bytes.<br> It's too much work and knowledge for me to implement a full Slip protocol. But I will look at this option later.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/3</link>
+        <pubDate>Wed, 26 Dec 2018 16:44:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-3</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@natcl]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/natcl">@natcl</a> wrote:</p>
+          <blockquote>
+              <p>OSC over serial usually use SLIP to encode/decode the serial stream, is that what you are using ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/2</link>
+        <pubDate>Wed, 26 Dec 2018 16:21:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-2</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+      <item>
+        <title>OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</title>
+        <dc:creator><![CDATA[@Gael]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gael">@Gael</a> wrote:</p>
+          <blockquote>
+              <p>---codes edited---<br>hello,<br>I played with esp8266 since one year, make some OSC controllers. Now i began to implement an axoloti object to com over serial with esp.<br>it's based on modified Paul's object "euxo/1-2/midi/button_pot". I used a WeMos clone as esp board.<br>Basically ESP12-E get float OSC messages and convert to 27bit (positive K-rate) incoded in 4x7bit bytes (midi data style),<br>ESP send serial.write (128+outlet number) "start byte" then send 4 data bytes (0 -127). So each OSC message received by ESP send a 5 bytes packet to Axoloti RX PA3. then OSC Axoloti object parse the packet and feed the outlets.<br>This offtenly work, but some time freeze aquire data (esp still receive osc). I need to improve this with your help.<br><strong>"EDIT"</strong>, now it's much more stable, I guess the other loaded objets made redondant serial declarations or something like that.<br>Wiring diagram :<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/fed79b19c0048475bc9416150a418459022a9d95" href="//community.axoloti.com/uploads/default/original/2X/f/fed79b19c0048475bc9416150a418459022a9d95.jpg" class="lightbox" title="Axoloti_ESP8266.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/fed79b19c0048475bc9416150a418459022a9d95_1_478x499.jpg" width="478" height="499"><div class="meta">
+<span class="filename">Axoloti_ESP8266.jpg</span><span class="informations">563x588 166 KB</span><span class="expand"></span>
+</div></a></div><br>I use a dedicate offline wifi router and I send osc messages with Lemur from ipad3 (broadcast Ip 192. 168. 0. 255) : /axo1, /axo2 ... /axo16<br>XML code of the object :<br></p>
+
+<p></p><pre><code class="lang-auto">&lt;axoObject id="test OSC sÃ©rial receive" uuid="d7ee3bc0-7466-4dbe-8769-bb5e15631a44"&gt;
+   &lt;sDescription&gt;enable serial2( PA2/PA3 = SD2, baudrate: 115200) to communicate with esp-12 (esp8266) to recieve 16 float Osc messages : /axo1 ... /axo16&lt;/sDescription&gt;
+   &lt;author&gt;Gael&lt;/author&gt;
+   &lt;license&gt;BSD&lt;/license&gt;
+   &lt;inlets/&gt;
+   &lt;outlets&gt;
+      &lt;frac32.positive name="axo1"/&gt;
+      &lt;frac32.positive name="axo2"/&gt;
+      &lt;frac32.positive name="axo3"/&gt;
+      &lt;frac32.positive name="axo4"/&gt;
+      &lt;frac32.positive name="axo5"/&gt;
+      &lt;frac32.positive name="axo6"/&gt;
+      &lt;frac32.positive name="axo7"/&gt;
+      &lt;frac32.positive name="axo8"/&gt;
+      &lt;frac32.positive name="axo9"/&gt;
+      &lt;frac32.positive name="axo10"/&gt;
+      &lt;frac32.positive name="axo11"/&gt;
+      &lt;frac32.positive name="axo12"/&gt;
+      &lt;frac32.positive name="axo13"/&gt;
+      &lt;frac32.positive name="axo14"/&gt;
+      &lt;frac32.positive name="axo15"/&gt;
+      &lt;frac32.positive name="axo16"/&gt;
+   &lt;/outlets&gt;
+   &lt;displays/&gt;
+   &lt;params/&gt;
+   &lt;attribs/&gt;
+   &lt;depends&gt;
+      &lt;depend&gt;SD2&lt;/depend&gt;
+   &lt;/depends&gt;
+   &lt;code.declaration&gt;&lt;![CDATA[uint32_t axo1,axo2,axo3,axo4,axo5,axo6,axo7,axo8,axo9,axo10,axo11,axo12,axo13,axo14,axo15,axo16;
+uint8_t ch; // channel code for outlet 128 + channel number
+uint8_t inData[4] = { 0 }; // incomming datas for 27bit value
+msg_t ThreadX2(){
+#if CH_USE_REGISTRY
+  chRegSetThreadName("euxo button pot"); // define thread name
+#endif
+//sdPut(&amp;SD2,0xFF);
+while(!chThdShouldTerminate()){
+	while(!sdGetWouldBlock(&amp;SD2) ){
+		ch = sdGet(&amp;SD2);
+		switch((uint8_t) ch) { // Parsing start bytes
+  		 case 129 : // axo1 start code : 128 + 1 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo1 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 130 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo2 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 131 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo3 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 132 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo4 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 133 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo5 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 134 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo6 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 135 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo7 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 136 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo8 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 137 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo9 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 138 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo10 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 139 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo11 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 140 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo12 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 141 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo13 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 142 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo14 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 143 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo15 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           case 144 : 
+             inData[0] =  sdGet(&amp;SD2); inData[1] =  sdGet(&amp;SD2); inData[2] =  sdGet(&amp;SD2); inData[3] =  sdGet(&amp;SD2);
+             axo16 = (inData[0] &lt;&lt; 21) | (inData[1]  &lt;&lt; 14) | (inData[2]  &lt;&lt; 7) | inData[3] ; //sum at 1&lt;&lt;27
+             break; 
+           default : 
+        	   break; //printf("error");        
+   		 }
+	}
+     chThdSleepMilliseconds(1);
+  }
+  chThdExit((msg_t)0);
+}
+static msg_t EuxoButPot(void *arg) {
+((attr_parent *)arg)-&gt;ThreadX2();
+}
+WORKING_AREA(waEuxoButPot, 256);
+Thread *Thd;]]&gt;&lt;/code.declaration&gt;
+   &lt;code.init&gt;&lt;![CDATA[palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7)|PAL_MODE_INPUT);// RX
+palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));// TX
+static const SerialConfig sd2Cfg = {115200, 0, 0, 0}; // set to midi baud rate but works also with higher baud rates.
+sdStart(&amp;SD2, &amp;sd2Cfg);
+Thd = chThdCreateStatic(waEuxoButPot, sizeof(waEuxoButPot),NORMALPRIO, EuxoButPot, (void *)this);]]&gt;&lt;/code.init&gt;
+   &lt;code.dispose&gt;&lt;![CDATA[chThdTerminate(Thd);
+chThdWait(Thd);
+sdStop(&amp;SD2);]]&gt;&lt;/code.dispose&gt;
+   &lt;code.krate&gt;&lt;![CDATA[outlet_axo1 = this-&gt;axo1;
+outlet_axo2 = this-&gt;axo2;
+outlet_axo3 = this-&gt;axo3;
+outlet_axo4 = this-&gt;axo4;
+outlet_axo5 = this-&gt;axo5;
+outlet_axo6 = this-&gt;axo6;
+outlet_axo7 = this-&gt;axo7;
+outlet_axo8 = this-&gt;axo8;
+outlet_axo9 = this-&gt;axo9;
+outlet_axo10 = this-&gt;axo10;
+outlet_axo11 = this-&gt;axo11;
+outlet_axo12 = this-&gt;axo12;
+outlet_axo13 = this-&gt;axo13;
+outlet_axo14 = this-&gt;axo14;
+outlet_axo15 = this-&gt;axo15;
+outlet_axo16 = this-&gt;axo16;]]&gt;&lt;/code.krate&gt;
+&lt;/axoObject&gt;</code></pre>
+
+<p>Should I need to process some kind of checksum, use a more efficient parsing or implement a call/response protocol ?<br>and is there some "if (Serial.available() &gt;9) ..." ? any other idea?<br>I'm more habit to Arduino IDE than C compiller, I red all topics about serial com (gpio PA2/PA3), but there is still a lot of shadows in my mind.<br>Thank you.</p>
+
+<p>Here my work in progress arduino schetch, if you want to try this at home (now all 16 channels axo1, axo2 ... axo16 implement) : <br> </p>
+
+<p></p><pre><code class="lang-auto">/*---------------------------------------------------------------------------------------------
+  Based on Open Sound Control (OSC) library for the ESP8266/ESP32
+  https://github.com/CNMAT/OSC
+  Receiving open sound control (OSC) bundles on the ESP8266/ESP32
+  and serial com to Axoloti DSP
+  Gael Jaton 2018
+  code is in the public domain.
+  --------------------------------------------------------------------------------------------- */
+#ifdef ESP8266
+#include &lt;ESP8266WiFi.h&gt;
+#else
+#include &lt;WiFi.h&gt;
+#endif
+#include &lt;WiFiUdp.h&gt;
+#include &lt;OSCMessage.h&gt;
+#include &lt;OSCBundle.h&gt;
+#include &lt;OSCData.h&gt;
+char ssid[] = "NUMERICABLE-A7A6";            // your network SSID (name)
+char pass[] = "DD0258CE42F43E8AE7EACD4D4D";  // your network password
+byte serialData[4] = { 0 };
+//byte inbyte = 0;
+unsigned long nextmillis = 50;
+// A UDP instance to let us send and receive packets over UDP
+WiFiUDP Udp;
+//const IPAddress outIp(192, 168, 0, 255);     // remote IP of your computer
+//const unsigned int outPort = 8888;         // remote port to receive OSC
+const unsigned int localPort = 8000;        // local port to listen for OSC packets (actually not used for sending)
+OSCErrorCode error;
+int ledState;              // LOW means led is *on*
+#define BUILTIN_LED 2
+void setup() {
+  pinMode(BUILTIN_LED, OUTPUT);
+  digitalWrite(BUILTIN_LED, ledState);    // turn *on* led
+  Serial.begin(115200);
+  // Connect to WiFi network
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(BUILTIN_LED, 1);
+    delay(100);
+    digitalWrite(BUILTIN_LED, 0);
+    delay(100);
+    Serial.print(".");
+  }
+  //    IPAddress ip(192, 168, 0, 11); ////////////////////////////////////////////
+  //    IPAddress routeur(192, 168, 0, 1);
+  //    IPAddress subnet(255, 255, 255, 0);
+  //    WiFi.config(ip, routeur, subnet);
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.println("Starting UDP");
+  Udp.begin(localPort);
+  Serial.print("Local port: ");
+#ifdef ESP32
+  Serial.println(localPort);
+#else
+  Serial.println(Udp.localPort());
+#endif
+}
+void serialSendToAxo(byte startByte, uint32_t msg32) { // send to axoloti start byte include message number, then send 4 messages of 7bit data
+  serialData[0] = msg32 &gt;&gt; 26 &amp; B01111111; // pack into buf string as 4 x 7bit bytes
+  serialData[1] = msg32 &gt;&gt; 19 &amp; B01111111;
+  serialData[2] = msg32 &gt;&gt; 12 &amp; B01111111;
+  serialData[3] = msg32 &gt;&gt; 5 &amp; B01111111;
+  Serial.write((byte)startByte); Serial.write((byte)serialData[0]); Serial.write((byte)serialData[1]); Serial.write((byte)serialData[2]); Serial.write((byte)serialData[3]);
+}
+void axo1(OSCMessage &amp;msg) {
+  uint32_t msg32 = msg.getFloat(0) * 0xffffffff;
+  int ledState = 1023 - 1023 * msg.getFloat(0);
+  analogWrite(2, ledState);
+  serialSendToAxo(129, msg32);
+}
+void axo2(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(130, msg32); }
+void axo3(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(131, msg32); }
+void axo4(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(132, msg32); }
+void axo5(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(133, msg32); }
+void axo6(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(134, msg32); }
+void axo7(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(135, msg32); }
+void axo8(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(136, msg32); }
+void axo9(OSCMessage &amp;msg) {  uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(137, msg32); }
+void axo10(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(138, msg32); }
+void axo11(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(139, msg32); }
+void axo12(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(140, msg32); }
+void axo13(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(141, msg32); }
+void axo14(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(142, msg32); }
+void axo15(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(143, msg32); }
+void axo16(OSCMessage &amp;msg) { uint32_t msg32 = msg.getFloat(0) * 0xffffffff; serialSendToAxo(144, msg32); }
+void loop() {
+  OSCBundle bundle;
+  int size = Udp.parsePacket();
+  if (size &gt; 0) {
+    while (size--) {
+      bundle.fill(Udp.read());
+    }
+    if (!bundle.hasError()) {
+      bundle.dispatch("/axo1", axo1);
+      bundle.dispatch("/axo2", axo2);
+      bundle.dispatch("/axo3", axo3);
+      bundle.dispatch("/axo4", axo4);
+      bundle.dispatch("/axo5", axo5);
+      bundle.dispatch("/axo6", axo6);
+      bundle.dispatch("/axo7", axo7);
+      bundle.dispatch("/axo8", axo8);
+      bundle.dispatch("/axo9", axo9);
+      bundle.dispatch("/axo10", axo10);
+      bundle.dispatch("/axo11", axo11);
+      bundle.dispatch("/axo12", axo12);
+      bundle.dispatch("/axo13", axo13);
+      bundle.dispatch("/axo14", axo14);
+      bundle.dispatch("/axo15", axo15);
+      bundle.dispatch("/axo16", axo16);
+    }
+    else {
+      error = bundle.getError();
+      //Serial.print("error: ");
+      //Serial.println(error);
+    }
+  }
+  if (WiFi.status() != 3 ) {
+    analogWrite(2, 1023);
+    delay(100);
+    analogWrite(2, 0);
+    delay(100);
+  }
+}</code></pre>
+
+<p>TODO :<br>*more tests with different controllers<br>*try access point "WiFi.softAPConfig(local_IP, gateway, subnet)" provide by ESP for more mobility...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291/1</link>
+        <pubDate>Wed, 26 Dec 2018 02:29:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5291-1</guid>
+        <source url="http://community.axoloti.com/t/opensoundcontrol-wifi-osc-through-esp8266-esp12-e-via-serial-pa3-beta/5291.rss">OpenSoundControl WIFI OSC through esp8266 (esp12-E) via serial PA3 [BETA]</source>
+      </item>
+  </channel>
+</rss>

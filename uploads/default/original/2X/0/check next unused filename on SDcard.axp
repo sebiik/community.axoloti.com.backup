@@ -1,0 +1,108 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 32b" uuid="ac26551322b24f37c3be0e6481d1193f1fd66bc8" name="alloc_1" x="756" y="280">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="2"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="868" y="294">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="812" y="378">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="f278b608-cd61-43ea-8602-8f534ffa6b1b" name="load_1" x="868" y="378">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/WaT"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+      <object id="patch/object" uuid="f278b608-cd61-43ea-8602-8f534ffa6b1b">
+         <sDescription>load table from sdcard</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32 name="index"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets/>
+         <displays>
+            <int32.label name="d1"/>
+         </displays>
+         <params/>
+         <attribs>
+            <table name="prefix"/>
+            <table name="suffix"/>
+         </attribs>
+         <includes>
+            <include>chibios/ext/fatfs/src/ff.h</include>
+         </includes>
+         <depends>
+            <depend>fatfs</depend>
+         </depends>
+         <code.declaration><![CDATA[int ntrig,stop;
+int cnt=0;
+char c[64];
+int offset;
+int pval;]]></code.declaration>
+         <code.init><![CDATA[ntrig = 0;
+strcpy(&c[0],"attr_prefix000attr_suffix");
+offset = strlen("attr_prefix");
+pval = 0;
+cnt=0;
+stop=1;]]></code.init>
+         <code.krate><![CDATA[if(inlet_trig&&!ntrig){
+	stop=0;
+	ntrig=1;
+}
+else if((!inlet_trig)&&ntrig){ntrig=0;}
+
+while(!stop){
+   int i = inlet_index+cnt;
+   int i0 = i/10;
+   c[offset+2] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+1] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+0] = '0'+i-10*i0;
+   FIL FileObject;
+   FRESULT err;
+  err = f_open(&FileObject, &c[0], FA_READ | FA_OPEN_EXISTING);
+if (err == FR_OK) {cnt+=1;}
+else if(err!=FR_OK){stop=1;}
+}
+
+disp_d1=cnt+inlet_index;]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="load_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>22</y>
+      <width>1936</width>
+      <height>1066</height>
+   </windowPos>
+</patch-1.0>

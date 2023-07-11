@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>[SOLVED]Can you not change outlet values inside a FOR function?</title>
+    <link>http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675</link>
+    <description>Hello,
+I´ve been coding some objects lately and after a fair amount of sweating I´ve come to the conclusion that you can´t change the value of an outlet inside a FOR function. Is this right?
+What I´m doing is an object for controlling the leds of a nanokontrol 2.
+I´ve got 30 bool inlets (one for each button) and four outlets connected to a midi/out/cc any object:
+-Value (frac32.positive)
+-CC (int32.positive)
+-Channel (int32.positive)
+-Trigger (bool32)
+In the K-Rate code section I write all the inlet states into an array, and then I use a FOR function for comparing these values with another array with old values. If they have changed the outlets are supposed to change to the corresponding value, cc, channel and send a trigger to let the midi/out/cc any object know it should send a cc message.
+It should be pretty straight forward, but it doesn´t work. It seems that I have to have another array for storing if any inlet has changed, and then concatenate 30 IFs for sending messages if there has been any change in the inputs.
+This seems to work, but it feels like very sloppy programming. 
+So, is this right, or am I doing something wrong and it should work inside the FOR function?</description>
+    
+    <lastBuildDate>Mon, 18 Apr 2022 21:55:50 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>[SOLVED]Can you not change outlet values inside a FOR function?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Another alternative is to code the loop so that once it finds one state change, it outputs that CC value, saves its current state (i.e. the i variable), and exits, thus continuing at the next k-rate interval. You won't be able to grab more than one state change per k-rate interval, but on the other hand, with the k-rate being 3 kHz, and consequently the k-rate interval being 1/3000 = 333 µs, you're not going to loose much, since it takes 320 µs to send a MIDI byte anyway (at least over DIN MIDI).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/6</link>
+        <pubDate>Mon, 18 Apr 2022 21:55:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7675-6</guid>
+        <source url="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675.rss">[SOLVED]Can you not change outlet values inside a FOR function?</source>
+      </item>
+      <item>
+        <title>[SOLVED]Can you not change outlet values inside a FOR function?</title>
+        <dc:creator><![CDATA[@TTotelka]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ttotelka">@TTotelka</a> wrote:</p>
+          <blockquote>
+              <p>That was what was happening. When receiving simultaneous changes only the last one got sent.<br>I´ll check out rbrts objects, even though I´m pretty happy with mine right now, it does exactly what I want <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"><br>Thanks!!!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/5</link>
+        <pubDate>Fri, 08 Apr 2022 08:21:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7675-5</guid>
+        <source url="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675.rss">[SOLVED]Can you not change outlet values inside a FOR function?</source>
+      </item>
+      <item>
+        <title>[SOLVED]Can you not change outlet values inside a FOR function?</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>I know the feeling well!  Glad you got it sorted.</p>
+
+<p>To kind of answer your questions (I'm no code expert):</p>
+
+<p>No, the outlets won't work in a loop like that, you'd end up with the last calculated values at the end of the loop. But when you put the midi code in, it's sending each message to the midi output buffer,  so they all get queued up and sent out. </p>
+
+<p>You could also use this for the controller input - recieve the midi and store it in an array. </p>
+
+<p>For this kind of stuff (controllers/buttons/leds) check out rbrts midi table store and table send,. Using the table for the array is useful because you can save them to the sd card for templates or whatever.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/4</link>
+        <pubDate>Thu, 07 Apr 2022 18:23:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7675-4</guid>
+        <source url="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675.rss">[SOLVED]Can you not change outlet values inside a FOR function?</source>
+      </item>
+      <item>
+        <title>[SOLVED]Can you not change outlet values inside a FOR function?</title>
+        <dc:creator><![CDATA[@TTotelka]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ttotelka">@TTotelka</a> wrote:</p>
+          <blockquote>
+              <p>Ok I finally got it.<br>Instead of having outlets for sending to a midi/out/cc any object I inserted the midi sending code into my object, and now it works flawlessly, even when receiving simultaneous toggles.</p>
+
+<blockquote>
+<p>states[0] = inlet_S1;<br>states[1] = inlet_S2;<br>states[2] = inlet_S3;<br>states[3] = inlet_S4;<br>states[4] = inlet_S5;<br>states[5] = inlet_S6;<br>states[6] = inlet_S7;<br>states[7] = inlet_S8;<br>states[8] = inlet_M1;<br>states[9] = inlet_M2;<br>states[10] = inlet_M3;<br>states[11] = inlet_M4;<br>states[12] = inlet_M5;<br>states[13] = inlet_M6;<br>states[14] = inlet_M7;<br>states[15] = inlet_M8;<br>states[16] = inlet_R1;<br>states[17] = inlet_R2;<br>states[18] = inlet_R3;<br>states[19] = inlet_R4;<br>states[20] = inlet_R5;<br>states[21] = inlet_R6;<br>states[22] = inlet_R7;<br>states[23] = inlet_R8;<br>states[24] = inlet_REW;<br>states[25] = inlet_FF;<br>states[26] = inlet_STOP;<br>states[27] = inlet_PLAY;<br>states[28] = inlet_REC;<br>states[29] = inlet_CYCLE;	</p>
+<p>for (int i=0; i&lt;30; i++){<br>	if (states[i] != prevstates[i]){<br>		MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE + (channel-1), (i+37), __USAT((states[i]*0x07FFFFFF)&gt;&gt;20,7));		<br>		prevstates[i] = states[i];<br>	}<br>}</p>
+</blockquote>
+
+<p>holy christ the feeling of relief you get when you solve a problem you´ve been fighting for days...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/3</link>
+        <pubDate>Thu, 07 Apr 2022 08:34:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7675-3</guid>
+        <source url="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675.rss">[SOLVED]Can you not change outlet values inside a FOR function?</source>
+      </item>
+      <item>
+        <title>[SOLVED]Can you not change outlet values inside a FOR function?</title>
+        <dc:creator><![CDATA[@TTotelka]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ttotelka">@TTotelka</a> wrote:</p>
+          <blockquote>
+              <p>This was my original code. It did work just fine, but then making another object that simultaneously toggles one boolean output on and another boolean output off I realised that this code can´t deal with simultaneous changes:</p>
+
+<blockquote>
+<p>states[0] = inlet_S1;<br>states[1] = inlet_S2;<br>states[2] = inlet_S3;<br>states[3] = inlet_S4;<br>states[4] = inlet_S5;<br>states[5] = inlet_S6;<br>states[6] = inlet_S7;<br>states[7] = inlet_S8;<br>states[8] = inlet_M1;<br>states[9] = inlet_M2;<br>states[10] = inlet_M3;<br>states[11] = inlet_M4;<br>states[12] = inlet_M5;<br>states[13] = inlet_M6;<br>states[14] = inlet_M7;<br>states[15] = inlet_M8;<br>states[16] = inlet_R1;<br>states[17] = inlet_R2;<br>states[18] = inlet_R3;<br>states[19] = inlet_R4;<br>states[20] = inlet_R5;<br>states[21] = inlet_R6;<br>states[22] = inlet_R7;<br>states[23] = inlet_R8;<br>states[24] = inlet_REW;<br>states[25] = inlet_FF;<br>states[26] = inlet_STOP;<br>states[27] = inlet_PLAY;<br>states[28] = inlet_REC;<br>states[29] = inlet_CYCLE;	</p>
+<p>for (int i=0; i&lt;30; i++){<br>	if (states[i] != prevstates[i]){<br>		value = states[i]*0x7FFFFFFF;<br>		cc = i+37;<br>		channel = attr_MidiChannel;<br>		trig = 1;<br>		prevstates[i] = states[i];<br>	}<br>}</p>
+<p>outlet_Value = value;<br>outlet_CC = cc;<br>outlet_Channel = channel;<br>outlet_Trigger = trig;</p>
+<p>trig = 0;</p>
+</blockquote>
+
+<p>Then I tried doing this:</p>
+
+<blockquote>
+<p>for (int i=0; i&lt;30; i++){<br>if (states[i] != prevstates[i]){<br>change[i] = 1;<br>prevstates[i] = states[i];<br>}</p>
+<p>for (int i=0; i&lt;30; i++){<br>if (change[i]){<br>outlet_Value = states[i]*0x7FFFFFFF;<br>outlet_CC = i+37;<br>outlet_Channel = attr_MidiChannel;<br>outlet_Trigger = 1;<br>}<br>outlet_Trigger = 0;<br>}</p>
+</blockquote>
+
+<p>But then it doesn´t send anything anymore</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/2</link>
+        <pubDate>Wed, 06 Apr 2022 16:05:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7675-2</guid>
+        <source url="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675.rss">[SOLVED]Can you not change outlet values inside a FOR function?</source>
+      </item>
+      <item>
+        <title>[SOLVED]Can you not change outlet values inside a FOR function?</title>
+        <dc:creator><![CDATA[@TTotelka]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ttotelka">@TTotelka</a> wrote:</p>
+          <blockquote>
+              <p>Hello,<br>I´ve been coding some objects lately and after a fair amount of sweating I´ve come to the conclusion that you can´t change the value of an outlet inside a FOR function. Is this right?<br>What I´m doing is an object for controlling the leds of a nanokontrol 2.<br>I´ve got 30 bool inlets (one for each button) and four outlets connected to a midi/out/cc any object:<br>-Value (frac32.positive)<br>-CC (int32.positive)<br>-Channel (int32.positive)<br>-Trigger (bool32)<br>In the K-Rate code section I write all the inlet states into an array, and then I use a FOR function for comparing these values with another array with old values. If they have changed the outlets are supposed to change to the corresponding value, cc, channel and send a trigger to let the midi/out/cc any object know it should send a cc message.<br>It should be pretty straight forward, but it doesn´t work. It seems that I have to have another array for storing if any inlet has changed, and then concatenate 30 IFs for sending messages if there has been any change in the inputs.<br>This seems to work, but it feels like very sloppy programming. <br>So, is this right, or am I doing something wrong and it should work inside the FOR function?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675/1</link>
+        <pubDate>Wed, 06 Apr 2022 15:52:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7675-1</guid>
+        <source url="http://community.axoloti.com/t/solved-can-you-not-change-outlet-values-inside-a-for-function/7675.rss">[SOLVED]Can you not change outlet values inside a FOR function?</source>
+      </item>
+  </channel>
+</rss>

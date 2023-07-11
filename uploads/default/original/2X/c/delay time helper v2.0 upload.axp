@@ -1,0 +1,639 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="126" y="0" text="DELAY TIME CHANGE HANDLER"/>
+   <comment type="patch/comment" x="126" y="14" text="* reuires 2 delay reads, 1 delay write and 2 VCAs"/>
+   <comment type="patch/comment" x="126" y="14" text="connect the timeA and timeB outlets to the delay read&apos;s time inlet"/>
+   <comment type="patch/comment" x="126" y="14" text="put the VCAs on the output of each read and connect the envA and envB outlets to them"/>
+   <comment type="patch/comment" x="126" y="28" text="NO CLICKS NO PITCH ARTIFACTS"/>
+   <comment type="patch/comment" x="714" y="42" text="delay time"/>
+   <comment type="patch/comment" x="812" y="42" text="feedback"/>
+   <comment type="patch/comment" x="126" y="56" text="if inlet repitch is low, when you change the delay time it assigns the new delay time"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_2" x="714" y="56">
+      <params>
+         <frac32.u.map name="value" value="12.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="812" y="56">
+      <params>
+         <frac32.u.map name="value" value="29.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="140" y="70" text="to whichever read isn&apos;t in use, and then crossfades between the 2 reads. "/>
+   <comment type="patch/comment" x="140" y="84" text="If the delay time has changed again whilst it is crossfading, it will begin the"/>
+   <comment type="patch/comment" x="140" y="98" text=" process again when the crossfade stops. this all happens pretty fast"/>
+   <comment type="patch/comment" x="126" y="126" text="PITCH ARTIFACTS"/>
+   <comment type="patch/comment" x="126" y="154" text="If inlet repitch is high, it will mute the second delay read and just use the first."/>
+   <comment type="patch/comment" x="126" y="168" text="when you change the delay time, the time glides to the new pitch by a constant amount set in the parameter"/>
+   <comment type="patch/comment" x="714" y="168" text="fade/pitch"/>
+   <comment type="patch/comment" x="798" y="168" text="octave mode"/>
+   <comment type="patch/comment" x="882" y="168" text="fifth"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="714" y="182">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_2" x="798" y="182">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_3" x="882" y="182">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="196" text="OCTAVE MODE"/>
+   <comment type="patch/comment" x="126" y="224" text="If inlet repitch is high, and inlet octave fade is high, when you change delay times it treis to glide the"/>
+   <comment type="patch/comment" x="126" y="238" text=" time at a rate that creates octave pitch artifacts. If the fifth inlet is also high, "/>
+   <comment type="patch/comment" x="126" y="252" text="it will try to produce fifth pitch artifacts."/>
+   <comment type="patch/comment" x="714" y="252" text="full fat"/>
+   <comment type="patch/comment" x="1036" y="252" text="active"/>
+   <comment type="patch/comment" x="126" y="266" text="Pitchfade paramater is ignored in this mode"/>
+   <patchobj type="patch/object" uuid="866462aa-373b-4af4-bcb9-c275e1685fc0" name="44_6" x="714" y="266">
+      <params>
+         <int32 name="fade" value="48"/>
+         <int32 name="pitchfade" value="1024"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="131072 (2.37s)"/>
+      </attribs>
+      <object id="patch/object" uuid="866462aa-373b-4af4-bcb9-c275e1685fc0">
+         <sDescription>convert to fractional output</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32.positive name="time"/>
+            <bool32.risingfalling name="repitch"/>
+            <bool32.risingfalling name="octavefade"/>
+            <bool32.risingfalling name="fifth"/>
+         </inlets>
+         <outlets>
+            <frac32 name="timeA"/>
+            <frac32 name="envA" description="output"/>
+            <frac32 name="timeB"/>
+            <frac32 name="envB"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="fade" description="fade in &quot;k samples&quot;" noLabel="true">
+               <MinValue i="2"/>
+               <MaxValue i="20000"/>
+            </int32>
+            <int32 name="pitchfade">
+               <MinValue i="0"/>
+               <MaxValue i="200000"/>
+            </int32>
+         </params>
+         <attribs>
+            <combo name="size" description="THIS SHOULD MATCH DELAY WRITE SIZE">
+               <MenuEntries>
+                  <string>1024 (21.33ms)</string>
+                  <string>2048 (42.66ms)</string>
+                  <string>4096 (85.33ms)</string>
+                  <string>8192 (170ms)</string>
+                  <string>16384 (341ms)</string>
+                  <string>32768 (682ms)</string>
+                  <string>65536 (1.36s)</string>
+                  <string>131072 (2.37s)</string>
+                  <string>262144 (5.46s)</string>
+                  <string>524288 (10.9s)</string>
+                  <string>1048576 (21.8s)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>21</string>
+                  <string>20</string>
+                  <string>19</string>
+                  <string>18</string>
+                  <string>17</string>
+                  <string>16</string>
+                  <string>15</string>
+                  <string>14</string>
+                  <string>13</string>
+                  <string>12</string>
+                  <string>11</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t PtimeA;
+int out;
+int timeA;
+int timeB;
+int outA;
+int outB;
+int ptime;
+int fadein;
+int fphase;
+int prevTA;
+int Pphase;
+int length;
+int timeup;
+int timeC;
+int timedn;	
+int pitchfade;	
+int Pfade;
+int depth;
+bool changed;]]></code.declaration>
+         <code.init><![CDATA[timeA=0;
+timeB=0;
+prevTA=-1;]]></code.init>
+         <code.krate><![CDATA[fphase=0x07FFFFFF/param_fade;
+
+if (!inlet_repitch){
+	
+		if ((inlet_time!=ptime)&&!changed){
+			changed=1;
+			ptime=inlet_time;
+			if (out==0){
+				fadein=1;
+				timeA=inlet_time;
+			}
+			else {
+				fadein=2;
+				timeB=inlet_time;
+			}
+		}
+		
+		if ((fadein==1)&&changed){
+			out+=fphase;
+			if (out>=0x07FFFFFF){
+				out=0x07FFFFFF;
+				changed=0;
+				fadein=0;
+				
+			}
+		}
+		else if ((fadein==2)&&changed){
+			out-=fphase;
+			if (out<=0){
+				out=0;
+				fadein=0;
+				changed=0;
+			}
+			
+		}
+		timeC=timeA;
+		prevTA=timeA;
+		timedn=0;
+		timeup=0;
+	}
+else {
+	out=0x07FFFFFF;
+	timeA=inlet_time;
+}
+
+
+
+outA=out;
+outB=0x07FFFFFF-out;
+if (inlet_repitch){
+	
+	if ((timeA!=prevTA)&&!timeup&&!timedn) {
+		
+		if (timeA>=timeC){
+			length=(timeA-timeC);
+			timeup=1;
+			timedn=0;
+			if (inlet_octavefade){
+			Pphase=(1<<((attr_size-1)-inlet_fifth));
+			}
+		}
+		else if (timeA<timeC){
+			length=timeC-timeA;
+			timedn=1;
+			timeup=0;
+			if (inlet_octavefade){
+			Pphase=(1<<(attr_size-inlet_fifth));
+			}
+		}
+			
+			if (!inlet_octavefade){
+			Pphase=___SMMUL((0x07FFFFFF/param_pitchfade)<<3,length<<2);
+			}
+			
+			
+			
+			if (Pphase<1){
+				Pphase=1;
+			}
+
+		prevTA=timeA;
+		}
+		if (timeup){
+			timeC+=Pphase;
+			if (timeC>=prevTA){
+				timeup=0;
+				timeC=prevTA;
+				}
+			}
+		else if (timedn){
+			timeC-=Pphase;
+			if (timeC<=prevTA){
+				timedn=0;
+				timeC=prevTA;
+			}
+		}
+	
+	}
+outlet_envA=outA;
+if (!inlet_repitch){
+	outlet_timeA=timeA;
+	}
+else {
+	outlet_timeA=timeC;
+}
+outlet_envB=outB;
+outlet_timeB=timeB;
+
+
+//outlet_o=(inlet_i-((inlet_i/(0x07FFFFFF/param_entries))*(0x07FFFFFF/param_entries)))*param_entries;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="1036" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="112" y="280" text="THE SIZE ATTRIBUTE MUST BE SET TO THE SAME TIME AS THE DELAY READ BEING USED FOR OCTAVES/FIFTHS TO WORK"/>
+   <comment type="patch/comment" x="128" y="298" text="Big changes from long to short delays, etc, with fifths on can make the change happen quite slow"/>
+   <comment type="patch/comment" x="966" y="308" text="read A"/>
+   <comment type="patch/comment" x="126" y="322" text="PARAMETERS"/>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_4" x="896" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="jho/delay/read interp 32b" uuid="b5984ec2512c4f6a8f562f2a0b0e13aa" name="read_1" x="966" y="322">
+      <params>
+         <frac32.u.map name="time" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="delayname" obj="deelite"/>
+      </attribs>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_13" x="1120" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="336" text="The fade parameter is the length of cross fade when not in repitch mode. ."/>
+   <comment type="patch/comment" x="126" y="350" text="below around 48 and you start to get clicks again. Longer values mean smoother transitions. "/>
+   <comment type="patch/comment" x="126" y="364" text="Really long values can get strange results!"/>
+   <comment type="patch/comment" x="126" y="392" text="The pitchfade paramter is the length of the glide in repitch mode. I find 1024 to be pretty smooth, and fast enough"/>
+   <comment type="patch/comment" x="126" y="406" text="If octave mode is on, this parameter is ignored as it calcualtes the length of glide "/>
+   <comment type="patch/comment" x="126" y="420" text="to happen at a different rate depending on the amount of change"/>
+   <comment type="patch/comment" x="126" y="434" text="in order to get controlled pitches"/>
+   <comment type="patch/comment" x="1036" y="434" text="active"/>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="1022" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="462" text="MODULATION"/>
+   <comment type="patch/comment" x="126" y="490" text="For classic delay time modulation, add the modulation to both time OUTLETS"/>
+   <comment type="patch/comment" x="966" y="490" text="readB"/>
+   <comment type="patch/comment" x="1218" y="490" text="sum readA + readB"/>
+   <comment type="patch/comment" x="126" y="504" text="It&apos;s worth trying to add the modulation to the delay dial before the object too - if not in repitch mode"/>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_5" x="896" y="504">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="jho/delay/read interp 32b" uuid="b5984ec2512c4f6a8f562f2a0b0e13aa" name="read_2" x="966" y="504">
+      <params>
+         <frac32.u.map name="time" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="delayname" obj="deelite"/>
+      </attribs>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_14" x="1120" y="504">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="1232" y="504">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="518" text=" you get cool timestretch style effects. If in repitch mode you get weirdly stepped pitch changes"/>
+   <comment type="patch/comment" x="126" y="532" text="Changing the fade paramters will get different results from the modulation"/>
+   <comment type="patch/comment" x="126" y="560" text="ALTERNATE VERSIONS"/>
+   <comment type="patch/comment" x="126" y="588" text="This version uses a simple "/>
+   <comment type="patch/comment" x="126" y="602" text="smooth when in repitch mode "/>
+   <comment type="patch/comment" x="126" y="616" text="instead of the controlled glides"/>
+   <comment type="patch/comment" x="364" y="616" text="this version has no repitch mode"/>
+   <comment type="patch/comment" x="140" y="644" text="cheap repitch"/>
+   <comment type="patch/comment" x="378" y="644" text="no repitch"/>
+   <comment type="patch/comment" x="882" y="644" text="feedback level"/>
+   <comment type="patch/comment" x="1008" y="644" text="sum dry + feedback "/>
+   <comment type="patch/comment" x="1134" y="644" text="write delay"/>
+   <comment type="patch/comment" x="1330" y="644" text="sum dry+ wet"/>
+   <patchobj type="patch/object" uuid="866462aa-373b-4af4-bcb9-c275e1685fc0" name="44_3" x="140" y="658">
+      <params>
+         <int32 name="fade" value="48"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="866462aa-373b-4af4-bcb9-c275e1685fc0">
+         <sDescription>convert to fractional output</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32.positive name="time"/>
+            <bool32.risingfalling name="repitch"/>
+         </inlets>
+         <outlets>
+            <frac32 name="timeA"/>
+            <frac32 name="envA" description="output"/>
+            <frac32 name="timeB"/>
+            <frac32 name="envB"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="fade" description="fade in &quot;k samples&quot;" noLabel="true">
+               <MinValue i="2"/>
+               <MaxValue i="5000"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t PtimeA;
+int out;
+int timeA;
+int timeB;
+int outA;
+int outB;
+int ptime;
+int fadein;
+int fphase;
+bool changed;]]></code.declaration>
+         <code.init><![CDATA[timeA=0;
+timeB=0;]]></code.init>
+         <code.krate><![CDATA[fphase=0x07FFFFFF/param_fade;
+
+if (!inlet_repitch){
+		if ((inlet_time!=ptime)&&!changed){
+			changed=1;
+			ptime=inlet_time;
+			if (out==0){
+				fadein=1;
+				timeA=inlet_time;
+			}
+			else {
+				fadein=2;
+				timeB=inlet_time;
+			}
+		}
+		
+		if ((fadein==1)&&changed){
+			out+=fphase;
+			if (out>=0x07FFFFFF){
+				out=0x07FFFFFF;
+				changed=0;
+				fadein=0;
+				
+			}
+		}
+		else if ((fadein==2)&&changed){
+			out-=fphase;
+			if (out<=0){
+				out=0;
+				fadein=0;
+				changed=0;
+			}
+			
+		}
+	}
+else {
+	out=0x07FFFFFF;
+	timeA=inlet_time;
+}
+
+
+
+outA=out;
+outB=0x07FFFFFF-out;
+
+
+PtimeA= ___SMMLA(PtimeA-timeA,(-1<<26)+(0x06900000>>1),PtimeA);
+ 
+outlet_envA=outA;
+if (!inlet_repitch){
+	outlet_timeA=timeA;
+	}
+else {
+	outlet_timeA=PtimeA;
+}
+outlet_envB=outB;
+outlet_timeB=timeB;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="866462aa-373b-4af4-bcb9-c275e1685fc0" name="44_4" x="378" y="658">
+      <params>
+         <int32 name="fade" value="48"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="866462aa-373b-4af4-bcb9-c275e1685fc0">
+         <sDescription>convert to fractional output</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32.positive name="time"/>
+         </inlets>
+         <outlets>
+            <frac32 name="timeA"/>
+            <frac32 name="envA" description="output"/>
+            <frac32 name="timeB"/>
+            <frac32 name="envB"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="fade" description="fade in &quot;k samples&quot;" noLabel="true">
+               <MinValue i="2"/>
+               <MaxValue i="5000"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int out;
+int timeA;
+int timeB;
+int outA;
+int outB;
+int ptime;
+int fadein;
+int fphase;
+bool changed;]]></code.declaration>
+         <code.init><![CDATA[timeA=0;
+timeB=0;]]></code.init>
+         <code.krate><![CDATA[fphase=0x07FFFFFF/param_fade;
+
+		if ((inlet_time!=ptime)&&!changed){
+			changed=1;
+			ptime=inlet_time;
+			if (out==0){
+				fadein=1;
+				timeA=inlet_time;
+			}
+			else {
+				fadein=2;
+				timeB=inlet_time;
+			}
+		}
+		
+		if ((fadein==1)&&changed){
+			out+=fphase;
+			if (out>=0x07FFFFFF){
+				out=0x07FFFFFF;
+				changed=0;
+				fadein=0;
+				
+			}
+		}
+		else if ((fadein==2)&&changed){
+			out-=fphase;
+			if (out<=0){
+				out=0;
+				fadein=0;
+				changed=0;
+			}
+			
+		}
+
+
+
+
+outA=out;
+outB=0x07FFFFFF-out;
+
+ 
+outlet_envA=outA;
+
+outlet_timeA=timeA;
+	
+
+outlet_envB=outB;
+outlet_timeB=timeB;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="audio/in left" uuid="d40e60b7641fe75af4d7c91b45bb038aacafc52e" name="in_1" x="742" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_15" x="896" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_2" x="1022" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="jho/delay/write sdram 32b" uuid="8b544d2d29a0485c9a44775aaf36e96c" name="deelite" x="1134" y="658">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="131072 (2.37s)"/>
+      </attribs>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_3" x="1344" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_1" x="1470" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="read_1" outlet="out"/>
+         <dest obj="vca_13" inlet="a"/>
+      </net>
+      <net>
+         <source obj="interp_5" outlet="o"/>
+         <dest obj="read_2" inlet="time"/>
+      </net>
+      <net>
+         <source obj="interp_4" outlet="o"/>
+         <dest obj="read_1" inlet="time"/>
+      </net>
+      <net>
+         <source obj="read_2" outlet="out"/>
+         <dest obj="vca_14" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_13" outlet="o"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="vca_14" outlet="o"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="+_2" outlet="out"/>
+         <dest obj="deelite" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="vca_15" inlet="a"/>
+         <dest obj="+_3" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="vca_15" outlet="o"/>
+         <dest obj="+_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="wave"/>
+         <dest obj="+_2" inlet="in1"/>
+         <dest obj="+_3" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="vca_15" inlet="v"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="44_6" inlet="repitch"/>
+      </net>
+      <net>
+         <source obj="44_6" outlet="envA"/>
+         <dest obj="vca_13" inlet="v"/>
+         <dest obj="bool_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="44_6" outlet="envB"/>
+         <dest obj="vca_14" inlet="v"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+_3" outlet="out"/>
+         <dest obj="out_1" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="44_6" inlet="octavefade"/>
+      </net>
+      <net>
+         <source obj="toggle_3" outlet="o"/>
+         <dest obj="44_6" inlet="fifth"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="44_6" inlet="time"/>
+      </net>
+      <net>
+         <source obj="44_6" outlet="timeA"/>
+         <dest obj="interp_4" inlet="i"/>
+      </net>
+      <net>
+         <source obj="44_6" outlet="timeB"/>
+         <dest obj="interp_5" inlet="i"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

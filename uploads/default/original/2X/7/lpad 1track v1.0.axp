@@ -1,0 +1,3478 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="b85015e0-6073-44b3-97d5-e15ff65915d3" name="kbeat_1" x="42" y="0">
+      <params/>
+      <attribs>
+         <combo attributeName="clockin" selection="omni"/>
+         <combo attributeName="send" selection="off"/>
+         <combo attributeName="output" selection="din"/>
+         <spinner attributeName="CCa" value="80"/>
+         <spinner attributeName="CCb" value="81"/>
+         <spinner attributeName="channel" value="15"/>
+      </attribs>
+      <object id="patch/object" uuid="b85015e0-6073-44b3-97d5-e15ff65915d3">
+         <sDescription>Midi clock slave</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <bool32 name="active" description="Song is playing"/>
+            <int32 name="kbeat" description="average length of a beat at k rate"/>
+            <int32 name="kbeatAVG" description="same as kbeat but updates once per bar"/>
+            <bool32.pulse name="start" description="start trigger"/>
+            <bool32.pulse name="stop" description="stop trigger"/>
+            <bool32.pulse name="1ppq" description="beat trigger, 1ppq"/>
+            <int32 name="bpm" description="rough bpm"/>
+            <bool32 name="bartrig" description="triggers every bar"/>
+            <int32 name="step"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="clockin">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <combo name="send">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>on</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+               </CEntries>
+            </combo>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="CCa" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="CCb" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t _active;
+int32_t _pos;
+int32_t prevpos;
+int tap;
+int prevtap;
+int tapped;
+int tapV[24];
+int start;
+int stop;
+int t;
+//int pos1ppq;
+int firsttap;
+int secondtap;
+int taptotal;
+int tapdiv;
+int beattotal;
+int beatdiv;
+int beatavg;
+int beatV[4];
+int avg;
+int pavg;
+int beat;
+int prevbeat;
+int beattrig;
+int avgH;
+int beatcount;
+int step;
+int stepos;
+int send1;
+int send2;
+int prevposbar;
+int bartrig;
+int posbar;
+int outpos;
+int poutpos;]]></code.declaration>
+         <code.init><![CDATA[_active = 0;
+_pos = -1;
+t=-1;
+firsttap=0;
+beat=-1;
+stepos=-1;
+prevposbar=-1;
+posbar=-1;
+step=-1;
+outpos=-1;]]></code.init>
+         <code.krate><![CDATA[outlet_active = _active;
+outlet_start=start;
+
+
+if (stepos>=0){
+
+step=(stepos/6)-  (((stepos/6)>>4)<<4);
+posbar=stepos/96;
+outpos=(stepos/24) - (((stepos/24)>>2)<<2);
+}
+else if (stepos<0){
+posbar=-1;
+step=-1;
+outpos=-1;
+poutpos=-1;
+}
+
+if (t>=0){
+t+=1;
+}
+if (start){
+	tap=-1;
+	}
+	
+
+if ((_pos!=prevpos)&&(_pos!=(-1))){
+	prevpos=_pos;
+	if ((t>0)&&(tap>=0)){
+		tapV[tap]=t-1;
+		if ((tap>=1)&&!firsttap){
+			taptotal=tapV[tap]+tapV[prevtap];
+			tapdiv=tap+1;
+			avg=(taptotal/tapdiv)*24;
+			beatavg=avg<<2;
+		}
+	}
+	prevtap=tap;
+	tap+=1;
+	if (tap>=24){
+	if (!firsttap){
+		beat=0;
+	}
+	firsttap=1;
+	tapdiv=24;
+	taptotal=tapV[0]+tapV[1]+tapV[2]+tapV[3]+tapV[4]+tapV[5]+tapV[6]+tapV[7]+tapV[8]+tapV[9]+tapV[10]+tapV[11]+tapV[12]+tapV[13]+tapV[14]+tapV[15]+tapV[16]+tapV[17]+tapV[18]+tapV[19]+tapV[20]+tapV[21]+tapV[22]+tapV[23];
+	avg=((taptotal*24)/tapdiv);
+	
+	tap=0;
+	tapped=1;	
+	
+	}
+	t=0;
+}
+if (tapped){
+	beatV[beat]=avg;
+	if ((beat>=1)&&!secondtap){
+			beattotal=beatV[beat]+beatV[prevbeat];
+			beatdiv=beat+1;
+			beatavg=(beattotal/beatdiv);
+			
+		}
+	
+	prevbeat=beat;
+	beat+=1;
+	if (beat>=4){
+		secondtap=1;
+		
+		beatcount=0;
+		beat=0;
+		beattotal=beatV[0]+beatV[1]+beatV[2]+beatV[3];
+		beatdiv=4;
+		beatavg=beattotal/beatdiv;
+	}
+}
+
+if (start){
+	outpos=0;
+	beattrig=1;
+	beatcount=0;
+}
+
+if ((posbar!=prevposbar)&&(posbar>=0)){
+	prevposbar=posbar;
+	bartrig=1;
+}
+
+//outlet_pos1ppq=pos1ppq;
+outlet_stop=stop;
+outlet_1ppq=tapped;
+outlet_kbeat=avg;
+outlet_kbeatAVG=beatavg;
+outlet_bartrig=bartrig;
+outlet_bpm=180000/avg;
+outlet_step=step;
+if (attr_send){
+	if (avg!=pavg){
+		pavg=avg;
+		send1=pavg>>6;
+		send2=pavg-((pavg>>6)<<6);
+		MidiSend3((midi_device_t) attr_output, MIDI_CONTROL_CHANGE + (attr_channel-1),attr_CCa,send1);
+		MidiSend3((midi_device_t) attr_output, MIDI_CONTROL_CHANGE + (attr_channel-1),attr_CCb,send2);
+
+		MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_CONTROL_CHANGE + (attr_channel-1),attr_CCa,send1);
+		MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_CONTROL_CHANGE + (attr_channel-1),attr_CCb,send2);
+		
+	}
+	if ((outpos!=poutpos)&&(outpos>=0)){
+		poutpos=outpos;
+		MidiSend3((midi_device_t) attr_output, MIDI_SONG_POSITION,outpos,0);
+		MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_CONTROL_CHANGE + (attr_channel-1),(attr_CCb+1),outpos);
+	}
+	if (start){
+		MidiSend1((midi_device_t) attr_output, MIDI_START);
+		MidiSend1((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_START);
+	}
+	if (stop){
+		MidiSend1((midi_device_t) attr_output, MIDI_STOP);
+		MidiSend1((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_STOP);
+	}
+	
+
+	
+	
+}
+
+
+
+tapped=0;
+beattrig=0;
+start=0;
+
+stop=0;
+bartrig=0;]]></code.krate>
+         <code.midihandler><![CDATA[if (attr_clockin){
+	if (status == MIDI_TIMING_CLOCK) {
+		if ((_pos==0)&&_active){
+	  	start=1;
+	  	
+	  }
+	  _pos++;
+	  stepos++;
+	  
+	  
+	} else if (status == MIDI_START) {
+	  _active = 1;
+	  _pos = 0;
+	  stepos=-1;
+	  
+	} else if (status == MIDI_STOP) {
+	  _active = 0;
+	  stop=1;
+	  _pos = -1;
+	  tap=-1;
+	  stepos=-1;
+	
+	  
+	}
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="1302" y="28" text="data storage"/>
+   <comment type="patch/comment" x="434" y="42" text="1 track midi looper with lauchpad mini control."/>
+   <obj type="table/alloc 16b sdram load" uuid="e6b85dad3ab43565cda93ea4c43c73b668b1cd43" name="midiloopA" x="1302" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="262144"/>
+         <file attributeName="filename" file="/JOANx"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="280" y="84" text=" channel 1 reserved for launchapd. The looper is set up to record channel 2 from DIN and play out to DIN. adjust outputs/channel in objects below"/>
+   <comment type="patch/comment" x="518" y="154" text=" start/stop transport"/>
+   <comment type="patch/comment" x="168" y="168" text="delayed bang"/>
+   <comment type="patch/comment" x="252" y="168" text="top button input + lights fot top and scene buttons"/>
+   <comment type="patch/comment" x="518" y="168" text="(if using external midi clock leave off)"/>
+   <comment type="patch/comment" x="728" y="168" text="internal clock"/>
+   <comment type="patch/comment" x="868" y="168" text="metronom vol"/>
+   <obj type="to add/buffer detail" uuid="901375e6-47bd-4d4a-8964-7cbdc69cc55a" name="buffer_1" x="1274" y="168">
+      <params>
+         <bool32.mom name="reset" value="0"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="usb host"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="2f9bba32-d740-4003-ad25-e348072ce954" name="loadbang_1" x="182" y="182">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="2f9bba32-d740-4003-ad25-e348072ce954">
+         <sDescription>Generates a single pulse when a patcher is loaded.
+similar to PD / Max/Msp &apos;loadbang&apos;</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>patching.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <bool32.pulse name="trig"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int init;]]></code.declaration>
+         <code.init><![CDATA[init=0;]]></code.init>
+         <code.krate><![CDATA[if (init<1500){
+init+=1;
+if (init==1500){
+	init=2000;
+	ntrig=1;
+}
+}
+outlet_trig=ntrig;
+ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="242855ff-4bd3-41ce-bd3d-c73532cf101e" name="top_7" x="252" y="182">
+      <params/>
+      <attribs>
+         <combo attributeName="lightout" selection="usb host port 1"/>
+         <combo attributeName="input" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="242855ff-4bd3-41ce-bd3d-c73532cf101e">
+         <sDescription>outputs the state of the top-row buttons of a &apos;novation launchpad&apos;.
+DOES NOT work with the &apos;LP mark 1&apos;.</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <inlets>
+            <bool32 name="refresh"/>
+         </inlets>
+         <outlets>
+            <bool32 name="clearshift"/>
+            <bool32 name="overdub"/>
+            <bool32 name="quantize"/>
+            <bool32 name="save"/>
+            <bool32 name="init"/>
+            <bool32 name="refreshtrig"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="lightout">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t map[32];
+int refreshtrig;
+int overdub;
+int clearshift;
+int quantize;
+int otrig;
+int ctrig;
+int qtrig;
+int rtrig;
+int full;
+int colour;
+int i;
+
+
+int previ;
+int save;
+int init;
+int strig;
+int itrig;
+int ovrtrig;]]></code.declaration>
+         <code.init><![CDATA[quantize=1;
+overdub=0;
+
+
+
+
+//////////////////////
+{ 
+  int i;
+  for(i=0;i<32;i++) previ= -666 ;}
+
+  { 
+  int i;
+  for(i=0;i<32;i++) 
+//columnA
+map[0] = 0;
+map[1] = 16;
+map[2] = 32;
+map[3] = 48;
+map[4] = 64;
+map[5] = 80;
+map[6] = 96;
+map[7] = 112;
+//columnB
+map[8] = 1;
+map[9] = 17;
+map[10] = 33;
+map[11] = 49;
+map[12] = 65;
+map[13] = 81;
+map[14] = 97;
+map[15] = 113;
+//columnC
+map[16] = 2;
+map[17] = 18;
+map[18] = 34;
+map[19] = 50;
+map[20] = 66;
+map[21] = 82;
+map[22] = 98;
+map[23] = 114;
+//columnD
+map[24] = 3;
+map[25] = 19;
+map[26] = 35;
+map[27] = 51;
+map[28] = 67;
+map[29] = 83;
+map[30] = 99;
+map[31] = 115;
+
+}
+
+i=666;]]></code.init>
+         <code.krate><![CDATA[outlet_clearshift = clearshift;
+outlet_overdub = ovrtrig;
+outlet_quantize = quantize;
+
+
+//for init patch loading / tablesaving
+if (save&&clearshift&&!strig){
+		MidiSend3((midi_device_t) MIDI_DEVICE_DIN, 1, MIDI_CONTROL_CHANGE+14 ,0,127);
+		MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_CONTROL_CHANGE+14 ,0,127);
+		outlet_save=1;
+		strig=1;
+	}
+	else if (!save) {
+		outlet_save=0;
+		strig=0;
+		}
+
+if (init&&clearshift&&!itrig){
+		
+		
+		outlet_init=1;
+		itrig=1;
+	}
+	else if (!init){
+		outlet_init=0;
+		itrig=0;
+	}
+
+if (overdub&&!otrig){
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,110,3);
+	otrig=1;
+}
+
+else if (!overdub&&!otrig){
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,110,16);
+	otrig=1;
+}
+
+
+if (quantize&&!qtrig){
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,109,51);
+	qtrig=1;
+}
+
+else if (!quantize&&!qtrig){
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,109,17);
+	qtrig=1;
+}
+
+if (clearshift&&!ctrig){
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,111,3);
+	ctrig=1;
+}
+if (!clearshift&&!ctrig){
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,111,1);
+	ctrig=1;
+}
+
+if (inlet_refresh&&!rtrig){i=0;rtrig=1;
+MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,109,51);
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,110,16);
+	MidiSend3((midi_device_t) attr_lightout, MIDI_CONTROL_CHANGE+0 ,111,1);
+	
+	//side
+	MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,8,16);
+			MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,24,16);
+			MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,40,16);
+			MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,56,16);
+			MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,72,16);
+			MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,88,16);
+			MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,104,16);
+			MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 1, MIDI_NOTE_ON +0,120,1);
+	
+	}
+else if (!inlet_refresh){rtrig=0;}
+
+if (i<32){
+	if (previ!=i){
+	
+	MidiSend3((midi_device_t) attr_lightout, MIDI_NOTE_ON +0,map[i],0);	
+	}
+	previ=i;
+	i+=1;
+	if (i==32){
+		refreshtrig=1;
+	}
+}
+
+else i=666; 
+ovrtrig=0;
+save =0;
+outlet_refreshtrig=refreshtrig;
+refreshtrig=0;]]></code.krate>
+         <code.midihandler><![CDATA[if (attr_input){
+if (status == 0 + MIDI_CONTROL_CHANGE){
+	if (data1==111){
+		clearshift=data2;
+		ctrig=0;
+	}
+	if ((data1==110)&&data2){
+		if (!clearshift){
+		overdub=!overdub;
+		ovrtrig=1;
+		}
+		else if (clearshift){
+		save=data2;
+		}
+		otrig=0;
+	}
+	if ((data1==109)&&data2){
+		quantize=!quantize;
+		
+		qtrig=0;
+	}
+	
+	}
+
+
+
+
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="574" y="182">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/clock" uuid="7f6f35e92d2c29e950af2b3af5cebb2e9e3b778c" name="clock_3" x="728" y="182">
+      <params>
+         <frac32.u.map name="bpm" value="16.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="868" y="182">
+      <params>
+         <frac32.u.map name="value" value="18.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="966" y="308" text="*****column 2***************************************"/>
+   <comment type="patch/comment" x="938" y="322" text="column input for barlength"/>
+   <comment type="patch/comment" x="1092" y="322" text="column lights for barlength"/>
+   <patchobj type="patch/object" uuid="90929d94-c60c-4c41-8cc0-3216bf6fc6d6" name="1_5" x="966" y="336">
+      <params/>
+      <attribs>
+         <spinner attributeName="column" value="2"/>
+         <combo attributeName="input" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="90929d94-c60c-4c41-8cc0-3216bf6fc6d6">
+         <sDescription>outputs the state of the top-row buttons of a &apos;novation launchpad&apos;.
+DOES NOT work with the &apos;LP mark 1&apos;.</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <inlets>
+            <bool32 name="clearshift"/>
+         </inlets>
+         <outlets>
+            <int32 name="pad"/>
+            <int32 name="barlength"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="column" MinValue="1" MaxValue="8" DefaultValue="1"/>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int note;
+int clipslot;
+int trigger;
+int stop;
+int ccdub;
+int shift;
+int outbar;
+int barlength[4];
+bool chold;
+bool ccb;]]></code.declaration>
+         <code.init><![CDATA[ccb=0;
+barlength[0]=1;
+barlength[1]=2;
+barlength[2]=4;
+barlength[3]=8;
+clipslot=3;]]></code.init>
+         <code.krate><![CDATA[outlet_pad = clipslot;
+
+
+if (clipslot<4){
+	outbar=barlength[clipslot];
+}
+outlet_barlength=outbar;]]></code.krate>
+         <code.midihandler><![CDATA[if (attr_input){
+if ((status == MIDI_NOTE_ON + 0) && (data2)) {
+		if ((data1==(0+(attr_column-1))) )   {
+			note=data1;
+			clipslot=0;	
+			trigger=1;
+		}
+		if (data1==(16+(attr_column-1))){
+			note=data1;
+			clipslot=1;	
+			trigger=1;
+		}
+		if (data1==(32+(attr_column-1))){
+			note=data1;
+			clipslot=2;	
+			trigger=1;
+		}
+		if (data1==(48+(attr_column-1))){
+			note=data1;
+			clipslot=3;	
+			trigger=1;
+		}
+		
+		
+	}
+
+
+
+
+
+
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="b120a19c-ada4-4a82-924d-f2d98b78daa3" name="step_1" x="1092" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="color" selection="orange W"/>
+         <spinner attributeName="column" value="2"/>
+      </attribs>
+      <object id="patch/object" uuid="b120a19c-ada4-4a82-924d-f2d98b78daa3">
+         <sDescription>display a step counter on a novation launchpad</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <int32 name="pad" description="current step"/>
+            <bool32.rising name="redraw"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>usb host port / LP</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+               </CEntries>
+            </combo>
+            <combo name="color">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="column" MinValue="1" MaxValue="8" DefaultValue="1"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+
+int prev;
+int init;
+int32_t map[64];
+int32_t v;]]></code.declaration>
+         <code.init><![CDATA[map[0] = 0+(attr_column-1);
+map[1] = 16+(attr_column-1);
+map[2] = 32+(attr_column-1);
+map[3] = 48+(attr_column-1);
+map[4] = 64+(attr_column-1);
+map[5] = 80+(attr_column-1);
+map[6] = 96+(attr_column-1);
+map[7] = 112+(attr_column-1);
+map[8] = 104+(attr_column-1);
+init=1;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_redraw > 0) && !ntrig){
+	init=0;
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON ,map[inlet_pad],(attr_color));
+	ntrig = 1;
+}
+	
+if (!(inlet_redraw > 0 )) ntrig = 0;
+
+if ((inlet_pad  != prev)&&(inlet_pad<4)&& !init) {
+  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON ,map[(inlet_pad)],(attr_color));
+  
+ 
+     	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON ,map[(prev)],0);
+prev = inlet_pad;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="434" y="392">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/JOANx"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="588" y="392">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="midiloopA"/>
+      </attribs>
+   </obj>
+   <obj type="patch/load" uuid="634bf1f8c313920d7f19fc402ba937fd1ee27802" name="load_3" x="728" y="392">
+      <params/>
+      <attribs>
+         <table attributeName="filename" table="/init joan upload/patch.bin"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="392" y="490" text="*****column 1*******************************************************************************************************************************************"/>
+   <comment type="patch/comment" x="392" y="504" text="cilpslot column input"/>
+   <comment type="patch/comment" x="518" y="504" text="note recorder"/>
+   <comment type="patch/comment" x="714" y="504" text="clipslot column lights"/>
+   <patchobj type="patch/object" uuid="90929d94-c60c-4c41-8cc0-3216bf6fc6d6" name="1_1" x="392" y="518">
+      <params/>
+      <attribs>
+         <spinner attributeName="column" value="1"/>
+         <combo attributeName="input" selection="usb host port 1"/>
+      </attribs>
+      <object id="patch/object" uuid="90929d94-c60c-4c41-8cc0-3216bf6fc6d6">
+         <sDescription>outputs the state of the top-row buttons of a &apos;novation launchpad&apos;.
+DOES NOT work with the &apos;LP mark 1&apos;.</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <inlets>
+            <bool32 name="clearshift"/>
+         </inlets>
+         <outlets>
+            <int32 name="clipslot"/>
+            <bool32 name="trigger"/>
+            <bool32 name="stop"/>
+            <bool32 name="cleartrigger"/>
+            <bool32 name="ccdub"/>
+            <bool32 name="chold"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="column" MinValue="1" MaxValue="8" DefaultValue="1"/>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int note;
+int clipslot;
+int trigger;
+int stop;
+int ccdub;
+int shift;
+bool chold;
+bool ccb;]]></code.declaration>
+         <code.init><![CDATA[ccb=0;]]></code.init>
+         <code.krate><![CDATA[outlet_clipslot = clipslot;
+if (inlet_clearshift){
+	shift=1;
+}
+if (!inlet_clearshift&&!trigger&&!chold){
+	shift=0;
+}
+if (!shift){
+	outlet_trigger = trigger;
+	outlet_cleartrigger=0;
+
+	}
+else if (shift){
+	outlet_trigger = 0;
+
+	outlet_cleartrigger=trigger;
+	}
+if (shift&&chold){
+	outlet_chold=chold;
+	ccb=0;
+}
+else {outlet_chold=0;}
+outlet_stop=stop;
+
+outlet_ccdub=ccb;]]></code.krate>
+         <code.midihandler><![CDATA[if (attr_input){
+if ((status == MIDI_NOTE_ON + 0) && (data2)) {
+		if ((data1==(0+(attr_column-1))) || (data1==8))   {
+			note=data1;
+			clipslot=0;	
+			trigger=1;
+		}
+		if ((data1==(16+(attr_column-1))) || (data1==24)){
+			note=data1;
+			clipslot=1;	
+			trigger=1;
+		}
+		if ((data1==(32+(attr_column-1))) || (data1==40)){
+			note=data1;
+			clipslot=2;	
+			trigger=1;
+		}
+		if ((data1==(48+(attr_column-1))) || (data1==56)){
+			note=data1;
+			clipslot=3;	
+			trigger=1;
+		}
+		if ((data1==(64+(attr_column-1))) || (data1==72)){
+			note=data1;
+			clipslot=4;	
+			trigger=1;
+		}
+		if ((data1==(80+(attr_column-1))) || (data1==88)){
+			note=data1;
+			clipslot=5;	
+			trigger=1;
+		}
+		if ((data1==(96+(attr_column-1))) || (data1==104)){
+			note=data1;
+			clipslot=6;	
+			trigger=1;
+		}
+		if ((data1==(112+(attr_column-1))) || (data1==120)){
+			note=data1;
+			//clipslot=7;
+			trigger=0;	
+			stop=1;
+		}
+		
+	}
+
+else if ((status == MIDI_NOTE_ON + 0) && (!data2)) {
+	if (note==data1){
+		trigger=0;
+		stop=0;
+	}
+	}
+		
+if ((status == MIDI_CONTROL_CHANGE + 0)&&(data1==104+attr_column-1)   ){
+	if (data2){
+	ccb=!ccb;
+	}
+	chold=data2;
+}
+
+
+
+
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="ce928bfb-409e-4c9a-a2b3-035518d9badc" name="12_1" x="518" y="518">
+      <params>
+         <bool32.tgl name="quantize" value="0"/>
+         <int32.hradio name="quantization" value="4"/>
+         <bool32.tgl name="triplets" value="0"/>
+      </params>
+      <attribs>
+         <combo attributeName="input" selection="din"/>
+         <combo attributeName="output" selection="din"/>
+         <spinner attributeName="channel" value="2"/>
+         <objref attributeName="table" obj="midiloopA"/>
+         <combo attributeName="size" selection="32768"/>
+         <spinner attributeName="maxbar" value="8"/>
+         <spinner attributeName="maxslots" value="7"/>
+         <spinner attributeName="startnote" value="0"/>
+         <spinner attributeName="endnote" value="127"/>
+         <combo attributeName="resolution" selection="96ppq"/>
+      </attribs>
+      <object id="patch/object" uuid="ce928bfb-409e-4c9a-a2b3-035518d9badc">
+         <sDescription>writes and outputs 4 values to a table.</sDescription>
+         <author>robert schirmer</author>
+         <license>who cares</license>
+         <inlets>
+            <int32 name="kbeat" description="k rate time of one beat"/>
+            <int32 name="offset" description="sets an offset for writing to the table"/>
+            <bool32.rising name="restart" description="restart/reset clock"/>
+            <bool32.rising name="1ppq" description="clock for transport quantize - 4 trigs=1bar"/>
+            <bool32 name="quantize" description="turn on quantize (turn off parameter if using inlet)"/>
+            <int32 name="quantization"/>
+            <bool32.risingfalling name="triplets" description="quantize in triplets (quantize needs to be turned on also"/>
+            <int32 name="slot" description="select slot"/>
+            <bool32.rising name="trigger" description="trigger slot. if empty, slot starts recording at beginning of next bar. if slot is full, slot starts playing at next bar. if already playing, it will restart."/>
+            <bool32.rising name="stop" description="stops at next bar"/>
+            <bool32.rising name="overdub" description="trigger to toggle overdub on/off"/>
+            <bool32.rising name="record" description="forces record at next bar, even if slot is full"/>
+            <bool32.rising name="clearslot" description="clear selected slot"/>
+            <bool32.rising name="clearplay" description="clear all playvoices - tops playback immediately"/>
+            <bool32.risingfalling name="erase" description="erase shift - if this input is high and you hold a note, any instances of that note that play will be deleted"/>
+            <bool32.rising name="undo" description="undo (delete) last note recorded"/>
+            <int32 name="maxbar"/>
+         </inlets>
+         <outlets>
+            <bool32.pulse name="bartrig" description="simply sends a trigger every bar"/>
+            <int32 name="offset" description="size on table+ offset inlet"/>
+            <int32 name="currentslot" description="slot that is currently playing"/>
+            <bool32 name="record" description="feedback output for record"/>
+            <bool32 name="play" description="feedback output for play"/>
+            <bool32 name="overdub" description="feedback output for overdub"/>
+            <int32 name="maxnotes" description="maximum amount of notes for each slot - depends on &quot;size&quot; and &quot;maxslots&quot; attributes"/>
+            <int32 name="slotnotes" description="amount of notes recorded in current slot"/>
+            <bool32 name="full" description="feedback outlet - high if clip already present"/>
+            <bool32 name="wait" description="feedback outlet - high if waiting to play/stop/record"/>
+            <int32 name="playstate" description="playstate - 0=stopped, 1=play, 2=record, 3=waiting"/>
+            <int32 name="synclock" description="sequencer clock running at 192ppq, following the loop"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="quantize"/>
+            <int32.hradio name="quantization" description="if not triplets: 1bar, 1/2bar, 1/4, 1/8th, 1/16th, 1/32nd. if triplets: 1bar, 1/3,1/6th, etc">
+               <MaxValue i="6"/>
+            </int32.hradio>
+            <bool32.tgl name="triplets"/>
+         </params>
+         <attribs>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" description="midi channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+            <objref name="table" description="table must be same size or greater than attribute size"/>
+            <combo name="size" description="total size on table">
+               <MenuEntries>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+                  <string>128</string>
+                  <string>256</string>
+                  <string>512</string>
+                  <string>1024</string>
+                  <string>2048</string>
+                  <string>4096</string>
+                  <string>8192</string>
+                  <string>16384</string>
+                  <string>32768</string>
+                  <string>65536</string>
+                  <string>131072</string>
+                  <string>262144</string>
+                  <string>524288</string>
+                  <string>1048576</string>
+                  <string>2097152</string>
+                  <string>4194304</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+                  <string>15</string>
+                  <string>16</string>
+                  <string>17</string>
+                  <string>18</string>
+                  <string>19</string>
+                  <string>20</string>
+                  <string>21</string>
+                  <string>22</string>
+               </CEntries>
+            </combo>
+            <spinner name="maxbar" description="maximum amount of bars per slot" MinValue="1" MaxValue="30000" DefaultValue="1"/>
+            <spinner name="maxslots" description="maximum amount of slots" MinValue="1" MaxValue="32" DefaultValue="1"/>
+            <spinner name="startnote" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="endnote" MinValue="0" MaxValue="127" DefaultValue="127"/>
+            <combo name="resolution">
+               <MenuEntries>
+                  <string>192ppq</string>
+                  <string>96ppq</string>
+                  <string>48ppq</string>
+                  <string>24ppq</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int voices=attr_endnote-attr_startnote+1;
+int noteon[127];
+int gate[127];
+int vel[127];
+int outgateB[127];
+//int outend[127];
+//int lastP[127];
+int gtrig[127];
+int goffset[127];
+int gvel[127];
+int gnote[127];
+int gstart[127];
+int gend[127];
+int gon[127];
+int Pmax[127];
+//int Phold[127];
+int Plength[127];
+int Pstart[127];
+int Pend[127];
+int Pnote[127];
+int Pvel[127];
+int outnote[127];
+int outvel[127];
+int outgate[127];
+int offnote[127];
+//int outstart[127];
+//int outindex[127];
+//int poly[127];
+int prevoutgate[127];
+int mute[127];
+//int Cindex[127];
+//int Vplayer[127];
+int Page[127];
+int Oage[127];
+//int Played[127];
+int Quant[14];
+int px;
+int ppqo;
+int prevppqo;
+//int og;
+//int ig;
+//int g;
+int closegates;
+int PSC;
+int p;
+//int o;
+//int pC;
+//int ignition;
+//int Cpoly;
+int tempA;
+//int playing;
+int countoffset;
+int age;
+int prevage;
+int Cage;
+int controloffset;
+int size;
+int synclocko;
+int cltrig;
+int init;
+int prevslot;
+int offsethold;
+//int prevCstart;
+int Cvel;
+int Cnote;
+int Cstart;
+int Cend;
+int barcount;
+int offset;
+//int kcount;
+int prevkcount;
+int restart;
+int kbeat;
+int prevPcount;
+
+ 
+
+int recstart;
+int clear;
+
+int barhold;
+int prevmaxbar;
+
+
+int kbar;
+
+int play;
+int synclock;
+int prevsynclock;
+int kquantclock;
+int quantclock;
+int quantize;
+int quantizeon;
+int recording;
+int stophold;
+
+int playhold;
+int rechold;
+int barrecord;
+//int inout;
+//int io;
+int Rnotecount;
+//int playscan;
+//int prevplayscan;
+//int inscan;
+int rec;
+int halfsync;
+int Pindex;
+int assigned;
+int early;
+int trigr;
+
+int beatsync;
+int prevPindex;
+int tempR;
+int tempO;
+int etrig;
+int erase;
+int paused;
+int holdscan;
+int startclear;
+//int busy;
+int currentslot;
+int wait;
+int dialclock;
+int ppq;
+int started;
+int cptrig;
+int trigtrig;
+int full;
+int clearoffset;
+int prevppq;
+int currentbar;
+int maxbar;
+int maxppq;
+int untrig;
+int lastnote;
+int quantization;
+int undo;
+int loopend;
+int Pin;
+int dex;
+int listshift;
+int Pshift;
+int indexmax;
+int generation;
+int pgen;
+int tempG;
+int Cgen;
+int lastgen;
+int ultrig;
+int unloop;
+int lock;
+int maximum;
+int wlight;
+//int eee;
+//int lastscan;
+//int overflow;
+int prevbsync;
+int scan;
+int scanmax;
+int prevscan;
+//int tempstart;
+//int Vcount;
+//int done;
+//int temptrigint prestart;
+//int playingscan;
+//int Cindexx;
+//int prevCnote;
+int tempS;
+int tempE;
+int tempV;
+int tempN;
+//int test;
+int overdub;
+int maxnotes;
+int prevRnote;
+int dubtrig;
+int clearmax;
+int playreset;
+int prebarC;
+int prebartrig;
+int prebarmax;
+int reclight;
+int recend;
+//int Sindex;
+int slotsize;
+
+int playstate;
+bool bartrig;
+bool strig;
+bool sttrig;
+bool ctrig;]]></code.declaration>
+         <code.init><![CDATA[barcount=-1;
+Plength[1]=-1;
+clear=-1;
+prevPcount=-1;
+
+
+assigned=1;
+Quant[0]=1;
+Quant[1]=2;
+Quant[2]=4;
+Quant[3]=8;
+Quant[4]=16;
+Quant[5]=32;
+Quant[6]=1;
+Quant[7]=3;
+Quant[8]=6;
+Quant[9]=12;
+Quant[10]=24;
+Quant[11]=48;
+
+
+init=1;]]></code.init>
+         <code.krate><![CDATA[//space for 8 globals per slot - 3 used (note count, bar length and note age)
+controloffset=8;
+//voices=attr_voices;
+size=(1<<attr_size);
+slotsize= (((1<<attr_size)-32)/attr_maxslots);
+outlet_offset=size+inlet_offset;
+
+//per slot
+maxnotes=((slotsize-8)>>3)-2;
+if ((inlet_maxbar<=attr_maxbar)&&(inlet_maxbar>0)){
+maximum=inlet_maxbar;
+}
+else {maximum=attr_maxbar;}
+Rnotecount=attr_table.array[countoffset];
+maxbar=attr_table.array[countoffset +1];
+age=attr_table.array[countoffset +2];
+generation=attr_table.array[countoffset +3];
+if (inlet_undo&&!untrig){
+	
+	if (age>1){
+	lastnote=age;
+	undo=1;
+	untrig=1;
+	}
+	if (age==1){
+	startclear=1;
+	}
+	
+}
+if (!inlet_undo&&!undo){
+	untrig=0;
+}
+
+ 
+if (init){
+		currentslot=inlet_slot;
+		offset=inlet_offset+32+((controloffset+slotsize)*inlet_slot) +controloffset;
+		countoffset=inlet_offset+32+((controloffset+slotsize)*inlet_slot);
+		init=0;
+		}
+
+erase=inlet_erase;
+if (inlet_erase&&!etrig){
+	etrig=1;
+	tempR=recording;
+	tempO=overdub;
+	recording=0;
+	overdub=0;
+}
+if (!inlet_erase&&etrig){
+	etrig=0;
+	recording=tempR;
+	overdub=tempO;
+}
+
+if (inlet_overdub&&!dubtrig){
+	dubtrig=1;
+	overdub=!overdub;
+	if (overdub){
+		recording=1;
+	}
+	if (!overdub){
+		recording=0;
+	}
+}
+if (!inlet_overdub){
+	dubtrig=0;
+}
+
+if (inlet_clearslot&&!cltrig){
+	cltrig=1;
+	startclear=1;  
+	}
+
+if (!inlet_clearslot){
+	cltrig=0;
+}
+
+
+if (startclear){
+	startclear=0;
+	clearoffset=inlet_offset+32+((controloffset+slotsize)*inlet_slot);
+  	clearmax=attr_table.array[clearoffset]+controloffset;
+  	attr_table.array[clearoffset]=0;
+  	attr_table.array[clearoffset + 1]=0;
+  	attr_table.array[clearoffset + 2]=0;
+	clear=0;
+	if (inlet_slot==currentslot){
+		play=0;
+		if (!overdub){
+		recording=0;
+		}
+		
+		reclight=0;
+	}
+}
+
+if (inlet_clearplay&&!cptrig){
+	cptrig=1;
+	playreset=1;
+	play=0;
+	recording=0;
+	closegates=1;
+	}
+if (!inlet_clearplay){
+	cptrig=0;
+}
+quantizeon=param_quantize+inlet_quantize;
+maxppq=maxbar*(768>>attr_resolution);
+kbar=(inlet_kbeat)<<2;
+kbeat=inlet_kbeat;
+prebarmax=kbar-kbar/32;  //starts recording 1/32nd before bar starts to catch early notes
+if ((param_quantization+inlet_quantization)<=5){
+quantization=param_quantization+inlet_quantization;
+}
+else {quantization=5;} 
+if ((!param_triplets)&&(!inlet_triplets)){
+	quantize=Quant[quantization];
+	}
+else if (param_triplets || inlet_triplets){
+	quantize=Quant[quantization+6];
+}
+
+
+
+// clock for sync - goes from 0 to 0x07FFFFFF every beat, 1ppq
+if (dialclock<0x07FFFFFF){
+dialclock+=(0x07FFFFFF/(kbeat));
+}
+if (inlet_slot!=prevslot){
+	prevslot=inlet_slot;
+	offsethold=1;
+	if (reclight){
+		attr_table.array[countoffset+1]=currentbar+1;
+	}
+}
+	
+
+//clock trigger 1ppq inlet - for bar counting, button logic and resync for tempo changes
+if (inlet_1ppq&&!ctrig){
+	loopend=0;
+	barcount+=1;
+	dialclock=0;
+	beatsync+=1;
+	if ((barcount==3)){
+		if (started){
+			started=0;
+			prebarC=(kbar>>1)+(kbar>>2);
+			}
+		if ((currentbar==(maximum-1)) && (barrecord)){
+			wlight=1;
+		}
+	}
+	if (barcount>=4){
+		wlight=0;
+		prebarC=0;
+		barcount=0;
+		bartrig=1;
+		if (stophold){
+			play=0;
+			playreset=1;
+			recording=0;
+			stophold=0;
+		}
+		if (playhold){
+			restart=1;
+			play=1;
+			playhold=0;
+			if (overdub){
+				recording=1;
+			}
+		}
+		if (rechold){
+			rec=1;
+			reclight=1;
+			if (!play){
+				play=1;
+			}
+			restart=1;
+			rechold=0;
+		}
+		if (barhold){
+			reclight=0;
+			barhold=0;
+			barrecord=0;
+			maxbar=currentbar+1;
+			restart=1;
+			if (!overdub){
+				recording=0;currentbar=0;
+			}
+		}
+		
+		currentbar+=1;
+		if (currentbar>=maxbar){
+			if (barrecord&&(maxbar==maximum)){
+				barhold=0;
+				reclight=0;
+				barrecord=0;
+				maxbar=currentbar;
+				restart=1;
+				if (!overdub){
+					recording=0;currentbar=0;
+				}
+			}
+			currentbar=0;
+			restart=1;
+		}
+	}
+	ctrig=1;
+	}
+if (!inlet_1ppq){
+	ctrig=0;
+}
+
+if ((prebarC<prebarmax)&&(prebarC>=0)){
+prebarC+=1;
+
+if (prebarC>=prebarmax){
+	if ((offsethold) &&(rechold || playhold || barhold))
+	{	//set offset when different clip triggered
+		offsethold=0;
+		offset=inlet_offset+32+((controloffset+slotsize)*inlet_slot) +controloffset;
+		countoffset=inlet_offset+32+((controloffset+slotsize)*inlet_slot);
+		 Rnotecount=attr_table.array[countoffset];
+		 currentslot=inlet_slot;
+
+		
+	}
+	if (((currentbar+1)>=maxbar) || playhold || rechold || barhold){
+	prebartrig=1;	
+	playreset=1;
+	loopend=1;
+		
+			generation+=1;
+			
+		
+	
+	if ((barhold) || (barrecord&&(maxbar==(maximum-1)))){
+		playreset=1;
+		recend=1;
+		// need to close gates? revisit
+		closegates=1;
+		//generation=0;
+	}
+	if (rechold){
+		//clear and start recording
+		recstart=1;
+		clearmax=Rnotecount+controloffset;
+		clearoffset=offset-controloffset;
+		clear=0;
+		Rnotecount=0;
+		recording=1;
+		
+		}
+	}
+	prebarC=-1;
+}
+
+}
+
+//clip present?
+full=attr_table.array[inlet_offset+inlet_slot];
+
+if (inlet_restart&&!strig){
+	started=1;
+	playreset=1;
+	restart=1;
+	strig=1;
+	bartrig=1;
+	barcount=0;
+	prebarC=0;
+	currentbar=0;
+	}
+if (!inlet_restart){
+	strig=0;
+}
+
+
+if (inlet_trigger&&!trigtrig){
+	trigtrig=1;
+	if (!full){
+		rechold=1;
+		}
+	else if (full){
+		if (barrecord){
+			barhold=1;
+			}
+		if (!barrecord){
+			playhold=1;
+			}
+		}
+	}
+
+	
+if (!inlet_trigger){
+	trigtrig=0;
+}
+
+if (inlet_stop&&!sttrig){
+		stophold=1;
+	if (playhold){
+		playhold=0;
+	}
+	sttrig=1;
+}
+if (!inlet_stop){
+	sttrig=0;
+}
+
+//192ppq - goes from 0-191 every beat - shifted by resolution
+ppq=dialclock/(0X07FFFFFF/(192>>attr_resolution));
+if (ppq>=(192>>attr_resolution)){
+	ppq=(192>>attr_resolution)-1;
+}
+ppqo=dialclock/(0X07FFFFFF/192);
+if (ppqo>=(192)){
+	ppqo=(192)-1;
+}
+if (ppqo!=prevppqo){
+	synclocko+=1;
+///	synclock+=1;
+	prevppqo=ppqo;
+}
+
+if (ppq!=prevppq){
+	//synclocko+=1;
+	synclock+=1;
+	prevppq=ppq;
+}
+
+//re sync clock for tempo changes (using 1ppq input)
+if (beatsync!=prevbsync){
+	prevbsync=beatsync;
+	synclocko=beatsync*(192);
+	synclock=beatsync*(192>>attr_resolution);
+}
+
+if (restart){
+synclocko=0;
+	//kcount=0;
+	restart=0;
+	synclock=0;
+quantclock=0;
+kquantclock=0;
+currentbar=0;
+prevbsync=0;
+beatsync=0;
+
+
+}
+//synclock=synclocko>>attr_resolution;
+//synclock=synclocko;
+//clock info for quantize
+quantclock=synclock/((768>>attr_resolution)/quantize);
+halfsync=((768>>attr_resolution)/quantize)>>1;
+kquantclock=quantclock*((768>>attr_resolution)/quantize);
+// early or late?
+if (synclock<(kquantclock+halfsync)){
+	early=0;
+}
+if (synclock>=(kquantclock+halfsync)){
+	early=1;
+}
+
+if (inlet_record&&!trigr){
+	trigr=1;
+	if (!barrecord){
+		rechold=1;
+	}
+	else if (barrecord){
+		barhold=1;
+	}
+	
+}
+if (!inlet_record){
+	trigr=0;
+}
+
+if (rec){
+	rec=0;
+	currentbar=0;
+	barrecord=1;
+	maxbar=maximum;
+	attr_table.array[currentslot+inlet_offset]=1;
+	Rnotecount=0;
+	recstart=0;
+	}
+	
+//clear note data
+if (clear>=0){
+	if (clear<=clearmax){
+			attr_table.array[clearoffset+(clear<<3) +0]=0;
+			attr_table.array[clearoffset+(clear<<3) +1]=0;
+			attr_table.array[clearoffset+(clear<<3) +2]=0;
+			attr_table.array[clearoffset+(clear<<3) +3]=0;
+			attr_table.array[clearoffset+(clear<<3) +4]=0;
+			attr_table.array[clearoffset+(clear<<3) +5]=0;
+			if (clearoffset==(offset-controloffset)){
+				closegates=1;
+			}
+			
+			
+			clear+=1;
+		
+			if (clear>=clearmax){
+				attr_table.array[inlet_slot+inlet_offset]=0;
+				clear=-1;
+				if (clearoffset==(offset-controloffset)){
+					playreset=1;
+				}
+				}
+		}
+}
+
+
+
+	//playback  ===========================================================================	
+if (loopend){
+	listshift=0;
+	PSC=listshift;
+}
+
+if (synclock==prevsynclock){
+	
+	//assign notes from list - mute if notes clash with incoming note, delete if overdubbing
+	for (Pindex = 0;Pindex<32;Pindex++){
+		if ((Pindex+PSC)<maxnotes) {
+				
+				Cstart=attr_table.array[offset+((Pindex+PSC)<<3) +0];
+				Cend=attr_table.array[offset+((Pindex+PSC)<<3) +1];
+				Cnote=attr_table.array[offset+((Pindex+PSC)<<3) +2];
+				Cvel=attr_table.array[offset+((Pindex+PSC)<<3) +3];
+				Cage=attr_table.array[offset+((Pindex+PSC)<<3) +4];
+				Cgen=attr_table.array[offset+((Pindex+PSC)<<3) +5];
+				//clash?
+				
+
+					if (synclock!=Pshift){
+						if ((Pindex==0)&&(Cstart<(synclock+1)) && (Cstart>0) &&!loopend && (synclock>0)){
+							//listshift+=1;
+							lock+=1;
+							
+						}
+						
+					
+						//if note start is reached	
+						if   (( ( (((Cstart-1)==(synclock+1))&&!loopend) || ( ((Cstart-1)==0) && loopend))   && (Cstart>0) )  && (Cgen!=generation)){
+							
+								
+							if (Cage>=Page[Cnote]){
+								if (gate[Cnote]){
+									mute[Cnote]=1;
+									}
+								listshift+=1;
+								if (!mute[Cnote]){	
+									
+									Pstart[Cnote]=Cstart;
+									Pend[Cnote]=Cend;
+									Pnote[Cnote]=Cnote;
+									Pvel[Cnote]=Cvel;
+									Page[Cnote]=Cage;
+									}
+								else if (mute[Cnote]){
+									if (((overdub&&!reclight)||(erase))  &&  (attr_table.array[offset+((Pindex+PSC)<<3) +0]>0)){
+										attr_table.array[offset+((Pindex+PSC)<<3) +0]=0;
+										attr_table.array[offset+((Pindex+PSC)<<3) +1]=0;
+										attr_table.array[offset+((Pindex+PSC)<<3) +2]=0;
+										attr_table.array[offset+((Pindex+PSC)<<3) +3]=0;
+										attr_table.array[offset+((Pindex+PSC)<<3) +4]=0;
+										attr_table.array[offset+((Pindex+PSC)<<3) +5]=0;
+										Rnotecount-=1;
+										}
+									
+								}
+								}
+							}
+						
+					}
+				}
+			}
+if (lock==0){
+Pshift=synclock;
+}
+if (lock>0){
+	lock=0;
+}
+PSC=listshift;
+//if (attr_table.array[offset+((PSC)<<3) +0]<synclock){
+	//PSC+=1;
+//}
+}
+if (playreset){
+	lock=0;
+}
+
+
+
+	
+for (px = 0;px<voices;px++){
+
+
+
+
+	
+p=px+attr_startnote;
+
+
+if (!gate[p]) {
+		mute[p]=0;
+		}
+
+
+
+
+
+
+//reset players && midi output
+if (playreset){
+	Pstart[p]=0;
+	Plength[p]=-1;
+	outgate[p]=0;
+	Page[p]=0;
+	}
+//reset midi input
+if (closegates){
+		gate[p]=0;
+		}
+
+//  recording  **************************************************************
+//set quantize at note on
+	if (gate[p]&&!gtrig[p]){
+	
+		gtrig[p]=1;
+		if (quantizeon){
+			if (early){
+				goffset[p]= ( halfsync - (synclock-(kquantclock+halfsync)));
+			}
+			if (!early){
+				goffset[p]=-(synclock-kquantclock);
+			}
+		}
+		else if (!quantizeon){
+			goffset[p]=0;
+		}
+		if ((synclock+goffset[p])<maxppq){
+			gstart[p]=synclock+goffset[p];
+			}
+		else if ((synclock+goffset[p])>=maxppq){
+				gstart[p]=0;
+			}
+		if (recstart){
+				gstart[p]=0;
+		}
+		gnote[p]=noteon[p];
+		gvel[p]=vel[p];
+		if (recording){
+			gon[p]=1;
+			attr_table.array[offset+(Rnotecount<<3) +5]=generation;
+			
+		}
+		
+		
+	}
+	//stamp note data at note off
+	if (!gate[p]&&gtrig[p]){
+		gtrig[p]=0;
+		if (gon[p]){
+			gon[p]=0;
+			gend[p]=synclock+goffset[p];
+			if (recstart){
+				gend[p]=halfsync;
+		}
+			//stamp note
+			if (Rnotecount<maxnotes){
+				attr_table.array[offset+(Rnotecount<<3) +0]=gstart[p]+1;
+				attr_table.array[offset+(Rnotecount<<3) +1]=gend[p]+1;
+				attr_table.array[offset+(Rnotecount<<3) +2]=gnote[p];
+				attr_table.array[offset+(Rnotecount<<3) +3]=gvel[p];
+				
+				age+=1;
+				attr_table.array[offset+(Rnotecount<<3) +4]=age;
+				
+				
+				
+				Rnotecount+=1;
+				}
+			}
+		}
+		
+		///////////////////////////////////play
+
+	
+	if (synclock!=prevsynclock){
+		if (play){
+			// play  **********************************************
+			//length - note off at end
+			if (Plength[p]>=0){
+				Plength[p]+=1;
+				if (Plength[p]>=Pmax[p]){
+					Plength[p]=-1;
+					outgate[p]=0;
+					Oage[p]=0;
+				
+				}
+			}
+			//trigger note on
+			if (((synclock)==(Pstart[p]-1))&&(Pstart[p]>0)){
+					if (!mute[p]){
+						Plength[p]=0;
+						if (Pend[p]>Pstart[p]){
+							Pmax[p]=Pend[p]-Pstart[p];
+						}
+						else if (Pend[p]<=Pstart[p]){
+							Pmax[p]=(maxppq+Pend[p])-Pstart[p];
+						}
+						outnote[p]=Pnote[p];
+						outvel[p]=Pvel[p];
+						Oage[p]=Page[p];
+						outgate[p]=1;
+						outgateB[p]=0;
+						Pstart[p]=0;
+						Pend[p]=0;
+						Page[p]=0;
+						}
+					}
+			}
+			}
+//triggermidi  ===========================================
+if (outgateB[p]!=prevoutgate[p]){
+	if (outgateB[p]){
+		MidiSend3((midi_device_t) attr_output, MIDI_NOTE_ON + (attr_channel-1),outnote[p],outvel[p]);
+		offnote[p]=outnote[p];  
+	}
+	else if (!outgateB[p]){
+		MidiSend3((midi_device_t) attr_output, MIDI_NOTE_OFF + (attr_channel-1),offnote[p],outvel[p]);
+	}
+	
+	prevoutgate[p]=outgateB[p];
+}
+
+outgateB[p]=outgate[p];
+//// end loop
+}
+/////////////////////////
+//keep outside loop	
+prevsynclock=synclock;
+playreset=0;
+closegates=0;
+
+
+
+// reorder notes for overdubbing
+if (scan!=prevscan){
+	
+	if (((scan!=(Rnotecount+2))&& (( synclock==prevsynclock) && (synclock==Pshift)))){
+			//scan counting down from last note! 
+
+		//undo
+		if ((undo)&& (attr_table.array[offset+(scan<<3) +4]==lastnote)){
+				
+				attr_table.array[offset+(scan<<3) +0]=0;
+				attr_table.array[offset+(scan<<3) +1]=0;
+				attr_table.array[offset+(scan<<3) +2]=0;
+				attr_table.array[offset+(scan<<3) +3]=0;
+				attr_table.array[offset+(scan<<3) +4]=0;
+				attr_table.array[offset+(scan<<3) +5]=0;
+				age-=1;
+				Rnotecount-=1;
+				undo=0;
+			
+		}
+
+				//if two notes at same position and same note, delete old note
+		if (((attr_table.array[offset+(scan<<3) +0])==(attr_table.array[offset+(prevscan<<3) +0]))
+			&& ((attr_table.array[offset+(scan<<3) +2])==(attr_table.array[offset+(prevscan<<3) +2]))
+			&&
+			((attr_table.array[offset+(scan<<3) +0]) !=0 )
+			&&
+			((attr_table.array[offset+(prevscan<<3) +0]) !=0 ) )
+				{
+				attr_table.array[offset+(scan<<3) +0]=0;
+				attr_table.array[offset+(scan<<3) +1]=0;
+				attr_table.array[offset+(scan<<3) +2]=0;
+				attr_table.array[offset+(scan<<3) +3]=0;
+				attr_table.array[offset+(scan<<3) +4]=0;
+				attr_table.array[offset+(scan<<3) +5]=0;
+				Rnotecount-=1;
+			
+				}
+	
+		//swap backwards, earlier earlier - notes in ascending order.
+		
+		if ( (  ((attr_table.array[offset+(scan<<3) +0])>(attr_table.array[offset+(prevscan<<3) +0]))
+			|| ( ((attr_table.array[offset+(scan<<3) +0])==(attr_table.array[offset+(prevscan<<3) +0])) && ((attr_table.array[offset+(scan<<3) +2])<(attr_table.array[offset+(prevscan<<3) +2])) ) )
+			&&
+			((attr_table.array[offset+(scan<<3) +0]) !=0 )
+			&&
+			((attr_table.array[offset+(prevscan<<3) +0]) !=0 ) )
+			{
+				tempS=attr_table.array[offset+(prevscan<<3) +0];
+				tempE=attr_table.array[offset+(prevscan<<3) +1];
+				tempN=attr_table.array[offset+(prevscan<<3) +2];
+				tempV=attr_table.array[offset+(prevscan<<3) +3];
+				tempA=attr_table.array[offset+(prevscan<<3) +4];
+				tempG=attr_table.array[offset+(prevscan<<3) +5];
+	
+				attr_table.array[offset+(prevscan<<3) +0] = attr_table.array[offset+(scan<<3) +0];
+				attr_table.array[offset+(prevscan<<3) +1] = attr_table.array[offset+(scan<<3) +1];
+				attr_table.array[offset+(prevscan<<3) +2] = attr_table.array[offset+(scan<<3) +2];
+				attr_table.array[offset+(prevscan<<3) +3] = attr_table.array[offset+(scan<<3) +3];
+				attr_table.array[offset+(prevscan<<3) +4] = attr_table.array[offset+(scan<<3) +4];
+				attr_table.array[offset+(prevscan<<3) +5] = attr_table.array[offset+(scan<<3) +5];
+	
+				attr_table.array[offset+(scan<<3) +0]=tempS;
+				attr_table.array[offset+(scan<<3) +1]=tempE;
+				attr_table.array[offset+(scan<<3) +2]=tempN;
+				attr_table.array[offset+(scan<<3) +3]=tempV;
+				attr_table.array[offset+(scan<<3) +4]=tempA;
+				attr_table.array[offset+(scan<<3) +5]=tempG;
+				
+			}
+				//swap 0 values other way to move deleted notes out of list
+		if ( ((attr_table.array[offset+(scan<<3) +0]) ==0 ) && ((attr_table.array[offset+(prevscan<<3) +0]) !=0 ) ){
+				attr_table.array[offset+(scan<<3) +0] = attr_table.array[offset+(prevscan<<3) +0];
+				attr_table.array[offset+(scan<<3) +1] = attr_table.array[offset+(prevscan<<3) +1];
+				attr_table.array[offset+(scan<<3) +2] = attr_table.array[offset+(prevscan<<3) +2];
+				attr_table.array[offset+(scan<<3) +3] = attr_table.array[offset+(prevscan<<3) +3];
+				attr_table.array[offset+(scan<<3) +4] = attr_table.array[offset+(prevscan<<3) +4];
+				attr_table.array[offset+(scan<<3) +5] = attr_table.array[offset+(prevscan<<3) +5];
+				attr_table.array[offset+(prevscan<<3) +0]=0;
+				attr_table.array[offset+(prevscan<<3) +1]=0;
+				attr_table.array[offset+(prevscan<<3) +2]=0;
+				attr_table.array[offset+(prevscan<<3) +3]=0;
+				attr_table.array[offset+(prevscan<<3) +4]=0;
+				attr_table.array[offset+(prevscan<<3) +5]=0;
+			
+					}
+	}
+	prevscan=scan;
+	
+}
+
+scan-=1;
+scanmax=Rnotecount;
+if (scan<0){
+	scan=Rnotecount;
+	prevscan=Rnotecount+1;
+}
+
+outlet_bartrig=bartrig;
+//wait output for light feedback
+if (stophold||playhold||rechold||barhold||wlight){
+	wait=1;
+}
+if (!stophold&&!playhold&&!rechold&&!barhold&&!wlight){
+	wait=0;
+	
+}
+
+//write note count, bar length and last note age
+if (Rnotecount!=prevRnote){
+	prevRnote=Rnotecount;
+ attr_table.array[countoffset]=Rnotecount;
+}
+if (maxbar!=prevmaxbar){
+	prevmaxbar=maxbar;
+ attr_table.array[countoffset+1]=maxbar;
+}
+if (age!=prevage){
+	prevage=age;
+	attr_table.array[countoffset+2]=age;
+}
+if (generation!=pgen){
+	pgen=generation;
+	attr_table.array[countoffset+3]=generation;
+}
+
+if (!reclight){
+outlet_overdub=overdub;
+}
+if (reclight){
+outlet_overdub=0;
+}
+outlet_record=reclight;
+outlet_play=play;
+outlet_maxnotes=maxnotes;
+outlet_slotnotes=Rnotecount;
+outlet_currentslot=currentslot;
+outlet_full=full;
+outlet_wait=wait;
+if (play){
+	outlet_synclock=synclocko;
+	
+}
+else {outlet_synclock=-1;}
+
+//outlet_synclock=synclocko;
+if (!wait&&!play&&!reclight){
+	playstate=0;
+	}
+else if (play&&!reclight&&!wait) {
+	playstate=1;
+}
+else if (play&&reclight&&!wait){
+	playstate=2;
+}
+if (wait){
+	playstate=3;
+}
+outlet_playstate=playstate;
+
+prebartrig=0;
+bartrig=0;
+recend=0;]]></code.krate>
+         <code.midihandler><![CDATA[if (attr_input){
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1>=attr_startnote) && (data1<=attr_endnote)) {
+
+gate[data1]=1;
+vel[data1]=data2;
+noteon[data1]=data1;
+
+//if note clashes with already playing note, cut it short and mute ntoe off
+if (outgate[data1]){
+	Plength[data1]=-1;
+	outgate[data1]=0;
+	outgateB[data1]=0;
+	Oage[data1]=0;
+	prevoutgate[data1]=outgateB[data1];
+	
+	}
+
+	
+} else if (((status == MIDI_NOTE_ON + (attr_channel-1)) && (!data2))||
+          (status == MIDI_NOTE_OFF + (attr_channel-1))) {
+      if ((data1>=attr_startnote) && (data1<=attr_endnote)){
+          gate[data1]=0;
+      }
+          	
+          	
+          	
+          	
+          	
+			
+          }
+
+          	
+
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="dc82530f-c42c-4c28-a158-119d3ac3c652" name="object_2" x="714" y="518">
+      <params/>
+      <attribs>
+         <combo attributeName="output" selection="usb host port 1"/>
+         <spinner attributeName="column" value="1"/>
+         <objref attributeName="table" obj="midiloopA"/>
+      </attribs>
+      <object id="patch/object" uuid="dc82530f-c42c-4c28-a158-119d3ac3c652">
+         <inlets>
+            <int32 name="offset"/>
+            <bool32 name="refresh"/>
+            <int32 name="slot"/>
+            <bool32 name="overdub"/>
+            <bool32 name="cleartrigger"/>
+            <int32 name="playstate"/>
+            <bool32 name="ccdub"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="column" MinValue="1" MaxValue="8" DefaultValue="1"/>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int map[9];
+int i;
+int previ;
+int rtrig;
+int colour;
+int stopcolour;
+int prevstcolour;
+int full;
+int prevfull[9];
+int statecolour[4];
+int trig;
+int offset;
+int oncolour;
+int offcolour;
+int currentcolour;
+int prevcurcol;
+int prevslot;
+int lastfull;
+int cltrig;
+int wtrig;
+int trigc;
+int rectrig;
+int ptrig;
+int currentfull;
+int waitcolour;
+int playcolour;
+int reccolour;
+int prevplaystate;
+int currentslot;
+int pslot;
+int pccdub;
+int cctrig;
+int dubcolour;]]></code.declaration>
+         <code.init><![CDATA[map[0] = 0+(attr_column-1);
+map[1] = 16+(attr_column-1);
+map[2] = 32+(attr_column-1);
+map[3] = 48+(attr_column-1);
+map[4] = 64+(attr_column-1);
+map[5] = 80+(attr_column-1);
+map[6] = 96+(attr_column-1);
+map[7] = 112+(attr_column-1);
+map[8] = 104+(attr_column-1);
+
+i=-1;
+previ=-1;
+prevfull[0]=-1;
+prevfull[1]=-1;
+prevfull[2]=-1;
+prevfull[3]=-1;
+prevfull[4]=-1;
+prevfull[5]=-1;
+prevfull[6]=-1;
+prevfull[7]=-1;
+trig=1;
+prevcurcol=-1;
+pccdub=-1;]]></code.init>
+         <code.krate><![CDATA[oncolour=18;
+offcolour=0;
+offset=inlet_offset;
+stopcolour=1;
+//waitcolour=127;
+//playcolour=48;
+//recclolour=3;
+statecolour[0]=0;
+statecolour[1]=48;
+statecolour[2]=3;
+statecolour[3]=127;
+
+if (inlet_cleartrigger){
+	if (!cltrig){
+	MidiSend3((midi_device_t) attr_output, MIDI_NOTE_ON +0,map[inlet_slot],offcolour);
+	
+	}
+	//prevslot=inlet_currentslot;
+	cltrig=1;
+}
+if (!inlet_cleartrigger){
+	cltrig=0;
+}
+if (inlet_playstate!=prevplaystate){
+
+	currentslot=inlet_slot;
+	currentcolour=statecolour[inlet_playstate];
+	prevplaystate=inlet_playstate;
+	trigc=1;
+}
+if (inlet_ccdub!=pccdub){
+	pccdub=inlet_ccdub;
+	if (inlet_ccdub){
+		dubcolour=statecolour[2];
+	}
+	else {dubcolour=statecolour[1];}
+	cctrig=1;
+}
+
+
+//	if (inlet_currentslot!=prevslot){
+//		
+//		lastfull=attr_table.array[prevslot];
+//		if ((!inlet_wait)&&!cltrig){
+//			if (prevfull){
+//				MidiSend3((midi_device_t) attr_output, MIDI_NOTE_ON +0,map[prevslot],oncolour);
+//			}
+//			if (!prevfull){
+//				MidiSend3((midi_device_t) attr_output, MIDI_NOTE_ON +0,map[prevslot],offcolour);
+//			}
+//			prevslot=inlet_currentslot;
+//			}
+//		}
+if (currentcolour!=prevcurcol){
+	prevcurcol=currentcolour;
+	trigc=1;
+}
+if (!inlet_cleartrigger){
+	if ((i!=previ)&&(i>=0)){
+		if (i==8){
+			if (cctrig){
+				MidiSend3((midi_device_t) attr_output, MIDI_CONTROL_CHANGE +0,map[i],dubcolour);
+				cctrig=0;
+			}
+		}
+		else if (i==7){
+				if (stopcolour!=prevstcolour){
+					prevstcolour=stopcolour;
+					trig=0;
+				}
+				colour=stopcolour;
+				}
+		else {
+			full=attr_table.array[offset+i];
+			if (i!=currentslot){
+				if (prevfull[i]!=full) { 
+					trig=0;
+					}
+				if ((pslot!=currentslot)&&(i==pslot)){
+					pslot=currentslot;
+					trig=0;
+				}
+				prevfull[i]=full;
+				if (full){
+			     	colour=oncolour;
+					}
+				else if (!full){
+					colour=offcolour;
+				}
+				
+				}
+			if (i==currentslot){
+				if (trigc){
+					trigc=0;
+					trig=0;
+					if (currentcolour>0){
+						colour=currentcolour;
+						}
+					if (currentcolour==0){
+							if (full){
+						     	colour=oncolour;
+								}
+							else if (!full){
+								colour=offcolour;
+								}
+						}
+					}
+				}
+		}
+			
+		
+		if (!trig){
+		MidiSend3((midi_device_t) attr_output, MIDI_NOTE_ON +0,map[i],colour);
+		trig=1;
+		}
+		previ=i;
+	}
+}
+
+if (i>=0){
+	
+i+=1;
+if (i>=9){
+	i=0;
+}
+}
+
+
+
+if (inlet_refresh&&!rtrig){
+	rtrig=1;
+	i=0;
+	previ=-1;
+prevfull[0]=-1;
+prevfull[1]=-1;
+prevfull[2]=-1;
+prevfull[3]=-1;
+prevfull[4]=-1;
+prevfull[5]=-1;
+prevfull[6]=-1;
+prevfull[7]=-1;
+trig=1;
+prevstcolour=-1;
+prevcurcol=-1;
+pccdub=-1;
+}
+if (!inlet_refresh){
+	rtrig=0;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="854" y="532" text="clear mechanism for clearing slot/automation"/>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="854" y="546">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_1" x="924" y="546">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="714" y="742" text="pitch bend recorder"/>
+   <comment type="patch/comment" x="868" y="742" text="channel touch recorder"/>
+   <comment type="patch/comment" x="1008" y="742" text="cc recorder"/>
+   <comment type="patch/comment" x="84" y="756" text="metronom"/>
+   <patchobj type="patch/object" uuid="16d73047-6c6f-4799-aca2-f26ae67c5ffa" name="bend" x="714" y="756">
+      <params/>
+      <attribs>
+         <combo attributeName="input" selection="din"/>
+         <combo attributeName="output" selection="din"/>
+         <spinner attributeName="channel" value="2"/>
+         <objref attributeName="table" obj="midiloopA"/>
+         <spinner attributeName="maxbar" value="8"/>
+         <spinner attributeName="maxslots" value="7"/>
+         <combo attributeName="resolution" selection="96ppq"/>
+      </attribs>
+      <object id="patch/object" uuid="16d73047-6c6f-4799-aca2-f26ae67c5ffa">
+         <sDescription>object that records pitch bend, after touch and midi CCs.
+for use with the midi looper objects.
+could be used standalone, inlet stepunQCC expects a clock running at 96ppq</sDescription>
+         <author>Mattilyn Mattroe</author>
+         <license>if you use the object to play a wedding in september you have to come round and fix the dodgy extractor fan in my bathroom. otherwise, do as you will</license>
+         <helpPatch>midi looper help.axh</helpPatch>
+         <inlets>
+            <int32 name="offset"/>
+            <int32 name="slot"/>
+            <int32 name="synclock"/>
+            <bool32 name="rec"/>
+            <bool32 name="play"/>
+            <bool32 name="reset"/>
+            <bool32 name="overdub"/>
+            <bool32 name="clear"/>
+            <int32 name="cslot"/>
+         </inlets>
+         <outlets>
+            <int32 name="offset"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+            <objref name="table"/>
+            <spinner name="maxbar" MinValue="1" MaxValue="32" DefaultValue="0"/>
+            <spinner name="maxslots" MinValue="1" MaxValue="32" DefaultValue="1"/>
+            <combo name="resolution">
+               <MenuEntries>
+                  <string>192ppq</string>
+                  <string>96ppq</string>
+                  <string>48ppq</string>
+                  <string>24ppq</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int bendA;
+int bendB;
+
+
+
+
+int synclock;
+int ObendA;
+int ObendB;
+
+int prevstep;
+int voice;
+int slotsize;
+
+int offset;
+int clear;
+int ctrig;
+
+
+int resetrig;]]></code.declaration>
+         <code.init><![CDATA[voice=(768*attr_maxbar)>>attr_resolution;
+slotsize=(voice*2);
+clear=-1;]]></code.init>
+         <code.krate><![CDATA[offset=inlet_offset + (slotsize*inlet_slot);
+outlet_offset=inlet_offset + (slotsize*attr_maxslots);
+if (inlet_synclock>=0){
+	synclock=inlet_synclock>>attr_resolution;
+	}
+else {synclock=-1;}
+
+ObendA=attr_table.array[synclock+offset];
+ObendB=attr_table.array[synclock+offset+voice];
+
+if (inlet_clear&&!ctrig){
+	clear=0;
+	ctrig=1;
+}
+if (!inlet_clear){
+	ctrig=0;
+}
+if ((clear>=0)&& (clear<slotsize)){
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)]= 0;
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)+voice]= 0;
+	
+	
+	
+	clear+=1;
+	if (clear>=slotsize){
+		clear=-1;
+	}
+}
+if (synclock!=prevstep){
+//play
+	if (inlet_play){
+	
+		
+		if ((ObendA>0)||(ObendB>0)){
+			MidiSend3((midi_device_t) attr_output, MIDI_PITCH_BEND + (attr_channel-1),(ObendA-1),(ObendB-1));
+			}
+	}
+
+//record
+	if (inlet_rec){
+			attr_table.array[synclock+offset]= 0;
+			attr_table.array[synclock+offset+voice]= 0;
+		
+			
+		}
+	if ((inlet_rec || inlet_overdub) && (inlet_play)){
+		
+		
+			if ((bendA>0)||(bendB>0)){
+					attr_table.array[synclock+offset]= bendA;
+					attr_table.array[synclock+offset+voice]= bendB;
+				}
+			
+			
+		}
+
+
+	bendA=0;
+	bendB=0;
+
+	prevstep=synclock;
+	}
+
+
+//reset bend & touch
+	if ((inlet_reset || (synclock<1))&&!resetrig){
+		MidiSend3((midi_device_t) attr_output, MIDI_PITCH_BEND+ (attr_channel-1),0,64);
+		
+		resetrig=1;
+		
+		}
+
+if (!inlet_reset && (synclock>0)){
+	resetrig=0;
+	}]]></code.krate>
+         <code.midihandler><![CDATA[if(attr_input) {
+       
+
+
+if (status == MIDI_PITCH_BEND +(attr_channel-1)){
+	bendA=data1+1;
+	bendB=data2+1;
+
+	
+	}
+
+	
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="16d73047-6c6f-4799-aca2-f26ae67c5ffa" name="channel touch" x="868" y="756">
+      <params/>
+      <attribs>
+         <combo attributeName="input" selection="din"/>
+         <combo attributeName="output" selection="din"/>
+         <spinner attributeName="channel" value="2"/>
+         <objref attributeName="table" obj="midiloopA"/>
+         <spinner attributeName="maxbar" value="8"/>
+         <spinner attributeName="maxslots" value="7"/>
+         <combo attributeName="resolution" selection="96ppq"/>
+      </attribs>
+      <object id="patch/object" uuid="16d73047-6c6f-4799-aca2-f26ae67c5ffa">
+         <sDescription>object that records pitch bend, after touch and midi CCs.
+for use with the midi looper objects.
+could be used standalone, inlet stepunQCC expects a clock running at 96ppq</sDescription>
+         <author>Mattilyn Mattroe</author>
+         <license>if you use the object to play a wedding in september you have to come round and fix the dodgy extractor fan in my bathroom. otherwise, do as you will</license>
+         <helpPatch>midi looper help.axh</helpPatch>
+         <inlets>
+            <int32 name="offset"/>
+            <int32 name="slot"/>
+            <int32 name="synclock"/>
+            <bool32 name="rec"/>
+            <bool32 name="play"/>
+            <bool32 name="reset"/>
+            <bool32 name="overdub"/>
+            <bool32 name="clear"/>
+            <int32 name="cslot"/>
+         </inlets>
+         <outlets>
+            <int32 name="offset"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+            <objref name="table"/>
+            <spinner name="maxbar" MinValue="1" MaxValue="32" DefaultValue="0"/>
+            <spinner name="maxslots" MinValue="1" MaxValue="32" DefaultValue="1"/>
+            <combo name="resolution">
+               <MenuEntries>
+                  <string>192ppq</string>
+                  <string>96ppq</string>
+                  <string>48ppq</string>
+                  <string>24ppq</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int touch;
+
+
+int synclock;
+
+int Otouch;
+int prevstep;
+int voice;
+int slotsize;
+int play;
+int rec;
+int offset;
+int clear;
+int ctrig;
+
+
+int resetrig;]]></code.declaration>
+         <code.init><![CDATA[voice=(768*attr_maxbar)>>attr_resolution;
+slotsize=voice;
+clear=-1;]]></code.init>
+         <code.krate><![CDATA[offset=inlet_offset + (slotsize*inlet_slot);
+outlet_offset=inlet_offset + (slotsize*attr_maxslots);
+if (inlet_synclock>=0){
+	synclock=inlet_synclock>>attr_resolution;
+	}
+else {synclock=-1;}
+
+Otouch=attr_table.array[synclock+offset];
+if (inlet_clear&&!ctrig){
+	clear=0;
+	ctrig=1;
+}
+if (!inlet_clear){
+	ctrig=0;
+}
+if ((clear>=0)&& (clear<slotsize)){
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)]= 0;
+
+	
+	
+	clear+=1;
+	if (clear>=slotsize){
+		clear=-1;
+	}
+}
+if (synclock!=prevstep){
+//play
+	if (inlet_play){
+		
+		if (Otouch>0){
+			MidiSend2((midi_device_t) attr_output, MIDI_CHANNEL_PRESSURE + (attr_channel-1),(Otouch-1)); 
+			}
+		}
+
+//record
+	if (inlet_rec){
+			attr_table.array[synclock+offset]= 0;
+			
+			
+		}
+//overdub
+	if ((inlet_rec || inlet_overdub) && (inlet_play)){
+		
+			
+				
+			
+			if (touch>0){
+					attr_table.array[synclock+offset]= touch;
+				}
+		}
+
+
+	touch=0;
+	prevstep=synclock;
+	}
+
+
+//reset bend & touch
+	if ((inlet_reset || (synclock<1))&&!resetrig){
+	
+		MidiSend2((midi_device_t) attr_output, MIDI_CHANNEL_PRESSURE + (attr_channel-1),0); 
+		resetrig=1;
+		
+		}
+
+if (!inlet_reset && (synclock>0)){
+	resetrig=0;
+	}]]></code.krate>
+         <code.midihandler><![CDATA[if(attr_input) {
+       
+
+
+if (status == MIDI_CHANNEL_PRESSURE+(attr_channel-1)){
+	touch=data1+1;
+
+	
+	}
+	
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="16d73047-6c6f-4799-aca2-f26ae67c5ffa" name="CC" x="1008" y="756">
+      <params/>
+      <attribs>
+         <combo attributeName="input" selection="din"/>
+         <combo attributeName="output" selection="din"/>
+         <spinner attributeName="channel" value="2"/>
+         <objref attributeName="table" obj="midiloopA"/>
+         <spinner attributeName="maxbar" value="8"/>
+         <spinner attributeName="maxslots" value="7"/>
+         <combo attributeName="resolution" selection="96ppq"/>
+      </attribs>
+      <object id="patch/object" uuid="16d73047-6c6f-4799-aca2-f26ae67c5ffa">
+         <sDescription>object that records pitch bend, after touch and midi CCs.
+for use with the midi looper objects.
+could be used standalone, inlet stepunQCC expects a clock running at 96ppq</sDescription>
+         <author>Mattilyn Mattroe</author>
+         <license>if you use the object to play a wedding in september you have to come round and fix the dodgy extractor fan in my bathroom. otherwise, do as you will</license>
+         <helpPatch>midi looper help.axh</helpPatch>
+         <inlets>
+            <int32 name="offset"/>
+            <int32 name="slot"/>
+            <int32 name="synclock"/>
+            <bool32 name="rec"/>
+            <bool32 name="play"/>
+            <bool32 name="overdub"/>
+            <bool32 name="clear"/>
+            <int32 name="cslot"/>
+         </inlets>
+         <outlets>
+            <int32 name="offset"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+            <objref name="table"/>
+            <spinner name="maxbar" MinValue="1" MaxValue="32" DefaultValue="0"/>
+            <spinner name="maxslots" MinValue="1" MaxValue="32" DefaultValue="1"/>
+            <combo name="resolution">
+               <MenuEntries>
+                  <string>192ppq</string>
+                  <string>96ppq</string>
+                  <string>48ppq</string>
+                  <string>24ppq</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int cc;
+int ccv;
+int bendA;
+int bendB;
+int touch;
+
+int Occ;
+int Occv;
+int OccB;
+int OccvB;
+int OccC;
+int OccvC;
+
+int synclock;
+int ObendA;
+int ObendB;
+int Otouch;
+int prevstep;
+int voice;
+int slotsize;
+int play;
+int rec;
+int offset;
+int clear;
+int ctrig;
+
+
+int resetrig;]]></code.declaration>
+         <code.init><![CDATA[voice=(768*attr_maxbar)>>attr_resolution;
+slotsize=(voice*6);
+clear=-1;]]></code.init>
+         <code.krate><![CDATA[offset=inlet_offset + (slotsize*inlet_slot);
+outlet_offset=inlet_offset + (slotsize*attr_maxslots);
+if (inlet_synclock>=0){
+	synclock=inlet_synclock>>attr_resolution;
+	}
+else {synclock=-1;}
+Occ=attr_table.array[synclock+offset];
+Occv=attr_table.array[synclock+offset+voice];
+OccB=attr_table.array[synclock+offset+voice+voice];
+OccvB=attr_table.array[synclock+offset+voice+voice+voice];
+OccC=attr_table.array[synclock+offset+voice+voice+voice+voice];
+OccvC=attr_table.array[synclock+offset+voice+voice+voice+voice+voice];
+
+if (inlet_clear&&!ctrig){
+	clear=0;
+	ctrig=1;
+}
+if (!inlet_clear){
+	ctrig=0;
+}
+if ((clear>=0)&& (clear<slotsize)){
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)]= 0;
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)+voice]= 0;
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)+voice+voice]= 0;
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)+voice+voice+voice]= 0;
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)+voice+voice+voice+voice]= 0;
+	attr_table.array[clear+inlet_offset + (slotsize*inlet_cslot)+voice+voice+voice+voice+voice]= 0;
+	
+	
+	
+	clear+=1;
+	if (clear>=slotsize){
+		clear=-1;
+	}
+}
+if (synclock!=prevstep){
+//play
+	if (inlet_play){
+		if (Occv>0){
+			MidiSend3((midi_device_t) attr_output, MIDI_CONTROL_CHANGE + (attr_channel-1),(Occ-1),(Occv-1));
+		}
+		if (OccvB>0){
+			MidiSend3((midi_device_t) attr_output, MIDI_CONTROL_CHANGE + (attr_channel-1),(OccB-1),(OccvB-1));
+		}
+		if (OccvC>0){
+			MidiSend3((midi_device_t) attr_output, MIDI_CONTROL_CHANGE + (attr_channel-1),(OccC-1),(OccvC-1));
+		}
+		
+		
+		}
+
+//record
+	if (inlet_rec){
+			attr_table.array[synclock+offset]= 0;
+			attr_table.array[synclock+offset+voice]= 0;
+			attr_table.array[synclock+offset+voice+voice]= 0;
+			attr_table.array[synclock+offset+voice+voice+voice]= 0;
+			attr_table.array[synclock+offset+voice+voice+voice+voice]= 0;
+			attr_table.array[synclock+offset+voice+voice+voice+voice+voice]= 0;
+			
+			
+		}
+//overdub
+	if ((inlet_rec || inlet_overdub) && (inlet_play)){
+		
+			if (ccv>0){
+				if (Occv && (Occ==cc))   {
+					attr_table.array[synclock+offset]= cc;
+					attr_table.array[synclock+offset+voice]= ccv;
+					}
+				else if (OccvB && (OccB==cc)){
+					attr_table.array[synclock+offset+voice+voice]= cc;
+					attr_table.array[synclock+offset+voice+voice+voice]= ccv;
+				}
+				else if (OccvC && (OccC==cc)){
+					attr_table.array[synclock+offset+voice+voice+voice+voice]= cc;
+					attr_table.array[synclock+offset+voice+voice+voice+voice+voice]= ccv;
+				}
+				else if (!Occv)   {
+					attr_table.array[synclock+offset]= cc;
+					attr_table.array[synclock+offset+voice]= ccv;
+					}
+				else if (!OccvB){
+					attr_table.array[synclock+offset+voice+voice]= cc;
+					attr_table.array[synclock+offset+voice+voice+voice]= ccv;
+				}
+				else if (!OccvC){
+					attr_table.array[synclock+offset+voice+voice+voice+voice]= cc;
+					attr_table.array[synclock+offset+voice+voice+voice+voice+voice]= ccv;
+				}
+				}
+			
+		}
+
+	cc=0;
+	ccv=0;
+	
+	prevstep=synclock;
+	}]]></code.krate>
+         <code.midihandler><![CDATA[if(attr_input) {
+       
+if (status == MIDI_CONTROL_CHANGE+(attr_channel-1)){
+	cc=data1+1;
+	ccv=data2+1;
+
+	
+	}
+
+
+	
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="d0c956fd-a177-4158-b93c-bea01c3a3e5c" name="i_1" x="1148" y="756">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="d0c956fd-a177-4158-b93c-bea01c3a3e5c">
+         <sDescription>display integer</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>disp.axh</helpPatch>
+         <inlets>
+            <int32 name="in" description="input"/>
+         </inlets>
+         <outlets/>
+         <displays>
+            <int32.label name="v" noLabel="true"/>
+         </displays>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[disp_v=inlet_in;
+]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="noise/pink" uuid="72c03a2468ee865f248733fcf9b12d4cf42b5a61" name="pink_1" x="0" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="env/d" uuid="190ae648e41832b41adbedb465317c18a010aefe" name="d_1" x="84" y="770">
+      <params>
+         <frac32.s.map name="d" value="-46.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_2" x="210" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_4" x="280" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_2" x="378" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="84" y="854" text="bar pulse"/>
+   <obj type="env/d" uuid="190ae648e41832b41adbedb465317c18a010aefe" name="d_2" x="84" y="868">
+      <params>
+         <frac32.s.map name="d" value="-23.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_1" x="196" y="868">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_5" x="266" y="868">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_3" x="378" y="868">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="top_7" outlet="save"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="top_7" outlet="init"/>
+         <dest obj="load_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="top_7" outlet="clearshift"/>
+         <dest obj="1_1" inlet="clearshift"/>
+         <dest obj="12_1" inlet="erase"/>
+      </net>
+      <net>
+         <source obj="top_7" outlet="refreshtrig"/>
+         <dest obj="object_2" inlet="refresh"/>
+         <dest obj="step_1" inlet="redraw"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="1ppq"/>
+         <dest obj="12_1" inlet="1ppq"/>
+         <dest obj="d_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="1_1" outlet="clipslot"/>
+         <dest obj="mux_1" inlet="i1"/>
+         <dest obj="12_1" inlet="slot"/>
+         <dest obj="object_2" inlet="slot"/>
+      </net>
+      <net>
+         <source obj="1_1" outlet="cleartrigger"/>
+         <dest obj="or_1" inlet="i1"/>
+         <dest obj="12_1" inlet="clearslot"/>
+         <dest obj="object_2" inlet="cleartrigger"/>
+      </net>
+      <net>
+         <source obj="1_1" outlet="trigger"/>
+         <dest obj="12_1" inlet="trigger"/>
+      </net>
+      <net>
+         <source obj="1_1" outlet="stop"/>
+         <dest obj="12_1" inlet="stop"/>
+      </net>
+      <net>
+         <source obj="top_7" outlet="overdub"/>
+         <dest obj="12_1" inlet="overdub"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="kbeat"/>
+         <dest obj="12_1" inlet="kbeat"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="stop"/>
+         <dest obj="12_1" inlet="clearplay"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="start"/>
+         <dest obj="12_1" inlet="restart"/>
+         <dest obj="bend" inlet="reset"/>
+         <dest obj="channel touch" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="loadbang_1" outlet="trig"/>
+         <dest obj="top_7" inlet="refresh"/>
+      </net>
+      <net>
+         <source obj="12_1" outlet="playstate"/>
+         <dest obj="object_2" inlet="playstate"/>
+      </net>
+      <net>
+         <source obj="12_1" outlet="overdub"/>
+         <dest obj="object_2" inlet="overdub"/>
+      </net>
+      <net>
+         <source obj="top_7" outlet="quantize"/>
+         <dest obj="12_1" inlet="quantize"/>
+      </net>
+      <net>
+         <source obj="1_1" outlet="chold"/>
+         <dest obj="or_1" inlet="i2"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="1_5" outlet="pad"/>
+         <dest obj="step_1" inlet="pad"/>
+      </net>
+      <net>
+         <source obj="1_5" outlet="barlength"/>
+         <dest obj="12_1" inlet="maxbar"/>
+      </net>
+      <net>
+         <source obj="pink_1" outlet="out"/>
+         <dest obj="vca_4" inlet="a"/>
+         <dest obj="vca_5" inlet="a"/>
+      </net>
+      <net>
+         <source obj="d_1" outlet="env"/>
+         <dest obj="*_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="d_2" outlet="env"/>
+         <dest obj="*_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="clock_3" inlet="run"/>
+         <dest obj="clock_3" inlet="rst"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="*_2" inlet="b"/>
+         <dest obj="*_1" inlet="b"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="vca_5" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_4" outlet="o"/>
+         <dest obj="out_2" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="vca_5" outlet="o"/>
+         <dest obj="out_3" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="*_2" outlet="result"/>
+         <dest obj="vca_4" inlet="v"/>
+      </net>
+      <net>
+         <source obj="12_1" outlet="offset"/>
+         <dest obj="bend" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="bartrig"/>
+         <dest obj="d_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="bend" inlet="cslot"/>
+         <dest obj="CC" inlet="cslot"/>
+         <dest obj="channel touch" inlet="cslot"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="bend" inlet="clear"/>
+         <dest obj="CC" inlet="clear"/>
+         <dest obj="channel touch" inlet="clear"/>
+      </net>
+      <net>
+         <source obj="1_1" outlet="ccdub"/>
+         <dest obj="bend" inlet="overdub"/>
+         <dest obj="CC" inlet="overdub"/>
+         <dest obj="channel touch" inlet="overdub"/>
+         <dest obj="object_2" inlet="ccdub"/>
+      </net>
+      <net>
+         <source obj="12_1" outlet="record"/>
+         <dest obj="bend" inlet="rec"/>
+         <dest obj="CC" inlet="rec"/>
+         <dest obj="channel touch" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="12_1" outlet="play"/>
+         <dest obj="bend" inlet="play"/>
+         <dest obj="CC" inlet="play"/>
+         <dest obj="channel touch" inlet="play"/>
+      </net>
+      <net>
+         <source obj="12_1" outlet="synclock"/>
+         <dest obj="bend" inlet="synclock"/>
+         <dest obj="CC" inlet="synclock"/>
+         <dest obj="channel touch" inlet="synclock"/>
+      </net>
+      <net>
+         <source obj="12_1" outlet="currentslot"/>
+         <dest obj="bend" inlet="slot"/>
+         <dest obj="CC" inlet="slot"/>
+         <dest obj="channel touch" inlet="slot"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="bend" outlet="offset"/>
+         <dest obj="channel touch" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="channel touch" outlet="offset"/>
+         <dest obj="CC" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="CC" outlet="offset"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>10</MidiChannel>
+      <NPresets>0</NPresets>
+      <NPresetEntries>0</NPresetEntries>
+      <NModulationSources>0</NModulationSources>
+      <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>0</y>
+      <width>1603</width>
+      <height>860</height>
+   </windowPos>
+</patch-1.0>

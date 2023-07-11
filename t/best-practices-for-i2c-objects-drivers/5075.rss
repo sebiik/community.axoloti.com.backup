@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Best Practices for I2C Objects/Drivers</title>
+    <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075</link>
+    <description>@SmashedTransistors wrote:
+&gt; Maybe it is a good idea to start a new thread about &quot;tips and good practices for I2C objects&quot;.
+
+Here&#39;s my take on writing I2C drivers for Axoloti. Feel free to comment/contribute.
+
+## Introduction
+
+I2C is a shared bus technology.
+[i2c wikipedia](https://en.wikipedia.org/wiki/I%C2%B2C)
+
+Lot&#39;s of interesting chips have an I2C interface and the Axoloti provides an I2C bus on the IO pins.
+If you have a new I2C device you want to hook up, you&#39;ll need to write an I2C driver/object for it.
+
+I2C is a *shared* bus.
+
+The Axoloti is the bus master. Each device is a bus slave. There can be multiple slaves on a single bus (each with a unique 7-bit I2C address). The Axoloti initiates a bus transaction (read/write) and the slave device responds. Each device is controlled by it&#39;s own driver- which will typically be a patch object.
+
+Here are some best practices to ensure different device drivers work well on the same bus.
+
+## 1. Provide a way for the user to specify a unique device address.
+
+When the master (Axoloti) starts a transaction on the bus, it specifies the device it wants to talk to by using a 7-bit I2C address. The master talks to one device at a time, so each device needs a unique I2C address. The device datasheet will tell you which addresses a specific device can use. The device will often have some pins to customize (with hardware jumpers) some bits of the address. This allows the user to have multiple instances of the same device on the bus, each with a unique address. The driver writer needs to provide a way to specify which device address a driver should be using.
+
+The device address needs to be specified at compile time. On Axoloti this can be handled by an attribute in the object:
+`
+&lt;attribs&gt;
+    &lt;combo name=&quot;adr&quot;&gt;
+      &lt;MenuEntries&gt;
+          &lt;string&gt;0x1d&lt;/string&gt;
+          &lt;string&gt;0x53&lt;/string&gt;
+      &lt;/MenuEntries&gt;
+      &lt;CEntries&gt;
+          &lt;string&gt;0x1d&lt;/string&gt;
+          &lt;string&gt;0x53&lt;/string&gt;
+      &lt;/CEntries&gt;
+    &lt;/combo&gt;
+&lt;/attribs&gt;
+`
+
+## 2. Initialise the I2C bus only once.
+
+The I2C bus needs to be initialized in the patch. A given patch might control multiple I2C devices, but the I2C bus should only be initialized once. The bus is initialized by a call to the i2cStart() function. This should *not* be called within the driver because with multiple devices each driver would make a call to initialize the bus. It should be called through a single instance of the i2c config object.
+`
+axoloti-factory/objects/gpio/i2c/config.axo
+`
+
+This object does not connect to anything in the patch, it just handles the IO setup and shutdown for the I2C bus.
+
+&lt;img src=&quot;/uploads/default/original/2X/b/b06df6b64f4e7280e5bcba6611bca0567cfbb537.png&quot; width=&quot;299&quot; height=&quot;62&quot;&gt;
+
+## 3. Allocate I2C Transaction Buffers out of the SRAM2 segment.
+
+The buffers used to tx/rx bytes from the I2C device need to be in the SRAM2 segment. If we look at the linker script we see:
+`
+SRAM2  : org = 0x2001E000, len = 0x00002000 /* second half (8kB) of SRAM2 for DMA*/
+`
+
+The bytes from memory to the I2C controller are DMA&#39;ed so we need to use memory that can be DMA&#39;ed. In the driver you can specify the segment in which the linker will allocate the storage by using the &quot;attribute&quot; pragma.
+
+Example:
+`
+static uint8_t rxbuf[32] __attribute__ ((section(&quot;.sram2&quot;)));
+`
+This is more of a requirement than a best practice. If you don&#39;t do it the I2C bus transactions won&#39;t work.
+
+## 4. Device IO operations should be in their own thread.
+
+Axoloti uses ChibiOS which is a multi-threaded RTOS. The DSP thread calls the krate/srate functions of the patch and computes the audio. The DSP thread needs to run as quickly as possible so it can feed the codec.
+The DSP thread should not be waiting for external IO to take place. The I2C bus operations should run in their own thread where they can run asynchronously without slowing down the DSP thread.
+
+Example:
+
+In the init function we create the IO thread:
+`
+// create the polling thread
+s-&gt;thd = chThdCreateStatic(s-&gt;thd_wa, sizeof(s-&gt;thd_wa), NORMALPRIO, adxl345_thread, (void *)s);
+`
+And in the dispose function we terminate the thread:
+`
+// stop thread
+chThdTerminate(s-&gt;thd);
+chThdWait(s-&gt;thd);
+`
+
+## 5. Lock/Unlock the I2C bus around bus operations.
+
+With each device driver running in its own thread we have multiple threads each trying to access the same I2C bus. The drivers will access the bus asynchronously, so we have to make sure access is properly shared. ChibiOS provides functions to lock/unlock the bus: i2cAcquireBus(), i2cReleaseBus() A given thread needs to get the lock before it uses the bus and release the lock after it has finished with the bus.
+
+Example:
+`
+i2cAcquireBus(s-&gt;dev);
+msg_t rc = i2cMasterReceiveTimeout(s-&gt;dev, s-&gt;adr, s-&gt;rx, 2, TTP229_I2C_TIMEOUT);
+i2cReleaseBus(s-&gt;dev);
+`
+It&#39;s up to the driver writer to minimize lock time and not hog the bus. Many devices will be periodically polled/updated. Be a good neighbor. Take a look at the device datasheet and work out how slowly you can poll the device.
+
+## 6. Lock shared memory access between DSP and IO threads.
+
+The device driver IO thread and DSP thread need to communicate. This is typically done with memory shared between the threads. When one thread is writing the data, the other thread should not be reading it, and vice versa. Each thread has to get exclusive access to the shared memory before it reads or write it.
+
+Example:
+
+In the IO Thread:
+`
+// write to shared variables
+chSysLock();
+s-&gt;x = x;
+s-&gt;y = y;
+s-&gt;z = z;
+chSysUnlock();
+`
+
+In the DSP Thread:
+`
+// read from shared variables
+chSysLock();
+x = s-&gt;x;
+y = s-&gt;y;
+z = s-&gt;z;
+chSysUnlock();
+`
+
+In this example if you don&#39;t lock the shared variable access, you will potentially have x,y,z values being mixed up between samples.
+
+Note: Using chSysLock/chSysUnlock is an interrupt disable/enable. This gets the job done, but should only be used for very short lock periods because it stops all threads, not just the one that is contending for the variable access. ChibiOS provides other, more sophisticated, methods for inter thread communication (not all of which are enabled in the standard Axoloti firmware...).
+
+## Driver Examples
+
+Here are some I2C object/drivers that use the aforementioned practices:
+
+[mpr121 driver](https://github.com/axoloti/axoloti-contrib/tree/1.0.12/objects/deadsy/mpr121)
+
+[ttp229 driver](https://github.com/axoloti/axoloti-contrib/tree/1.0.12/objects/deadsy/ttp229)
+
+Note:
+I have an aversion to writing C code in XML files, so the bulk of the driver code for these examples is in the *.h include file. This makes the driver code a bit different from the &quot;all in the axo&quot; form but for either form the best practices still apply.</description>
+    
+    <lastBuildDate>Thu, 25 Oct 2018 09:29:54 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yeah doing a proper lock free implementation is complex - but there are lots of freely available versions to use, usually in the form of a ring buffer. (as they also need to not allocate memory) </p>
+
+<p>Ive used them on other limited platforms (rPI/Organelle) to good effect, though ive not reviewed how much 'extra' memory they take , which may or may not be an issue with axoloti.</p>
+
+<hr>
+
+<p>what I did for the midi ring buffer was simply to do it without locks (*), with detection for the read/write pointers crossing. but I was quite careful how I did the implementation, to ensure any theoretical thread contentions are minimised e.g. only writing in one thread - and making sure comparisons were very limited.<br>(so your implementation has to be a bit more considered, than just taking out the locks - I know exactly where the possible thread contention are, how likely (minimal) , and the consequences  ) </p>
+
+<p>theoretically I could have used 'test and set' atomic operations,  but I didn't because it doesn't really matter that much in this use case.<br> if the ring-buffer is overflowing theres little you can do about it... its more than likely that the producer is still going to keep producing at a higher rate than consumer, so known 1 byte before or after doesn't really change the outcome <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>basically its an optimistic strategy, where due to the ring buffer size, really it should not fail, and if it does its not the end of the world. ideally we would allow the user to optionally configure the ring buffer size, based on their needs.</p>
+
+<hr>
+
+<p>in this example id suspect its similar, you can have a ring buffer which should never overrun  because you know the timing involved on the i2c and you know the timing of the event loop (k-rate).<br>so under normal circumstances you know the max number of i2c events you expect in a k-rate cycle - and a bit more space for headroom and your done.</p>
+
+<p>in someways I guess its a bit like setting the sample rate buffer size on a computer - you set it as low as you can go without experiencing issues</p>
+
+<p>anyway, its just an idea - my personal preference is to avoid locks in the audio thread at all costs, as they invariable lead to little glitches when load increases,  which are really hard to track down later.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/9</link>
+        <pubDate>Thu, 25 Oct 2018 09:22:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-9</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/smashedtransistors">@SmashedTransistors</a></p>
+
+<p>Yes - lock free techniques are generally useful on both single core and multi-core devices. ChibiOS has the usual set of semaphores, mutexes, mailboxes, etc. used for data sharing between threads. All of them disable interrupts to lock out other threads and enforce the atomic sharing of data. Lock-less techniques don't lock out other threads, they can still run. The Cortex-M4 ISA provides load exclusive and store exclusive instructions used to implement lock-less data sharing.</p>
+
+<p>Now: I wouldn't consider myself and expert at concurrent programming, and certainly not at lock-less sharing, but from what I understand getting lock-less right is tough. The conservative approach is probably to use the conventional locking primitives and see if that performs well enough. If yes - declare success. If no- then <em>maybe</em> consider lock-less as an optimization.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/8</link>
+        <pubDate>Thu, 25 Oct 2018 01:15:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-8</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Is this related to <a href="https://en.wikipedia.org/wiki/Load-link/store-conditional" rel="nofollow noopener">lock-free atomic read-modify-write operation</a> ? Is it useful in a single core processor ?<br>As I did not had to care about multi-threading on the Axoloti yet, I'm not aware of all the mechanisms available. <br>That's very interesting.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/7</link>
+        <pubDate>Thu, 25 Oct 2018 00:16:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-7</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/thetechnobear">@thetechnobear</a> </p>
+
+<blockquote><p>use a lock free ring buffer, this is what I did for the (firmware) midi implementation. </p></blockquote>
+
+<p>Can you point me to a code reference?<br>I've been looking for telltale strex/ldrex instructions, but I don't see anything in either master or experimental...</p>
+
+<p>Thanks.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/6</link>
+        <pubDate>Tue, 23 Oct 2018 17:07:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-6</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Would this kind of strategy lead to use of double or triple buffering ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/5</link>
+        <pubDate>Sun, 21 Oct 2018 20:44:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-5</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>I didn’t say use a mutex, i said use a lock free strategy.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/4</link>
+        <pubDate>Sun, 21 Oct 2018 18:59:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-4</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/thetechnobear">@thetechnobear</a> says:</p>
+
+<blockquote><p>won't the chSysLock() potentially block the DSP</p></blockquote>
+
+<p>Yes - it's turns into a global interrupt disable, so the thread can't be preempted until it has called the unlock.</p>
+
+<p>For something like a touch sensor driver you only need a single uint32 as the result of the sensor read so I think a quick lock/unlock around the shared memory reference is probably about as fast as you can manage.</p>
+
+<p>Someone might say: "You should be using a mutex!"</p>
+
+<p>Check it out:</p>
+
+<pre><code>void chMtxLock(Mutex *mp) {
+  chSysLock();
+  chMtxLockS(mp);
+  chSysUnlock();
+}</code></pre>
+
+<p>Still doing a quick global interrupt disable/enable. If you only have to share a single uint32 then the interrupt disable/enable will be faster. It's also worth noting that the DSP thread can't spend its time waiting on any sort of lock. Whatever you do it needs to be quick.</p>
+
+<p>Of course for some drivers (E.g. a keyboard scanner) you may need something more sophisticated like a circular buffer, in which case a the code needs to be more complicated. If you've got the chops to write lock-less code that works properly, more power to you <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>BTW - ChibiOS has a nice feature called mailboxes.<br><a href="http://www.chibios.org/dokuwiki/doku.php?id=chibios:book:kernel_mailboxes" rel="nofollow noopener">RT mailboxes</a><br>It would be nice to use in drivers, but the feature is not enabled in the standard firmware build. Could we get it enabled for the next release?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/3</link>
+        <pubDate>Sun, 21 Oct 2018 15:55:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-3</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>cool stuff, and a great write up!</p>
+
+<hr>
+
+<p>won't the chSysLock() potentially block the DSP (for a very short while) ?!</p>
+
+<p>what id be tempted to do is use a lock free ring buffer, this is what I did for the (firmware) midi implementation. doesn't have to be a complex implementation if you have a good understanding of the timing of the IO on the I2C - the buffer only has to be big enough to allow for 'some latency/jitter'</p>
+
+<aside class="quote" data-post="1" data-topic="5075"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/deadsy/40/5105_1.png" class="avatar">deadsy:</div>
+<blockquote><p>I have an aversion to writing C code in XML files, so the bulk of the driver code for these examples is in the *.h include file. </p></blockquote></aside>
+
+<p>yeah, I do the same for anything that's non-trivial</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/2</link>
+        <pubDate>Sat, 20 Oct 2018 19:00:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-2</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+      <item>
+        <title>Best Practices for I2C Objects/Drivers</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+
+<blockquote><p>Maybe it is a good idea to start a new thread about "tips and good practices for I2C objects".</p></blockquote>
+
+<p>Here's my take on writing I2C drivers for Axoloti. Feel free to comment/contribute.</p>
+
+<h2>Introduction</h2>
+
+<p>I2C is a shared bus technology.<br><a href="https://en.wikipedia.org/wiki/I%C2%B2C" rel="nofollow noopener">i2c wikipedia</a></p>
+
+<p>Lot's of interesting chips have an I2C interface and the Axoloti provides an I2C bus on the IO pins.<br>If you have a new I2C device you want to hook up, you'll need to write an I2C driver/object for it.</p>
+
+<p>I2C is a <em>shared</em> bus.</p>
+
+<p>The Axoloti is the bus master. Each device is a bus slave. There can be multiple slaves on a single bus (each with a unique 7-bit I2C address). The Axoloti initiates a bus transaction (read/write) and the slave device responds. Each device is controlled by it's own driver- which will typically be a patch object.</p>
+
+<p>Here are some best practices to ensure different device drivers work well on the same bus.</p>
+
+<h2>1. Provide a way for the user to specify a unique device address.</h2>
+
+<p>When the master (Axoloti) starts a transaction on the bus, it specifies the device it wants to talk to by using a 7-bit I2C address. The master talks to one device at a time, so each device needs a unique I2C address. The device datasheet will tell you which addresses a specific device can use. The device will often have some pins to customize (with hardware jumpers) some bits of the address. This allows the user to have multiple instances of the same device on the bus, each with a unique address. The driver writer needs to provide a way to specify which device address a driver should be using.</p>
+
+<p>The device address needs to be specified at compile time. On Axoloti this can be handled by an attribute in the object:<br><code><br>&lt;attribs&gt;<br>    &lt;combo name="adr"&gt;<br>      &lt;MenuEntries&gt;<br>          &lt;string&gt;0x1d&lt;/string&gt;<br>          &lt;string&gt;0x53&lt;/string&gt;<br>      &lt;/MenuEntries&gt;<br>      &lt;CEntries&gt;<br>          &lt;string&gt;0x1d&lt;/string&gt;<br>          &lt;string&gt;0x53&lt;/string&gt;<br>      &lt;/CEntries&gt;<br>    &lt;/combo&gt;<br>&lt;/attribs&gt;<br></code></p>
+
+<h2>2. Initialise the I2C bus only once.</h2>
+
+<p>The I2C bus needs to be initialized in the patch. A given patch might control multiple I2C devices, but the I2C bus should only be initialized once. The bus is initialized by a call to the i2cStart() function. This should <em>not</em> be called within the driver because with multiple devices each driver would make a call to initialize the bus. It should be called through a single instance of the i2c config object.<br><code><br>axoloti-factory/objects/gpio/i2c/config.axo<br></code></p>
+
+<p>This object does not connect to anything in the patch, it just handles the IO setup and shutdown for the I2C bus.</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/b/b06df6b64f4e7280e5bcba6611bca0567cfbb537.png" width="299" height="62"></p>
+
+<h2>3. Allocate I2C Transaction Buffers out of the SRAM2 segment.</h2>
+
+<p>The buffers used to tx/rx bytes from the I2C device need to be in the SRAM2 segment. If we look at the linker script we see:<br><code><br>SRAM2  : org = 0x2001E000, len = 0x00002000 /* second half (8kB) of SRAM2 for DMA*/<br></code></p>
+
+<p>The bytes from memory to the I2C controller are DMA'ed so we need to use memory that can be DMA'ed. In the driver you can specify the segment in which the linker will allocate the storage by using the "attribute" pragma.</p>
+
+<p>Example:<br><code><br>static uint8_t rxbuf[32] __attribute__ ((section(".sram2")));<br></code><br>This is more of a requirement than a best practice. If you don't do it the I2C bus transactions won't work.</p>
+
+<h2>4. Device IO operations should be in their own thread.</h2>
+
+<p>Axoloti uses ChibiOS which is a multi-threaded RTOS. The DSP thread calls the krate/srate functions of the patch and computes the audio. The DSP thread needs to run as quickly as possible so it can feed the codec.<br>The DSP thread should not be waiting for external IO to take place. The I2C bus operations should run in their own thread where they can run asynchronously without slowing down the DSP thread.</p>
+
+<p>Example:</p>
+
+<p>In the init function we create the IO thread:<br><code><br>// create the polling thread<br>s-&gt;thd = chThdCreateStatic(s-&gt;thd_wa, sizeof(s-&gt;thd_wa), NORMALPRIO, adxl345_thread, (void *)s);<br></code><br>And in the dispose function we terminate the thread:<br><code><br>// stop thread<br>chThdTerminate(s-&gt;thd);<br>chThdWait(s-&gt;thd);<br></code></p>
+
+<h2>5. Lock/Unlock the I2C bus around bus operations.</h2>
+
+<p>With each device driver running in its own thread we have multiple threads each trying to access the same I2C bus. The drivers will access the bus asynchronously, so we have to make sure access is properly shared. ChibiOS provides functions to lock/unlock the bus: i2cAcquireBus(), i2cReleaseBus() A given thread needs to get the lock before it uses the bus and release the lock after it has finished with the bus.</p>
+
+<p>Example:<br><code><br>i2cAcquireBus(s-&gt;dev);<br>msg_t rc = i2cMasterReceiveTimeout(s-&gt;dev, s-&gt;adr, s-&gt;rx, 2, TTP229_I2C_TIMEOUT);<br>i2cReleaseBus(s-&gt;dev);<br></code><br>It's up to the driver writer to minimize lock time and not hog the bus. Many devices will be periodically polled/updated. Be a good neighbor. Take a look at the device datasheet and work out how slowly you can poll the device.</p>
+
+<h2>6. Lock shared memory access between DSP and IO threads.</h2>
+
+<p>The device driver IO thread and DSP thread need to communicate. This is typically done with memory shared between the threads. When one thread is writing the data, the other thread should not be reading it, and vice versa. Each thread has to get exclusive access to the shared memory before it reads or write it.</p>
+
+<p>Example:</p>
+
+<p>In the IO Thread:<br><code><br>// write to shared variables<br>chSysLock();<br>s-&gt;x = x;<br>s-&gt;y = y;<br>s-&gt;z = z;<br>chSysUnlock();<br></code></p>
+
+<p>In the DSP Thread:<br><code><br>// read from shared variables<br>chSysLock();<br>x = s-&gt;x;<br>y = s-&gt;y;<br>z = s-&gt;z;<br>chSysUnlock();<br></code></p>
+
+<p>In this example if you don't lock the shared variable access, you will potentially have x,y,z values being mixed up between samples.</p>
+
+<p>Note: Using chSysLock/chSysUnlock is an interrupt disable/enable. This gets the job done, but should only be used for very short lock periods because it stops all threads, not just the one that is contending for the variable access. ChibiOS provides other, more sophisticated, methods for inter thread communication (not all of which are enabled in the standard Axoloti firmware...).</p>
+
+<h2>Driver Examples</h2>
+
+<p>Here are some I2C object/drivers that use the aforementioned practices:</p>
+
+<p><a href="https://github.com/axoloti/axoloti-contrib/tree/1.0.12/objects/deadsy/mpr121" rel="nofollow noopener">mpr121 driver</a></p>
+
+<p><a href="https://github.com/axoloti/axoloti-contrib/tree/1.0.12/objects/deadsy/ttp229" rel="nofollow noopener">ttp229 driver</a></p>
+
+<p>Note:<br>I have an aversion to writing C code in XML files, so the bulk of the driver code for these examples is in the *.h include file. This makes the driver code a bit different from the "all in the axo" form but for either form the best practices still apply.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075/1</link>
+        <pubDate>Sat, 20 Oct 2018 17:18:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5075-1</guid>
+        <source url="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075.rss">Best Practices for I2C Objects/Drivers</source>
+      </item>
+  </channel>
+</rss>

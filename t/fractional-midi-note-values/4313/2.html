@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/fractional-midi-note-values/4313/2 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:40 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Fractional MIDI Note Values - AxoObject coding - Axoloti Community</title>
+    <meta name="description" content="I&amp;#39;m struggling a bit with concepts around fixed-point and fractional representations of numbers in Axoloti objects. 
+
+I want to make an object to convert waveform cycle-lengths (in S-Rate cycles) into MIDI note numbers, &amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="../4313.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Fractional MIDI Note Values&#39;" href="../4313.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/200/6_1.png" />
+<meta property="og:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/200/6_1.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/fractional-midi-note-values/4313/2" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/fractional-midi-note-values/4313/2" />
+<meta property="og:title" content="Fractional MIDI Note Values" />
+<meta name="twitter:title" content="Fractional MIDI Note Values" />
+<meta property="og:description" content="see http://community.axoloti.com/t/coding-axoloti-objects/2606" />
+<meta name="twitter:description" content="see http://community.axoloti.com/t/coding-axoloti-objects/2606" />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../../index.html"><img src="../../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="../4313.html">Fractional MIDI Note Values</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../../c/axoobject-code.html" itemprop="url">
+        <span itemprop="title">AxoObject coding</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-05T09:58:10Z' itemprop='datePublished'>
+             2018-03-05 09:58:10 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm struggling a bit with concepts around fixed-point and fractional representations of numbers in Axoloti objects.</p>
+
+<p>I want to make an object to convert waveform cycle-lengths (in S-Rate cycles) into MIDI note numbers, but the results are likely to be fractional (ie none will exactly translate to MIDI notes).</p>
+
+<p>I can see that note outputs and pitch inputs are all frac32.bipolar, but internal variables dealing with pitch and note values inside objects always seem to be unsigned integer.</p>
+
+<p>I'm unclear what variable types to use to do the conversion, or the ranges involved.</p>
+
+<p>Sorry if this is basic stuff, but I find the way the same data is represented in multiple ways in the Patcher environment confusing as hell.</p>
+
+<p>Can someone help me out, please?</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2018-03-05T10:27:03Z' itemprop='datePublished'>
+             2018-03-05 10:27:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>see <a href="../../coding-axoloti-objects/2606.html">http://community.axoloti.com/t/coding-axoloti-objects/2606</a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-05T10:53:39Z' itemprop='datePublished'>
+             2018-03-05 10:53:39 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>So, if I was to make a lookup table for cycle-lengths 0 to 160, I'd use.. signed integer values in the 0 to 1&lt;&lt;27 range?</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-05T16:41:02Z' itemprop='datePublished'>
+             2018-03-05 16:41:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I think I now have the fractional MIDI note numbers for 8kHz cycle-length 1 to 160.</p>
+
+<aside class="quote" data-topic="4298" data-slug="cycle-length-to-pitch-value-conversion" data-post="5"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar"><a href="../../cycle-length-to-pitch-value-conversion/4298/5.html" rel="nofollow noopener">Cycle-Length to Pitch Value Conversion</a>
+</div>
+<blockquote><p>I found a formula here: <a href="http://www.pd-tutorial.com/english/ch03.html" class="onebox" target="_blank" rel="nofollow noopener"></a><a href="http://www.pd-tutorial.com/english/ch03.html" rel="nofollow noopener">http://www.pd-tutorial.com/english/ch03.html</a> and created a little JavaScript function (edited to shift result down by 64):  function freq2note2(Hz) {       return 5 + 12 * Math.log2(Hz / 440); }; ...which produces  cycles: 1, note: B8, fractional note value: 55.21309485364914 cycles: 2, note: B7, fractional note value: 43.21309485364914 cycles: 3, note: E7, fractional note value: 36.19354484499526 cycles: 4, note: B6, fractional note value: 31.213094853649125 cycles: 5…</p></blockquote></aside>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-05T16:52:51Z' itemprop='datePublished'>
+             2018-03-05 16:52:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm still not sure what to do with those numbers, to convert them to integers in the correct range.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-14T09:51:32Z' itemprop='datePublished'>
+             2018-03-14 09:51:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I worked it out, and make a lookup table to convert directly from 8kHz cycle-length to uint32_t MIDI pitch values, in the standard 27-bit range.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/DrJustice-2.html'><b itemprop='author'>DrJustice</b></a>
+           
+           <time datetime='2018-03-14T12:50:59Z' itemprop='datePublished'>
+             2018-03-14 12:50:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../../u/sirsicksik-2.html">@SirSickSik</a> has made an FTOM function that is used in some of his objects e.g. sss/conv/freq2pitch. Pass it the reciprocal of the cycle length and you get an axo standard pitch value. </p>
+
+<p>It's very useful - I've seen several people on here, including me, wanting to convert cycle lengths to pitch values. An official optimized FTOM function in the firmware would be an idea. Perhaps an optimized log2 would follow...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-14T13:09:24Z' itemprop='datePublished'>
+             2018-03-14 13:09:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>That's useful. Not sure of advisability of including a file from another user, though.</p>
+
+<p>This was the code I used to generate the lookup-table (note it's for 8kHz, not 48kHz cycles).</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;math.h&gt;
+
+double hz = 0;
+double note_fract = 0;
+int32_t note_axo = 0;
+
+double freq_to_note(float hz) {
+    return 5 + 12 * log2(hz / 440);
+};
+
+int32_t note_to_axo(double note) {
+    int32_t multiplier = 1&lt;&lt;21;
+    return (int32_t)(note * multiplier);
+}
+
+int main(int argc, const char * argv[]) {
+    
+    for(int i = 1; i &lt;= 160; i++) {
+        // Herz from cycles
+        hz = 8000 / i;
+        // Hz to fractional MIDI note (-64 to 64 range)
+        note_fract = freq_to_note(hz);
+        // Axoloti note value
+        printf("%i,\n", note_to_axo(note_fract));
+    }
+
+    return 0;
+}</code></pre>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SirSickSik.html'><b itemprop='author'>SirSickSik</b></a>
+           
+           <time datetime='2018-03-14T13:11:30Z' itemprop='datePublished'>
+             2018-03-14 13:11:30 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>you can also use PLL, as in some cases it works better then zero-crossings.<br>use a comparator to check whether the input signal is higher or lower then an internal sine oscillator.<br>Send the comparator output through a lowpass filter and add this to the pitch of the sine oscillator.<br>With the right values, it will stabalize pretty quickly (phase lock) and directly give you the frequency of the input signal (depending on the base pitch and lowpass filter cutoff, this might be offsetting in octaves).<br>Just send the total pitch value (base+lowpass output) to the output of the module and you'll have your frequency converter based on some signal input.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-14T13:19:31Z' itemprop='datePublished'>
+             2018-03-14 13:19:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>That's very cool (though a bit off-topic) <img src="../../../images/emoji/twitter/winkae52.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>Can you get it to work on a single 16-sample buffer, or would you need a larger buffer for reliable tracking?</p>
+
+<p>Have you made one of these pitch-tracker objects, by any chance <a class="mention" href="../../../u/sirsicksik-2.html">@SirSickSik</a> ?</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-14T13:36:28Z' itemprop='datePublished'>
+             2018-03-14 13:36:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>You can also do an FFT, and derive an approximate pitch from the bin with largest magnitude, I think.</p>
+
+<p>Might be a bit resource-intensive for the Axoloti, though.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/SirSickSik.html'><b itemprop='author'>SirSickSik</b></a>
+           
+           <time datetime='2018-03-14T13:56:58Z' itemprop='datePublished'>
+             2018-03-14 13:56:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>fft isn't really useful for the axoloti. Will take waaay to much cpu for that little function..<br>nice.. we got a frequency... but no room for actually doing something with it.. now what? XD</p>
+
+<p>ehm, 16 samples? Well, 16 samples is a bit short isn't it?<br>You won't even be able to track frequencies below 3000hz...</p>
+
+<p>a pitch tracker should be somewhere in my folders.. I guess conversion.. But gotta go to work ríght now, so can't check it out to be sure..<br>laterzzzz</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/toneburst.html'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2018-03-14T14:01:23Z' itemprop='datePublished'>
+             2018-03-14 14:01:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="12" data-topic="4313"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/sirsicksik/40/5014_1.html" class="avatar">SirSickSik:</div>
+<blockquote><p>ehm, 16 samples? Well, 16 samples is a bit short isn't it?<br>You won't even be able to track frequencies below 3000hz...</p></blockquote></aside>
+
+<p>You'd definitely need a longer buffer, then.</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Fractional MIDI Note Values'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../../index.html'>Home</a>
+        <a href="../../../categories.html">Categories</a>
+        <a href="../../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../../tos.html">Terms of Service</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/fractional-midi-note-values/4313/2 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:40 GMT -->
+</html>

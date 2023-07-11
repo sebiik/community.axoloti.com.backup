@@ -1,0 +1,253 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="42" y="56" text="play with the piano!"/>
+   <obj type="noise/uniform" uuid="a3926ef22ae9ac217cd09933d90101848796eb78" name="rand_1" x="448" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="546" y="70" text="generates a short burst of noise"/>
+   <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_1" x="42" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="env/d" uuid="190ae648e41832b41adbedb465317c18a010aefe" name="envd1" x="448" y="98">
+      <params>
+         <frac32.s.map name="d" onParent="true" value="-22.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="560" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="168" y="224" text="compute the right delay time from pitch"/>
+   <comment type="patch/comment" x="476" y="224" text="interpolating delayline read"/>
+   <comment type="patch/comment" x="672" y="224" text="99% feedback"/>
+   <comment type="patch/comment" x="784" y="224" text="delayline write"/>
+   <obj type="delay/mtod" uuid="bbaeb53acbf18f926c5febae31d8bf2f52725ee" name="mtod_1" x="210" y="266">
+      <params>
+         <frac32.s.map name="pitch" value="7.769999980926514">
+            <presets/>
+         </frac32.s.map>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="a3c02377-91d9-430a-9b33-5bd9d69d928f" name="-c1" x="322" y="266">
+      <params>
+         <frac32.u.map name="c" value="0.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="a3c02377-91d9-430a-9b33-5bd9d69d928f">
+         <sDescription>subtract constant</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in" description="in"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out" description="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="c" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in- param_c;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_1" x="392" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="delay/read interp" uuid="e3d8b8823ab551c588659520bf6cc25c630466c7" name="delread2__1" x="476" y="266">
+      <params>
+         <frac32.u.map name="time" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="delayname" obj="d1"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="353c6574-8e1d-4b5c-8995-2421b7e42b81" name="mix_1" x="672" y="266">
+      <params>
+         <frac32.u.map name="gain1" onParent="true" value="62.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="353c6574-8e1d-4b5c-8995-2421b7e42b81">
+         <sDescription>1 input s-rate mixer</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32buffer name="bus_in" description="input with unity gain"/>
+            <frac32buffer name="in1" description="input 1"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="mix out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="gain1" noLabel="true">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[{   int32_t accum = ___SMMUL(inlet_in1,param_gain1);
+   outlet_out=  __SSAT(inlet_bus__in + (accum<<5),28);
+}
+]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="delay/write" uuid="bd73958e3830021807ee97a8cff4500a72a5710d" name="d1" x="784" y="266">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="2048 (42.66ms)"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="210" y="364" text="bug: tuning reference is incorrect"/>
+   <patchobj type="patch/object" uuid="570461d2-227b-478c-8c57-805b0395bb56" name="adsr_1" x="896" y="378">
+      <params>
+         <frac32.s.map name="a" onParent="true" value="0.0"/>
+         <frac32.s.map name="d" onParent="true" value="0.0"/>
+         <frac32.u.map name="s" onParent="true" value="43.5"/>
+         <frac32.s.map name="r" onParent="true" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="570461d2-227b-478c-8c57-805b0395bb56">
+         <sDescription>Attack/decay/sustain/release envelope</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>adsr.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="gate" description="gate"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="env" description="envelope output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.klineartime.exp2 name="a"/>
+            <frac32.s.map.kdecaytime.exp name="d"/>
+            <frac32.u.map name="s"/>
+            <frac32.s.map.kdecaytime.exp name="r"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int8_t stage;
+int ntrig;
+int32_t val;
+]]></code.declaration>
+         <code.init><![CDATA[stage = 0;
+ntrig = 0;
+val = 0;
+]]></code.init>
+         <code.krate><![CDATA[if ((inlet_gate>0) && !ntrig) {
+   stage = 1;
+   ntrig = 1;
+}
+if (!(inlet_gate>0) && ntrig) {
+   stage = 0;
+   ntrig=0;
+}
+if (stage == 0){
+   val = ___SMMUL(val,param_r)<<1;
+} else if (stage == 1){
+   val = val + param_a;
+   if (val<0) {
+      val =0x7FFFFFFF;
+      stage = 2;
+   }
+} else if (stage == 2) {
+   val = (param_s<<4) + (___SMMUL(val - (param_s<<4),param_d)<<1);
+}
+
+outlet_env = val>>4;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="1036" y="504">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_2" x="1134" y="504">
+      <params>
+         <frac32.u.map name="amp" value="18.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="1232" y="504">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="keyb_1" outlet="gate"/>
+         <dest obj="envd1" inlet="trig"/>
+         <dest obj="adsr_1" inlet="gate"/>
+      </net>
+      <net>
+         <source obj="envd1" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="rand_1" outlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="mix_1" inlet="bus_in"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="d1" inlet="in"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="interp_1" outlet="o"/>
+         <dest obj="delread2__1" inlet="time"/>
+      </net>
+      <net>
+         <source obj="-c1" outlet="out"/>
+         <dest obj="interp_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="mtod_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="mtod_1" outlet="delay"/>
+         <dest obj="-c1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="delread2__1" outlet="out"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="outlet_1" inlet="outlet"/>
+      </net>
+      <net>
+         <source obj="adsr_1" outlet="env"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="*c_2" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>polyphonic</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+      <Author></Author>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>136</y>
+      <width>1280</width>
+      <height>737</height>
+   </windowPos>
+</patch-1.0>

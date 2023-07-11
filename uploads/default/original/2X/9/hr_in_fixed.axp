@@ -1,0 +1,143 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="70" y="84">
+      <params>
+         <frac32.u.map name="value" value="58.22999954223633"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="104c229b-2a7a-49ef-a6b4-6135dbe21aee" name="cc_1" x="350" y="98">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="internal port 1"/>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="ccmsb" value="31"/>
+         <spinner attributeName="cclsb" value="63"/>
+      </attribs>
+      <object id="patch/object" uuid="104c229b-2a7a-49ef-a6b4-6135dbe21aee">
+         <sDescription>Midi controller output</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="v" description="value"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <spinner name="ccmsb" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="cclsb" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;]]></code.declaration>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+	
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE + (attr_channel-1),attr_ccmsb,__USAT(inlet_v>>20,7)); 
+	MidiSend3((midi_device_t) attr_device, MIDI_CONTROL_CHANGE + (attr_channel-1),attr_cclsb,((inlet_v>>13) & 0x7F)); 	
+	ntrig=1;	
+	}
+if (!(inlet_trig>0)) ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/change speedlim" uuid="9239a1be592182b71673521e7d7461e6951e8d3b" name="change_1" x="168" y="112">
+      <params>
+         <frac32.u.map name="d" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="1ebbec25-9e04-4414-8ae7-6b3b253db1fa" name="cc_2" x="280" y="364">
+      <params/>
+      <attribs>
+         <spinner attributeName="cc" value="31"/>
+         <spinner attributeName="default" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="1ebbec25-9e04-4414-8ae7-6b3b253db1fa">
+         <sDescription>Receives Midi Continuous Controller messages, 14 bit, float output</sDescription>
+         <author>Mark Harris</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32.positive name="midiCC" description="midi CC 0.0-64.0"/>
+            <bool32.pulse name="trig" description="trigger output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="cc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="default" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t ccl;
+uint32_t _ccv;
+uint8_t ntrig;
+]]></code.declaration>
+         <code.init><![CDATA[_ccv = attr_default << 20;ccl=0;ntrig=0;
+]]></code.init>
+         <code.krate><![CDATA[ outlet_midiCC= _ccv;
+outlet_trig = ntrig;
+ntrig = 0;
+]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == attr_midichannel + MIDI_CONTROL_CHANGE) && (data1 == attr_cc)) {
+  _ccv = (data2 << 20) ;
+  ntrig = 1;
+} else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE) && (data1 == (attr_cc+32))) {
+   ccl = data2 << 13;
+   _ccv = _ccv + ccl ;
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_2" x="406" y="364">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="change_1" inlet="in"/>
+         <dest obj="cc_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="cc_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="cc_2" outlet="midiCC"/>
+         <dest obj="dial_2" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>265</x>
+      <y>58</y>
+      <width>704</width>
+      <height>614</height>
+   </windowPos>
+</patch-1.0>

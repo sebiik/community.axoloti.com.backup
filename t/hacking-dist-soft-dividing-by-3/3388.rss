@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Hacking dist/soft (dividing by 3)</title>
+    <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388</link>
+    <description>I realise this is more of a general programming question to a certain extent but it&#39;s related to the specifics of the processor and peculiarities of the Axoloti number range. I hope someone will humour me but please delete this if it&#39;s considered to be off topic.
+
+I&#39;m trying to make a &quot;no gain&quot; version of dist/soft for use in things like feedback loops. Using a graphing calculator I&#39;ve worked out that what I need is x-(x^3)/3, what I&#39;m actually wondering is if anyone knows a shortcut to working out the /3 bit.
+
+As I understand it, division is quite expensive, so avoiding directly dividing would be beneficial. One idea I had was to use init to store a number in a variable, that when used with ___SMMUL would be like multiplying by 0.33333. Is that the best approach or is there a better one? 
+
+So sort of a programming question, but hopefully not an annoying &quot;teach me C++ pls&quot; post.
+Cheers,
+SPF</description>
+    
+    <lastBuildDate>Sat, 10 Jun 2017 15:09:33 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@SirPrimalform]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirprimalform">@SirPrimalform</a> wrote:</p>
+          <blockquote>
+              <p>Good suggestiong Ricard, thanks! I forgot to come back and say it worked as expected, but yes tweaking that constant may be helpful due to rounding errors.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/8</link>
+        <pubDate>Sat, 10 Jun 2017 15:09:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-8</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Sounds like a good approach to me too.</p>
+
+<p>If you have an expression like</p>
+
+<p>___SMMUL(x3 &lt;&lt;3, 44739243 &lt;&lt;2)</p>
+
+<p>then the x3 &lt;&lt; 3 and 44739243 &lt;&lt; 2 are evaluated before __SMMUL is called, so it doesn't matter if you have those calculations in the function call or somewhere else. Computationally, the values will be calculated first, then __SMMUL will be called in either case. In that respect, calculating the actual value of the constant and putting it in an init section can be beneficial, because you can tweak the exact value to get exactly the gain you need, down to the last bit. </p>
+
+<p>What I'm getting at is that since you are trying to get a zero gain function for feedback loops, you might want to tweak the exact value to compensate for other rounding errors so that you get a total gain of exactly one for the whole loop.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/7</link>
+        <pubDate>Sat, 10 Jun 2017 05:47:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-7</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Sounds pretty reasonable to me. Try to smmul it and see if it smmuls correctly.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/6</link>
+        <pubDate>Tue, 06 Jun 2017 12:41:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-6</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@SirPrimalform]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirprimalform">@SirPrimalform</a> wrote:</p>
+          <blockquote>
+              <p>So I think the constant I want is 1431655765, ___SMMUL-ing that with a number should divide it by a third, no bitshifting required. Does that sound right? I used the binary mode in the windows calculator to divide 1&lt;&lt;32 by 3, effectively building the &lt;&lt;5 into it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/5</link>
+        <pubDate>Tue, 06 Jun 2017 12:35:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-5</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>I guess you could put the whole &lt;&lt;5 bitshifting inside the constant and perform the operation in one take. It would surely be more precise (less truncation errors)and to some extent more efficient.<br>Even though both effects are quite negligible.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/4</link>
+        <pubDate>Tue, 06 Jun 2017 12:03:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-4</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@SirPrimalform]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirprimalform">@SirPrimalform</a> wrote:</p>
+          <blockquote>
+              <p>Cool thanks, I'll give that a go. That's similar to what I was suggesting but using a precomputed "0.3333", I was going to try and calculate it in init. Would I gain a tiny bit of precision by calculating the coefficient 'pre-scaled' so that the bitshift isn't required in the ___SMMUL operation?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/3</link>
+        <pubDate>Tue, 06 Jun 2017 11:41:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-3</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Division by a constant should not be too expensive. Alternatively you could multiply (with smmul) by (1/3)*2^27</p>
+
+<p>Like this: ___SMMUL(x3 &lt;&lt;3, 44739243 &lt;&lt;2)</p>
+
+<p>What you're trying to do however is exactly what dist soft does. I think it's sufficient to simply copy the code</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/2</link>
+        <pubDate>Tue, 06 Jun 2017 11:35:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-2</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+      <item>
+        <title>Hacking dist/soft (dividing by 3)</title>
+        <dc:creator><![CDATA[@SirPrimalform]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirprimalform">@SirPrimalform</a> wrote:</p>
+          <blockquote>
+              <p>I realise this is more of a general programming question to a certain extent but it's related to the specifics of the processor and peculiarities of the Axoloti number range. I hope someone will humour me but please delete this if it's considered to be off topic.</p>
+
+<p>I'm trying to make a "no gain" version of dist/soft for use in things like feedback loops. Using a graphing calculator I've worked out that what I need is x-(x^3)/3, what I'm actually wondering is if anyone knows a shortcut to working out the /3 bit.</p>
+
+<p>As I understand it, division is quite expensive, so avoiding directly dividing would be beneficial. One idea I had was to use init to store a number in a variable, that when used with ___SMMUL would be like multiplying by 0.33333. Is that the best approach or is there a better one? </p>
+
+<p>So sort of a programming question, but hopefully not an annoying "teach me C++ pls" post.<br>Cheers,<br>SPF</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388/1</link>
+        <pubDate>Tue, 06 Jun 2017 11:10:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3388-1</guid>
+        <source url="http://community.axoloti.com/t/hacking-dist-soft-dividing-by-3/3388.rss">Hacking dist/soft (dividing by 3)</source>
+      </item>
+  </channel>
+</rss>

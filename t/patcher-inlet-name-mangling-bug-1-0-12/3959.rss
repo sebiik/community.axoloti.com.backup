@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Patcher inlet name mangling bug 1.0.12</title>
+    <link>http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959</link>
+    <description>I think there might be a bug in the patcher. For the audio rate sample buffer type frac32buffer, the patcher mangles the patch source (build/xpatch.cpp) when an audio rate input has a name that ends in a number with more than 2 digits. Other inlet types work as expected.
+
+In the object &quot;drj/mux/mux 12&quot; :
+
+      &lt;inlets&gt;
+         ...
+         &lt;frac32buffer name=&quot;i10&quot; description=&quot;input 10&quot;/&gt;
+         &lt;frac32buffer name=&quot;i11&quot; description=&quot;input 11&quot;/&gt;
+         ...
+      &lt;/inlets&gt;
+
+      &lt;code.srate&gt;&lt;![CDATA[   switch(inlet_s&gt;0?inlet_s:0){
+      ... 
+    // in 1.0.12 this code:
+ 
+      case 10: outlet_o= inlet_i10;break;
+      case 11: outlet_o= inlet_i11;break;
+      default: outlet_o= inlet_i11;break;
+
+    // gets mangled to (note the breaking up of the number &quot;10&quot; and &quot;11&quot;):
+
+      case 10: outlet_o[buffer_index]= inlet_i1[buffer_index]0;break;
+      case 11: outlet_o[buffer_index]= inlet_i1[buffer_index]1;break;
+      default: outlet_o[buffer_index]= inlet_i1[buffer_index]1;break;
+      ...
+    }
+    ]]&gt;&lt;/code.srate&gt;
+
+To trigger the bug, make a new patch with just the &quot;mux 12&quot; audio rate object and start the patch compilation. The bug manifests itself on another user&#39;s Apple system as well as on my Windows system.
+
+Edit to add: The &quot;mux 12&quot; object was made and tested on May 5, 2016 and left alone since then, except for some testing today.
+
+I made a temporary workaround for a fellow Axoloti user by making a &quot;mux 12b&quot; object, replacing the two digit numbering 10 and 11 with A and B. I will deprecate that object when this bug gets fixed.</description>
+    
+    <lastBuildDate>Sat, 25 Nov 2017 13:15:50 +0000</lastBuildDate>
+    <category>Helpdesk</category>
+    <atom:link href="http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Patcher inlet name mangling bug 1.0.12</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>if you name the inlets with a 0 prefix it should work: i00 i01 i02 i03 ... i10</p>
+
+<hr>
+
+<p>I think that <a class="mention" href="/u/thetechnobear">@thetechnobear</a> works on the Axoloti editor, maybe he has more information. </p>
+
+<p>I think the problem is that "inlet_i1" is a substring of 'inlet_i10" that confuses some replace algorithm that insert the [buffer_index].<br>Maybe it is possible to fix the bug with some regex used in the String.replaceAll</p>
+
+<pre><code>newString = oldString.replaceAll(
+     "(?&lt;![a-zA-Z0-9_])"
+   + "inlet_"+inletName
+   + "(?![a-zA-Z0-9_])"
+);</code></pre>
+
+<p>.</p>
+
+<pre><code>(?![a-zA-Z0-9_])</code></pre>
+
+<p>means "not followed" by any of the a to z A to Z 0 to 9 or _ characters</p>
+
+<pre><code>(?&lt;![a-zA-Z0-9_])</code></pre>
+
+<p>means "not preceded" by such characters (if somebody is vicious enough to name a variable T_inlet_i1 it won't cause trouble).</p>
+
+<hr>
+
+<p>I tested this regex here:<br><a href="https://regex101.com/" class="onebox" target="_blank">https://regex101.com/</a></p>
+
+<p>regex:</p>
+
+<pre><code>  (?&lt;![a-zA-Z0-9_])inlet_i1(?![a-zA-Z0-9_])</code></pre>
+
+<p>test string:</p>
+
+<pre><code>int32_t x = inlet_i1&gt;&gt;5;  // found
+int32_t x =inlet_i1&gt;&gt;5;   // found
+int32_t y = inlet_i10&gt;&gt;5; // not found
+int32_t y = Tinlet_i1&gt;&gt;5; // not found</code></pre>
+
+<p>it found inlet_i1 only where it is intended.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959/3</link>
+        <pubDate>Sat, 25 Nov 2017 11:03:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3959-3</guid>
+        <source url="http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959.rss">Patcher inlet name mangling bug 1.0.12</source>
+      </item>
+      <item>
+        <title>Patcher inlet name mangling bug 1.0.12</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="3959"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/drjustice/40/1430_1.png" class="avatar">DrJustice:</div>
+<blockquote><p>case 10: outlet_o[buffer_index]= inlet_i1[buffer_index]0;break;</p></blockquote></aside>
+
+<p>I get this occasionally also and was not really able to find a pattern to why it did it. But it has to do with numbers in the names of the outlets, I think I only had the issue on S-rate outputs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959/2</link>
+        <pubDate>Sat, 25 Nov 2017 07:45:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3959-2</guid>
+        <source url="http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959.rss">Patcher inlet name mangling bug 1.0.12</source>
+      </item>
+      <item>
+        <title>Patcher inlet name mangling bug 1.0.12</title>
+        <dc:creator><![CDATA[@DrJustice]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/drjustice">@DrJustice</a> wrote:</p>
+          <blockquote>
+              <p>I think there might be a bug in the patcher. For the audio rate sample buffer type frac32buffer, the patcher mangles the patch source (build/xpatch.cpp) when an audio rate input has a name that ends in a number with more than 2 digits. Other inlet types work as expected.</p>
+
+<p>In the object "drj/mux/mux 12" :</p>
+
+<pre><code>  &lt;inlets&gt;
+     ...
+     &lt;frac32buffer name="i10" description="input 10"/&gt;
+     &lt;frac32buffer name="i11" description="input 11"/&gt;
+     ...
+  &lt;/inlets&gt;
+
+  &lt;code.srate&gt;&lt;![CDATA[   switch(inlet_s&gt;0?inlet_s:0){
+  ... 
+// in 1.0.12 this code:
+
+  case 10: outlet_o= inlet_i10;break;
+  case 11: outlet_o= inlet_i11;break;
+  default: outlet_o= inlet_i11;break;
+
+// gets mangled to (note the breaking up of the number "10" and "11"):
+
+  case 10: outlet_o[buffer_index]= inlet_i1[buffer_index]0;break;
+  case 11: outlet_o[buffer_index]= inlet_i1[buffer_index]1;break;
+  default: outlet_o[buffer_index]= inlet_i1[buffer_index]1;break;
+  ...
+}
+]]&gt;&lt;/code.srate&gt;</code></pre>
+
+<p>To trigger the bug, make a new patch with just the "mux 12" audio rate object and start the patch compilation. The bug manifests itself on another user's Apple system as well as on my Windows system.</p>
+
+<p>Edit to add: The "mux 12" object was made and tested on May 5, 2016 and left alone since then, except for some testing today.</p>
+
+<p>I made a temporary workaround for a fellow Axoloti user by making a "mux 12b" object, replacing the two digit numbering 10 and 11 with A and B. I will deprecate that object when this bug gets fixed.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959/1</link>
+        <pubDate>Fri, 24 Nov 2017 19:14:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3959-1</guid>
+        <source url="http://community.axoloti.com/t/patcher-inlet-name-mangling-bug-1-0-12/3959.rss">Patcher inlet name mangling bug 1.0.12</source>
+      </item>
+  </channel>
+</rss>

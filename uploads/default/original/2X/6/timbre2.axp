@@ -1,0 +1,320 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="midi/in/monitor" uuid="b51863ca-6afa-4d29-acfd-c8c2fe06cb16" name="monitor_1" x="42" y="84">
+      <params>
+         <bool32.tgl name="ControlChange" value="1"/>
+         <bool32.tgl name="Note" value="1"/>
+         <bool32.tgl name="ProgramChange" value="0"/>
+         <bool32.tgl name="Bend" value="1"/>
+         <bool32.tgl name="PolyPressure" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="6075c2bc-11ba-4b86-a2fd-963f768bbe3f" name="patcher_1" x="98" y="224">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="1"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_1" x="280" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="outlet_9" x="252" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="outlet_10" x="350" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_2" x="294" y="140">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="4e52c1a6-1135-41f2-a777-1f90acb1da9f" name="monitor_1" x="742" y="140">
+            <params>
+               <bool32.tgl name="ControlChange" value="0"/>
+               <bool32.tgl name="Note" value="0"/>
+               <bool32.tgl name="ProgramChange" value="0"/>
+               <bool32.tgl name="Bend" value="0"/>
+               <bool32.tgl name="PolyPressure" value="0"/>
+            </params>
+            <attribs/>
+            <object id="patch/object" uuid="4e52c1a6-1135-41f2-a777-1f90acb1da9f">
+               <sDescription>Dumps incoming MIDI data to the log. Useful for diagnostics, but do not leave it in a patch for real playing! Occasionally causes disconnects.</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <inlets/>
+               <outlets/>
+               <displays/>
+               <params>
+                  <bool32.tgl name="ControlChange" description="Enable to monitor Control Change messages"/>
+                  <bool32.tgl name="Note" description="Enable to monitor Note On/Off messages"/>
+                  <bool32.tgl name="ProgramChange" description="Enable to monitor Program Change messages"/>
+                  <bool32.tgl name="Bend" description="Enable to monitor Pitch Bend messages"/>
+                  <bool32.tgl name="PolyPressure" description="Enable to monitor Polyphonic Pressure messages"/>
+               </params>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[bool p_Note;
+bool p_PolyPressure;
+bool p_ControlChange;
+bool p_ProgramChange;
+bool p_Bend;
+]]></code.declaration>
+               <code.krate><![CDATA[p_Note=param_Note;
+p_PolyPressure=param_PolyPressure;
+p_ControlChange=param_ControlChange;
+p_ProgramChange=param_ProgramChange;
+p_Bend=param_Bend;]]></code.krate>
+               <code.midihandler><![CDATA[switch (status & 0xf0) {
+	case MIDI_NOTE_ON: 
+	if (p_Note)
+		LogTextMessage("NoteOn  ch%2D n%3D v%3D", 1 + (status & 0x0F), data1, data2);
+		break;
+	case MIDI_NOTE_OFF: 
+	if (p_Note)
+		LogTextMessage("NoteOff ch%2D n%3D v%3D", 1 + (status & 0x0F), data1, data2);
+		break;
+	case MIDI_POLY_PRESSURE: 
+	if (p_PolyPressure)
+		LogTextMessage("PolyPrs ch%2D n%3D v%3D", 1 + (status & 0x0F), data1, data2);
+		break;
+	case MIDI_CONTROL_CHANGE: 
+	if (p_ControlChange)
+		LogTextMessage("Control ch%2D cc%3D v%3D", 1 + (status & 0x0F), data1, data2);
+		break;
+	case MIDI_PROGRAM_CHANGE: 
+	if (p_ProgramChange)
+		LogTextMessage("PgmChg  ch%2D pgm%3D", 1 + (status & 0x0F), data1, data2);
+		break;
+	case MIDI_PITCH_BEND: 
+	if (p_Bend)
+		LogTextMessage("PitchBnd ch%2D v%3D v%3D", 1 + (status & 0x0F), data1, data2);
+		break;
+	default:
+	;
+}
+]]></code.midihandler>
+            </object>
+         </patchobj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_3" x="308" y="154">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_4" x="322" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_5" x="336" y="182">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_6" x="350" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_7" x="364" y="210">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="outlet_8" x="378" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="4f35cf91-440e-48fb-a167-bdc630e3e235" name="mpe_1" x="154" y="252">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="4f35cf91-440e-48fb-a167-bdc630e3e235">
+               <sDescription>Controller input for MIDI Polyphonic Expression
+       - corrected intempestive bend range change on seaboard Rise octave change
+       - init timbre outlet: timbre on note on, can be used for relative slide control
+       </sDescription>
+               <author>Mark Harris mod SmashedTransistors</author>
+               <license>BSD</license>
+               <helpPatch>mpe.axh</helpPatch>
+               <inlets/>
+               <outlets>
+                  <frac32.bipolar name="note" description="midi note number (-64..63)"/>
+                  <bool32 name="gate" description="key pressed, no retrigger legato"/>
+                  <bool32 name="gate2" description="key pressed, retrigger on legato"/>
+                  <frac32.positive name="velocity" description="note-on velocity"/>
+                  <frac32.positive name="releaseVelocity" description="note-off velocity"/>
+                  <frac32.positive name="pressure" description="continuous pressure"/>
+                  <frac32 name="bend" description="continuous pitchbend (-64..63)"/>
+                  <frac32 name="timbre" description="continuous timbre (-64..63)"/>
+                  <frac32 name="initTimbre"/>
+                  <frac32 name="pitch" description="pitch including pitchbend"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[
+int8_t _note;
+int32_t _gate;
+int32_t _gate2;
+uint32_t _velo;
+uint32_t _rvelo;
+uint32_t _pressure;
+int32_t _bend;
+int32_t _timbre;
+int32_t _initTimbre;
+uint8_t _lastRPN_LSB;
+uint8_t _lastRPN_MSB;
+uint8_t _bendRange;
+int32_t _pitch;
+int32_t _xl,_yl,_zl;
+static const uint8_t xccl = 85;
+static const uint8_t yccl = 87;
+static const uint8_t zccl = 86;]]></code.declaration>
+               <code.init><![CDATA[
+_lastRPN_LSB = 128;
+_lastRPN_MSB = 128;
+_gate = 0;
+_note = 0;
+_pressure = 0;
+_bend = 0;
+_timbre = 0;
+_bendRange = 48;
+_xl=_yl=_zl=0;
+]]></code.init>
+               <code.krate><![CDATA[outlet_note= _note<<21;
+outlet_gate= _gate;
+outlet_gate2= _gate2;
+_gate2 = _gate;
+outlet_velocity= _velo;
+outlet_releaseVelocity= _rvelo;
+outlet_pressure = _pressure;
+outlet_bend = _bend;
+outlet_timbre = _timbre;
+outlet_initTimbre = _initTimbre;
+outlet_pitch = _pitch;]]></code.krate>
+               <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_midichannel) && (data2)) {
+  _velo = data2<<20;
+  _note = data1-64;
+  _gate = 1<<27;
+  _gate2 = 0;
+  _pitch = (_note << 21) + ((_bend >> 6)* _bendRange );
+  _initTimbre = _timbre;
+  LogTextMessage("InitialTimbre %d",_timbre>>21);
+} else if (((status == MIDI_NOTE_ON + attr_midichannel) && (!data2))||
+          (status == MIDI_NOTE_OFF + attr_midichannel)) 
+          {
+          	//LogTextMessage("Irgendwas",data1);
+  if (_note == data1-64) {
+    _rvelo = data2<<20;
+    _gate = 0;
+    _pressure = 0;
+  }
+} else if (status == attr_midichannel + MIDI_CHANNEL_PRESSURE) {
+	//LogTextMessage("channel press change, data  = %d",data1);
+  _pressure = (data1<<20) + _zl;
+} else if (status == attr_midichannel + MIDI_PITCH_BEND) {
+	//LogTextMessage("pitch bend change, data  = %d",data1);
+  _bend = (((int)((data2<<7)+data1)-0x2000)<<14) + _xl;
+  _pitch = (_note << 21) + ((_bend >> 6)* _bendRange );
+} else if (status == attr_midichannel + MIDI_CONTROL_CHANGE) {
+	//LogTextMessage("CC change, data  = %d",data1);
+  if (data1 == MIDI_C_TIMBRE) {
+    _timbre = (((int)(data2<<7)-0x2000)<<14) + _yl;
+     LogTextMessage("Timbre set to %d",_timbre>>21);
+  } else if (data1 == zccl) {   _zl = data2 << 13;  // press LSB
+  } else if (data1 == xccl) {   _xl = data2 << 7;   // bend LLSB
+  } else if (data1 == yccl) {   _yl = data2 << 14;  // timbre LSB
+  } else if(data1 == MIDI_C_ALL_NOTES_OFF) {
+    _gate = 0;
+  } else if (data1 == MIDI_C_RPN_MSB || data1 == MIDI_C_RPN_LSB || data1 == MIDI_C_DATA_ENTRY) {
+    switch(data1) {
+         case MIDI_C_RPN_LSB: _lastRPN_LSB = data2; break;
+         case MIDI_C_RPN_MSB: _lastRPN_MSB = data2; break;
+         case MIDI_C_DATA_ENTRY: {
+              if (_lastRPN_LSB == 0 && _lastRPN_MSB == 0) {
+                _bendRange = data2;
+              }
+            }
+            break;
+        default: break;
+    }
+  }
+}]]></code.midihandler>
+            </object>
+         </patchobj>
+         <nets>
+            <net>
+               <source obj="mpe_1" outlet="note"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="gate"/>
+               <dest obj="outlet_9" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="gate2"/>
+               <dest obj="outlet_10" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="velocity"/>
+               <dest obj="outlet_2" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="releaseVelocity"/>
+               <dest obj="outlet_3" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="pressure"/>
+               <dest obj="outlet_4" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="bend"/>
+               <dest obj="outlet_5" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="timbre"/>
+               <dest obj="outlet_6" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="initTimbre"/>
+               <dest obj="outlet_7" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="mpe_1" outlet="pitch"/>
+               <dest obj="outlet_8" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyexpression</subpatchmode>
+            <MidiChannel>2</MidiChannel>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+            <Author></Author>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>115</x>
+            <y>340</y>
+            <width>944</width>
+            <height>450</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+      <Author></Author>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>855</width>
+      <height>625</height>
+   </windowPos>
+</patch-1.0>

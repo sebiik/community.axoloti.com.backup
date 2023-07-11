@@ -1,0 +1,183 @@
+<objdefs>
+   <obj.normal id="sample_trigger" uuid="bb61176f2130b8bdd8b2cbe54ce4e6651ee4dbd6" 
+    sha="33794df9110ae5f75317ebc52bbd8896347f00f">
+      <sDescription>Filename generator and configurable sample trigger. Configuration is described inside axo file</sDescription>
+      <author>Igor Brkic</author>
+      <license>BSD</license>
+      <inlets>
+         <frac32 name="note" description="MIDI note"/>
+         <bool32.risingfalling name="gate" description="trigger"/>
+      </inlets>
+      <outlets>
+         <charptr32 name="fname" description="filename"/>
+         <bool32 name="start" description="trigger"/>
+         <bool32 name="stop" description="trigger"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs/>
+      <includes>
+         <include>chibios/ext/fatfs/src/ff.h</include>
+         <include>./sample_trigger.h</include>
+      </includes>
+      <code.declaration><![CDATA[    
+
+/*
+ * This object dynamically creates filename and start/stop signals for wave/play based
+ * on the configuration file. Configuration file must be placed on SD card
+ * and named SAMPLER.CFG
+ *
+ * Each configuration line defines MIDI note, play mode and file to be played.
+ * Lines starting with # or space and empty lines are ignored.
+ *
+ * Format:
+ * <midi_note> <play_mode> <filename>
+ *
+ * <midi_note>
+ *    MIDI note number or name which will trigger the sample
+ * <play_mode> 
+ *    TRIGGER - (or just T or t) sample plays until it ends or another MIDI note is received
+ *    HOLD - (or just H or h) sample is stopped when the MIDI note stops
+ *    //LOOP - not implemented
+ * <filename>
+ *    name of the file to be played
+ *
+ * Example:
+ *   23 TRIGGER SAMPLE1.RAW
+ *   24 HOLD SAMPLE2.RAW
+ *   # comment
+ *   f#4 T SAMPLE3.RAW
+ *   A3 H SAMPLE4.RAW
+ *
+ */
+
+sample_config_t conf[100]={{"", TRIGGER, -1}};
+sample_config_t *current = NULL;
+int error = 0;
+int count = 0;
+
+int out_start = 0;
+int out_stop = 0;
+char *out_fname=NULL;
+
+bool_t gate_old = FALSE;
+
+      ]]></code.declaration>
+      <code.init><![CDATA[
+
+FIL f;
+FRESULT fr = f_open(&f, "SAMPLER.CFG", FA_READ|FA_OPEN_EXISTING);
+if(!fr){
+  char line[80];
+  while(f_gets(line, 79, &f)){
+    char *c = line;
+
+    // skip comments and empty lines
+    if(line[0]=='#' || line[0]=='\0' || line[0]==' ') continue;
+
+    // parse midi_note
+    conf[count].note=0;
+    if(*c>='0' && *c<='9'){
+      // note number
+      while(c){
+        if(*c==' ') break;
+        conf[count].note*=10;
+        conf[count].note+=*c-'0';
+        c++;
+      }
+    }
+    else if((*c>='a' && *c<='g') || (*c>='A' && *c<='G')){
+      // note name
+      int idx=0;
+      const char* notes="C_D_EF_G_A_B";
+      if(*c>='a') *c-=32; // convert to uppercase
+      while(notes[idx]!='\0'){
+        if(*c==notes[idx]) break;
+        idx++;
+      }
+      c++;
+      if(*c=='#'){
+        idx+=1;
+        c++;
+      }
+      if(*c>='0' && *c<='9'){
+        conf[count].note = (*c-'0')*12+idx+12;
+        // remove extra chars
+        while(*c!=' ' && c!='\0') c++;
+      }
+      else{
+        continue; // error
+      }
+    }
+    else{
+      // error
+      continue;
+    }
+    conf[count].note-=64; // axo midi numbering
+
+    // remove extra spaces
+    while(*c==' ') c++;
+
+    // parse play mode
+    if(*c=='t' || *c=='T') conf[count].mode=TRIGGER;
+    else if(*c=='h' || *c=='H') conf[count].mode=HOLD;
+
+    // remove extra chars
+    while(*c!=' ' && c!='\0') c++;
+
+    // remove extra spaces
+    while(*c==' ') c++;
+
+    // parse filename (the rest)
+    strcpy(conf[count].fname, c);
+    char *n = strstr(conf[count].fname, "\n");
+    if(n!=NULL) *n='\0';
+
+    count++;
+  }
+  conf[count].note=-1;
+  f_close(&f);
+}
+
+
+      ]]></code.init>
+      <code.dispose><![CDATA[
+      ]]></code.dispose>
+      <code.krate><![CDATA[
+
+out_start = 0;
+out_stop = 0;
+
+if(inlet_gate!=gate_old){
+
+  if(inlet_gate){
+    sample_config_t *sc=&conf[0];
+    bool_t found = FALSE;
+    while(sc->note!=-1){
+      if(sc->note==(inlet_note>>21)){
+        current = sc;
+        out_fname = sc->fname;
+        found = TRUE;
+        break;
+      }
+      sc++;
+    }
+    if(found) out_start=1;
+    else current=NULL;
+  }
+  else{
+    out_start = 0;
+    if(current && current->mode==HOLD){
+      // ...
+      out_stop = 1;
+    }
+  }
+  gate_old = inlet_gate;
+}
+outlet_fname = out_fname;
+outlet_start = out_start;
+outlet_stop = out_stop;
+
+      ]]></code.krate>
+   </obj.normal>
+</objdefs>

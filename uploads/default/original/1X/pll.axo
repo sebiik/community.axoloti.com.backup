@@ -1,0 +1,80 @@
+<objdefs>
+	<obj.normal id="pll" uuid="c7ab03a9a77f926d6f9158a179bdf940213eb26a" sha="83f8f26847b5e2c45ce7a0f8011427b27e5de0a4">
+		<sDescription>pll-ish frequency multiplier</sDescription>
+		<author>loopmasta@gmail.com</author>
+		<license>BSD</license>
+		<helpPatch/>
+		<inlets>
+			<bool32.rising name="in" description="trigger"/>
+		</inlets>
+		<outlets>
+			<int32 name="out" description="output"/>
+			<bool32.pulse name="lock" description="lock"/>
+		</outlets>
+		<displays/>
+		<params>
+			<int32 name="time" description="value of multiplier">
+				<MinValue i="1"/>
+				<MaxValue i="8"/>
+			</int32>
+		</params>
+		<attribs/>
+		<code.declaration><![CDATA[
+
+int trigger;
+
+int phase;
+int lock;
+int loop;
+
+int length;
+int slice;
+
+		]]></code.declaration>
+		<code.init><![CDATA[
+
+trigger = 0;
+
+phase = 0;
+lock = 2;
+loop = 0;
+
+length = 0;
+slice = 0;
+
+		]]></code.init>
+		<code.krate><![CDATA[
+
+phase += BUFSIZE;
+loop += BUFSIZE;
+
+if (inlet_in > 0) {
+	if (!trigger) {
+		slice = (phase / param_time);
+		length = slice / 2;
+
+		trigger = 1;
+		phase = 0;
+		loop = 0;
+
+		if (lock > 0) {
+			lock--;
+		}
+	}
+} else {
+	trigger = 0;
+}
+
+if (loop > slice) {
+	loop = 0;
+}
+
+if (lock == 0) {
+	outlet_out = loop < length ? 32 : -32;
+}
+
+outlet_lock = (lock == 0);
+
+		]]></code.krate>
+	</obj.normal>
+</objdefs>

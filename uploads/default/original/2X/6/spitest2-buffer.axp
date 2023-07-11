@@ -1,0 +1,387 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="gpio/spi/spi1config" uuid="dfb0e9b4-7362-431e-aadc-4dfc87d9d35d" name="spi1config_1" x="28" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=0"/>
+         <combo attributeName="clock_phase" selection="CPHA=0"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <obj type="lfo/sine" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_1" x="168" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="280" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gpio/out/led3" uuid="7b00f227-b40c-40d8-9d7d-706798f373dc" name="led3_2" x="392" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="lfo/sine" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_2" x="490" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="-59.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_2" x="602" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gpio/out/led4" uuid="3ea0ca32-1ebc-4f18-ba3b-69e35d605f79" name="led4_1" x="714" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="336" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="lfo/sine" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_4" x="28" y="322">
+      <params>
+         <frac32.s.map name="pitch" value="-28.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/&gt;&gt;" uuid="d883beaf50b7aae4803ed9941e8f123e87e1e3aa" name="&gt;&gt;_1" x="126" y="322">
+      <params/>
+      <attribs>
+         <spinner attributeName="shift" value="5"/>
+      </attribs>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_3" x="224" y="322">
+      <params>
+         <frac32.s.map name="pitch" value="24.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 1 g" uuid="e6982841c1bf323ee2062a4b6cc2737adafbd668" name="mix_2" x="406" y="322">
+      <params>
+         <frac32.u.map name="gain1" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="e37e7f23-530e-4e58-964a-2727988daf44" name="23LCV1024" x="504" y="322">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="e37e7f23-530e-4e58-964a-2727988daf44">
+         <inlets>
+            <frac32buffer name="in1" description="wave input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out1" description="delayed output"/>
+         </outlets>
+         <displays>
+            <int32.hexlabel name="mode"/>
+            <int32.hexlabel name="sendAddr"/>
+            <frac32.s.chart name="sendData"/>
+            <int32.hexlabel name="receiveAddr"/>
+            <frac32.s.chart name="receiveData"/>
+         </displays>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[// SRAM Instructions
+#define RDMR  0x05
+#define WRMR  0x01
+#define WRITE 0x02
+#define READ  0x03
+
+// SRAM modes
+#define BYTE_MODE       0x00
+#define PAGE_MODE       0x80
+#define SEQUENTIAL_MODE 0x40
+
+// 23lc1024 SRAM address is 17bits long
+static const uint32_t LENGTHMASK = 0x1FFFF;
+
+uint8_t *txbuf;
+uint8_t *rxbuf;
+
+uint32_t writeAddress = 0;
+uint32_t readAddress = 0;
+
+////////////////////////////////////////////////////////////////////////////////
+
+void setMode(uint8_t mode)
+{
+	txbuf[0] = WRMR;
+	txbuf[1] = mode;
+	
+	spiSelect(&SPID1);
+	//write WRMR instruction, write mode byte
+	spiSend(&SPID1, 2, txbuf); 
+
+	spiUnselect(&SPID1);
+}
+
+
+uint8_t getMode(void)
+{
+	txbuf[0] = RDMR;
+
+	spiSelect(&SPID1);
+	//write RDMR instruction
+	spiSend(&SPID1, 1, txbuf); 
+	//receive MODE info
+	spiReceive(&SPID1, 1, &rxbuf[0]); 
+	spiUnselect(&SPID1);
+
+	return rxbuf[0];
+}
+
+
+uint8_t writeByte(uint8_t data, uint32_t address)
+{
+	// put together tx buffer:
+	// WRITE instruction
+	txbuf[0] = WRITE;
+	// 17bit address to write to
+	txbuf[1] = (address>>16) & 0x01;
+	txbuf[2] = address>>8;
+	txbuf[3] = address;
+	// data byte to be written
+	txbuf[4] = data;
+
+	// CS low
+	spiSelect(&SPID1);
+
+	// send WRITE byte, 3-byte address, data byte
+	spiSend(&SPID1, 5, txbuf); //write byte, 3-byte address, data byte
+
+	// CS high
+	spiUnselect(&SPID1);
+
+	return 0; // TODO: add error check
+}
+
+
+uint8_t readByte(uint32_t address)
+{
+	// put together tx buffer to send reading instructions:
+	// READ instruction
+	txbuf[0] = READ;
+	// 17bit address to read from
+	txbuf[1] = (address>>16) % 0x01;
+	txbuf[2] = address>>8;
+	txbuf[3] = address;
+
+	// CS low
+	spiSelect(&SPID1);
+
+	// send READ byte, 3-byte address
+	spiSend(&SPID1, 4, txbuf); // send request to read back ram address 0
+	// receive data byte
+	spiReceive(&SPID1, 1, rxbuf); // receive byte in SRAM
+
+	// CS high
+	spiUnselect(&SPID1);
+
+	// return byte read
+	return rxbuf[0];
+}
+
+
+uint16_t writeShort(uint16_t data, uint32_t address)
+{
+	// put together tx buffer:
+	// WRITE instruction
+	txbuf[0] = WRITE;
+	// 17bit address to write to
+	txbuf[1] = (address>>16) & 0x01;
+	txbuf[2] = address>>8;
+	txbuf[3] = address;
+	// data byte to be written
+	txbuf[4] = data>>8; //high byte
+	txbuf[5] = data; // low byte
+
+	// CS low
+	spiSelect(&SPID1);
+
+	// send WRITE byte, 3-byte address, two data bytes
+	spiSend(&SPID1, 6, txbuf);
+
+	// CS high
+	spiUnselect(&SPID1);
+
+	return 0; // TODO: add error check?
+}
+
+
+uint16_t readShort(uint32_t address)
+{
+	// put together tx buffer to send reading command:
+	// READ instruction
+	txbuf[0] = READ;
+	// 17bit address to read from
+	txbuf[1] = (address>>16) % 0x01;
+	txbuf[2] = address>>8;
+	txbuf[3] = address;
+
+	// CS low
+	spiSelect(&SPID1);
+
+	// send READ byte, 3-byte address
+	spiSend(&SPID1, 4, txbuf);
+	// receive data byte
+	spiReceive(&SPID1, 2, rxbuf); // receive two bytes from SRAM
+
+	// CS high
+	spiUnselect(&SPID1);
+
+	// return uint16 read
+	return (rxbuf[0]<<8 | rxbuf[1]); // high byte, low byte
+}]]></code.declaration>
+         <code.init><![CDATA[static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));
+
+txbuf = _txbuf;
+txbuf = _txbuf;
+
+// valid SRAM modes:
+// BYTE_MODE       0x00
+// PAGE_MODE       0x80
+// SEQUENTIAL_MODE 0x40
+
+//set transfer mode to SEQUENTIAL_MODE (default anyway)
+setMode(SEQUENTIAL_MODE);
+
+// read MODE register and display active mode (should be 0x00, 0x80, or 0x40)
+disp_mode = getMode();
+
+
+// (dirty) zero out entire 23LC1024 SRAM
+for (int i=0; i<LENGTHMASK; i++)
+{
+	writeShort(0, i);
+}]]></code.init>
+         <code.srate><![CDATA[// SRAM Instructions:
+// RDMR  0x05
+// WRMR  0x01
+// WRITE 0x02
+// READ  0x03
+
+	// send uint32 to SRAM
+	writeShort(inlet_in1>>21, writeAddress);
+
+	// display writeAddress (3 bytes) and tx buffer (2 bytes) in patcher
+	disp_sendAddr = writeAddress;
+	disp_sendData = inlet_in1;
+
+	// readAddress reads one int16_t sample ahead, i.e. the oldest sample in 
+	// the delay line, right before its memory location gets overwritten
+	// with the newest sample. Wrap read address.
+	readAddress = (writeAddress + sizeof(int16_t)) & LENGTHMASK;
+	
+	// receive int16 from SRAM
+	outlet_out1 =  (readShort(readAddress))<<21;
+
+	// display readAddress (24bits) followed by rx buffer (8bits) in patcher
+	disp_receiveAddr = readAddress;
+	disp_receiveData = outlet_out1; //= (rxbuf[0]<<8 | rxbuf[1])<<11;
+
+	// increment and wrap write address
+	writeAddress = (writeAddress + sizeof(int16_t)) & LENGTHMASK;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="mix/mix 1" uuid="e8f482af5b1ec4a2e9cf8ac7ce09e7c0e43cea08" name="mix_1" x="644" y="322">
+      <params>
+         <frac32.u.map name="gain1" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="742" y="322">
+      <params>
+         <frac32.u.map name="volume" value="14.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="112" y="420">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="14.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_1" x="602" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_2" x="742" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="square_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="led3_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_2" outlet="wave"/>
+         <dest obj="square_2" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="square_2" outlet="wave"/>
+         <dest obj="led4_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_3" outlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="sine_4" outlet="wave"/>
+         <dest obj="ad_1" inlet="trig"/>
+         <dest obj="&gt;&gt;_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="&gt;&gt;_1" outlet="result"/>
+         <dest obj="sine_3" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="ad_1" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="scope_1" inlet="in"/>
+         <dest obj="mix_2" inlet="bus_in"/>
+         <dest obj="mix_1" inlet="bus_in"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="23LCV1024" outlet="out1"/>
+         <dest obj="scope_2" inlet="in"/>
+         <dest obj="mix_2" inlet="in1"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="mix_2" outlet="out"/>
+         <dest obj="23LCV1024" inlet="in1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>993</x>
+      <y>32</y>
+      <width>927</width>
+      <height>1048</height>
+   </windowPos>
+</patch-1.0>

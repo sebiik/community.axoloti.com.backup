@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>168 vs 180 MHz Operation</title>
+    <link>http://community.axoloti.com/t/168-vs-180-mhz-operation/4470</link>
+    <description>
+mcuconf.h
+```
+#define STM32_PLLN_VALUE                    336
+```
+The STM32F427vg is being setup to run at 168 MHz.
+
+It&#39;s capable of running at 180 MHz.
+http://www.st.com/en/microcontrollers/stm32f427-437.html
+
+Why is that? Is it a hangover from STM32F407 development?
+
+180/168 = 1.07 (7% performance gain)
+
+To try it out:
+
+```
+#define STM32_PLLN_VALUE                    360
+```</description>
+    
+    <lastBuildDate>Sun, 07 May 2023 04:18:02 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>168 vs 180 MHz Operation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Five years later and thanks for this little script! I am messing around with an STM32F767 that can run at max. 216 Mhz and your script (if F7 config even works the same) gives me the following options:</p>
+
+<blockquote><pre><code>sysclk 72000000 pll_m 4 pll_n 72 pll_p 2 pll_q 3 ahb_presc 1
+sysclk 96000000 pll_m 4 pll_n 96 pll_p 2 pll_q 4 ahb_presc 1
+sysclk 120000000 pll_m 4 pll_n 120 pll_p 2 pll_q 5 ahb_presc 1
+sysclk 144000000 pll_m 4 pll_n 144 pll_p 2 pll_q 6 ahb_presc 1
+sysclk 168000000 pll_m 4 pll_n 168 pll_p 2 pll_q 7 ahb_presc 1
+sysclk 192000000 pll_m 4 pll_n 192 pll_p 2 pll_q 8 ahb_presc 1
+sysclk 216000000 pll_m 4 pll_n 216 pll_p 2 pll_q 9 ahb_presc 1
+sysclk 216000000 pll_m 5 pll_n 270 pll_p 2 pll_q 9 ahb_presc 1
+sysclk 216000000 pll_m 6 pll_n 324 pll_p 2 pll_q 9 ahb_presc 1
+sysclk 216000000 pll_m 8 pll_n 432 pll_p 2 pll_q 9 ahb_presc 1</code></pre></blockquote>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/6</link>
+        <pubDate>Sun, 07 May 2023 04:18:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4470-6</guid>
+        <source url="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470.rss">168 vs 180 MHz Operation</source>
+      </item>
+      <item>
+        <title>168 vs 180 MHz Operation</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p></p><pre><code class="lang-auto">#!/usr/bin/python
+
+MHz = 1000000.0
+
+HSE = 8.0 * MHz
+
+pll_m_set = range(2, 63 + 1)
+pll_n_set = range(50, 432 + 1)
+pll_p_set = (2,4,6,8)
+pll_q_set = range(2, 15 + 1)
+ahb_presc_set = (1, 2, 4, 8, 16, 64, 128, 256, 512)
+
+def pll_vco_input(hse, pll_m):
+  return float(hse) / float(pll_m)
+
+def pll(hse, pll_m, pll_n):
+  return pll_vco_input(hse, pll_m) * float(pll_n)
+
+def pllclk(hse, pll_m, pll_n, pll_p):
+  return pll(hse, pll_m, pll_n) / float(pll_p)
+
+def pll48ck(hse, pll_m, pll_n, pll_q):
+  return pll(hse, pll_m, pll_n) / float(pll_q)
+
+def sysclk(hse, pll_m, pll_n, pll_p, ahb_presc):
+  return pllclk(hse, pll_m, pll_n, pll_p) / float(ahb_presc)
+
+def main():
+  max_sysclk = 0.0
+  for pll_m in pll_m_set:
+    for pll_n in pll_n_set:
+      for pll_p in pll_p_set:
+        for pll_q in pll_q_set:
+          for ahb_presc in ahb_presc_set:
+
+            x = pll48ck(HSE, pll_m, pll_n, pll_q)
+            if x != 48.0 * MHz:
+              continue
+
+            x = pll_vco_input(HSE, pll_m)
+            if x &lt; 1.0 * MHz or x &gt; 2.0 * MHz:
+              continue
+
+            x = pll(HSE, pll_m, pll_n)
+            if x &lt; 100.0 * MHz or x &gt; 432.0 * MHz:
+              continue
+
+            x = sysclk(HSE, pll_m, pll_n, pll_p, ahb_presc)
+            if x &gt; 180.0 * MHz:
+              continue
+
+            if x &gt;= max_sysclk:
+              print('sysclk %d pll_m %d pll_n %d pll_p %d pll_q %d ahb_presc %d' % (x, pll_m, pll_n, pll_p, pll_q, ahb_presc))
+              max_sysclk = x
+
+main()</code></pre>
+
+<p>Gives:</p>
+
+<p></p><pre><code class="lang-auto">sysclk 72000000 pll_m 4 pll_n 72 pll_p 2 pll_q 3 ahb_presc 1
+sysclk 96000000 pll_m 4 pll_n 96 pll_p 2 pll_q 4 ahb_presc 1
+sysclk 120000000 pll_m 4 pll_n 120 pll_p 2 pll_q 5 ahb_presc 1
+sysclk 144000000 pll_m 4 pll_n 144 pll_p 2 pll_q 6 ahb_presc 1
+sysclk 168000000 pll_m 4 pll_n 168 pll_p 2 pll_q 7 ahb_presc 1
+sysclk 168000000 pll_m 5 pll_n 210 pll_p 2 pll_q 7 ahb_presc 1
+sysclk 168000000 pll_m 6 pll_n 252 pll_p 2 pll_q 7 ahb_presc 1
+sysclk 168000000 pll_m 7 pll_n 294 pll_p 2 pll_q 7 ahb_presc 1
+sysclk 168000000 pll_m 8 pll_n 336 pll_p 2 pll_q 7 ahb_presc 1</code></pre>
+
+<p>So - yeah. No solutions for 180.0 MHz <img src="//community.axoloti.com/images/emoji/twitter/frowning_face.png?v=5" title=":frowning_face:" class="emoji" alt=":frowning_face:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/5</link>
+        <pubDate>Wed, 18 Apr 2018 17:50:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4470-5</guid>
+        <source url="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470.rss">168 vs 180 MHz Operation</source>
+      </item>
+      <item>
+        <title>168 vs 180 MHz Operation</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p>Well that's a pity. It seems like an oversight on the part of ST to provide a max clock rate that can't be effectively used with USB operations.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/4</link>
+        <pubDate>Wed, 18 Apr 2018 14:26:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4470-4</guid>
+        <source url="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470.rss">168 vs 180 MHz Operation</source>
+      </item>
+      <item>
+        <title>168 vs 180 MHz Operation</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Yes, the STM32F42x family can run at 180MHz ... however that is without USB!<br>It took me a while to believe it and I was disappointed when I figured this out, it is a limitation of the clock tree/PLLs inside the chip.</p>
+
+<p>USB requires the PLL48CLK at 48MHz, for a 180MHz SYSCLK you can derive that<br>PLLP/PLLQ=3.75<br>That ratio can only be achieved with PLLQ=15 and PLLP=4<br>However that requires the PLLN output to be 720MHz while that is specified to be maximum 432MHz.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/3</link>
+        <pubDate>Wed, 18 Apr 2018 13:51:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4470-3</guid>
+        <source url="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470.rss">168 vs 180 MHz Operation</source>
+      </item>
+      <item>
+        <title>168 vs 180 MHz Operation</title>
+        <dc:creator><![CDATA[@servandisco servando barreiro]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/servandisco">@servandisco</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/johannes">@johannes</a> should say but probably there is a good reason for that. if not,  yayy! <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/2</link>
+        <pubDate>Wed, 18 Apr 2018 10:13:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4470-2</guid>
+        <source url="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470.rss">168 vs 180 MHz Operation</source>
+      </item>
+      <item>
+        <title>168 vs 180 MHz Operation</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p>mcuconf.h<br></p>
+
+<p></p><pre><code class="lang-auto">#define STM32_PLLN_VALUE                    336</code></pre>
+
+<p>The STM32F427vg is being setup to run at 168 MHz.</p>
+
+<p>It's capable of running at 180 MHz.<br><a href="http://www.st.com/en/microcontrollers/stm32f427-437.html" class="onebox" target="_blank" rel="nofollow noopener">http://www.st.com/en/microcontrollers/stm32f427-437.html</a></p>
+
+<p>Why is that? Is it a hangover from STM32F407 development?</p>
+
+<p>180/168 = 1.07 (7% performance gain)</p>
+
+<p>To try it out:</p>
+
+<p></p><pre><code class="lang-auto">#define STM32_PLLN_VALUE                    360</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/168-vs-180-mhz-operation/4470/1</link>
+        <pubDate>Tue, 17 Apr 2018 20:26:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4470-1</guid>
+        <source url="http://community.axoloti.com/t/168-vs-180-mhz-operation/4470.rss">168 vs 180 MHz Operation</source>
+      </item>
+  </channel>
+</rss>

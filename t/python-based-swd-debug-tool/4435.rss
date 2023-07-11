@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Python Based SWD Debug Tool</title>
+    <link>http://community.axoloti.com/t/python-based-swd-debug-tool/4435</link>
+    <description>For previous work on Cortex-M chips I wrote a Python based SWD debugger: [pycs](https://github.com/deadsy/pycs)
+Now that I have an Axoloti board I have added it as a target and find it useful to poke around and see what the firmware is doing to the chip. I connect to the board with an STLink V2 dongle.
+It uses the CMSIS-SVD files to decode the SoC peripheral registers.
+The target specification adds the Axoloti specific IO and SDRAM.
+If I can work out how to make the codec talk to me, I&#39;ll add some register dumps for that as well.
+
+    $ ./pycs -t axoloti
+
+    pycs: ARM CoreSight Tool 1.0
+    STM32F427xG: compiling ./vendor/st/svd/STM32F427x.svd.gz
+    ST-Link usb 0483:3748 serial u&#39;P\xffj\x06IgSV1R%\x87&#39;
+    target voltage 3.249V
+    axoloti*&gt; 
+       cpu             : cpu functions                         
+       da              : disassemble memory                    
+       debugger        : debugger functions                    
+       exit            : exit application                      
+       flash           : flash functions                       
+       go              : exit debug mode, run until breakpoint 
+       gpio            : gpio functions                        
+       halt            : stop running, enter debug mode        
+       help            : general help                          
+       history         : command history                       
+       i2c             : i2c functions                         
+       map             : display memory map                    
+       mem             : memory functions                      
+       program         : program firmware file to flash        
+       regs            : display registers                     
+       rtt             : rtt client functions                  
+       vtable          : display exceptions vector table      
+
+
+The tool builds a memory map for the target:
+
+    axoloti*&gt; map
+    flash_main      : 08000000 080fffff 1MiB   flash main memory                                       
+    ccm_sram        : 10000000 1000ffff 64KiB  core coupled memory sram                                
+    flash_opt_bank2 : 1ffec000 1ffec00f 16B    flash option memory                                     
+    flash_system    : 1fff0000 1fff77ff 30KiB  flash system memory                                     
+    flash_otp       : 1fff7800 1fff7a0f 528B   flash otp memory                                        
+    UID             : 1fff7a10 1fff7a1b 12B    Unique Device ID                                        
+    FLASH_SIZE      : 1fff7a22 1fff7a23 2B     Flash Size                                              
+    flash_opt_bank1 : 1fffc000 1fffc00f 16B    flash option memory                                     
+       ...etc...                   
+    NVIC            : e000e000 e000efff 4KiB   Nested Vectored Interrupt Controller                    
+    SysTick         : e000e010 e000e40f 1KiB   SysTick                                                 
+    SCB             : e000ed00 e000f0ff 1KiB   System Control Block                                    
+    MPU             : e000ed90 e000f18f 1KiB   Memory Protection Unit                                  
+    FPU             : e000ef30 e000f32f 1KiB   Floating Point Unit                                     
+    DBG             : e0042000 e00423ff 1KiB   Debug support                                           
+    ROMTABLE        : e00ff000 e00ff3ff 1KiB   ROM Table         
+
+
+The tool reads the CMSIS-SVD file for the chip so it can do a full decode of the peripheral registers:
+
+    axoloti*&gt; regs RNG *
+    CR             : 50060800[31:0] = 0x00000004   control register               
+      IE[3]        : 0                             Interrupt enable               
+      RNGEN[2]     : 1                             Random number generator enable 
+    SR             : 50060804[31:0] = 0x00000001   status register                
+      SEIS[6]      : 0                             Seed error interrupt status    
+      CEIS[5]      : 0                             Clock error interrupt status   
+      SECS[2]      : 0                             Seed error current status      
+      CECS[1]      : 0                             Clock error current status     
+      DRDY[0]      : 1                             Data ready                     
+    DR             : 50060808[31:0] = 0xf791b09f * data register                  
+      RNDATA[31:0] : 0xf791b09f                    Random data 
+
+
+Memory dumps:
+
+    axoloti*&gt; mem d8 flash_otp
+    address   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    1fff7800: 41 78 6f 6c 6f 74 69 20 43 6f 72 65 00 00 00 00  Axoloti Core....
+    1fff7810: 00 00 00 01 00 00 00 01 00 00 00 00 00 00 00 08  ................
+    1fff7820: 50 fd 98 fa 5f fd 5e 35 1a 24 89 f3 ab e6 98 39  P..._.^5.$.....9
+    1fff7830: e7 7e 48 ac ab 17 6f 50 41 de 4a ed 7a 2c 48 08  .~H...oPA.J.z,H.
+    1fff7840: da b6 26 dd 3a d5 06 cf ed d4 e1 91 fd 79 b2 be  ..&amp;.:........y..
+    1fff7850: d0 97 20 03 72 01 de 8c 6e ad 5c fc 3f ab d0 dd  .. .r...n.\.?...
+    1fff7860: 97 9b 99 e6 c3 83 37 72 da de 9e 82 32 e9 61 89  ......7r....2.a.
+    1fff7870: 38 4e 48 70 4b cd a6 97 cc bf 0d f3 bc 55 05 fd  8NHpK........U..
+    1fff7880: b1 4c 29 69 a7 ba 6f aa ad f8 31 3e 32 ec b9 60  .L)i..o...1&gt;2..`
+    1fff7890: 3d 42 9f 78 98 56 ba 6d 4c 87 0c 31 91 07 af c5  =B.x.V.mL..1....
+    1fff78a0: 7c 90 48 28 f5 29 85 e1 14 d7 ee 34 5d be 70 57  |.H(.).....4].pW
+    1fff78b0: 6d 3b 67 ed 62 d5 f9 43 d4 62 97 7e e6 6e 57 4c  m;g.b..C.b.~.nWL
+    1fff78c0: 50 03 97 88 69 63 fa f0 48 ae 8d 3e ba 74 7e 57  P...ic..H..&gt;.t~W
+    1fff78d0: fc e8 af 74 75 1a 7a a1 1e 54 19 e0 20 3e 77 1e  ...tu.z..T.. &gt;w.
+    1fff78e0: e5 62 ba 34 85 11 35 8e 68 fa 2e 62 33 ad 9a 36  .b.4..5.h..b3..6
+    1fff78f0: 56 0d 9e 3a bf bb ca ab 11 d1 94 3d a9 9e 08 ba  V..:.......=....
+    1fff7900: 64 30 7b 3e d1 9f f1 97 17 85 d0 b3 56 b6 24 48  d0{&gt;........V.$H
+    1fff7910: 5e 30 9e 17 e6 c0 b4 ee 94 a7 3c 15 e8 07 ac ac  ^0........&lt;.....
+
+Interrupt vector table:
+
+    axoloti*&gt; vtable
+    priority group : pppp.... 4 bits group 3
+    vector table   : 00000000
+
+    Name                 Exc Irq EPA Prio Vector                                                                      
+    Reset              : 1   -       -3   080002a0                                                                    
+    NMI                : 2   -   e.  -2   080003c0                                                                    
+    HardFault          : 3   -       -1   0801b260                                                                    
+    MemManage          : 4   -   ... 0.0  0801b260                                                                    
+    BusFault           : 5   -   ... 0.0  0801b260                                                                    
+    UsageFault         : 6   -   ... 0.0  0801b260                                                                    
+    SVCall             : 11  -    .. 1.0  080003f0                                                                    
+    DebugMonitor       : 12  -     . 0.0  080003c0                                                                    
+    PendSV             : 14  -    .  2.0  080003c0                                                                    
+    SysTick            : 15  -   e.  8.0  080004d0                                                                    
+    WWDG               : 16  0   ... 0.0  0801b890 Window Watchdog interrupt                                          
+    PVD                : 17  1   ... 0.0  080003c0 PVD through EXTI line detection interrupt                          
+    TAMP_STAMP         : 18  2   ... 0.0  080003c0 Tamper and TimeStamp interrupts through the EXTI line              
+    RTC_WKUP           : 19  3   ... 0.0  080003c0 RTC Wakeup interrupt through the EXTI line                         
+    FLASH              : 20  4   ... 0.0  080003c0 Flash global interrupt                                             
+    RCC                : 21  5   ... 0.0  080003c0 RCC global interrupt                                               
+    EXTI0              : 22  6   ... 0.0  080003c0 EXTI Line0 interrupt                                               
+    EXTI1              : 23  7   ... 0.0  080003c0 EXTI Line1 interrupt                                               
+    EXTI2              : 24  8   ... 0.0  080003c0 EXTI Line2 interrupt                                               
+    EXTI3              : 25  9   ... 0.0  080003c0 EXTI Line3 interrupt                                               
+    EXTI4              : 26  10  ... 0.0  080003c0 EXTI Line4 interrupt                                               
+    DMA1_Stream0       : 27  11  ... 0.0  08002d90 DMA1 Stream0 global interrupt                                      
+    DMA1_Stream1       : 28  12  ... 0.0  08002dc0 DMA1 Stream1 global interrupt                                      
+    DMA1_Stream2       : 29  13  ... 0.0  08002df0 DMA1 Stream2 global interrupt                                      
+    DMA1_Stream3       : 30  14  ... 0.0  08002e20 DMA1 Stream3 global interrupt                                      
+    DMA1_Stream4       : 31  15  ... 0.0  08002e50 DMA1 Stream4 global interrupt                                      
+    DMA1_Stream5       : 32  16  ... 0.0  08002e80 DMA1 Stream5 global interrupt                                      
+    DMA1_Stream6       : 33  17  ... 0.0  08002eb0 DMA1 Stream6 global interrupt                                      
+    ADC                : 34  18  e.. 6.0  08003510 ADC1 global interrupt                                              
+    CAN1_TX            : 35  19  ... 0.0  080003c0 CAN1 TX interrupts                                                 
+    etc....                                       
+    UART7              : 98  82  ... 0.0  080003c0 UART 7 global interrupt                                            
+    UART8              : 99  83  ... 0.0  080003c0 UART 8 global interrupt                                            
+    SPI4               : 100 84  ... 0.0  080003c0 SPI 4 global interrupt                                             
+    SPI5               : 101 85  ... 0.0  080003c0 SPI 5 global interrupt                                             
+    SPI6               : 102 86  ... 0.0  080003c0 SPI 6 global interrupt                                             
+    SAI1               : 103 87  ... 0.0  080003c0 SAI1 global interrupt                            
+
+IO Status:
+
+    axoloti*&gt; gpio status
+    PA0  an     tp37                              
+    PA1  an     tp38                              
+    PA2  an     tp39                              
+    PA3  an     tp40                              
+    PA4  an     tp41                              
+    PA5  an     tp42                              
+    PA6  an     tp43                              
+    PA7  an     tp44                              
+    PA8  af0    codec_mclk, x4_2 (MCO1)           
+    PA9  in(0)  ?                                 
+    PA10 in(0)  s2                                
+    PA11 af10   fs_dm (OTG_FS_DM)                 
+    PA12 af10   fs_dp (OTG_FS_DP)                 
+    PA13 af0    swdio (SWDIO)                     
+    PA14 af0    swclk (SWCLK)                     
+    PA15 out(0) x3_6                              
+    PB0  an     tp45                              
+    PB1  an     tp46                              
+    PB2  in(0)  ?                                 
+    PB3  af6    x3_5 (SPI3_SCK/I2S3_CK)           
+    PB4  af6    x3_7 (SPI3_MISO)                  
+    PB5  af6    boot0 (SPI3_MOSI/I2S3_SD)         
+    PB6  af12   tp47 (FMC_SDNE1)                  
+    PB7  in(1)  tp48                              
+    PB8  in(1)  tp49                              
+    PB9  af4    tp50 (I2C1_SDA)                   
+    PB10 in(1)  x3_2, x4_5                        
+    PB11 in(1)  ?                                 
+    PB12 af12   ? (OTG_HS_ID)                     
+    PB13 in(1)  ?                                 
+    PB14 af12   hs_dm (OTG_HS_DM)                 
+    PB15 af12   hs_dp (OTG_HS_DP)                 
+    PC0  an     tp51                              
+    PC1  an     tp52                              
+    PC2  an     tp53                              
+    PC3  an     tp54                              
+    PC4  an     tp55                              
+    PC5  an     tp56                              
+    PC6  out(0) led_red                           
+    PC7  af6    ? (I2S3_MCK)                      
+    PC8  af12   sdio_d0 (SDIO_D0)                 
+    PC9  af12   sdio_d1 (SDIO_D1)                 
+    PC10 af12   sdio_d2 (SDIO_D2)                 
+    PC11 af12   sdio_d3 (SDIO_D3)                 
+    PC12 af12   sdio_ck (SDIO_CK)                 
+    PC13 in(1)  ?                                 
+    PC14 in(1)  ?                                 
+    PC15 in(1)  ?                                 
+    PD0  af12   sdram_d2 (FMC_D2)                 
+    PD1  af12   sdram_d3 (FMC_D3)                 
+    PD2  af12   sdio_cmd (SDIO_CMD)               
+    PD3  in(1)  ?                                 
+    PD4  out(1) ?                                 
+    PD5  in(1)  ?                                 
+    PD6  in(1)  x3_4                              
+    PD7  out(0) usb_enable                        
+    PD8  af12   sdram_d13 (FMC_D13)               
+    PD9  af12   sdram_d14 (FMC_D14)               
+    PD10 af12   sdram_d15 (FMC_D15)               
+    PD11 in(1)  ?                                 
+    PD12 out(0) ?                                 
+    PD13 in(0)  sdio_cd1                          
+    PD14 af12   sdram_d0 (FMC_D0)                 
+    PD15 af12   sdram_d1 (FMC_D1)                 
+    PE0  af12   sdram_ldqm (FMC_NBL0)             
+    PE1  af12   sdram_udqm (FMC_NBL1)             
+    PE2  in(1)  ?                                 
+    PE3  af6    Codec ADC_SDATA/GPIO1 (SAI1_SD_B) 
+    PE4  af6    codec_lrclk, x4-4 (SAI1_FS_A)     
+    PE5  af6    codec_bclk, x4-3 (SAI1_SCK_A)     
+    PE6  af6    Codec DAC_SDATA/GPIO0 (SAI1_SD_A) 
+    PE7  af12   sdram_d4 (FMC_D4)                 
+    PE8  af12   sdram_d5 (FMC_D5)                 
+    PE9  af12   sdram_d6 (FMC_D6)                 
+    PE10 af12   sdram_d7 (FMC_D7)                 
+    PE11 af12   sdram_d8 (FMC_D8)                 
+    PE12 af12   sdram_d9 (FMC_D9)                 
+    PE13 af12   sdram_d10 (FMC_D10)               
+    PE14 af12   sdram_d11 (FMC_D11)               
+    PE15 af12   sdram_d12 (FMC_D12)               
+    PF0  af12   sdram_a0 (FMC_A0)                 
+    PF1  af12   sdram_a1 (FMC_A1)                 
+    PF2  af12   sdram_a2 (FMC_A2)                 
+    PF3  af12   sdram_a3 (FMC_A3)                 
+    PF4  af12   sdram_a4 (FMC_A4)                 
+    PF5  af12   sdram_a5 (FMC_A5)                 
+    PF6  in(1)  ?                                 
+    PF7  in(1)  ?                                 
+    PF8  in(1)  ?                                 
+    PF9  in(1)  ?                                 
+    PF10 an     power_monitor                     
+    PF11 af12   sdram_ras (FMC_SNDRAS)            
+    PF12 af12   sdram_a6 (FMC_A6)                 
+    PF13 af12   sdram_a7 (FMC_A7)                 
+    PF14 af12   sdram_a8 (FMC_A8)                 
+    PF15 af12   sdram_a9 (FMC_A9)                 
+    PG0  af12   sdram_a10 (FMC_A10)               
+    PG1  af12   sdram_a11 (FMC_A11)               
+    PG2  af12   sdram_a12 (FMC_A12)               
+    PG3  in(1)  ?                                 
+    PG4  af12   sdram_ba0 (FMC_A14/FMC_BA0)       
+    PG5  af12   sdram_ba1 (FMC_A15/FMC_BA1)       
+    PG6  out(1) led_green                         
+    PG7  in(0)  ?                                 
+    PG8  af12   sdram_clk (FMC_SDCLK)             
+    PG9  af8    midi_in (USART6_RX)               
+    PG10 in(1)  ?                                 
+    PG11 in(1)  ?                                 
+    PG12 in(1)  ?                                 
+    PG13 in(1)  usb_flag                          
+    PG14 af8    midi_out (USART6_TX)              
+    PG15 af12   sdram_cas (FMC_SDNCAS)            
+    PH0  in(0)  ?                                 
+    PH1  in(0)  ?                                 
+    PH2  af12   sdram_cke (FMC_SDCKE0)            
+    PH3  af12   sdram_cs0 (FMC_SDNE0)             
+    PH4  in(1)  ?                                 
+    PH5  af12   sdram_we (FMC_SDNWE)              
+    PH6  af12   ? (FMC_SDNE1)                     
+    PH7  af4    codec_scl (I2C3_SCL)              
+    PH8  af4    codec_sda (I2C3_SDA)              
+    PH9  in(1)  ?                                 
+    PH10 in(1)  ?                                 
+    PH11 in(1)  ?                                 
+    PH12 in(1)  ?                                 
+    PH13 in(1)  ?                                 
+    PH14 in(1)  ?                                 
+    PH15 in(1)  ?                                 
+    PI0  in(1)  ?                                 
+    PI1  in(0)  ?                                 
+    PI2  in(1)  ?                                 
+    PI3  in(1)  ?                                 
+    PI4  in(1)  ?                                 
+    PI5  in(1)  ?                                 
+    PI6  in(1)  ?                                 
+    PI7  in(1)  ?                                 
+    PI8  in(1)  ?                                 
+    PI9  in(1)  ?                                 
+    PI10 in(1)  ?                                 
+    PI11 in(0)  ?                                 
+    PI12 in(0)  ?                                 
+    PI13 in(0)  ?                                 
+    PI14 in(0)  ?                                 
+    PI15 in(0)  ?    
+
+etc.</description>
+    
+    <lastBuildDate>Sun, 08 Apr 2018 03:32:48 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/python-based-swd-debug-tool/4435.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Python Based SWD Debug Tool</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p>For previous work on Cortex-M chips I wrote a Python based SWD debugger: <a href="https://github.com/deadsy/pycs" rel="nofollow noopener">pycs</a><br>Now that I have an Axoloti board I have added it as a target and find it useful to poke around and see what the firmware is doing to the chip. I connect to the board with an STLink V2 dongle.<br>It uses the CMSIS-SVD files to decode the SoC peripheral registers.<br>The target specification adds the Axoloti specific IO and SDRAM.<br>If I can work out how to make the codec talk to me, I'll add some register dumps for that as well.</p>
+
+<pre><code>$ ./pycs -t axoloti
+
+pycs: ARM CoreSight Tool 1.0
+STM32F427xG: compiling ./vendor/st/svd/STM32F427x.svd.gz
+ST-Link usb 0483:3748 serial u'P\xffj\x06IgSV1R%\x87'
+target voltage 3.249V
+axoloti*&gt; 
+   cpu             : cpu functions                         
+   da              : disassemble memory                    
+   debugger        : debugger functions                    
+   exit            : exit application                      
+   flash           : flash functions                       
+   go              : exit debug mode, run until breakpoint 
+   gpio            : gpio functions                        
+   halt            : stop running, enter debug mode        
+   help            : general help                          
+   history         : command history                       
+   i2c             : i2c functions                         
+   map             : display memory map                    
+   mem             : memory functions                      
+   program         : program firmware file to flash        
+   regs            : display registers                     
+   rtt             : rtt client functions                  
+   vtable          : display exceptions vector table</code></pre>
+
+<p>The tool builds a memory map for the target:</p>
+
+<pre><code>axoloti*&gt; map
+flash_main      : 08000000 080fffff 1MiB   flash main memory                                       
+ccm_sram        : 10000000 1000ffff 64KiB  core coupled memory sram                                
+flash_opt_bank2 : 1ffec000 1ffec00f 16B    flash option memory                                     
+flash_system    : 1fff0000 1fff77ff 30KiB  flash system memory                                     
+flash_otp       : 1fff7800 1fff7a0f 528B   flash otp memory                                        
+UID             : 1fff7a10 1fff7a1b 12B    Unique Device ID                                        
+FLASH_SIZE      : 1fff7a22 1fff7a23 2B     Flash Size                                              
+flash_opt_bank1 : 1fffc000 1fffc00f 16B    flash option memory                                     
+   ...etc...                   
+NVIC            : e000e000 e000efff 4KiB   Nested Vectored Interrupt Controller                    
+SysTick         : e000e010 e000e40f 1KiB   SysTick                                                 
+SCB             : e000ed00 e000f0ff 1KiB   System Control Block                                    
+MPU             : e000ed90 e000f18f 1KiB   Memory Protection Unit                                  
+FPU             : e000ef30 e000f32f 1KiB   Floating Point Unit                                     
+DBG             : e0042000 e00423ff 1KiB   Debug support                                           
+ROMTABLE        : e00ff000 e00ff3ff 1KiB   ROM Table</code></pre>
+
+<p>The tool reads the CMSIS-SVD file for the chip so it can do a full decode of the peripheral registers:</p>
+
+<pre><code>axoloti*&gt; regs RNG *
+CR             : 50060800[31:0] = 0x00000004   control register               
+  IE[3]        : 0                             Interrupt enable               
+  RNGEN[2]     : 1                             Random number generator enable 
+SR             : 50060804[31:0] = 0x00000001   status register                
+  SEIS[6]      : 0                             Seed error interrupt status    
+  CEIS[5]      : 0                             Clock error interrupt status   
+  SECS[2]      : 0                             Seed error current status      
+  CECS[1]      : 0                             Clock error current status     
+  DRDY[0]      : 1                             Data ready                     
+DR             : 50060808[31:0] = 0xf791b09f * data register                  
+  RNDATA[31:0] : 0xf791b09f                    Random data</code></pre>
+
+<p>Memory dumps:</p>
+
+<pre><code>axoloti*&gt; mem d8 flash_otp
+address   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+1fff7800: 41 78 6f 6c 6f 74 69 20 43 6f 72 65 00 00 00 00  Axoloti Core....
+1fff7810: 00 00 00 01 00 00 00 01 00 00 00 00 00 00 00 08  ................
+1fff7820: 50 fd 98 fa 5f fd 5e 35 1a 24 89 f3 ab e6 98 39  P..._.^5.$.....9
+1fff7830: e7 7e 48 ac ab 17 6f 50 41 de 4a ed 7a 2c 48 08  .~H...oPA.J.z,H.
+1fff7840: da b6 26 dd 3a d5 06 cf ed d4 e1 91 fd 79 b2 be  ..&amp;.:........y..
+1fff7850: d0 97 20 03 72 01 de 8c 6e ad 5c fc 3f ab d0 dd  .. .r...n.\.?...
+1fff7860: 97 9b 99 e6 c3 83 37 72 da de 9e 82 32 e9 61 89  ......7r....2.a.
+1fff7870: 38 4e 48 70 4b cd a6 97 cc bf 0d f3 bc 55 05 fd  8NHpK........U..
+1fff7880: b1 4c 29 69 a7 ba 6f aa ad f8 31 3e 32 ec b9 60  .L)i..o...1&gt;2..`
+1fff7890: 3d 42 9f 78 98 56 ba 6d 4c 87 0c 31 91 07 af c5  =B.x.V.mL..1....
+1fff78a0: 7c 90 48 28 f5 29 85 e1 14 d7 ee 34 5d be 70 57  |.H(.).....4].pW
+1fff78b0: 6d 3b 67 ed 62 d5 f9 43 d4 62 97 7e e6 6e 57 4c  m;g.b..C.b.~.nWL
+1fff78c0: 50 03 97 88 69 63 fa f0 48 ae 8d 3e ba 74 7e 57  P...ic..H..&gt;.t~W
+1fff78d0: fc e8 af 74 75 1a 7a a1 1e 54 19 e0 20 3e 77 1e  ...tu.z..T.. &gt;w.
+1fff78e0: e5 62 ba 34 85 11 35 8e 68 fa 2e 62 33 ad 9a 36  .b.4..5.h..b3..6
+1fff78f0: 56 0d 9e 3a bf bb ca ab 11 d1 94 3d a9 9e 08 ba  V..:.......=....
+1fff7900: 64 30 7b 3e d1 9f f1 97 17 85 d0 b3 56 b6 24 48  d0{&gt;........V.$H
+1fff7910: 5e 30 9e 17 e6 c0 b4 ee 94 a7 3c 15 e8 07 ac ac  ^0........&lt;.....</code></pre>
+
+<p>Interrupt vector table:</p>
+
+<pre><code>axoloti*&gt; vtable
+priority group : pppp.... 4 bits group 3
+vector table   : 00000000
+
+Name                 Exc Irq EPA Prio Vector                                                                      
+Reset              : 1   -       -3   080002a0                                                                    
+NMI                : 2   -   e.  -2   080003c0                                                                    
+HardFault          : 3   -       -1   0801b260                                                                    
+MemManage          : 4   -   ... 0.0  0801b260                                                                    
+BusFault           : 5   -   ... 0.0  0801b260                                                                    
+UsageFault         : 6   -   ... 0.0  0801b260                                                                    
+SVCall             : 11  -    .. 1.0  080003f0                                                                    
+DebugMonitor       : 12  -     . 0.0  080003c0                                                                    
+PendSV             : 14  -    .  2.0  080003c0                                                                    
+SysTick            : 15  -   e.  8.0  080004d0                                                                    
+WWDG               : 16  0   ... 0.0  0801b890 Window Watchdog interrupt                                          
+PVD                : 17  1   ... 0.0  080003c0 PVD through EXTI line detection interrupt                          
+TAMP_STAMP         : 18  2   ... 0.0  080003c0 Tamper and TimeStamp interrupts through the EXTI line              
+RTC_WKUP           : 19  3   ... 0.0  080003c0 RTC Wakeup interrupt through the EXTI line                         
+FLASH              : 20  4   ... 0.0  080003c0 Flash global interrupt                                             
+RCC                : 21  5   ... 0.0  080003c0 RCC global interrupt                                               
+EXTI0              : 22  6   ... 0.0  080003c0 EXTI Line0 interrupt                                               
+EXTI1              : 23  7   ... 0.0  080003c0 EXTI Line1 interrupt                                               
+EXTI2              : 24  8   ... 0.0  080003c0 EXTI Line2 interrupt                                               
+EXTI3              : 25  9   ... 0.0  080003c0 EXTI Line3 interrupt                                               
+EXTI4              : 26  10  ... 0.0  080003c0 EXTI Line4 interrupt                                               
+DMA1_Stream0       : 27  11  ... 0.0  08002d90 DMA1 Stream0 global interrupt                                      
+DMA1_Stream1       : 28  12  ... 0.0  08002dc0 DMA1 Stream1 global interrupt                                      
+DMA1_Stream2       : 29  13  ... 0.0  08002df0 DMA1 Stream2 global interrupt                                      
+DMA1_Stream3       : 30  14  ... 0.0  08002e20 DMA1 Stream3 global interrupt                                      
+DMA1_Stream4       : 31  15  ... 0.0  08002e50 DMA1 Stream4 global interrupt                                      
+DMA1_Stream5       : 32  16  ... 0.0  08002e80 DMA1 Stream5 global interrupt                                      
+DMA1_Stream6       : 33  17  ... 0.0  08002eb0 DMA1 Stream6 global interrupt                                      
+ADC                : 34  18  e.. 6.0  08003510 ADC1 global interrupt                                              
+CAN1_TX            : 35  19  ... 0.0  080003c0 CAN1 TX interrupts                                                 
+etc....                                       
+UART7              : 98  82  ... 0.0  080003c0 UART 7 global interrupt                                            
+UART8              : 99  83  ... 0.0  080003c0 UART 8 global interrupt                                            
+SPI4               : 100 84  ... 0.0  080003c0 SPI 4 global interrupt                                             
+SPI5               : 101 85  ... 0.0  080003c0 SPI 5 global interrupt                                             
+SPI6               : 102 86  ... 0.0  080003c0 SPI 6 global interrupt                                             
+SAI1               : 103 87  ... 0.0  080003c0 SAI1 global interrupt</code></pre>
+
+<p>IO Status:</p>
+
+<pre><code>axoloti*&gt; gpio status
+PA0  an     tp37                              
+PA1  an     tp38                              
+PA2  an     tp39                              
+PA3  an     tp40                              
+PA4  an     tp41                              
+PA5  an     tp42                              
+PA6  an     tp43                              
+PA7  an     tp44                              
+PA8  af0    codec_mclk, x4_2 (MCO1)           
+PA9  in(0)  ?                                 
+PA10 in(0)  s2                                
+PA11 af10   fs_dm (OTG_FS_DM)                 
+PA12 af10   fs_dp (OTG_FS_DP)                 
+PA13 af0    swdio (SWDIO)                     
+PA14 af0    swclk (SWCLK)                     
+PA15 out(0) x3_6                              
+PB0  an     tp45                              
+PB1  an     tp46                              
+PB2  in(0)  ?                                 
+PB3  af6    x3_5 (SPI3_SCK/I2S3_CK)           
+PB4  af6    x3_7 (SPI3_MISO)                  
+PB5  af6    boot0 (SPI3_MOSI/I2S3_SD)         
+PB6  af12   tp47 (FMC_SDNE1)                  
+PB7  in(1)  tp48                              
+PB8  in(1)  tp49                              
+PB9  af4    tp50 (I2C1_SDA)                   
+PB10 in(1)  x3_2, x4_5                        
+PB11 in(1)  ?                                 
+PB12 af12   ? (OTG_HS_ID)                     
+PB13 in(1)  ?                                 
+PB14 af12   hs_dm (OTG_HS_DM)                 
+PB15 af12   hs_dp (OTG_HS_DP)                 
+PC0  an     tp51                              
+PC1  an     tp52                              
+PC2  an     tp53                              
+PC3  an     tp54                              
+PC4  an     tp55                              
+PC5  an     tp56                              
+PC6  out(0) led_red                           
+PC7  af6    ? (I2S3_MCK)                      
+PC8  af12   sdio_d0 (SDIO_D0)                 
+PC9  af12   sdio_d1 (SDIO_D1)                 
+PC10 af12   sdio_d2 (SDIO_D2)                 
+PC11 af12   sdio_d3 (SDIO_D3)                 
+PC12 af12   sdio_ck (SDIO_CK)                 
+PC13 in(1)  ?                                 
+PC14 in(1)  ?                                 
+PC15 in(1)  ?                                 
+PD0  af12   sdram_d2 (FMC_D2)                 
+PD1  af12   sdram_d3 (FMC_D3)                 
+PD2  af12   sdio_cmd (SDIO_CMD)               
+PD3  in(1)  ?                                 
+PD4  out(1) ?                                 
+PD5  in(1)  ?                                 
+PD6  in(1)  x3_4                              
+PD7  out(0) usb_enable                        
+PD8  af12   sdram_d13 (FMC_D13)               
+PD9  af12   sdram_d14 (FMC_D14)               
+PD10 af12   sdram_d15 (FMC_D15)               
+PD11 in(1)  ?                                 
+PD12 out(0) ?                                 
+PD13 in(0)  sdio_cd1                          
+PD14 af12   sdram_d0 (FMC_D0)                 
+PD15 af12   sdram_d1 (FMC_D1)                 
+PE0  af12   sdram_ldqm (FMC_NBL0)             
+PE1  af12   sdram_udqm (FMC_NBL1)             
+PE2  in(1)  ?                                 
+PE3  af6    Codec ADC_SDATA/GPIO1 (SAI1_SD_B) 
+PE4  af6    codec_lrclk, x4-4 (SAI1_FS_A)     
+PE5  af6    codec_bclk, x4-3 (SAI1_SCK_A)     
+PE6  af6    Codec DAC_SDATA/GPIO0 (SAI1_SD_A) 
+PE7  af12   sdram_d4 (FMC_D4)                 
+PE8  af12   sdram_d5 (FMC_D5)                 
+PE9  af12   sdram_d6 (FMC_D6)                 
+PE10 af12   sdram_d7 (FMC_D7)                 
+PE11 af12   sdram_d8 (FMC_D8)                 
+PE12 af12   sdram_d9 (FMC_D9)                 
+PE13 af12   sdram_d10 (FMC_D10)               
+PE14 af12   sdram_d11 (FMC_D11)               
+PE15 af12   sdram_d12 (FMC_D12)               
+PF0  af12   sdram_a0 (FMC_A0)                 
+PF1  af12   sdram_a1 (FMC_A1)                 
+PF2  af12   sdram_a2 (FMC_A2)                 
+PF3  af12   sdram_a3 (FMC_A3)                 
+PF4  af12   sdram_a4 (FMC_A4)                 
+PF5  af12   sdram_a5 (FMC_A5)                 
+PF6  in(1)  ?                                 
+PF7  in(1)  ?                                 
+PF8  in(1)  ?                                 
+PF9  in(1)  ?                                 
+PF10 an     power_monitor                     
+PF11 af12   sdram_ras (FMC_SNDRAS)            
+PF12 af12   sdram_a6 (FMC_A6)                 
+PF13 af12   sdram_a7 (FMC_A7)                 
+PF14 af12   sdram_a8 (FMC_A8)                 
+PF15 af12   sdram_a9 (FMC_A9)                 
+PG0  af12   sdram_a10 (FMC_A10)               
+PG1  af12   sdram_a11 (FMC_A11)               
+PG2  af12   sdram_a12 (FMC_A12)               
+PG3  in(1)  ?                                 
+PG4  af12   sdram_ba0 (FMC_A14/FMC_BA0)       
+PG5  af12   sdram_ba1 (FMC_A15/FMC_BA1)       
+PG6  out(1) led_green                         
+PG7  in(0)  ?                                 
+PG8  af12   sdram_clk (FMC_SDCLK)             
+PG9  af8    midi_in (USART6_RX)               
+PG10 in(1)  ?                                 
+PG11 in(1)  ?                                 
+PG12 in(1)  ?                                 
+PG13 in(1)  usb_flag                          
+PG14 af8    midi_out (USART6_TX)              
+PG15 af12   sdram_cas (FMC_SDNCAS)            
+PH0  in(0)  ?                                 
+PH1  in(0)  ?                                 
+PH2  af12   sdram_cke (FMC_SDCKE0)            
+PH3  af12   sdram_cs0 (FMC_SDNE0)             
+PH4  in(1)  ?                                 
+PH5  af12   sdram_we (FMC_SDNWE)              
+PH6  af12   ? (FMC_SDNE1)                     
+PH7  af4    codec_scl (I2C3_SCL)              
+PH8  af4    codec_sda (I2C3_SDA)              
+PH9  in(1)  ?                                 
+PH10 in(1)  ?                                 
+PH11 in(1)  ?                                 
+PH12 in(1)  ?                                 
+PH13 in(1)  ?                                 
+PH14 in(1)  ?                                 
+PH15 in(1)  ?                                 
+PI0  in(1)  ?                                 
+PI1  in(0)  ?                                 
+PI2  in(1)  ?                                 
+PI3  in(1)  ?                                 
+PI4  in(1)  ?                                 
+PI5  in(1)  ?                                 
+PI6  in(1)  ?                                 
+PI7  in(1)  ?                                 
+PI8  in(1)  ?                                 
+PI9  in(1)  ?                                 
+PI10 in(1)  ?                                 
+PI11 in(0)  ?                                 
+PI12 in(0)  ?                                 
+PI13 in(0)  ?                                 
+PI14 in(0)  ?                                 
+PI15 in(0)  ?</code></pre>
+
+<p>etc.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/python-based-swd-debug-tool/4435/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/python-based-swd-debug-tool/4435/1</link>
+        <pubDate>Sun, 08 Apr 2018 03:32:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4435-1</guid>
+        <source url="http://community.axoloti.com/t/python-based-swd-debug-tool/4435.rss">Python Based SWD Debug Tool</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,96 @@
+<patch-1.0>
+   <comment type="patch/comment" x="14" y="42" text="MCP 23S17 DRIVER"/>
+   <obj type="gpio/spi/config" sha="62af644b09e7f654b36d66533da8ea5971ddb351" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="14" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=0"/>
+         <combo attributeName="clock_phase" selection="CPHA=0"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/cb16" sha="773dda357a5eeb21e4b6dcb55132f015267d4bd1" uuid="fd74594344cc6cd720fa4b473a55cbd15cd360e4" name="SHIFT REGISTER 1 &amp; 2" x="14" y="322">
+      <params>
+         <bin16 name="b16" value="65535"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="SHIFTREG" x="224" y="322">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[// MCP23S17 I/O EXPANDER SPI
+// by matthew cieplak
+
+uint8_t *txbuf;
+
+#define MCP_IODIRA 0x00
+#define MCP_IODIRB 0x01
+#define MCP_IOCONA 0x0A
+#define MCP_GPPUA  0x0C
+#define MCP_GPPUB  0x0D
+#define MCP_GPIOA  0x12
+#define MCP_GPIOB  0x13
+
+void setup(void){
+	
+	static uint8_t _txbuf[32] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+
+	
+	mcp_send_command(MCP_IOCONA,0x28);   // I/O Control Register: BANK=0, SEQOP=1, HAEN=1 (Enable Addressing)
+	mcp_send_command(MCP_IODIRA,0x00);   // GPIOA As Output
+	mcp_send_command(MCP_IODIRB,0x00);   // GPIOB As Output
+	mcp_send_command(MCP_GPIOA,0x00);    // Reset Output on GPIOA
+	mcp_send_command(MCP_GPIOB,0x00);    // Reset Output on GPIOA
+	
+}
+
+void mcp_send_command(uint8_t reg, uint8_t val){
+	spiSelect(&SPID1);
+	txbuf[0] = reg;
+	txbuf[1] = val;
+	spiSend(&SPID1,2, txbuf);
+	spiUnselect(&SPID1);
+}
+
+void loop(void){
+	spiSelect(&SPID1);
+	//txbuf[0] = (in1>>8);     // FOR PATCH INPUT
+	//txbuf[1] = (in1);	   // FOR PATCH INPUT
+  	txbuf[0] = MCP_GPIOB;
+	txbuf[1] = 0xff;
+	spiSend(&SPID1,2,txbuf);
+	spiUnselect(&SPID1);
+	chThdSleepMilliseconds(1);
+}
+]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="14" y="378" text="1 2  3  4  5  6  7  8"/>
+   <comment type="patch/comment" x="112" y="378" text="1 2  3  4  5  6  7  8"/>
+   <comment type="patch/comment" x="14" y="392" text="SHIFT REGISTER 1"/>
+   <comment type="patch/comment" x="112" y="392" text="SHIFT REGISTER 2"/>
+   <obj type="disp/hex" sha="e21d1bcdfadc4f2009b547d002484bede0762978" uuid="87617898f70d90033f8add921438bf0d11721fdd" name="hex_1" x="140" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="SHIFT REGISTER 1 &amp; 2" outlet="o"/>
+         <dest obj="SHIFTREG" inlet="in1_"/>
+         <dest obj="hex_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>1676</x>
+      <y>23</y>
+      <width>896</width>
+      <height>1335</height>
+   </windowPos>
+</patch-1.0>

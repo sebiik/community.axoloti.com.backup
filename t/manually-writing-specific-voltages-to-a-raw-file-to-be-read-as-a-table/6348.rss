@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Manually writing specific voltages to a raw file to be read as a table</title>
+    <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348</link>
+    <description>Hell all,
+I have searched around and found a few similar posts (http://community.axoloti.com/t/types-conversion-bit-shifting-and-friends/2329), but I couldn&#39;t find anything that clarified things for me, so I&#39;m starting a new thread.
+
+I am working on a granular audio freezer. I am using jt/granular/graintable.
+I am hoping to feed a value from a table into the bipolar &quot;pos&quot; input on graintable. I want this to be very precise so I can play grains from a very specific position in the audio table. I am using a similar granular synth in supercollider (where I have more programming ability) to &quot;explore&quot; the sound file using my mouse x position. In the SuperCollider synth, the pointer into the sound file is a value from 0 to 1.0. So I need to translate this value into a very precise bipolar Axoloti voltage. (The reason I am using SuperCollider is because I like the pitch detectors in SC, and I am trying to &quot;freeze&quot; the granular sample player on regions of the audio file that have a clear pitch.)
+
+I have been on a bit of a journey to try to figure out how to do this. I wrote a table with some bipolar values in axoloti, saved that tabel to a raw file, and then inspected it with a hex editor. As far as I can tell, these are the rules for writing values which can be loaded into a table to read on the axoloti to provide the bipolar voltage values:
+
+ pointer from 0..1
+   [0.0-0.5) corresponds to negatives on a bipolar dial
+   in hex string, F in first place (0xFXXXX) indicates negative
+      0 in pointer is (-)0, or 0xF0000 in hex string
+      0.5 in pointer is (-)65536, or 0xFFFFF in hex string
+      so take integer (0 to 65536) as Hex String + 0xF0000 to get number
+      take that number and write it to the binary file as a 16 bit Little Endian integer
+   [0.5-1.0] corresponds to positives on bipolar dial
+      this is simply (0-65536) as Hex String written to a binary file as a 16 bit Little Endian integer
+
+However, when I tested my mental model in Supercollider, trying to go from values read on a bipolar dial display in Axoloti to the hex values to write in the raw file, I didn&#39;t get the expected behavior.
+
+//testing my ability to go from desired place on bipolar knob to raw binary hex file
+//test numbers: -26.70, 5.64, -4.70, 56.10
+//-26.7:
+64-26.7; // 37.3
+(37.3/64.0)*65536; // ~38195
+(38195 + 0xF0000).asHexString; // 0xF9533 or
+0xF9533; // 1021235
+// BUT this is actually -53.4 on the axoloti dial
+
+(5.64/128.0)*65536; // ~5775, simpler because positive
+5775.asHexString; // 0x0168F
+0x0168F; //5775
+// BUT this is actually 11.28 on the axoloti dial
+
+64-4.7; // 59.3
+(59.3/128.0)*65536; // ~60723
+(60723+0xF0000).asHexString; // 0xFED33
+0xFED33; // 1043763
+// BUT this is actually -9.4 on the axoloti dial
+
+(56.10/128.0)*65536; // ~57446
+57446.asHexString; // 0x0000E066
+0x0000E066; // 57446
+// BUT this is actually -15.8 on the axoloti dial
+
+Can anyone help me understand what I&#39;m getting wrong in trying to write data to a file manually to be read into a table in the Axoloti and produce a desired voltage? Thanks!</description>
+    
+    <lastBuildDate>Mon, 27 Jan 2020 18:18:50 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>13824 (decimal) in hex is 0x3600 . The extra zeroes on the right  in 0x3600000 are for the fractional part.</p>
+
+<p><aside class="onebox wikipedia">
+  <header class="source">
+    <a href="https://en.wikipedia.org/wiki/Q_(number_format)" target="_blank" rel="nofollow noopener">en.wikipedia.org</a>
+  </header>
+  <article class="onebox-body">
+    
+
+<h3><a href="https://en.wikipedia.org/wiki/Q_(number_format)" target="_blank" rel="nofollow noopener">Q (number format)</a></h3>
+
+<p>
+Q is binary a fixed point number format where the number of fractional bits (and optionally the number of integer bits) is specified. For example, a Q15 number has 15 fractional bits; a Q1.14 number has 1 integer bit and 14 fractional bits. Q format is often used in hardware that does not have a floating-point unit and in applications that require constant resolution.
+ Q format numbers are notionally fixed point numbers, that is, they are stored and operated upon as regular binary signed integer...</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>'ctrl/dial b' outputs a value in Q11.21 format. Meaning, integer part of the number is in the high 11 bits, the fractional part is in the low 21 bits.</p>
+
+<p>Example:<br>So, if  'ctrl/dial b' is set to 27.0:<br>27 is the integer portion <br>0 is the fractional portion<br>The integer portion needs to be shifted left 21 bits to create the space for the 21 bit fractional part.</p>
+
+<p>Decimal 27 is 0x1B<br>0x1B &lt;&lt; 21 = 0x03600000<br>In binary, that's 0b00000011011000000000000000000000</p>
+
+<p>(above, the 0x prefix denotes a hex number, 0b prefix denote a binary number)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/8</link>
+        <pubDate>Mon, 27 Jan 2020 17:15:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-8</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@Rotexo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rotexo">@Rotexo</a> wrote:</p>
+          <blockquote>
+              <p>OK, I understand now. In case anyone else finds this thread in their google result and is confused by my incoherent rambling earlier:</p>
+
+<p>What I didn't fully understand about handling 16 bit representations of bipolar signals is how exactly one of the 16 bits is sacrificed to represent the negative sign. So instead of having 65536 (2 to the 16) possible values, you have 32768 (2 to the 15) possible values. So if you want to go from the number on a bipolar dial in the axoloti patcher (say, 27.0) to a hex representation, the math is:</p>
+
+<p>(27.0/64.0)*32768 = 13824<br>13824 as hex string is 0x03600000</p>
+
+<p>If instead you want to get the hex string representation of -27.0 on the dial, and for some reason you are trying to get there from (27.0/64,0) like I was, add one to the bitwise not representation of 13824.</p>
+
+<p>If any of that is inaccurate or unclear, someone let me know so I can correct the record.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/7</link>
+        <pubDate>Sun, 26 Jan 2020 20:05:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-7</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@Rotexo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rotexo">@Rotexo</a> wrote:</p>
+          <blockquote>
+              <p>Definitely, after reading about twos complement I see that what I had written is incorrect. I don’t have much of any experience with these lower-level representations of numbers, so finding out what to google is in fact the solution, thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/6</link>
+        <pubDate>Sun, 26 Jan 2020 16:38:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-6</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Note: my previous reply wasn’t meant as a solution, but :<br>“  F in first place (0xFXXXX) indicates negative “ <br>is incorrect.</p>
+
+<p>Also investigate fixed-point arithmetic.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/5</link>
+        <pubDate>Sun, 26 Jan 2020 07:19:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-5</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@Rotexo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rotexo">@Rotexo</a> wrote:</p>
+          <blockquote>
+              <p>I do not. That term can inform my googling, thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/4</link>
+        <pubDate>Sun, 26 Jan 2020 06:29:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-4</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>I can't understand what you have written, but maybe you don't understand twos-complement representation of negative numbers?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/3</link>
+        <pubDate>Sun, 26 Jan 2020 03:10:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-3</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@Rotexo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rotexo">@Rotexo</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="6348"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/r/dfb087/40.png" class="avatar">Rotexo:</div>
+<blockquote><p>0x0000E066</p></blockquote></aside>
+
+<p>My apologies, this should read 0x0E066</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/2</link>
+        <pubDate>Sat, 25 Jan 2020 23:51:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-2</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+      <item>
+        <title>Manually writing specific voltages to a raw file to be read as a table</title>
+        <dc:creator><![CDATA[@Rotexo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rotexo">@Rotexo</a> wrote:</p>
+          <blockquote>
+              <p>Hell all,<br>I have searched around and found a few similar posts (<a href="//community.axoloti.com/t/types-conversion-bit-shifting-and-friends/2329">http://community.axoloti.com/t/types-conversion-bit-shifting-and-friends/2329</a>), but I couldn't find anything that clarified things for me, so I'm starting a new thread.</p>
+
+<p>I am working on a granular audio freezer. I am using jt/granular/graintable.<br>I am hoping to feed a value from a table into the bipolar "pos" input on graintable. I want this to be very precise so I can play grains from a very specific position in the audio table. I am using a similar granular synth in supercollider (where I have more programming ability) to "explore" the sound file using my mouse x position. In the SuperCollider synth, the pointer into the sound file is a value from 0 to 1.0. So I need to translate this value into a very precise bipolar Axoloti voltage. (The reason I am using SuperCollider is because I like the pitch detectors in SC, and I am trying to "freeze" the granular sample player on regions of the audio file that have a clear pitch.)</p>
+
+<p>I have been on a bit of a journey to try to figure out how to do this. I wrote a table with some bipolar values in axoloti, saved that tabel to a raw file, and then inspected it with a hex editor. As far as I can tell, these are the rules for writing values which can be loaded into a table to read on the axoloti to provide the bipolar voltage values:</p>
+
+<p> pointer from 0..1<br>   [0.0-0.5) corresponds to negatives on a bipolar dial<br>   in hex string, F in first place (0xFXXXX) indicates negative<br>      0 in pointer is (-)0, or 0xF0000 in hex string<br>      0.5 in pointer is (-)65536, or 0xFFFFF in hex string<br>      so take integer (0 to 65536) as Hex String + 0xF0000 to get number<br>      take that number and write it to the binary file as a 16 bit Little Endian integer<br>   [0.5-1.0] corresponds to positives on bipolar dial<br>      this is simply (0-65536) as Hex String written to a binary file as a 16 bit Little Endian integer</p>
+
+<p>However, when I tested my mental model in Supercollider, trying to go from values read on a bipolar dial display in Axoloti to the hex values to write in the raw file, I didn't get the expected behavior.</p>
+
+<p>//testing my ability to go from desired place on bipolar knob to raw binary hex file<br>//test numbers: -26.70, 5.64, -4.70, 56.10<br>//-26.7:<br>64-26.7; // 37.3<br>(37.3/64.0)*65536; // ~38195<br>(38195 + 0xF0000).asHexString; // 0xF9533 or<br>0xF9533; // 1021235<br>// BUT this is actually -53.4 on the axoloti dial</p>
+
+<p>(5.64/128.0)*65536; // ~5775, simpler because positive<br>5775.asHexString; // 0x0168F<br>0x0168F; //5775<br>// BUT this is actually 11.28 on the axoloti dial</p>
+
+<p>64-4.7; // 59.3<br>(59.3/128.0)*65536; // ~60723<br>(60723+0xF0000).asHexString; // 0xFED33<br>0xFED33; // 1043763<br>// BUT this is actually -9.4 on the axoloti dial</p>
+
+<p>(56.10/128.0)*65536; // ~57446<br>57446.asHexString; // 0x0000E066<br>0x0000E066; // 57446<br>// BUT this is actually -15.8 on the axoloti dial</p>
+
+<p>Can anyone help me understand what I'm getting wrong in trying to write data to a file manually to be read into a table in the Axoloti and produce a desired voltage? Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348/1</link>
+        <pubDate>Sat, 25 Jan 2020 23:46:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6348-1</guid>
+        <source url="http://community.axoloti.com/t/manually-writing-specific-voltages-to-a-raw-file-to-be-read-as-a-table/6348.rss">Manually writing specific voltages to a raw file to be read as a table</source>
+      </item>
+  </channel>
+</rss>

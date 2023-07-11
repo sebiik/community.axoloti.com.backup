@@ -1,0 +1,1466 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="gpio/spi/config" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="14" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=1"/>
+         <combo attributeName="clock_phase" selection="CPHA=1"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <obj type="table/alloc 16b" uuid="597fcaac36aa638ba120b0fbdcadcde4ad405a7e" name="DAC_INPUT" x="294" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="64"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="06729976-b7fd-49a2-a00c-9ecbb8ae89c3" name="AD5370 16-bit 40Ch  DAC OUTPUT" x="378" y="14">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+      </attribs>
+      <object id="patch/object" uuid="06729976-b7fd-49a2-a00c-9ecbb8ae89c3">
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t *txbuf;
+uint8_t *rxbuf;
+
+const uint8_t RESET = 0;
+const uint8_t CLR = 2;
+const uint8_t BUSY = 1;
+const uint8_t LDAC = 3;
+const uint8_t SYNC = 4;
+
+// SPI 
+const uint8_t CLK = 5;
+const uint8_t MOSI = 7;
+
+enum { X, M, C };
+uint16_t DACLevels[40];
+
+uint8_t busyPad = palReadPad(GPIOA, BUSY);
+void pulseLDAC(void) {
+	palWritePad(GPIOA,LDAC,0);palWritePad(GPIOA,LDAC,0);
+	palWritePad(GPIOA,LDAC,1);
+}
+void setDAC(uint8_t output, uint8_t reg,  uint16_t value) {
+	txbuf[2] = 0x00; // compose 24bit word out of three bytes
+	
+	// output 0 - 39
+	// group = (output >> 3)+1); // group (0-4) + 1 => 1-5
+	// channel = output % 8; // 0-7 0-7 0-7 0-7 0-7
+	 
+	// mode 	adress 	dac value	
+	// 00 	001000 	1111 1111 1111 111
+	if (reg == X) { // X Register -> M1,M0 = 11
+		txbuf[0] = 0b11000000;
+	} else if (reg == M) { // M register -> M1,M0 = 01
+		txbuf[0] = 0b01000000;
+	} else if (reg == C) { // C register -> M1,M0 = 10
+		txbuf[0] = 0b10000000;
+	}
+	txbuf[0] = txbuf[0] | (((output >> 3)+1) << 3) | (output % 8);
+	txbuf[1] = value >> 8; 
+	txbuf[2] = value;
+	
+	// Write Sequence
+	spiSelect(&SPID1); 
+	spiSend(&SPID1,3,txbuf);        
+	spiUnselect(&SPID1);
+}
+void setDACOffset(uint8_t number, uint16_t value) {
+	palWritePad(GPIOA,CLR,0); // disconnect outputs while setting Offset to avoid glitches
+	txbuf[2] = 0x00; // compose 24bit word out of three bytes
+	if (number == 0) { // Set DAC Offset for Group 0 only (OFS0)
+		txbuf[0] = 0b00000010;
+	} else { // set DAC Offset for Group 1-4 (OFS1)
+		txbuf[0] = 0b00000011;
+	}
+	txbuf[1] = value >> 8; 
+	txbuf[2] = value;
+	
+	// Write Sequence
+	spiSelect(&SPID1); 
+	spiSend(&SPID1,3,txbuf);       
+	spiUnselect(&SPID1);
+
+	palWritePad(GPIOA,CLR,1); // reconnect outputs after setting Offset
+	
+	pulseLDAC();
+	chThdSleepMilliseconds(1);
+}]]></code.declaration>
+         <code.init><![CDATA[static uint8_t _txbuf[3] __attribute__ ((section (".sram2")));
+static uint8_t _rxbuf[3] __attribute__ ((section (".sram2")));
+
+txbuf = _txbuf;
+rxbuf = _rxbuf;
+
+/* DA5370 - Axoloti Connection 
+DIN   -  PA7
+SCLK  -  PA5
+SYNC  -  PA4
+LDAC  -  PA3
+CLR   -  PA2
+BUSY  -  PA1 
+RESET -  PA0
+*/
+
+// Axolit Pin setup 
+/* PAL MODES:
+PAL_MODE_RESET
+PAL_MODE_UNCONNECTED
+PAL_MODE_INPUT
+PAL_MODE_INPUT_PULLUP
+PAL_MODE_INPUT_PULLDOWN
+PAL_MODE_INPUT_ANALOG,
+PAL_MODE_OUTPUT_PUSHPULL
+PAL_MODE_OUTPUT_OPENDRAIN
+*/
+
+// x=palReadPad(GPIOA,1) // Read the Pad
+
+/* Pin setup
+--------------------------------------------------------------------- */
+palSetPadMode(GPIOA,RESET,PAL_MODE_OUTPUT_PUSHPULL);
+palSetPadMode(GPIOA,CLR,PAL_MODE_OUTPUT_PUSHPULL);
+palSetPadMode(GPIOA,BUSY,PAL_MODE_INPUT_PULLUP);
+palSetPadMode(GPIOA,LDAC,PAL_MODE_OUTPUT_PUSHPULL);
+
+
+/* Initialisiation steps
+--------------------------------------------------------------------- */
+// set RESET Pin to HIGH (rising Edge triggered) to load Defaults
+palWritePad(GPIOA,RESET,1);
+// Set CLR to HIGH // to enable Outputs
+palWritePad(GPIOA,CLR,1);
+// Set SYNC to HIGH. On falling Edge it will start the write operation.
+palWritePad(GPIOA,SYNC,1);
+// Set LDAC to HIGH because it is falling Edge triggered
+palWritePad(GPIOA,LDAC,1);
+chThdSleepMilliseconds(1);
+
+// Setup Control Register
+txbuf[2] = 0x00; 
+txbuf[0] = 0b00000001; // Write the control register
+txbuf[2] = 0x00 | 0b00000010; // F2 = 0 -> X1A is selected, F1 = 1 -> Enable Temperature shutdown at 130Â°
+spiSelect(&SPID1); 
+spiSend(&SPID1,3,txbuf);        
+spiUnselect(&SPID1);
+
+/* Calibration init values for registers M and C 
+--------------------------------------------------------------------- */
+// DAC Offset Setting (default value is 1555 => X = 0 -> -4V
+setDACOffset(0, 0x18);
+setDACOffset(1, 0x18);
+// M(multiplier) is always 6A9F => range of 5.0V, â€­D53Eâ€¬ => range of 10.0V
+// C(offset) is individually measured per channel 
+// The individual Values for the zero offset error are measured calculated 
+// using the methods described on page 18 in the AD5370 datasheet
+unsigned int zeroOffset[40] = {
+	0x805D,0x805F,0x8065,0x8042,0x804B,0x8067,0x8083,0x8080, // Group 0
+	0x8047,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000, // Group 1
+	0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000, // Group 2
+	0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000, // Group 3
+	0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000 // Group 4 
+};
+for (uint8_t i = 0; i < 40; i++) {
+	setDAC(i, M, 0x6A9F);
+	pulseLDAC();
+	chThdSleepMilliseconds(1);
+	
+	//setDAC(i, C, 0x805D);
+	setDAC(i, C, zeroOffset[i]);
+	pulseLDAC();
+	chThdSleepMilliseconds(1);
+}]]></code.init>
+         <code.dispose><![CDATA[palSetPadMode(GPIOA, RESET, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, CLR, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, BUSY, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, LDAC, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, SYNC, PAL_MODE_INPUT_ANALOG);
+
+palSetPadMode(GPIOA, CLK, PAL_MODE_INPUT_ANALOG);
+palSetPadMode(GPIOA, MOSI, PAL_MODE_INPUT_ANALOG);]]></code.dispose>
+         <code.krate><![CDATA[//setDAC(0, X, (inlet_i1 >> 11));
+for (uint8_t i = 0; i < 40; i++) {
+	if (attr_table.array[i] != DACLevels[i]) {
+		setDAC(i, X, attr_table.array[i]);
+		DACLevels[i] = attr_table.array[i];
+	}
+}
+pulseLDAC();]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="126" y="28" text="CONNECTION AD5370"/>
+   <comment type="patch/comment" x="126" y="42" text="PA4 = NSS/CS (MCP4x22: Pin2)"/>
+   <comment type="patch/comment" x="126" y="56" text="PA5 = SCK (MCP4x22: Pin3)"/>
+   <comment type="patch/comment" x="126" y="70" text="PA7 = MOSI (MCP4x22: Pin4)"/>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="28" y="140">
+      <params>
+         <frac32.s.map name="pitch" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT__" x="126" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_9" x="308" y="140">
+      <params>
+         <frac32.s.map name="pitch" value="-62.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT__________" x="406" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="8"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_17" x="630" y="140">
+      <params>
+         <frac32.s.map name="pitch" value="-49.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT__________________" x="728" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="16"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_25" x="966" y="140">
+      <params>
+         <frac32.s.map name="pitch" value="-56.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT__________________________" x="1064" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="24"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_33" x="1372" y="140">
+      <params>
+         <frac32.s.map name="pitch" value="-54.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT__________________________________" x="1470" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="32"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_2" x="28" y="238">
+      <params>
+         <frac32.s.map name="pitch" value="-49.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT___" x="126" y="238">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="1"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_10" x="308" y="238">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT___________" x="406" y="238">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_18" x="630" y="238">
+      <params>
+         <frac32.s.map name="pitch" value="-58.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT___________________" x="728" y="238">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="17"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_26" x="966" y="238">
+      <params>
+         <frac32.s.map name="pitch" value="-45.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT___________________________" x="1064" y="238">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="25"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_34" x="1372" y="238">
+      <params>
+         <frac32.s.map name="pitch" value="-53.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT___________________________________" x="1470" y="238">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="33"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_3" x="28" y="336">
+      <params>
+         <frac32.s.map name="pitch" value="-42.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT____" x="126" y="336">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="2"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_11" x="308" y="336">
+      <params>
+         <frac32.s.map name="pitch" value="-56.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT____________" x="406" y="336">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="10"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_19" x="630" y="336">
+      <params>
+         <frac32.s.map name="pitch" value="-49.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT____________________" x="728" y="336">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="18"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_27" x="966" y="336">
+      <params>
+         <frac32.s.map name="pitch" value="-48.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT____________________________" x="1064" y="336">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="26"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_35" x="1372" y="336">
+      <params>
+         <frac32.s.map name="pitch" value="-54.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT____________________________________" x="1470" y="336">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="34"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_4" x="28" y="434">
+      <params>
+         <frac32.s.map name="pitch" value="-44.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_____" x="126" y="434">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="3"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_12" x="308" y="434">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_____________" x="406" y="434">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="11"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_20" x="630" y="434">
+      <params>
+         <frac32.s.map name="pitch" value="-42.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_____________________" x="728" y="434">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="19"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_28" x="966" y="434">
+      <params>
+         <frac32.s.map name="pitch" value="-53.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_____________________________" x="1064" y="434">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="27"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_36" x="1372" y="434">
+      <params>
+         <frac32.s.map name="pitch" value="-59.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_____________________________________" x="1470" y="434">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="35"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_5" x="28" y="532">
+      <params>
+         <frac32.s.map name="pitch" value="-53.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT______" x="126" y="532">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="4"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_13" x="308" y="532">
+      <params>
+         <frac32.s.map name="pitch" value="-50.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT______________" x="406" y="532">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="12"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_21" x="630" y="532">
+      <params>
+         <frac32.s.map name="pitch" value="-56.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT______________________" x="728" y="532">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="20"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_29" x="966" y="532">
+      <params>
+         <frac32.s.map name="pitch" value="-53.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT______________________________" x="1064" y="532">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="28"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_37" x="1372" y="532">
+      <params>
+         <frac32.s.map name="pitch" value="-59.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT______________________________________" x="1470" y="532">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="36"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_6" x="28" y="630">
+      <params>
+         <frac32.s.map name="pitch" value="-61.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_______" x="126" y="630">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="5"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_14" x="308" y="630">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_______________" x="406" y="630">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="13"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_22" x="630" y="630">
+      <params>
+         <frac32.s.map name="pitch" value="-52.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_______________________" x="728" y="630">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="21"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_30" x="966" y="630">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_______________________________" x="1064" y="630">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="29"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_38" x="1372" y="630">
+      <params>
+         <frac32.s.map name="pitch" value="-58.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_______________________________________" x="1470" y="630">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="37"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_7" x="28" y="728">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT________" x="126" y="728">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="6"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_15" x="308" y="728">
+      <params>
+         <frac32.s.map name="pitch" value="-55.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT________________" x="406" y="728">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="14"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_23" x="630" y="728">
+      <params>
+         <frac32.s.map name="pitch" value="-56.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT________________________" x="728" y="728">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="22"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_31" x="966" y="728">
+      <params>
+         <frac32.s.map name="pitch" value="-59.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT________________________________" x="1064" y="728">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="30"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_39" x="1372" y="728">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT________________________________________" x="1470" y="728">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="38"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_8" x="28" y="826">
+      <params>
+         <frac32.s.map name="pitch" value="-25.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_________" x="126" y="826">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="7"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_16" x="308" y="826">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_________________" x="406" y="826">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="15"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_24" x="630" y="826">
+      <params>
+         <frac32.s.map name="pitch" value="-63.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_________________________" x="728" y="826">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="23"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_32" x="966" y="826">
+      <params>
+         <frac32.s.map name="pitch" value="-60.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_________________________________" x="1064" y="826">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="31"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_40" x="1372" y="826">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d" name="DAC CHANNEL INPUT_________________________________________" x="1470" y="826">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="DAC_INPUT"/>
+         <spinner attributeName="channel" value="39"/>
+      </attribs>
+      <object id="patch/object" uuid="c481b04e-90a5-4588-8635-197056e7652d">
+         <inlets>
+            <frac32.positive name="i1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="0" MaxValue="39" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[attr_table.array[attr_channel] = inlet_i1 >> 11;]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT__" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_2" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT___" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_3" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT____" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_4" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_____" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_5" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT______" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_6" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_______" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_7" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_8" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_9" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT__________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_10" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT___________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_11" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT____________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_12" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_____________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_13" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT______________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_14" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_______________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_15" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_16" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_17" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT__________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_18" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT___________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_19" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT____________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_20" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_____________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_21" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT______________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_22" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_______________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_23" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_24" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_25" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT__________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_26" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT___________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_27" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT____________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_28" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_____________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_29" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT______________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_30" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_______________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_31" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_32" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_33" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT__________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_34" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT___________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_35" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT____________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_36" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_____________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_37" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT______________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_38" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_______________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_39" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT________________________________________" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="square_40" outlet="wave"/>
+         <dest obj="DAC CHANNEL INPUT_________________________________________" inlet="i1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>16</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+      <Author>Florian Deeg</Author>
+      <License>LGPL</License>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1936</width>
+      <height>1176</height>
+   </windowPos>
+</patch-1.0>

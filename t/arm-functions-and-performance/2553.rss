@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>ARM functions.. and performance</title>
+    <link>http://community.axoloti.com/t/arm-functions-and-performance/2553</link>
+    <description>I was trying to compact the code for my looper objects.
+
+old code was
+
+    uint32_t pos = __USAT(inlet_pos, 28);
+    if (pos&gt;attr_table.LENGTH)
+    pos = attr_table.LENGTH;
+
+    int8_t temp1= (bitmask1&amp;attr_table.array[pos])&gt;&gt;24;
+    int8_t temp2= (bitmask2&amp;attr_table.array[pos])&gt;&gt;16;
+    int8_t temp3= (bitmask3&amp;attr_table.array[pos])&gt;&gt;8;
+    int8_t temp4= (bitmask4&amp;attr_table.array[pos]);
+
+    outlet_o1 = ((int32_t) temp1)&lt;&lt;20;
+    outlet_o2 = ((int32_t) temp2)&lt;&lt;20;
+    outlet_o3 = ((int32_t) temp3)&lt;&lt;20;
+    outlet_o4 = ((int32_t) temp4)&lt;&lt;20;
+
+
+new code is 
+
+    uint32_t pos = __USAT(inlet_pos, 28);
+    if (pos&gt;attr_table.LENGTH)
+    pos = attr_table.LENGTH;
+
+    uint32_t sample = attr_table.array[pos]; 
+
+    int32_t temp1= extract(sample,0,24);
+    int32_t temp2= extract(sample,0,16);
+    int32_t temp3= extract(sample,0,8);
+    int32_t temp4= extract(sample,0,0);
+
+    outlet_o1 = (temp1)&lt;&lt;20;
+    outlet_o2 = (temp2)&lt;&lt;20;
+    outlet_o3 = (temp3)&lt;&lt;20;
+    outlet_o4 = (temp4)&lt;&lt;20;
+
+where the function extract(arg1,arg2,arg3) is defined in the local data section
+
+    int32_t extract(int32_t op1,int32_t op2,int32_t op3)
+    {
+      int32_t result;
+
+      __ASM volatile (&quot;sxtab %0, %1, %2, ROR #24&quot; : &quot;=r&quot; (result) :  &quot;r&quot; (op2), &quot;r&quot; (op1) );
+      return(result);
+    }
+
+
+I thought that using an ARM function would have improved performance (the old code used several bitshifts and castings instead) .. Which however is not the case.
+
+Old code scored approx 520 cycles, while the new uses 620.. Why does this happen?
+I also trying to add `__attribute__( ( always_inline ) ) __STATIC_INLINE` before the code, but no change ad all.</description>
+    
+    <lastBuildDate>Tue, 22 Nov 2016 08:47:13 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/arm-functions-and-performance/2553.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>ARM functions.. and performance</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Tried both attributes, i got a really serious advantage against the c++ version only in one case: with all outlets disconnected. Not the way i intended to use the object <img src="//community.axoloti.com/images/emoji/emoji_one/pensive.png?v=3" title=":pensive:" class="emoji" alt=":pensive:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/arm-functions-and-performance/2553/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/arm-functions-and-performance/2553/3</link>
+        <pubDate>Tue, 22 Nov 2016 08:47:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2553-3</guid>
+        <source url="http://community.axoloti.com/t/arm-functions-and-performance/2553.rss">ARM functions.. and performance</source>
+      </item>
+      <item>
+        <title>ARM functions.. and performance</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>One possible explanation is that - if not all outlets are actually used and the output value is just discarded - the compiler cannot eliminate the inline assembly. One way around may be adding the <code>const</code> or <code>pure</code> function attribute. <a href="https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#Common-Function-Attributes">GCC function attribute reference</a>.<br>To verify, it can be useful to check the assembly output of the compiler with arm-none-eabi-objdump (<a href="https://sourceware.org/binutils/docs-2.23/binutils/objdump.html">doc</a>).<br>Generally, I think little (if any) benefit can be found from using assembly for things that express cleanly in c++.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/arm-functions-and-performance/2553/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/arm-functions-and-performance/2553/2</link>
+        <pubDate>Mon, 21 Nov 2016 23:48:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2553-2</guid>
+        <source url="http://community.axoloti.com/t/arm-functions-and-performance/2553.rss">ARM functions.. and performance</source>
+      </item>
+      <item>
+        <title>ARM functions.. and performance</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>I was trying to compact the code for my looper objects.</p>
+
+<p>old code was</p>
+
+<pre><code>uint32_t pos = __USAT(inlet_pos, 28);
+if (pos&gt;attr_table.LENGTH)
+pos = attr_table.LENGTH;
+
+int8_t temp1= (bitmask1&amp;attr_table.array[pos])&gt;&gt;24;
+int8_t temp2= (bitmask2&amp;attr_table.array[pos])&gt;&gt;16;
+int8_t temp3= (bitmask3&amp;attr_table.array[pos])&gt;&gt;8;
+int8_t temp4= (bitmask4&amp;attr_table.array[pos]);
+
+outlet_o1 = ((int32_t) temp1)&lt;&lt;20;
+outlet_o2 = ((int32_t) temp2)&lt;&lt;20;
+outlet_o3 = ((int32_t) temp3)&lt;&lt;20;
+outlet_o4 = ((int32_t) temp4)&lt;&lt;20;</code></pre>
+
+<p>new code is </p>
+
+<pre><code>uint32_t pos = __USAT(inlet_pos, 28);
+if (pos&gt;attr_table.LENGTH)
+pos = attr_table.LENGTH;
+
+uint32_t sample = attr_table.array[pos]; 
+
+int32_t temp1= extract(sample,0,24);
+int32_t temp2= extract(sample,0,16);
+int32_t temp3= extract(sample,0,8);
+int32_t temp4= extract(sample,0,0);
+
+outlet_o1 = (temp1)&lt;&lt;20;
+outlet_o2 = (temp2)&lt;&lt;20;
+outlet_o3 = (temp3)&lt;&lt;20;
+outlet_o4 = (temp4)&lt;&lt;20;</code></pre>
+
+<p>where the function extract(arg1,arg2,arg3) is defined in the local data section</p>
+
+<pre><code>int32_t extract(int32_t op1,int32_t op2,int32_t op3)
+{
+  int32_t result;
+
+  __ASM volatile ("sxtab %0, %1, %2, ROR #24" : "=r" (result) :  "r" (op2), "r" (op1) );
+  return(result);
+}</code></pre>
+
+<p>I thought that using an ARM function would have improved performance (the old code used several bitshifts and castings instead) .. Which however is not the case.</p>
+
+<p>Old code scored approx 520 cycles, while the new uses 620.. Why does this happen?<br>I also trying to add <code>__attribute__( ( always_inline ) ) __STATIC_INLINE</code> before the code, but no change ad all.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/arm-functions-and-performance/2553/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/arm-functions-and-performance/2553/1</link>
+        <pubDate>Mon, 21 Nov 2016 23:15:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2553-1</guid>
+        <source url="http://community.axoloti.com/t/arm-functions-and-performance/2553.rss">ARM functions.. and performance</source>
+      </item>
+  </channel>
+</rss>

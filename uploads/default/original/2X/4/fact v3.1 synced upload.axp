@@ -1,0 +1,2418 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="98" y="42" text="internal midi clock &amp; metronom for testing "/>
+   <comment type="patch/comment" x="98" y="56" text="(can be deleted if using external midi clock)"/>
+   <patcher type="patch/patcher" uuid="fb9af02b-257e-4c69-ae42-5adeb8d6a0f5" name="patcher_1" x="98" y="70">
+      <params>
+         <bool32.tgl name="play" value="0"/>
+         <frac32.u.map name="bpm" value="26.5"/>
+         <frac32.u.map name="metronom vol" value="18.5"/>
+      </params>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="play" x="126" y="0">
+            <params>
+               <bool32.tgl name="b" onParent="true" value="1"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="tiar/logic/rising" uuid="1d591a21-ac71-4b69-96f2-5c17b11ec2cd" name="rising_1" x="210" y="28">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="bpm" x="476" y="28">
+            <params>
+               <frac32.u.map name="value" onParent="true" value="44.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="sss/math/expCurveK" uuid="bde45a1d-540b-4c33-b7b5-d733d42a1772" name="expCurveK_1" x="560" y="28">
+            <params>
+               <frac32.s.map name="exp" value="41.0"/>
+               <int32 name="stack" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_2" x="672" y="28">
+            <params>
+               <frac32.u.map name="amp" value="52.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/+c" uuid="13eec32bd8ad57dd0bb18a02566cc0a117d320e3" name="+c_1" x="770" y="28">
+            <params>
+               <frac32.u.map name="c" value="7.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="17e42321-bf3e-4cae-9cc2-d310b0af5953" name="clock_2" x="196" y="140">
+            <params>
+               <frac32.u.map name="bpm" value="0.0"/>
+            </params>
+            <attribs/>
+            <object id="patch/object" uuid="17e42321-bf3e-4cae-9cc2-d310b0af5953">
+               <sDescription>Midi clock master, als outputs Midi clock, start, stop, and continue messages. Sends to midi/in/* objects only.</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <inlets>
+                  <bool32 name="run" description="Run"/>
+                  <bool32.rising name="rst" description="Reset"/>
+                  <frac32.bipolar name="bpm"/>
+               </inlets>
+               <outlets>
+                  <bool32 name="active" description="Song is playing"/>
+                  <int32 name="pos4ppq" description="Position in 4 counts per quarter"/>
+                  <int32 name="pos24ppq" description="Position in 24 counts per quarter"/>
+               </outlets>
+               <displays/>
+               <params>
+                  <frac32.u.map name="bpm" noLabel="true"/>
+               </params>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[bool _active;
+int32_t _posfrac;
+int32_t _pos24ppq;
+bool rstp;]]></code.declaration>
+               <code.init><![CDATA[_active = 0;
+_posfrac = 0;
+_pos24ppq = 0;
+rstp = 0;]]></code.init>
+               <code.krate><![CDATA[if (inlet_rst & !rstp){
+   rstp = 1;
+   _posfrac = 0;
+   _pos24ppq = 0;
+} else if (!inlet_rst){
+   rstp = 0;
+}
+if (inlet_run && !_active) {
+  _active = 1;
+  if (_pos24ppq) {
+    PatchMidiInHandler(MIDI_DEVICE_INTERNAL, 0,MIDI_CONTINUE,0,0);
+  } else {
+    PatchMidiInHandler(MIDI_DEVICE_INTERNAL, 0,MIDI_START,0,0);
+    PatchMidiInHandler(MIDI_DEVICE_INTERNAL, 0,MIDI_TIMING_CLOCK,0,0);
+  }
+} else if (!inlet_run && _active){
+  _active = 0;
+  PatchMidiInHandler(MIDI_DEVICE_INTERNAL, 0,MIDI_STOP,0,0);
+}if (_active) {
+  _posfrac += (param_bpm+inlet_bpm);
+  if (_posfrac & 1<<31) {
+    _posfrac &= (1<<31)-1;
+    _pos24ppq++;
+    PatchMidiInHandler(MIDI_DEVICE_INTERNAL, 0,MIDI_TIMING_CLOCK,0,0);
+  }
+}
+outlet_pos4ppq = _pos24ppq/6;
+outlet_pos24ppq = _pos24ppq;]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="rbrt/math/&gt;&gt; i c" uuid="14229bad-f41f-40ed-b5dd-c74e31a347c1" name="&gt;&gt;_3" x="350" y="168">
+            <params>
+               <int32 name="shift" value="2"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="rbrt/math/&gt;&gt; i c" uuid="14229bad-f41f-40ed-b5dd-c74e31a347c1" name="&gt;&gt;_2" x="490" y="168">
+            <params>
+               <int32 name="shift" value="2"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="rbrt/math/&lt;&lt; i c" uuid="984d06ee-2b58-4536-822a-bb4d9e119250" name="&lt;&lt;_1" x="588" y="168">
+            <params>
+               <int32 name="shift" value="2"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/-" uuid="1643d55e6e7ce1c995a5e66db9f54fd969e6c9b7" name="-_1" x="700" y="210">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_1" x="826" y="210">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_5" x="924" y="210">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="metronom vol" x="98" y="252">
+            <params>
+               <frac32.u.map name="value" onParent="true" value="14.5"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="tick vol" x="266" y="280">
+            <params>
+               <frac32.u.map name="value" value="64.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="bar pulse vol" x="364" y="280">
+            <params>
+               <frac32.u.map name="value" value="31.449999809265137"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="noise/pink" uuid="72c03a2468ee865f248733fcf9b12d4cf42b5a61" name="pink_1" x="182" y="378">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="294" y="392">
+            <params>
+               <frac32.s.map name="a" value="-64.0"/>
+               <frac32.s.map name="d" value="-42.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_3" x="434" y="392">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_1" x="504" y="392">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="574" y="392">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="bar pulse pitch" x="588" y="448">
+            <params>
+               <frac32.s.map name="value" value="-36.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_7" x="658" y="448">
+            <params>
+               <frac32.u.map name="value" value="44.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/==" uuid="deaf0d36642c57876c4101e86f8a0b6a06021ab2" name="==_1" x="0" y="518">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="tiar/logic/rising" uuid="1d591a21-ac71-4b69-96f2-5c17b11ec2cd" name="rising_2" x="70" y="518">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_6" x="168" y="518">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="timer/pulselength" uuid="ca68725237d8ba8407773340801660a9fd9b0dba" name="pulselength_1" x="238" y="518">
+            <params>
+               <frac32.s.map name="delay" value="7.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="noise/pink" uuid="72c03a2468ee865f248733fcf9b12d4cf42b5a61" name="pink_2" x="364" y="518">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_2" x="476" y="518">
+            <params>
+               <frac32.s.map name="a" value="-64.0"/>
+               <frac32.s.map name="d" value="-15.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_1" x="588" y="532">
+            <params>
+               <frac32.u.map name="amp" value="31.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/+" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_3" x="700" y="532">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="f61b9f36-976e-4c52-9bfc-bba0ced318f7" name="lp_1" x="770" y="532">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="f61b9f36-976e-4c52-9bfc-bba0ced318f7">
+               <sDescription>Low pass filter, state-variable type</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>filter.axh</helpPatch>
+               <inlets>
+                  <frac32buffer name="in" description="filter input"/>
+                  <frac32.bipolar name="pitch"/>
+                  <frac32.positive name="reso"/>
+               </inlets>
+               <outlets>
+                  <frac32buffer name="out" description="filter output"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int32_t low;
+int32_t band;]]></code.declaration>
+               <code.init><![CDATA[low = 0;
+band = 0;]]></code.init>
+               <code.krate><![CDATA[int32_t damp = (0x80<<24) - (inlet_reso<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(inlet_pitch,alpha);
+SINE2TINTERP(alpha,freq);]]></code.krate>
+               <code.srate><![CDATA[int32_t in1 = inlet_in;
+int32_t notch = inlet_in - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+int32_t out1 = low;
+outlet_out = out1;]]></code.srate>
+            </object>
+         </patchobj>
+         <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_4" x="882" y="560">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_2" x="966" y="560">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_4" x="1036" y="560">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/gain" uuid="62b1c1a6337c7c8f6aec96408a432477b113cfa0" name="gain_1" x="1106" y="560">
+            <params>
+               <frac32.u.map name="amp" value="20.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_2" x="1218" y="560">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_5" x="1302" y="560">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_1" x="1386" y="560">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="play" outlet="o"/>
+               <dest obj="rising_1" inlet="in"/>
+               <dest obj="vca_5" inlet="v"/>
+               <dest obj="clock_2" inlet="run"/>
+            </net>
+            <net>
+               <source obj="rising_1" outlet="trig"/>
+               <dest obj="or_5" inlet="i2"/>
+               <dest obj="or_6" inlet="i2"/>
+               <dest obj="clock_2" inlet="rst"/>
+            </net>
+            <net>
+               <source obj="&gt;&gt;_3" outlet="out"/>
+               <dest obj="&gt;&gt;_2" inlet="in"/>
+               <dest obj="-_1" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="&gt;&gt;_2" outlet="out"/>
+               <dest obj="&lt;&lt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&lt;&lt;_1" outlet="out"/>
+               <dest obj="-_1" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="-_1" outlet="out"/>
+               <dest obj="change_1" inlet="in"/>
+               <dest obj="==_1" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="clock_2" outlet="pos4ppq"/>
+               <dest obj="&gt;&gt;_3" inlet="in"/>
+            </net>
+            <net>
+               <source obj="change_1" outlet="trig"/>
+               <dest obj="or_5" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="pink_1" outlet="out"/>
+               <dest obj="vca_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="*_1" outlet="result"/>
+               <dest obj="vca_1" inlet="v"/>
+            </net>
+            <net>
+               <source obj="tick vol" outlet="out"/>
+               <dest obj="*_3" inlet="a"/>
+            </net>
+            <net>
+               <source obj="or_5" outlet="o"/>
+               <dest obj="ad_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="ad_2" outlet="env"/>
+               <dest obj="*_2" inlet="b"/>
+               <dest obj="*c_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="*_2" outlet="result"/>
+               <dest obj="vca_4" inlet="v"/>
+            </net>
+            <net>
+               <source obj="==_1" outlet="out"/>
+               <dest obj="rising_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="or_6" outlet="o"/>
+               <dest obj="pulselength_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="bar pulse vol" outlet="out"/>
+               <dest obj="*_4" inlet="a"/>
+            </net>
+            <net>
+               <source obj="+_2" outlet="out"/>
+               <dest obj="vca_5" inlet="a"/>
+            </net>
+            <net>
+               <source obj="vca_5" outlet="o"/>
+               <dest obj="out_1" inlet="wave"/>
+            </net>
+            <net>
+               <source obj="vca_1" outlet="o"/>
+               <dest obj="+_2" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="*c_1" outlet="out"/>
+               <dest obj="+_3" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="dial_7" outlet="out"/>
+               <dest obj="lp_1" inlet="reso"/>
+            </net>
+            <net>
+               <source obj="+_3" outlet="out"/>
+               <dest obj="lp_1" inlet="pitch"/>
+            </net>
+            <net>
+               <source obj="bar pulse pitch" outlet="out"/>
+               <dest obj="+_3" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="metronom vol" outlet="out"/>
+               <dest obj="*_3" inlet="b"/>
+               <dest obj="*_4" inlet="b"/>
+            </net>
+            <net>
+               <source obj="rising_2" outlet="trig"/>
+               <dest obj="or_6" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="*c_2" outlet="out"/>
+               <dest obj="+c_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="bpm" outlet="out"/>
+               <dest obj="expCurveK_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="expCurveK_1" outlet="out"/>
+               <dest obj="*c_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="+c_1" outlet="out"/>
+               <dest obj="clock_2" inlet="bpm"/>
+            </net>
+            <net>
+               <source obj="ad_1" outlet="env"/>
+               <dest obj="*_1" inlet="b"/>
+            </net>
+            <net>
+               <source obj="*_3" outlet="result"/>
+               <dest obj="*_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="*_4" outlet="result"/>
+               <dest obj="*_2" inlet="a"/>
+            </net>
+            <net>
+               <source obj="vca_4" outlet="o"/>
+               <dest obj="gain_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="pink_2" outlet="out"/>
+               <dest obj="lp_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="lp_1" outlet="out"/>
+               <dest obj="vca_4" inlet="a"/>
+            </net>
+            <net>
+               <source obj="gain_1" outlet="out"/>
+               <dest obj="+_2" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="pulselength_1" outlet="pulse"/>
+               <dest obj="ad_2" inlet="trig"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>594</x>
+            <y>69</y>
+            <width>1616</width>
+            <height>876</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <comment type="patch/comment" x="322" y="84" text="input/loop"/>
+   <comment type="patch/comment" x="406" y="84" text="volume"/>
+   <comment type="patch/comment" x="546" y="84" text="record"/>
+   <comment type="patch/comment" x="658" y="84" text="overdub"/>
+   <comment type="patch/comment" x="756" y="84" text="replace"/>
+   <comment type="patch/comment" x="840" y="84" text="repitch"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_10" x="322" y="98">
+      <params>
+         <frac32.u.map name="value" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_11" x="406" y="98">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_7" x="546" y="98">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_5____tmp" x="658" y="98">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_6" x="756" y="98">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_3" x="840" y="98">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="728" y="168" text="looper"/>
+   <comment type="patch/comment" x="546" y="182" text="stop"/>
+   <comment type="patch/comment" x="630" y="182" text="play"/>
+   <comment type="patch/comment" x="728" y="182" text="feedback"/>
+   <comment type="patch/comment" x="910" y="182" text="pitch"/>
+   <comment type="patch/comment" x="1008" y="182" text="stretch"/>
+   <comment type="patch/comment" x="1106" y="182" text="rate"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_4" x="546" y="196">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="630" y="196">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_5" x="728" y="196">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="910" y="196">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_2" x="1008" y="196">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_3" x="1106" y="196">
+      <params>
+         <frac32.s.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="350" text="kbeat clock receiver"/>
+   <comment type="patch/comment" x="994" y="350" text="save"/>
+   <comment type="patch/comment" x="1106" y="350" text="load"/>
+   <comment type="patch/comment" x="126" y="364" text="kbeat = length of 1 beat at k rate"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_2" x="994" y="364">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_3" x="1106" y="364">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="378" text="phase = current position in a bar, updated every 1/32nd"/>
+   <patchobj type="patch/object" uuid="b85015e0-6073-44b3-97d5-e15ff65915d3" name="kbeat_1" x="126" y="392">
+      <params>
+         <int32 name="thresh" value="10"/>
+      </params>
+      <attribs>
+         <combo attributeName="clockin" selection="omni"/>
+      </attribs>
+      <object id="patch/object" uuid="b85015e0-6073-44b3-97d5-e15ff65915d3">
+         <sDescription>Midi clock slave</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <int32 name="kbeat" description="average length of a beat at k rate"/>
+            <bool32.pulse name="start" description="start trigger"/>
+            <bool32.pulse name="stop" description="stop trigger"/>
+            <int32 name="count"/>
+            <frac32.positive name="phase"/>
+            <int32 name="bpm"/>
+            <bool32 name="change"/>
+            <int32 name="pos24ppq"/>
+         </outlets>
+         <displays>
+            <bool32 name="change"/>
+         </displays>
+         <params>
+            <int32 name="thresh">
+               <MinValue i="1"/>
+               <MaxValue i="6000"/>
+            </int32>
+         </params>
+         <attribs>
+            <combo name="clockin">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t pos;
+int32_t count;
+int32_t prevc;
+int32_t ktime;
+int32_t kbeat;
+int32_t prevkb;
+int32_t change;
+uint32_t phase;
+uint32_t shadow;
+bool start;
+bool changing;
+bool stop;
+bool active;]]></code.declaration>
+         <code.init><![CDATA[active = 0;
+pos = -1;
+active=1;]]></code.init>
+         <code.krate><![CDATA[if (pos<0){
+	count=-1;
+	shadow=0;
+}
+else {
+	shadow=pos/3;
+	count=(pos/24)-(((pos/24)>>2)<<2);
+	}
+if (count>=0){
+	ktime+=1;
+}
+if (count!=prevc){
+	if ((prevc>=0)&& active){
+		if (pos>12){
+			prevkb=kbeat;
+			kbeat=ktime;
+			}
+		
+	}
+	ktime=0;
+	prevc=count;
+}
+//shadow=param_p1;
+phase=shadow<<27;
+change=kbeat-prevkb;
+
+if (((change>=param_thresh) || (change<=(-param_thresh)))  && (pos>12)){
+	changing=1;
+}
+else {
+	changing=0;
+}
+if (pos<12){
+	changing=0;
+}
+
+disp_change=changing;
+outlet_kbeat=kbeat;
+outlet_bpm=180000/kbeat;
+outlet_start=start;
+outlet_stop=stop;
+outlet_count=count;
+outlet_phase=phase>>5;
+outlet_change=changing;
+outlet_pos24ppq=pos;
+start=0;
+stop=0;]]></code.krate>
+         <code.midihandler><![CDATA[if (attr_clockin){
+	if (status == MIDI_TIMING_CLOCK) {
+		if ((pos<0)&&active){
+	  	start=1;
+	  	
+	  }
+	  pos++;
+	  
+	  
+	  
+	} else if (status == MIDI_START) {
+	active=1;
+	  pos = -1;
+	  
+	  
+	} else if (status == MIDI_STOP) {
+	  active = 0;	  stop=1;
+	  pos = -1;
+
+	
+	  
+	}
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="476" y="406" text="fact transport"/>
+   <comment type="patch/comment" x="308" y="420" text="deadzone"/>
+   <comment type="patch/comment" x="448" y="420" text="handles syncing of recording/playback "/>
+   <comment type="patch/comment" x="994" y="420" text="saving"/>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="data" x="1596" y="420">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="1048576"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="266" y="434" text="stops kbeat fluctuating with jitter"/>
+   <comment type="patch/comment" x="448" y="434" text="and resyncs player if tempo changed"/>
+   <comment type="patch/comment" x="686" y="434" text="recording"/>
+   <comment type="patch/comment" x="784" y="434" text="play"/>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="994" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="6e0bbfb3-f76d-45ba-8f74-70bda8ee62a9" name="object_1" x="294" y="448">
+      <params>
+         <int32 name="dead" value="6"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="6e0bbfb3-f76d-45ba-8f74-70bda8ee62a9">
+         <inlets>
+            <int32 name="v"/>
+         </inlets>
+         <outlets>
+            <int32 name="v"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="dead">
+               <MinValue i="0"/>
+               <MaxValue i="60000"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int v;
+int d;]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_v!=v){
+	d=inlet_v-v;
+	if (d<0){
+		d=-d;
+	}
+	if (d>=param_dead){
+	v=inlet_v;
+	}
+}
+
+outlet_v=v;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="fb64a9d1-119f-4bb4-a872-d5aaada62780" name="Fact_4" x="476" y="448">
+      <params>
+         <int32 name="barmax" value="8"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+      <object id="patch/object" uuid="fb64a9d1-119f-4bb4-a872-d5aaada62780">
+         <sDescription>Difficult to name. Pitchshifter, time-stretcher, play-rate adjuster (stretch+pitchshift), sampler, delay, granulizer...
+
+See inputs/controls for their functions (hoover above them)</sDescription>
+         <author>Remco van der most</author>
+         <license>BSD</license>
+         <helpPatch>delay.axh</helpPatch>
+         <inlets>
+            <bool32 name="rec" description="when high, records to buffer"/>
+            <int32 name="count"/>
+            <bool32 name="reset"/>
+            <bool32 name="loopsync"/>
+            <int32 name="barsync"/>
+            <int32 name="barmax"/>
+            <bool32 name="stop"/>
+            <bool32 name="play"/>
+            <frac32.positive name="midiphase"/>
+            <bool32 name="resync"/>
+         </inlets>
+         <outlets>
+            <bool32 name="recording"/>
+            <bool32 name="trig"/>
+            <bool32 name="start"/>
+            <int32 name="barlength"/>
+            <int32 name="barcount"/>
+            <bool32 name="syncpulse"/>
+            <bool32 name="play"/>
+            <bool32 name="stop"/>
+            <frac32.positive name="startpos"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="barmax">
+               <MinValue i="1"/>
+               <MaxValue i="16"/>
+            </int32>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[//static const uint32_t LENGTHPOW = (attr_size);
+//static const uint32_t LENGTH = (1<<attr_size);
+//static const uint32_t LENGTHMASK = ((1<<attr_size)-1);
+
+
+
+bool rec;
+
+bool restrig;
+
+
+bool recording;
+	bool rhold;
+	bool rtrig;
+	bool record;
+	bool trig;
+	bool play;
+	bool phold;
+	bool start;
+	bool syncpulse;
+	bool shold;
+	bool stop;
+	bool overdub;
+	bool resync;
+	bool syncing;
+	bool rs;
+	bool pp;
+	bool syncst;
+	int dub;
+	int prevc;
+	int bar;
+	int barmax;
+	int barlength;
+	int barshadow;
+	int bsize;
+	int prevph;
+	int rescnt;
+	int startpos;
+	int syncwait;]]></code.declaration>
+         <code.init><![CDATA[bsize=2048;]]></code.init>
+         <code.krate><![CDATA[barlength=attr_table.array[16+bsize];
+barmax=inlet_barmax+param_barmax;
+if (!resync&&!syncing){
+	startpos=0;
+	prevph=inlet_midiphase;
+}
+
+if (inlet_rec && !rtrig){
+	if (!rhold &&!record){
+		rhold=1;
+		}
+	if (record){
+		phold=1;
+	}
+	rtrig=1;
+
+}
+else if (!inlet_rec){
+	rtrig=0;
+}
+
+if (inlet_stop&& !shold){
+	shold=1;
+}
+if (inlet_play){
+	phold=1;
+}
+
+if (inlet_count!=prevc){
+	
+	if (inlet_count==0){
+		bar+=1;
+		barshadow+=1;
+		if (rhold && !record){
+			record=1;
+			bar=0;
+			play=0;
+			rhold=0;
+			
+		}
+		if (phold){
+			if (record){
+			record=0;	
+			}
+			
+			play=1;
+			phold=0;
+			start=1;
+			
+		}
+		if ((record==1)&&(bar==barmax)){
+			record=0;
+			play=1;
+		}
+		if (shold){
+			shold=0;
+			play=0;
+			stop=1;
+		}
+	
+	}
+	if (syncing){
+		if (play&&!stop&&resync){
+		trig=1;
+		}
+		resync=0;
+		
+		if (!inlet_resync&& (inlet_count==0)){
+			syncst=1;
+			
+		
+		}
+	}
+	prevc=inlet_count;
+	
+	
+}
+
+
+if (inlet_reset && !restrig){
+	restrig=1;
+	bar=0;
+	barshadow=0;
+	start=1;
+}
+else if (!inlet_reset){
+	restrig=0;
+}
+
+
+
+
+
+if((record>0)&&!rec){
+	rec=1;
+	attr_table.array[16+bsize]=0;
+}
+else if((record==0)&&rec){
+	rec=0;
+	attr_table.array[16+bsize]=bar;
+	barlength=bar;
+	bar=0;
+	barshadow=0;
+	start=1;
+	}
+
+	
+if ((bar>=attr_table.array[16+bsize]) && (attr_table.array[16+bsize]>0)){
+	bar=0;
+	trig=1;
+	if (inlet_loopsync){
+		syncpulse=1;
+		barshadow=0;
+	}
+	
+}
+if ((barshadow>=inlet_barsync)&&!record&&(barlength>0)){
+	barshadow=0;
+	if (inlet_barsync>0){
+		syncpulse=1;
+	}
+}
+
+if (!play){
+	start=0;
+	trig=0;
+	resync=0;
+	syncing=0;
+}
+if (start){
+	trig=0;
+	bar=0;
+}
+
+if (inlet_resync&&!resync&&!syncing&&play){
+	resync=1;
+	syncwait=10000;
+	
+	//syncing=1;
+//	rs=1;
+}
+//else if (!inlet_resync&&rs){
+	
+//	rs=0;
+	
+//}
+
+if (resync){
+	if ((inlet_midiphase!=prevph)&&(syncwait>750)&&!syncing){
+		syncwait=0;
+		if (play&&!trig&&!stop){
+		trig=1;
+		}
+		//resync=0;
+		startpos=(inlet_midiphase/barlength)+(bar*((1<<27)/barlength));
+		
+		syncing=1;
+	}
+	syncwait+=1;
+		
+	}
+else if (syncing){
+	startpos=((inlet_count<<25)/barlength)+(bar*((1<<27)/barlength));	
+	if (syncst){
+		syncing=0;
+	}
+}
+else {
+	startpos=0;
+}
+
+if (startpos<0){
+	startpos=0;
+}
+prevph=inlet_midiphase;
+if (inlet_count<0){
+	trig=0;
+}
+//startpos=(inlet_midiphase/barlength)+(bar*((1<<27)/barlength));
+
+outlet_startpos=startpos;
+
+outlet_recording=record;
+outlet_trig=trig;
+outlet_barlength=attr_table.array[16+bsize];
+outlet_barcount=bar;
+outlet_start=start;
+outlet_syncpulse=syncpulse;
+outlet_play =play;
+outlet_stop=stop;
+trig=0;
+syncpulse=0;
+start=0;
+stop=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="686" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_4" x="784" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="714" y="560" text="start recorder"/>
+   <comment type="patch/comment" x="826" y="560" text="stop"/>
+   <comment type="patch/comment" x="924" y="560" text="start/retrigger player"/>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="714" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_3" x="826" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_2" x="924" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="154" y="756" text="fact recorder v3.1"/>
+   <comment type="patch/comment" x="308" y="756" text="works out the length of a beat at krate"/>
+   <obj type="audio/in left" uuid="d40e60b7641fe75af4d7c91b45bb038aacafc52e" name="in_1" x="56" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="5b862707-ce22-4fd2-93ae-5c6e1e1b8521" name="3_1" x="154" y="770">
+      <params>
+         <int32 name="fade" value="3"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="dubtrig" selection="external"/>
+      </attribs>
+      <object id="patch/object" uuid="5b862707-ce22-4fd2-93ae-5c6e1e1b8521">
+         <sDescription>Difficult to name. Pitchshifter, time-stretcher, play-rate adjuster (stretch+pitchshift), sampler, delay, granulizer...
+
+See inputs/controls for their functions (hoover above them)</sDescription>
+         <author>Remco van der most</author>
+         <license>BSD</license>
+         <helpPatch>delay.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="audio input"/>
+            <bool32.risingfalling name="rec"/>
+            <bool32.rising name="restart"/>
+            <bool32.rising name="play"/>
+            <bool32.rising name="stop"/>
+            <bool32.risingfalling name="overdub"/>
+            <bool32.risingfalling name="replace"/>
+            <frac32.positive name="feedback"/>
+            <bool32.risingfalling name="delaymode"/>
+            <frac32.positive name="delay"/>
+         </inlets>
+         <outlets>
+            <bool32.pulse name="start"/>
+            <bool32.pulse name="xtrig"/>
+            <int32 name="length"/>
+            <frac32.positive name="phase"/>
+            <bool32.pulse name="stop"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="fade" noLabel="true">
+               <MinValue i="1"/>
+               <MaxValue i="30000000"/>
+            </int32>
+         </params>
+         <attribs>
+            <objref name="table"/>
+            <combo name="dubtrig">
+               <MenuEntries>
+                  <string>internal</string>
+                  <string>external</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t ovrfade;
+int32_t ovrenv;
+int32_t env[2];
+int32_t Oenv[2];
+int32_t Ienv[2];
+int32_t Ostep[2];
+int32_t Oprev[2];
+int32_t ovrrate;
+int32_t ovrcnt;
+int32_t prevO;
+int32_t stepO;
+int32_t rfade;
+int32_t renv;
+int32_t rate;
+int32_t phase;
+int32_t mcnt;
+int32_t mute;
+int32_t rfadeO;
+int32_t feeback;
+int32_t delay;
+int32_t prevd;
+int32_t prevR;
+int32_t stepR;
+int32_t feedback;
+uint32_t x;
+uint32_t writepos;
+uint32_t dubpos[2];
+uint32_t dubclock;
+uint32_t deck;
+uint32_t length;
+uint32_t buffer;
+uint32_t bsize;
+uint32_t in;
+uint32_t dcount;
+bool play;
+bool stop;
+bool prevp;
+bool Prep;
+bool rec;
+bool dt;
+//bool overdub;
+bool delaymode;
+bool dubtrig;
+bool ovrin;
+bool repin;
+bool Pinovr;
+bool dubbing;
+bool recording;
+bool start;
+bool strig;
+bool ptrig;
+bool xtrig;
+bool rtrig;
+bool ott;
+bool hold;
+
+bool dhold;
+bool det;
+bool mtrigger;]]></code.declaration>
+         <code.krate><![CDATA[bsize=2048;
+
+length=(attr_table.array[0+bsize]<<15)+attr_table.array[1+bsize];
+rate=(1<<31)/(length<<4);
+
+if (inlet_delaymode!=prevd){
+	prevd=inlet_delaymode;
+	
+	ovrcnt=(bsize>>4);
+	dhold=1;
+	
+}
+if (inlet_overdub!=Pinovr){
+	ovrcnt=(bsize>>4);
+	Pinovr=inlet_overdub;
+}
+if (inlet_replace!=Prep){
+	ovrcnt=(bsize>>4);
+	Prep=inlet_replace;
+}
+if (ovrcnt>0){
+	ovrcnt-=1;
+	if (ovrcnt<=0){
+		if (!dhold){
+			if (inlet_overdub){
+				//overdub=1;
+				ovrin=1;
+			}
+			else {
+				ovrin=0;
+			}
+			if (inlet_replace){
+				//overdub=1;
+				repin=1;
+				ovrin=1;
+			}
+			else {
+				repin=0;
+			}
+		}
+		else if (dhold){
+			ovrin=0;
+			ott=0;
+
+			
+		}
+	}
+}
+
+ovrrate=0x07FFFFFF/param_fade;
+if (ovrin){
+	if (ovrfade<0x07FFFFFF){
+		ovrfade+=ovrrate;
+		if (ovrfade>=0x07FFFFFF){
+			ovrfade=0x07FFFFFF;
+		}
+	}
+}
+else {
+	if (ovrfade>0){
+		ovrfade-=ovrrate;
+		
+		
+	}
+	if (ovrfade<=0){
+
+			ovrfade=0;
+			if (!ott){
+				ott=1;
+			if (inlet_delaymode){
+				ovrin=1;
+				delaymode=1;
+				
+			}
+			else if (!inlet_delaymode){
+				
+				dhold=0;
+				delaymode=0;
+				if (inlet_overdub){
+					ovrin=1;
+				}
+			}
+			}
+			
+		}
+}
+if (delaymode){
+	delay=___SMMUL(length<<3,inlet_delay<<2);
+	}
+else {
+	delay=0;
+}
+
+
+if (!repin){
+	if (rfade<0x07FFFFFF){
+		rfade+=ovrrate;
+		if (rfade>=0x07FFFFFF){
+			rfade=0x07FFFFFF;
+		}
+	}
+}
+else {
+	if (rfade>0){
+		rfade-=ovrrate;
+		if (rfade<=0){
+			rfade=0;
+			
+		}
+	}
+}
+
+rfadeO= ___SMMUL(rfade<<3,inlet_feedback<<2);
+
+if (rfadeO>=0x07FFFFFE){
+	rfadeO=1<<27;
+}
+
+   stepR = (rfadeO - prevR)>>4;
+   int32_t renv = prevR;
+   prevR = rfadeO;
+if((inlet_rec>0)&&!rec){
+	rec=1;
+	recording=1;
+	writepos=0;
+	length=0;
+	attr_table.array[0+bsize]=0;
+	attr_table.array[1+bsize]=0;
+	play=0;
+	deck=2;
+	
+}
+
+else if((inlet_rec==0)&&rec&&(writepos>=(bsize))){
+	start=1;
+	rec=0;
+	attr_table.array[0+bsize]=((writepos)/(1<<15));
+	attr_table.array[1+bsize]=writepos-(((writepos)/(1<<15))<<15);
+	length=writepos;
+	dubclock=0;
+	play=1;
+	//deck=2;
+	dubtrig=1;
+	dubpos[0]=length+(bsize<<4);
+	dubpos[1]=length+(bsize<<4);
+	}
+
+
+if ((writepos>=(length+(bsize<<3)))  && (length>0)){
+	recording=0;
+}
+
+if (length>0){
+	dubclock+=(1<<4);
+}
+if ((dubclock>=length) && (length>0)){
+	dubclock=0;
+	if (!attr_dubtrig){
+		dubtrig=1;
+		}
+	if (delaymode){
+		dubtrig=1;
+		}
+	
+}
+
+if (inlet_restart&&!rtrig){
+
+	if  (!delaymode){
+	dubtrig=1;
+	dubclock=0;
+	}
+	
+	rtrig=1;
+}
+else if (!inlet_restart){
+	rtrig=0;
+}
+if (inlet_stop&&!strig){
+	strig=1;
+	play=0;
+}
+else if (!inlet_stop){
+	strig=0;
+}
+if (inlet_play&&!ptrig){
+	play=1;
+	ptrig=1;
+}
+else if (!inlet_play){
+	ptrig=0;
+}
+
+if (play!=prevp){
+	if (play){
+		if (!ovrin&&inlet_overdub){
+			ovrin=1;
+		}
+		start=1;
+		dubtrig=1;
+		dubclock=0;
+	}
+	else {
+		if (ovrin){
+			ovrin=0;
+		}
+		stop=1;
+		dubpos[0]=length+(bsize<<4);
+		dubpos[1]=length+(bsize<<4);
+	}
+	prevp=play;
+}
+
+
+
+if (mute>0){
+	if (mcnt>0){
+		mcnt-=1;
+		}
+	if ((mcnt<=0)&&!mtrigger){
+		mtrigger=1;
+		mcnt=0;
+	}
+	if (mtrigger){
+		env[mute-1]-=ovrrate;
+//		dubpos[mute-1]=length+(bsize<<4);
+		if (env[mute-1]<=0){
+			env[mute-1]=0;
+			mute=0;
+			mtrigger=0;
+		}
+	}
+}
+for (x = 0;x<2;x++){
+	
+	Ienv[x]=___SMMUL(ovrfade<<3,env[x]<<2);
+	Ostep[x]= (Ienv[x]- Oprev[x])>>4;
+   	Oenv[x]= Oprev[x];
+   	Oprev[x] = Ienv[x];
+}
+
+if (play){
+	phase=dubpos[deck]*rate;
+	}
+else {
+	phase=0;
+}
+if (dubtrig){
+	
+	if (((phase)<(60<<21)) && (deck<2)){
+		mute=1+deck;
+		mcnt=bsize>>4;
+	}
+	else {mute=0;}
+	
+	if ((deck==2)||(deck==1)){
+		deck=0;
+	}
+	else {
+		deck=1;
+	}
+	
+	dubpos[deck]=0;
+	env[deck]=0x07FFFFFF;
+	phase=0;
+	if (!start){
+		xtrig=1;
+		}
+}
+
+
+//disp_d5= 1031>>1<<1;
+outlet_phase=phase;
+outlet_length=length;
+outlet_start=start;
+outlet_stop=stop;
+outlet_xtrig=xtrig;
+start=0;
+stop=0;
+dubtrig=0;
+xtrig=0;]]></code.krate>
+         <code.srate><![CDATA[if(recording>0) {
+	attr_table.array[writepos+32+bsize] =attr_table.array[buffer];
+	writepos = (writepos + 1)&attr_table.LENGTHMASK;
+	}
+
+	for (x = 0;x<2;x++){
+		
+		if (dubpos[x]<(length+(bsize<<3))){
+			uint32_t xpos=dubpos[x];
+			
+			attr_table.array[xpos+32+bsize+delay] = (___SMMUL(attr_table.array[xpos+32+bsize]<<3,renv<<2) + ___SMMUL(attr_table.array[buffer]<<3,Oenv[x]<<2));
+			if (delaymode && ((xpos)>=(length-delay)) && ((xpos)<(length+bsize+bsize))     ){
+				attr_table.array[xpos+32+bsize-(length-delay)] =(___SMMUL(attr_table.array[xpos+32+bsize]<<3,renv<<2) + ___SMMUL(attr_table.array[buffer]<<3,Oenv[x]<<2));
+			}
+			Oenv[x]+=Ostep[x];			
+			dubpos[x] = (dubpos[x]+ 1)&attr_table.LENGTHMASK;
+		}
+	
+	}
+	
+	renv+=stepR;
+
+
+
+
+
+
+
+in=__SSAT(inlet_in>>14,16);
+attr_table.array[buffer]=in;
+buffer+=1;
+if (buffer>=bsize){
+	buffer=0;
+}]]></code.srate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="308" y="770" text=" based on the recorded length and num of bars"/>
+   <comment type="patch/comment" x="560" y="770" text="magic box that compares two times "/>
+   <patchobj type="patch/object" uuid="5fd853c8-2dc7-4030-98e4-d1b3a1f68052" name="object_2" x="308" y="784">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="5fd853c8-2dc7-4030-98e4-d1b3a1f68052">
+         <inlets>
+            <int32 name="length"/>
+            <int32 name="barlength"/>
+         </inlets>
+         <outlets>
+            <int32 name="kbeat"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_kbeat=((inlet_length>>4)/inlet_barlength)>>2;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="560" y="784" text="and puts out the stretch difference"/>
+   <comment type="patch/comment" x="784" y="784" text="synced glides for repitch mode - should glide at around 1 beat"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_2" x="504" y="798">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="dd8dcc27-a26e-4659-bd16-d045b2834bcb" name="factsyncer" x="574" y="798">
+      <params/>
+      <attribs>
+         <combo attributeName="mode" selection="time"/>
+      </attribs>
+      <object id="patch/object" uuid="dd8dcc27-a26e-4659-bd16-d045b2834bcb">
+         <helpPatch>logic.axh</helpPatch>
+         <inlets>
+            <int32 name="base"/>
+            <int32 name="new"/>
+            <bool32.risingfalling name="repitch"/>
+            <frac32.bipolar name="stretch"/>
+            <frac32.bipolar name="pitch"/>
+            <bool32.risingfalling name="q"/>
+         </inlets>
+         <outlets>
+            <frac32.bipolar name="stretch"/>
+            <frac32.bipolar name="pitch"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="mode">
+               <MenuEntries>
+                  <string>time</string>
+                  <string>bpm</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t stretch;
+int32_t pitch;
+int32_t dif;
+
+int32_t n;
+int32_t b;
+int32_t c;
+
+int32_t LOG(int32_t in){
+	Float_t f;
+f.f = in;
+int32_t r1 = ((f.parts.exponent&0x7F)-18) << 24;
+int32_t r3 = logt[f.parts.mantissa>>15]<<10;
+r1 += r3;
+return r1;
+
+}
+
+
+int32_t FTOM(int32_t freq){
+	int32_t ptch;
+	int32_t mid;
+MTOFEXTENDED(0,mid);
+mid=LOG(mid);
+
+int32_t to;
+to=LOG(freq<<2);
+return ptch=(to-mid>>1)*3;
+};]]></code.declaration>
+         <code.krate><![CDATA[//use the averaged countlength and calculate the timings for lfo's and delays
+n=inlet_new;
+if (n<1){
+	n=inlet_base;
+}
+b=inlet_base;
+if (b<1){
+	b=inlet_new;
+}
+
+c=b-n;
+if ((c>5)||(c<(-5))){
+	int32_t freqB=((uint64_t)1<<32)/n;
+	int32_t freqA=((uint64_t)1<<32)/b;
+	if (!attr_mode){
+		dif=FTOM(freqB) - FTOM(freqA);
+	}
+	else {
+		dif=FTOM(freqA) - FTOM(freqB);
+		}
+	}
+else {
+	dif=0;
+}
+stretch=dif + inlet_stretch;
+
+if (inlet_repitch){
+	pitch=inlet_pitch+dif;
+}
+else {
+	pitch=inlet_pitch;
+}
+
+if (!inlet_q){
+	outlet_stretch=stretch;
+	outlet_pitch=pitch;
+	}
+else {
+	outlet_stretch=stretch>>21<<21;
+	outlet_pitch=pitch>>21<<21;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="dfe6aad8-35de-487e-98eb-0608fcad5b64" name="glide_multi_1" x="840" y="798">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="dfe6aad8-35de-487e-98eb-0608fcad5b64">
+         <sDescription>glide module for control signals with 3 different glide modes:
+1-exponential (continous calculation of difference between current output value and input value, adding a part of the difference to the output at each sample calculation)
+2-linear difference (only when input changes, calculates difference and adds a portion of this to the current output value at each new sample until it reaches the input value.
+3-linear static time (when input changes, adds/subtracts a fixed value to the current output value until it reaches the input value. Difference between values does not influence change-rate.</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32 name="in"/>
+            <bool32 name="glideOFF"/>
+            <int32 name="kbeat"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t prev;
+int32_t follow;
+int64_t diff;
+int64_t rate;]]></code.declaration>
+         <code.krate><![CDATA[rate=inlet_kbeat-1;
+if (rate<1){
+	rate=1;
+}
+if(inlet_glideOFF==0)
+{
+
+
+if(!(inlet_in==prev))
+	{diff=inlet_in-follow;}
+if(diff>0)
+	{if(follow>inlet_in)
+		{diff=0;
+			follow=inlet_in;
+			}}
+if(diff<0)
+	{if(follow<inlet_in)
+		{diff=0;
+		follow=inlet_in;
+		}}
+follow+=((diff<<21)/(rate<<21));
+outlet_out=follow;
+prev=inlet_in;
+
+
+
+}
+else
+{outlet_out=inlet_in;}]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="dfe6aad8-35de-487e-98eb-0608fcad5b64" name="glide_multi_3" x="966" y="798">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="dfe6aad8-35de-487e-98eb-0608fcad5b64">
+         <sDescription>glide module for control signals with 3 different glide modes:
+1-exponential (continous calculation of difference between current output value and input value, adding a part of the difference to the output at each sample calculation)
+2-linear difference (only when input changes, calculates difference and adds a portion of this to the current output value at each new sample until it reaches the input value.
+3-linear static time (when input changes, adds/subtracts a fixed value to the current output value until it reaches the input value. Difference between values does not influence change-rate.</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32 name="in"/>
+            <bool32 name="glideOFF"/>
+            <int32 name="kbeat"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t prev;
+int32_t follow;
+int64_t diff;
+int64_t rate;]]></code.declaration>
+         <code.krate><![CDATA[rate=inlet_kbeat-1;
+if (rate<1){
+	rate=1;
+}
+if(inlet_glideOFF==0)
+{
+
+
+if(!(inlet_in==prev))
+	{diff=inlet_in-follow;}
+if(diff>0)
+	{if(follow>inlet_in)
+		{diff=0;
+			follow=inlet_in;
+			}}
+if(diff<0)
+	{if(follow<inlet_in)
+		{diff=0;
+		follow=inlet_in;
+		}}
+follow+=((diff<<21)/(rate<<21));
+outlet_out=follow;
+prev=inlet_in;
+
+
+
+}
+else
+{outlet_out=inlet_in;}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="1120" y="798" text="stretch"/>
+   <comment type="patch/comment" x="1218" y="798" text="pitch"/>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_19" x="1120" y="812">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_17" x="1218" y="812">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="b9d39eb1-e1c5-45d9-a32d-e690a0e06a27" name="crossfade_1" x="924" y="938">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="b9d39eb1-e1c5-45d9-a32d-e690a0e06a27">
+         <sDescription>Left shift. Doubles the value &quot;shift&quot; times, with overflow. If overflow is not desireable, use &quot;muls&quot;.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="drywet" description="a"/>
+            <frac32 name="volume"/>
+         </inlets>
+         <outlets>
+            <frac32 name="dry"/>
+            <frac32 name="wet" description="a amplified in 6dB steps"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_dry=  ___SMMUL((__SSAT((0x07FFFFFF-inlet_drywet)<<1,28))<<3,inlet_volume<<2);
+outlet_wet= ___SMMUL( (__SSAT((inlet_drywet<<1),28))<<3,inlet_volume<<2);]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="532" y="1008" text="oneshot"/>
+   <comment type="patch/comment" x="616" y="1008" text="window"/>
+   <comment type="patch/comment" x="700" y="1008" text="fact player v3"/>
+   <comment type="patch/comment" x="1120" y="1008" text="input + sampler"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="532" y="1022">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_8" x="616" y="1022">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="2b342cb7-4706-487f-8d28-9f87dcf8c821" name="1_2" x="700" y="1022">
+      <params>
+         <int32 name="fadein" value="256"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="xfade" selection="auto"/>
+      </attribs>
+      <object id="patch/object" uuid="2b342cb7-4706-487f-8d28-9f87dcf8c821">
+         <sDescription>Difficult to name. Pitchshifter, time-stretcher, play-rate adjuster (stretch+pitchshift), sampler, delay, granulizer...
+
+See inputs/controls for their functions (hoover above them)</sDescription>
+         <author>Remco van der most</author>
+         <license>BSD</license>
+         <helpPatch>delay.axh</helpPatch>
+         <inlets>
+            <bool32 name="trigger" description="when high, restarts at &quot;phase-position&quot;  of phase input+parameter"/>
+            <bool32 name="stop"/>
+            <frac32.bipolar name="pitchshift" description="ONLY pitchshifts the signal without stretching it. normal semitone response."/>
+            <frac32.bipolar name="stretch" description="ONLY stretches the signal without pitchshifting it. normal semitone response."/>
+            <frac32.bipolar name="rate"/>
+            <bool32.risingfalling name="oneshot"/>
+            <frac32.positive name="start"/>
+            <frac32.positive name="end"/>
+            <frac32.positive name="window"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="fadein" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="30000"/>
+            </int32>
+         </params>
+         <attribs>
+            <objref name="table"/>
+            <combo name="xfade">
+               <MenuEntries>
+                  <string>auto</string>
+                  <string>parameter</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t phase[2];
+int32_t phs[2];
+int32_t P1[2];
+int32_t P2[2];
+int32_t tmp1[2];
+int32_t tmp2[2];
+int32_t out[2];
+int32_t mp[2];
+int32_t prevv[2];
+int32_t FRQ[2];
+int32_t FRQQ[2];
+int32_t FR;
+int32_t FRR;
+int32_t i[2];
+int32_t prestep[2];
+int32_t step[2];
+
+int32_t Xphase;
+int32_t start;
+int32_t end;
+int32_t x;
+int32_t rate;
+int32_t bsize;
+int32_t length;
+int32_t xlength;
+int32_t xoffset;
+int32_t total;
+float32_t ratio;
+int32_t fBase;
+int32_t fRate;
+int32_t LNG;
+int32_t window;
+int32_t playpos;
+int32_t Lpoint;
+int32_t Lp;
+int32_t Pp;
+int32_t Xo;
+int32_t RATEPRE;
+int32_t player;
+int32_t dir;
+
+int32_t READ(int T,uint32_t R,uint32_t L,uint32_t P){
+      int32_t tmp_di = T/R;
+      int32_t tmp_w1 = (T-tmp_di*R)*R>>2;
+      int32_t tmp_diX=tmp_di+32+start+bsize;
+      int32_t tmp_a1 = attr_table.array[tmp_diX];
+      tmp_a1 = (tmp_a1<<14)+___SMMUL(attr_table.array[tmp_diX+1]-tmp_a1<<16,tmp_w1);
+      return out[P]= tmp_a1;
+}
+
+bool fadein;
+bool fading;
+bool play;
+bool prevplay;
+bool snc;
+bool oneshot;
+bool ztrig;
+bool ptt;
+bool stop;]]></code.declaration>
+         <code.init><![CDATA[player=2;
+bsize=2048;]]></code.init>
+         <code.krate><![CDATA[total=(attr_table.array[0+bsize]<<15)+attr_table.array[1+bsize];
+oneshot=inlet_oneshot;
+
+
+
+if((inlet_trigger>0)&&!snc){
+	fadein=1;
+	ztrig=1;
+	snc=1;
+}
+
+else if(inlet_trigger==0){
+	snc=0;
+	}
+
+
+if (inlet_stop && !stop){
+	stop=1;
+	play=0;
+}
+else if (!inlet_stop){
+	stop=0;
+}
+
+xlength=total;
+length=total+(1024<<4);
+
+MTOFEXTENDED(0,fBase);
+MTOFEXTENDED(inlet_stretch,fRate)
+ratio=(float32_t)fRate/fBase;
+
+LNG=___SMMUL(length,(0x7FFFFFF0))<<1;
+rate=((uint64_t)1<<32)/LNG;
+int32_t RATE=rate*ratio;
+RATEPRE=rate;
+int32_t prate;
+MTOFEXTENDED(inlet_pitchshift-inlet_stretch,prate)
+float32_t pratio=(float32_t)prate/fBase;
+window=((uint64_t)inlet_window<<16)/length;
+
+float32_t wratio=(float32_t)(1<<30)/(window>>1);
+prate=(int64_t)((int64_t)RATE*pratio-RATE)*wratio;
+FR=___SMMUL(prate<<2,inlet_rate<<3);
+FRR=___SMMUL(RATE<<2,inlet_rate<<3);
+
+
+if (play!=prevplay){
+	if (!play){
+		player=2;
+	}
+	prevplay=play;
+}
+xoffset=(((1024<<4))*rate);
+if (inlet_start==0x07FFFFFF){
+		playpos=0;
+	}
+	else{
+		//playpos=((inlet_start<<3)/((1<<30)/(xlength)))*rate;
+		playpos=((inlet_start)/((1<<27)/(xlength)))*rate;
+		}
+	if (inlet_end==0){
+		Lpoint=((0x07FFFFFF)/((1<<27)/(xlength)))*rate;
+	}
+	else{
+		Lpoint=((inlet_end)/((1<<27)/(xlength)))*rate;
+		}
+if (ztrig){
+	
+	if (fading){
+		Lp=0;
+		Pp=0;
+		Xo=0-xoffset;
+		
+	}
+	else {
+		Lp=Lpoint;
+		Pp=playpos;
+		Xo=0;
+	}
+	ztrig=0;
+	play=1;
+	if ((player==1) || (player==2)){
+		player=0;
+		phs[0]=0;
+		if (inlet_rate>=0){	
+			phase[0]=0+Pp;
+			}
+		else if (inlet_rate<0){
+			phase[0]=Xo+Lp;
+			}
+		prevv[0]=phase[0];
+	}
+	else if (player==0){
+		player=1;
+		phs[1]=0;
+		if (inlet_rate>=0){	
+			phase[1]=0+Pp;
+			}
+		else if (inlet_rate<0){
+			phase[1]=Xo+Lp;
+			}
+		prevv[1]=phase[1];
+	
+	}
+	
+	fading=0;
+	
+}
+if (inlet_rate>0){
+	dir=1;
+	Xphase=(window/___SMMUL(RATE<<2,inlet_rate<<3))>>4;
+}
+else if (inlet_rate<0) {
+	dir=0;
+	Xphase=(window/___SMMUL(RATE<<2,-inlet_rate<<3))>>4;
+}
+
+if (Xphase<48){
+	Xphase=48;
+}
+if(Xphase>=4096){
+	Xphase=4096;
+}
+
+for (x = 0;x<2;x++){
+	if (player==x){
+		FRQ[x]=FR;
+		FRQQ[x]=FRR;
+		if (dir){
+			if ((phase[x]>=(0-xoffset))  && (prevv[x]<(0-xoffset)))  {
+					if (((inlet_end==0x07FFFFFF)||(inlet_end==0))){
+						if (oneshot){
+						play=0;
+						}
+						else {
+						ztrig=1;
+						//fading=1;	
+						}
+					}
+					else if (play){
+						ztrig=1;
+						fading=1;
+					}
+					}
+			if ((phase[x]>=(Lpoint))  && (prevv[x]<(Lpoint)))  {
+					if (oneshot){
+						play=0;
+					}
+					else if (play){
+						ztrig=1;
+						fading=0;
+					}
+					}
+			}
+
+		else if (!dir){
+			if   ((!(phase[x]>(0)))&&((prevv[x])>(0)))  {
+					if (((inlet_start==0)||(inlet_start==0x07FFFFFF))){
+						if (oneshot){
+						play=0;
+						}
+						else {
+						ztrig=1;
+						//fading=1;	
+						}
+					}
+					else if (play){
+						ztrig=1;
+						fading=1;
+					}
+				}
+			if   ((!(phase[x]>(playpos)))&&((prevv[x])>(playpos)))  {
+					if (oneshot){
+						play=0;
+					}
+					else if (play){
+						ztrig=1;
+						fading=0;
+					}
+				}
+		}
+	
+	}
+	//if (fadein || attr_xfade){
+	if (attr_xfade){
+		step[x]=0x07FFFFFF/param_fadein;
+		}
+	else {
+		step[x]=0x07FFFFFF/(Xphase-1);
+		}
+}
+
+
+prevv[0]=phase[0];
+prevv[1]=phase[1];]]></code.krate>
+         <code.srate><![CDATA[x=0;
+for (x = 0;x<2;x++){
+	phase[x]+=FRQQ[x];
+	phs[x]+=FRQ[x];
+	P1[x]=((uint32_t)phs[x])>>1;
+	P2[x]=((uint32_t)phs[x]+(1<<31))>>1;
+	
+	tmp1[x]=READ(phase[x]+(___SMMUL(P1[x],window)<<2),rate,LNG,x);
+	tmp2[x]=READ(phase[x]+(___SMMUL(P2[x],window)<<2),rate,LNG,x);
+	
+	
+	SINE2TINTERP(phs[x]-(1<<30),mp[x])
+	mp[x]=(mp[x]>>2)+(1<<29);
+	
+	out[x]=tmp2[x]+(___SMMUL(tmp1[x]-tmp2[x],mp[x])<<2);
+	
+	out[x] =  ___SMMUL(out[x],i[x])<<5;
+	if (player==x){
+		i[x] += step[x];
+		if (i[x]>0x07FFFFFF){
+			i[x]=0x07FFFFFF;
+			fadein=0;
+		}
+		}
+	else {
+		i[x] -= step[x];
+		if (i[x]<0){
+			i[x]=0;
+		}
+		}
+	
+}
+outlet_out=out[0]+out[1];]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="924" y="1022">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_3" x="994" y="1022">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="1120" y="1022">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_2" x="1218" y="1022">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="420" y="1848">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/operationivy"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="588" y="1848">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="728" y="1848">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="button_3" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="button_2" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+         <dest obj="bool_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="toggle_5____tmp" outlet="o"/>
+         <dest obj="3_1" inlet="overdub"/>
+      </net>
+      <net>
+         <source obj="dial_5" outlet="out"/>
+         <dest obj="3_1" inlet="feedback"/>
+      </net>
+      <net>
+         <source obj="button_6" outlet="o"/>
+         <dest obj="3_1" inlet="replace"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="out_2" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="dial_8" outlet="out"/>
+         <dest obj="1_2" inlet="window"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="wave"/>
+         <dest obj="vca_3" inlet="a"/>
+         <dest obj="3_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="vca_3" outlet="o"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="dial_10" outlet="out"/>
+         <dest obj="crossfade_1" inlet="drywet"/>
+      </net>
+      <net>
+         <source obj="crossfade_1" outlet="dry"/>
+         <dest obj="vca_3" inlet="v"/>
+      </net>
+      <net>
+         <source obj="crossfade_1" outlet="wet"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="dial_11" outlet="out"/>
+         <dest obj="crossfade_1" inlet="volume"/>
+      </net>
+      <net>
+         <source obj="dial_3" outlet="out"/>
+         <dest obj="1_2" inlet="rate"/>
+      </net>
+      <net>
+         <source obj="3_1" outlet="length"/>
+         <dest obj="object_2" inlet="length"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="start"/>
+         <dest obj="or_1" inlet="i2"/>
+         <dest obj="Fact_4" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="Fact_4" outlet="recording"/>
+         <dest obj="bool_1" inlet="in"/>
+         <dest obj="3_1" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="Fact_4" outlet="trig"/>
+         <dest obj="or_2" inlet="i1"/>
+         <dest obj="3_1" inlet="restart"/>
+      </net>
+      <net>
+         <source obj="Fact_4" outlet="start"/>
+         <dest obj="or_2" inlet="i2"/>
+         <dest obj="or_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="button_7" outlet="o"/>
+         <dest obj="Fact_4" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="3_1" inlet="play"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="stop"/>
+         <dest obj="or_3" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="or_2" outlet="o"/>
+         <dest obj="1_2" inlet="trigger"/>
+      </net>
+      <net>
+         <source obj="Fact_4" outlet="play"/>
+         <dest obj="bool_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="button_4" outlet="o"/>
+         <dest obj="Fact_4" inlet="stop"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="Fact_4" inlet="play"/>
+      </net>
+      <net>
+         <source obj="Fact_4" outlet="stop"/>
+         <dest obj="or_3" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="or_3" outlet="o"/>
+         <dest obj="3_1" inlet="stop"/>
+      </net>
+      <net>
+         <source obj="Fact_4" outlet="barlength"/>
+         <dest obj="object_2" inlet="barlength"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="kbeat"/>
+         <dest obj="object_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="count"/>
+         <dest obj="Fact_4" inlet="count"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="phase"/>
+         <dest obj="Fact_4" inlet="midiphase"/>
+      </net>
+      <net>
+         <source obj="Fact_4" outlet="startpos"/>
+         <dest obj="1_2" inlet="start"/>
+         <dest obj="1_2" inlet="end"/>
+      </net>
+      <net>
+         <source obj="kbeat_1" outlet="change"/>
+         <dest obj="Fact_4" inlet="resync"/>
+      </net>
+      <net>
+         <source obj="toggle_3" outlet="o"/>
+         <dest obj="factsyncer" inlet="repitch"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="factsyncer" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="3_1" outlet="stop"/>
+         <dest obj="1_2" inlet="stop"/>
+      </net>
+      <net>
+         <source obj="object_2" outlet="kbeat"/>
+         <dest obj="factsyncer" inlet="base"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="factsyncer" inlet="stretch"/>
+      </net>
+      <net>
+         <source obj="glide_multi_3" outlet="out"/>
+         <dest obj="dial_17" inlet="in"/>
+         <dest obj="1_2" inlet="pitchshift"/>
+      </net>
+      <net>
+         <source obj="factsyncer" outlet="stretch"/>
+         <dest obj="glide_multi_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="glide_multi_1" outlet="out"/>
+         <dest obj="1_2" inlet="stretch"/>
+         <dest obj="dial_19" inlet="in"/>
+      </net>
+      <net>
+         <source obj="factsyncer" outlet="pitch"/>
+         <dest obj="glide_multi_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="1_2" inlet="oneshot"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="v"/>
+         <dest obj="factsyncer" inlet="new"/>
+         <dest obj="glide_multi_1" inlet="kbeat"/>
+         <dest obj="glide_multi_3" inlet="kbeat"/>
+      </net>
+      <net>
+         <source obj="1_2" outlet="out"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="factsyncer" inlet="q"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

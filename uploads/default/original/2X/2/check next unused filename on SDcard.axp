@@ -1,0 +1,299 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 32b" uuid="ac26551322b24f37c3be0e6481d1193f1fd66bc8" name="alloc_1" x="826" y="182">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="2"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="644" y="280">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_4" x="714" y="280">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_5" x="784" y="280">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_2" x="1092" y="294">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="322fa060-5483-4d26-bbaa-63d3410a7d02" name="i_1" x="700" y="378">
+      <params>
+         <int32 name="value" value="3"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="322fa060-5483-4d26-bbaa-63d3410a7d02">
+         <sDescription>positive integer control</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>ctrl.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <int32.positive name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="value" noLabel="true">
+               <MinValue i="-1"/>
+               <MaxValue i="65536"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= param_value;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="f278b608-cd61-43ea-8602-8f534ffa6b1b" name="findFree" x="784" y="378">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="0:/WaT"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+      <object id="patch/object" uuid="f278b608-cd61-43ea-8602-8f534ffa6b1b">
+         <sDescription>Indexed filename string combiner with some extra&apos;s:
+-checks the SDcard how many tables are saved using the same prefix (only as long as indices follow up, counter stops when it finds an unused index number).
+-seperate filename outputs for selected filename (for loading) and free filename (for saving)
+-wraps the index input so it can only select from the available indices.
+-3 extra load inputs:
+first index (normally index 000)
+last index (free index minus one, eg. index 011 if index 012 is empty, in other words, last one that you&apos;ve saved)
+random index (randomly selects an index number from the available indices)</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="findFree" description="trigger"/>
+            <int32 name="index"/>
+            <bool32 name="first"/>
+            <bool32 name="last"/>
+            <bool32 name="rnd"/>
+         </inlets>
+         <outlets>
+            <charptr32 name="selected"/>
+            <charptr32 name="free"/>
+            <bool32 name="autoload"/>
+         </outlets>
+         <displays>
+            <int32.label name="free"/>
+            <int32.label name="sel"/>
+         </displays>
+         <params/>
+         <attribs>
+            <table name="prefix"/>
+            <table name="suffix"/>
+         </attribs>
+         <includes>
+            <include>chibios/ext/fatfs/src/ff.h</include>
+         </includes>
+         <depends>
+            <depend>fatfs</depend>
+         </depends>
+         <code.declaration><![CDATA[int ntrig,stop;
+int cnt=0;
+char c[64],C[64];
+int offset;
+int pval,first,I;]]></code.declaration>
+         <code.init><![CDATA[ntrig = 0;
+strcpy(&c[0],"attr_prefix000attr_suffix");
+offset = strlen("attr_prefix");
+strcpy(&C[0],"attr_prefix000attr_suffix");
+
+pval = 0;
+cnt=0;
+stop=0;]]></code.init>
+         <code.krate><![CDATA[if(inlet_findFree&&!ntrig){
+	stop=0;
+	ntrig=1;
+}
+else if((!inlet_findFree)&&ntrig){ntrig=0;}
+
+while(!stop){
+   int i = cnt;
+   int i0 = i/10;
+   C[offset+2] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   C[offset+1] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   C[offset+0] = '0'+i-10*i0;
+   FIL FileObject;
+   FRESULT err;
+  err = f_open(&FileObject, &C[0], FA_READ | FA_OPEN_EXISTING);
+if (err == FR_OK) {cnt+=1;}
+else if(err!=FR_OK){stop=1;}
+}
+outlet_autoload=0;
+
+if ((inlet_index) != pval){   pval = inlet_index;
+   int i = inlet_index%(cnt>0?cnt:1); I=i;  int i0 = i/10;
+   c[offset+2] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+1] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+0] = '0'+i-10*i0;
+   outlet_autoload=1;
+}
+int trg=inlet_first||inlet_last||inlet_rnd;
+if(trg&&!first){
+	first=1;
+	int i=0;
+   if(inlet_last){
+   	i=cnt-1;
+   }
+   else if(inlet_rnd){
+   	i=(int32_t)((GenerateRandomNumber()>>6)%cnt);
+   }
+   
+   I=i;  int i0 = i/10;
+   c[offset+2] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+1] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+0] = '0'+i-10*i0;
+   outlet_autoload=1;
+}else if(!trg){first=0;}
+
+outlet_selected = &c[0];
+outlet_free = &C[0];
+
+
+
+disp_free=cnt;
+disp_sel=I;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_3" x="1064" y="378">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="379e485a-80a3-46ce-9f2d-c2ca5cf4dbff" name="save_1" x="1316" y="378">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+      <object id="patch/object" uuid="379e485a-80a3-46ce-9f2d-c2ca5cf4dbff">
+         <sDescription>save table to sdcard, added a &quot;save ready&quot; trigger. Useful if you need to halt another load/save until this one has finished.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <charptr32 name="filename" description="file name"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <bool32 name="ready"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes>
+            <include>chibios/ext/fatfs/src/ff.h</include>
+         </includes>
+         <depends>
+            <depend>fatfs</depend>
+         </depends>
+         <code.declaration><![CDATA[int ntrig;]]></code.declaration>
+         <code.init><![CDATA[ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_ready=0;
+if ((inlet_trig>0) && !ntrig) {
+    ntrig=1;
+    FIL FileObject;
+    FRESULT err;
+    UINT bytes_written;
+    codec_clearbuffer();
+    err = f_open(&FileObject, inlet_filename, FA_WRITE | FA_CREATE_ALWAYS);
+    if (err != FR_OK) {report_fatfs_error(err,inlet_filename); return;}
+    int rem_sz = sizeof(*attr_table.array)*attr_table.LENGTH;
+    int offset = 0;
+    while (rem_sz>0) {
+      if (rem_sz>sizeof(fbuff)) {
+        memcpy((char *)fbuff,(char *)(&attr_table.array[0]) + offset, sizeof(fbuff));
+        err = f_write(&FileObject, fbuff, sizeof(fbuff),&bytes_written);
+        rem_sz -= sizeof(fbuff);
+        offset += sizeof(fbuff);
+      } else {
+        memcpy((char *)fbuff,(char *)(&attr_table.array[0]) + offset, rem_sz);
+        err = f_write(&FileObject, fbuff, rem_sz, &bytes_written);
+        rem_sz = 0;
+      }
+    }    if (err != FR_OK) report_fatfs_error(err,inlet_filename);
+    err = f_close(&FileObject);
+    if (err != FR_OK) report_fatfs_error(err,inlet_filename);
+    outlet_ready=1;
+  }
+  else if (!(inlet_trig>0)) ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="1134" y="490">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="findFree" outlet="selected"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="button_3" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="findFree" outlet="free"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="findFree" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="save_1" outlet="ready"/>
+         <dest obj="findFree" inlet="findFree"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="findFree" inlet="index"/>
+      </net>
+      <net>
+         <source obj="findFree" outlet="autoload"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="button_4" outlet="o"/>
+         <dest obj="findFree" inlet="first"/>
+      </net>
+      <net>
+         <source obj="button_5" outlet="o"/>
+         <dest obj="findFree" inlet="last"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>22</y>
+      <width>1936</width>
+      <height>1066</height>
+   </windowPos>
+</patch-1.0>

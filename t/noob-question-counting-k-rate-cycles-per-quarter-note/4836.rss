@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Noob question: Counting k-rate cycles per quarter note</title>
+    <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836</link>
+    <description>I&#39;m trying to count how many k-rate ticks/cycles go in a quarter note. For the quarter note I&#39;m using 24ppqn from MIDI, I&#39;m using the MIDI code from the `midi/in/clock` object:
+
+```
+if (status == MIDI_TIMING_CLOCK) {
+  _pos_shadow++;
+  _pos = _pos_shadow;
+} else if (status == MIDI_START) {
+  _active = 1;
+  _pos = 0;
+  _pos_shadow = -1;
+} else if (status == MIDI_STOP) {
+  _active = 0;
+  _pos = -1;
+} else if (status == MIDI_CONTINUE) {
+  _active = 1;
+} else if (status == MIDI_SONG_POSITION) {
+  _pos_shadow = 6*((data2&lt;&lt;7)+data1)-1;
+}
+```
+Now for every increment of `24` for the `_pos` variable I want to know how many k-rate cycles have happened, so I used the following as my k-rate code, which as far as I can tell should work, but doesn&#39;t:
+```
+if (_pos % 24 == 0) {
+  outlet_kcpqn = _count;
+  _count = 0;
+}
+outlet_count = _count;
+outlet_pos = _pos;
+_count += 1;
+```
+Everything else seems to be working fine, the `count` outlet is showing an ever increasing integer, same for the `pos` outlet (at a slower rate), but the `kcpqn` outlet is just showing `1` all the time and I don&#39;t see why.
+Is my code wrong/am I missing something obvious?
+I hope someone has an idea why this isn&#39;t working :)</description>
+    
+    <lastBuildDate>Sun, 05 Aug 2018 20:13:47 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="7" data-topic="4836"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>It makes sense that the MIDI code is only executed when there are MIDI events to process.</p></blockquote></aside>
+
+<p>yes, but there are threading/timing implications, which will be addressed in the next release.<br>(ideally they would also  be timestamped, but I don't think this is currently there, but we are talking small time differentials here)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/8</link>
+        <pubDate>Sun, 05 Aug 2018 20:13:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-8</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>It makes sense that the MIDI code is only executed when there are MIDI events to process.</p>
+
+<p>As for the often unnecessary assignment of output variables in k-rate code, this really goes for all objects where nothing much normally happens during a k-rate cycle, e.g. an object debouncing button presses. It's could be seen as a drawback or by-product of the design where k-rate code is run for all objects at the k-rate, whatever there is to do. However, compared to modules like oscillators and filters which do some heavy lifting during a k-rate cycle, the overhead for simple modules like the kcpqn calculator object described in the thread is still pretty small.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/7</link>
+        <pubDate>Sun, 05 Aug 2018 19:22:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-7</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@simonvanderveldt Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonvanderveldt">@simonvanderveldt</a> wrote:</p>
+          <blockquote>
+              <p>OK, good to know. I'll keep an eye out for the next release and the changelog <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"><br>Thx!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/6</link>
+        <pubDate>Wed, 01 Aug 2018 20:15:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-6</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Don’t have time to read / process at the moment. <br>But no, midi handler is not processed at krate in the current version it’s called as the data arrives on another lower priority ‘thread’ </p>
+
+<p>Iirc this is changing in the next release, as there are potential issues in the current approach. <br>(Potential = we have not seen it, so it’s more a theoretical tidy up)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/5</link>
+        <pubDate>Wed, 01 Aug 2018 19:33:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-5</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@simonvanderveldt Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonvanderveldt">@simonvanderveldt</a> wrote:</p>
+          <blockquote>
+              <p>I added some logging to the k-rate code<br></p>
+
+<p></p><pre><code class="lang-auto">LogTextMessage("count %d _pos %d", _count, _pos);</code></pre>
+
+<p>Which resulted in the following:<br></p>
+
+<p></p><pre><code class="lang-auto">...
+count 1365 _pos 22
+count 1366 _pos 23
+count 1367 _pos 23
+count 1368 _pos 23
+count 1369 _pos 23
+count 1370 _pos 23
+count 1371 _pos 23
+count 1372 _pos 23
+count 1373 _pos 23
+count 1374 _pos 23
+count 1375 _pos 23
+count 1376 _pos 23
+count 1377 _pos 23
+count 1378 _pos 23
+count 1379 _pos 23
+count 1380 _pos 23
+count 1381 _pos 23
+count 1382 _pos 23
+count 1383 _pos 23
+count 1384 _pos 23
+count 1385 _pos 23
+count 1386 _pos 23
+count 1387 _pos 23
+count 1388 _pos 23
+count 1389 _pos 23
+count 1390 _pos 23
+count 1391 _pos 23
+count 1392 _pos 23
+count 1393 _pos 23
+count 1394 _pos 23
+count 1395 _pos 23
+count 1396 _pos 23
+count 1397 _pos 23
+count 1398 _pos 23
+count 1399 _pos 23
+count 1400 _pos 23
+count 1401 _pos 23
+count 1402 _pos 23
+count 1403 _pos 23
+count 1404 _pos 23
+count 1405 _pos 23
+count 1406 _pos 23
+count 1407 _pos 23
+count 1408 _pos 23
+count 1409 _pos 23
+count 1410 _pos 23
+count 1411 _pos 23
+count 1412 _pos 23
+count 1413 _pos 23
+count 1414 _pos 23
+count 1415 _pos 23
+count 1416 _pos 23
+count 1417 _pos 23
+count 1418 _pos 23
+count 1419 _pos 23
+count 1420 _pos 23
+count 1421 _pos 23
+count 1422 _pos 23
+count 1423 _pos 23
+count 1424 _pos 23
+count 1425 _pos 23
+count 1426 _pos 23
+count 1427 _pos 23
+count 1428 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 24
+count 1 _pos 25
+...</code></pre>
+
+<p>In other words it seems the MIDI code is being executed at lower rate than the k-rate code (seems to be 64 times lower rate).<br>Since it's not possible to write to outlets directly from the MIDI code I now set a variable in the MIDI code and assign that variable to the outlet in the k-rate code.</p>
+
+<p>MIDI code:<br></p>
+
+<p></p><pre><code class="lang-auto">if (status == MIDI_TIMING_CLOCK) {
+  _pos_shadow++;
+  _pos = _pos_shadow;
+  if (_pos % 24 == 0) {
+    count = _count;
+    _count = 0;
+  }
+} else if (status == MIDI_START) {
+  _active = 1;
+  _pos = 0;
+  _pos_shadow = -1;
+} else if (status == MIDI_STOP) {
+  _active = 0;
+  _pos = -1;
+} else if (status == MIDI_CONTINUE) {
+  _active = 1;
+} else if (status == MIDI_SONG_POSITION) {
+  _pos_shadow = 6*((data2&lt;&lt;7)+data1)-1;
+}</code></pre>
+
+<p>k-rate code<br></p>
+
+<p></p><pre><code class="lang-auto">outlet_kcpqn = count;
+outlet_pos = _pos;
+_count += 1;</code></pre>
+
+<p>This seems to produce the result I was looking for:<br><img src="//community.axoloti.com/uploads/default/original/2X/d/d3bddbd7bce4f33c071e522557f418009a374947.png" width="225" height="186"><br>(my sequencer is set to 120 BPM = 2 Hz, so I'd expect to see <code>1/2 * 3000 (k-rate) = 1500</code> and that's what it's showing <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> )</p>
+
+<p>Is this the correct way of doing this? Seems a bit heavy-handed to do the outlet assignment every k-rate cycle when it would be enough to do it every MIDI-rate cycle.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/4</link>
+        <pubDate>Wed, 01 Aug 2018 19:00:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-4</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>the docs wrong - inlet and outlets can only be accessed in k-rate/s-rate </p>
+
+<p>code, hard to tell without running, looks ok, assuming your not getting song_position (which would then depend on what data was sent to you)</p>
+
+<p>id try outputting pos_shadow and seeing what values your getting there, as id guess thats where the issue is. (as you already know <em>count, and outlet</em>count are working)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/3</link>
+        <pubDate>Wed, 01 Aug 2018 17:39:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-3</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@simonvanderveldt Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonvanderveldt">@simonvanderveldt</a> wrote:</p>
+          <blockquote>
+              <p>Btw. in <a href="//community.axoloti.com/t/coding-axoloti-objects/2606">http://community.axoloti.com/t/coding-axoloti-objects/2606</a> it says:</p>
+
+<blockquote><p>You can access inlets, outlets, parameters and displays in init code, k-rate code°, s-rate code, and midi code. </p></blockquote>
+
+<p>But I'm unable to access outlets using <code>outlet_&lt;outletname&gt;</code> from the MIDI code, I get the following error when compiling<br></p>
+
+<p></p><pre><code class="lang-auto">/home/simon/axoloti/build/xpatch.cpp: In member function 'void rootc::instanceclock__2::MidiInHandler(midi_device_t, uint8_t, uint8_t, uint8_t, uint8_t)':
+/home/simon/axoloti/build/xpatch.cpp:257:3: error: 'outlet_kcpqn' was not declared in this scope</code></pre>
+
+<p>So I guess either the docs are wrong or the variable is called differently in the MIDI code?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/2</link>
+        <pubDate>Tue, 31 Jul 2018 20:47:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-2</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+      <item>
+        <title>Noob question: Counting k-rate cycles per quarter note</title>
+        <dc:creator><![CDATA[@simonvanderveldt Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonvanderveldt">@simonvanderveldt</a> wrote:</p>
+          <blockquote>
+              <p>I'm trying to count how many k-rate ticks/cycles go in a quarter note. For the quarter note I'm using 24ppqn from MIDI, I'm using the MIDI code from the <code>midi/in/clock</code> object:</p>
+
+<p></p><pre><code class="lang-auto">if (status == MIDI_TIMING_CLOCK) {
+  _pos_shadow++;
+  _pos = _pos_shadow;
+} else if (status == MIDI_START) {
+  _active = 1;
+  _pos = 0;
+  _pos_shadow = -1;
+} else if (status == MIDI_STOP) {
+  _active = 0;
+  _pos = -1;
+} else if (status == MIDI_CONTINUE) {
+  _active = 1;
+} else if (status == MIDI_SONG_POSITION) {
+  _pos_shadow = 6*((data2&lt;&lt;7)+data1)-1;
+}</code></pre>
+
+<p>Now for every increment of <code>24</code> for the <code>_pos</code> variable I want to know how many k-rate cycles have happened, so I used the following as my k-rate code, which as far as I can tell should work, but doesn't:<br></p>
+
+<p></p><pre><code class="lang-auto">if (_pos % 24 == 0) {
+  outlet_kcpqn = _count;
+  _count = 0;
+}
+outlet_count = _count;
+outlet_pos = _pos;
+_count += 1;</code></pre>
+
+<p>Everything else seems to be working fine, the <code>count</code> outlet is showing an ever increasing integer, same for the <code>pos</code> outlet (at a slower rate), but the <code>kcpqn</code> outlet is just showing <code>1</code> all the time and I don't see why.<br>Is my code wrong/am I missing something obvious?<br>I hope someone has an idea why this isn't working <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836/1</link>
+        <pubDate>Tue, 31 Jul 2018 20:41:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4836-1</guid>
+        <source url="http://community.axoloti.com/t/noob-question-counting-k-rate-cycles-per-quarter-note/4836.rss">Noob question: Counting k-rate cycles per quarter note</source>
+      </item>
+  </channel>
+</rss>

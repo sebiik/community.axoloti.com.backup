@@ -1,0 +1,95 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="midi/in/cc hr i" uuid="72d8018c0f072c469fcd902b0423ba8fd5e6433" name="cc_2" x="322" y="56">
+      <params/>
+      <attribs>
+         <spinner attributeName="cc" value="31"/>
+         <spinner attributeName="default" value="0"/>
+      </attribs>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_2" x="448" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_3" x="0" y="126">
+      <params>
+         <frac32.u.map name="value" value="38.29999923706055"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="aaa2d1b7-5d2a-42f7-931e-2fa8fca242a5" name="object_1" x="84" y="140">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="aaa2d1b7-5d2a-42f7-931e-2fa8fca242a5">
+         <inlets>
+            <frac32.positive name="value"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="msb"/>
+            <frac32.positive name="lsb"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_msb = inlet_value;
+int32_t temp = inlet_value & 0b00000000000011111110000000000000;
+outlet_lsb = temp<<7;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="logic/change speedlim" uuid="9239a1be592182b71673521e7d7461e6951e8d3b" name="change_1" x="182" y="140">
+      <params>
+         <frac32.u.map name="d" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_3" x="364" y="168">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="internal port 1"/>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="cc" value="31"/>
+      </attribs>
+   </obj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_4" x="364" y="294">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="internal port 1"/>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="cc" value="63"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="cc_3" inlet="trig"/>
+         <dest obj="cc_4" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="cc_2" outlet="midiCC"/>
+         <dest obj="dial_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="dial_3" outlet="out"/>
+         <dest obj="object_1" inlet="value"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="msb"/>
+         <dest obj="change_1" inlet="in"/>
+         <dest obj="cc_3" inlet="v"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="lsb"/>
+         <dest obj="cc_4" inlet="v"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>282</x>
+      <y>122</y>
+      <width>704</width>
+      <height>614</height>
+   </windowPos>
+</patch-1.0>

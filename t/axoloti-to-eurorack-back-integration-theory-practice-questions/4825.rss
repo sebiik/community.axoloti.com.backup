@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+    <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825</link>
+    <description>I know there are bits &amp; pieces on this topic all over this forum, but I still got some questions. 
++ I wanted to bring several solutions together in one thread.
+(Even if I appear writing with seeming certainty, imagine a question mark after each sentence &amp; let me know if I got something wrong. Thanks.)
+
+##  Gates/Triggz - from &amp; to Axoloti
+
+To interface Eurorack-Gates/Triggz with Axoloti **directly** you need to regulate the voltage of Eurorack down to 3.3v. You can use something like this &amp; it is bi-directional:
+https://www.sparkfun.com/products/12009
+ - but what about 10v signals + do you really need exact 5v to 3.3v conversion to get the digital data? Just basic attenuation would also be enough - so basically a resistor? One could probably put a resistor between Eurorack-Gate &amp; choose a value that even 10v gets attenuated to below 3.3v. I am a DIY n00b - so dear veterans, let me know if I talk BS. I think this is viable as we don&#39;t need exactly 3.3v. Just a simple change between any states can be digital aka &quot;trigger-information&quot;, right?
+&amp; from Axoloti to Eurorack you&#39;d have 3.3v - so just go directly. Most modules with trigger-ins just need a &quot;raising edge&quot; above a very low level. Sometimes as low as 0.x v. So 3.3v would function perfectly well **directly**.
+
+For a **indirect** route there is this module specifically for Triggers to MIDI:
+https://www.modulargrid.net/e/vpme-de-trig31
+
+## Data - Modulation from &amp; to Axoloti
+
+**Eurorack to Axoloti**
+The **direct** solution from Eurorack to Axoloti here again would be to use the ANALOG capable INs, see here: http://community.axoloti.com/t/official-pin-outs-revised-work-in-progress/1284  - I counted 15 of them. BUT, here again **you can&#39;t go above 3.3v or you would damage the Axoloti!** So, the same idea, a resistor value that scales even 10v to below 3.3v to be secure, but here we deal with continuous information, so I am not sure how our data would be skewed through this theoretical resistor?! Is it simply scaled down? That would be good enough for me. I don&#39;t expect &quot;automatic 1v/oct translation&quot; ;-). &amp; what about negative values like -10v? Not sure what a resistor would do here.
+
+The **indirect** solution would be CV to MIDI (--&gt; to Axoloti). 
+There are several modules out there, that do it:
+https://www.modulargrid.net/e/doepfer-a-192-1
+https://www.modulargrid.net/e/doepfer-a-192-2
+https://www.modulargrid.net/e/addac-system-addac221
+https://www.modulargrid.net/e/addac-system-addac222
+ (222 - this one does even notes, so 1v/oct to midi-note conversion, if you have a post-quantizer-note-stream from your modular you want to use inside Axoloti)
+
+https://www.modulargrid.net/e/delptronics-cv2midi
+(delptronics not out yet)
+
+There are even more modules.
+
+**Axoloti to Eurorack**
+It seems that PA4 &amp; PA5 are the only analog OUTs. Do they put out also 3.3v? I guess so. So one could go directly to Eurorack with those two. There you could scale them as you wish. You won&#39;t get 1v/oct out of Axoloti though, unless there is some Axoloti-module which does the scaling? 3.3v would maybe be high enough in the note-range? Not sure if it is theoretically possible.
+There are also Midi to CV solutions. Even more than CV to MIDI. Here are my 2 favorites:
+https://www.modulargrid.net/e/expert-sleepers-fh-2-factotum 
+Factotum does even back &amp; forth, kind of: You can clock Axoloti from your Eurorack, while at the same time putting CCs &amp; Notes &amp; Gates from Axoloti out to Eurorack. But it does NOT CV to Midi (clock only). I didn&#39;t tested it yet, as I don&#39;t have this module. This should work in theory. Maybe somebody over here does this already?
+
+Another great module, which is not out yet:
+https://www.modulargrid.net/e/bastl-instruments-1983
+It has a couple of cool additional features implemented.
+
+Another solution outside of the Eurorack-Format is:
+https://www.tindie.com/products/hotchk155/cvocd-a-super-flexible-midi-to-cv-box/
+Does also Midi-Note to 1v/oct &amp; has a good price.
+
+I have already ES3 &amp; ES6+7 from Expert Sleepers, but unfortunately Axoloti has no Light-Pipe-I/O - otherwise I wouldn&#39;t even write this thread...
+
+## POWER from Eurorack to Axoloti
+
+http://community.axoloti.com/t/answered-powering-axoloti-from-eurorack/3649/3
+
+http://community.axoloti.com/t/eurorack-power-connection/4800/2?u=deef
+
+http://community.axoloti.com/t/connecting-axoloti-directly-to-5v-eurorack-rail/3182
+
+https://www.thonk.co.uk/shop/transient-breadboard-kit/
+
+## **Questions**
+
+My basic question is: should one go the **direct** route where it is possible, because MIDI deals always with additional jitter &amp; latency &amp; 128-quantization, losing details? Maybe somebody tested out any Axoloti-MIDI to CV-Trig out solution &amp; can say something if the beat is **tight**? 
+I am biased because I read the detailed MIDI-Jitter-Problem-Essays on https://innerclocksystems.com/.
+They also have a module: 
+https://www.modulargrid.net/e/innerclock-systems-sync-gen-iils
+Though I am not sure in which category to put it. It needs a specific VST!
+Here is a thread on this: http://community.axoloti.com/t/creating-a-similar-solution-to-usamo-with-axoloti/1085/2
+
+To solve all this, some kind of Frankenstein-Solution comes to mind.
+MIDI to CV (Module) would be more important, because the Axoloti got much more ANALOG INs than OUTs, but then again there are many uncertainties stated in this thread on how to make use of the ANALOG-INs, so going the full MIDI-Route?
+In my particular situation I&#39;d like to trigger/clock Axoloti from Modular then generate Triggers/Gates in Axoloti based on that Clock (divide &amp; multiply e.g.) &amp; put them out back into Modular, but I am not sure if this would be a mess through the MIDI-Jitter-Latency situation. How can I find this out? Dropping a few hundred €€ on modules to find out that it doesn&#39;t work properly? I have gone this route for the last 5 years in Eurorack :joy: - I am pretty much burned-out already, but still don&#39;t want to give up.
+
+OF COURSE there is the mighty, beautiful, amazing Euxoloti-Project ( http://build.irieelectronics.de/ ) - but Paul disappeared somewhere in 2016/2017 from the scene. :worried: - He didn&#39;t respond to my mail.
+Still, even the Euxoloti does not have any CV-OUT, only lots of CV-IN &amp; 8 Gate-OUTs, which is cool enough in this compact Eurorack-Form-Factor. So additional Midi to CV Gadget would be valuable anyways. BTW, I wonder how there are 8 Knobs + 8 CV-INs  - I see only 15 ANALOG INs.
+http://community.axoloti.com/t/official-pin-out-ports-documentation/202/5
+
+Another basic question: I was confused that the official PINS can be Digital INS, Analog INS &amp; Digital OUTS &amp; PWM &amp; more stuff I don&#39;t even understand. Can they be that at the same time? Probably not, where does the decision comes in? Are there specific Modules in the Axoloti Software to assign the PINS?
+
+At the moment I am waiting for my first 2 Axoloti to arrive, so I can&#39;t try out much.
+
+Maybe @Ersatzplanet @afghanblonde @paul can help/are interested in this thread?
+
+I am using this type of web2.0 forum for the first time, damn it is great! So fluent &amp; thought out &amp; self-explained &amp; interconnected. This is the future of forums.
+
+THANKS. :kissing_heart:</description>
+    
+    <lastBuildDate>Wed, 08 Aug 2018 11:15:25 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@widdly]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/widdly">@widdly</a> wrote:</p>
+          <blockquote>
+              <p>I misread your post, I thought the protection diodes were on CV inputs.  Makes sense on the audio inputs too.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/8</link>
+        <pubDate>Wed, 08 Aug 2018 11:15:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-8</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@JonasBers Jonas Bers]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jonasbers">@JonasBers</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/widdly">@widdly</a>, attenuating and boosting is fine, although it doesn't provide protection, so if you manage to send in a hot enough signal, it will fry the input regardless of the attenuation. as stated, I use a combination of attenuation to limit distortion (voltage divider, aka series resistor followed by resistor to ground) and clipping diodes. if anything larger than 3.3v and less than 12v enters the input, it will be clipped at 3.3v and remain safe.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/7</link>
+        <pubDate>Tue, 07 Aug 2018 22:51:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-7</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@JonasBers Jonas Bers]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jonasbers">@JonasBers</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/deef">@deef</a> you linked a synthrotek product, so I just want to comment that the synthrotek guy is an awful person -- do a little research about him and see for yourself. he's been blacklisted by most of the synth DIY community.</p>
+
+<p>here's the eurorack power pinout (i googled "eurorack power pinout"). The Axo needs 12v and ground.  If this doesn't make sense, it's probably better that you don't mess around with it without supervision. <img src="//community.axoloti.com/uploads/default/original/2X/6/682b5b932e966171a926dd2e02803831e9d65d55.png" width="500" height="371"></p>
+
+<p>also -- it's helpful if you tag the people you are trying to respond to. I responded to you by typing "<a class="mention" href="/u/deef">@deef</a>", that way you'll receive a notification.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/6</link>
+        <pubDate>Tue, 07 Aug 2018 22:46:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-6</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@widdly]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/widdly">@widdly</a> wrote:</p>
+          <blockquote>
+              <p>I think attenuating the audio inputs and boosting the audio outputs deserves a mention.</p>
+
+<p>I use this circuit <a href="https://cgs.synth.net/modules/cgs60_sba.html" rel="nofollow noopener">https://cgs.synth.net/modules/cgs60_sba.html</a> built on perf board.</p>
+
+<p>This page here.. <a href="http://ornament-and-cri.me/hardware-basics/" rel="nofollow noopener">http://ornament-and-cri.me/hardware-basics/</a>  covers the basics for triggers, gates and cv's.   Again I use perf board for this stuff.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/5</link>
+        <pubDate>Fri, 03 Aug 2018 01:58:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-5</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@deef]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deef">@deef</a> wrote:</p>
+          <blockquote>
+              <p>thanks JonasBers - it is encouraging, but a little too hard for me without any further knowledge, e.g. "Power is coming directly from my 12v rail into the Axo -- just soldered a cable to the power input." <br>one power cable has many "little cables" - do I solder them all - to what exactly? I see three holes near the power input of the Axoloti... I'd have about 20 questions to your post.<br>I do solder thonk-style kits with step by step tutorial through. <br>Some kind of n00b-tutorial would be great to make the jump for us DIY-n00bz possible.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/4</link>
+        <pubDate>Thu, 02 Aug 2018 14:04:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-4</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@JonasBers Jonas Bers]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jonasbers">@JonasBers</a> wrote:</p>
+          <blockquote>
+              <p>I'll share my simple solution. It's not exactly eurorack, because my system is banana, but otherwise this is basically a DIY Eurorack system. </p>
+
+<p>Here are the two Axoloti modules in my system. 6 assignable analog pots, two assignable buttons, two analog ins, two analog outs. I cut the boards and sandwiched them. Also desoldered all the big clunky jacks. Power is coming directly from my 12v rail into the Axo -- just soldered a cable to the power input.  <div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4cd8575b96bee4c52192851cd1e0d16a624afbdd" href="//community.axoloti.com/uploads/default/original/2X/4/4cd8575b96bee4c52192851cd1e0d16a624afbdd.jpg" class="lightbox" title="IMG_4320.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/4cd8575b96bee4c52192851cd1e0d16a624afbdd_1_500x375.jpg" width="500" height="375"><div class="meta">
+<span class="filename">IMG_4320.jpg</span><span class="informations">3264x2448 1.35 MB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>This USB port is on the back of the case. It's only connected to one module at the moment (midi and micro device port), but based on whatever I'm working on, I sometimes connect both ports to MIDI, or both to micro-device. </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/26c177581222c87a41842cd7aee9199afbc10a57" href="//community.axoloti.com/uploads/default/original/2X/2/26c177581222c87a41842cd7aee9199afbc10a57.jpg" class="lightbox" title="IMG_4321.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/26c177581222c87a41842cd7aee9199afbc10a57_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">IMG_4321.jpg</span><span class="informations">3264x2448 1.37 MB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>My analog inputs are protected with voltage dividers and the traditional clipping diode circuit (like the image below -- posted by <a class="mention" href="/u/hak">@haK</a> in an old discussion). The outputs aren't scaled up, and I haven't found the need to boost them. </p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/e/edffaaf55603a9f5123e9f0743a2d3ca36696de1.jpg" width="570" height="256"></p>
+
+<p>Everything has been working really well for a while now.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/3</link>
+        <pubDate>Thu, 02 Aug 2018 13:09:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-3</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@brianleu Brian Leu]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/brianleu">@brianleu</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="4825"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/deef/40/5455_1.png" class="avatar">deef:</div>
+<blockquote><p>BTW, I wonder how there are 8 Knobs + 8 CV-INs  - I see only 15 ANALOG INs.</p></blockquote></aside>
+
+<p>Pretty good overview here (8 to axoloti itself, 8 to a maple mini in rev 1.2): <a href="http://build.irieelectronics.de/io-routing/" rel="nofollow noopener">http://build.irieelectronics.de/io-routing/</a></p>
+
+<p>Seems that Paul also made an expansion with 2 CV out, but as far as I know it was never sold with any kits:</p>
+
+<aside class="quote" data-topic="1667" data-slug="euxoloti-hardware-version-confusion" data-post="12"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/paul/40/53_1.png" class="avatar"><a href="//community.axoloti.com/t/euxoloti-hardware-version-confusion/1667/12" rel="nofollow noopener">Euxoloti - Hardware version confusion!</a>
+</div>
+<blockquote><p><a class="mention" href="/users/thetechnobear"></a><a class="mention" href="/u/thetechnobear">@thetechnobear</a> thanks a lot. eurorack is fun! most of my eurorack stuff is diy because I love to learn electronic by "learning by doing" method <img src="//community.axoloti.com/images/emoji/twitter/yum.png?v=5" title=":yum:" class="emoji" alt=":yum:"> it's like an addictions.   There will be an extension with a 16bit 8channel dac out as cv out (10Vpp) function. I had ordered the usb2mcv pcbs (2 cv out) but it will be obsolet with new euxo design and the usb2mcv needs fine pitch smd soldering skills etc. so that wouldn't be good as an essential extension.   <a href="//community.axoloti.com/uploads/default/original/2X/d/d9c526bf8543534fe61248ae9d05fe38f6c0c58a.jpg" title="extensions usb gat8.jpg" rel="nofollow noopener">[image]</a> I'm also working on a tft, rot…</p></blockquote></aside>
+
+<p><a href="https://github.com/HerrPaule/Euxoloti/blob/master/Euxoloti%201.0/Hardware/USB2MCV%20REV1.pdf" class="onebox" target="_blank" rel="nofollow noopener">https://github.com/HerrPaule/Euxoloti/blob/master/Euxoloti%201.0/Hardware/USB2MCV%20REV1.pdf</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/2</link>
+        <pubDate>Sun, 29 Jul 2018 16:46:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-2</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+      <item>
+        <title>Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</title>
+        <dc:creator><![CDATA[@deef]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deef">@deef</a> wrote:</p>
+          <blockquote>
+              <p>I know there are bits &amp; pieces on this topic all over this forum, but I still got some questions. <br>+ I wanted to bring several solutions together in one thread.<br>(Even if I appear writing with seeming certainty, imagine a question mark after each sentence &amp; let me know if I got something wrong. Thanks.)</p>
+
+<h2>Gates/Triggz - from &amp; to Axoloti</h2>
+
+<p>To interface Eurorack-Gates/Triggz with Axoloti <strong>directly</strong> you need to regulate the voltage of Eurorack down to 3.3v. You can use something like this &amp; it is bi-directional:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.sparkfun.com/products/12009" target="_blank" rel="nofollow noopener">sparkfun.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://cdn.sparkfun.com/r/92-92/assets/parts/8/5/2/2/12009-06.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.sparkfun.com/products/12009" target="_blank" rel="nofollow noopener">SparkFun Logic Level Converter - Bi-Directional - BOB-12009 - SparkFun...</a></h3>
+
+<p>If you've ever tried to connect a 3.3V device to a 5V system, you know what a challenge it can be. The SparkFun bi-directional logic level converter is a s</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br> - but what about 10v signals + do you really need exact 5v to 3.3v conversion to get the digital data? Just basic attenuation would also be enough - so basically a resistor? One could probably put a resistor between Eurorack-Gate &amp; choose a value that even 10v gets attenuated to below 3.3v. I am a DIY n00b - so dear veterans, let me know if I talk BS. I think this is viable as we don't need exactly 3.3v. Just a simple change between any states can be digital aka "trigger-information", right?<br>&amp; from Axoloti to Eurorack you'd have 3.3v - so just go directly. Most modules with trigger-ins just need a "raising edge" above a very low level. Sometimes as low as 0.x v. So 3.3v would function perfectly well <strong>directly</strong>.</p>
+
+<p>For a <strong>indirect</strong> route there is this module specifically for Triggers to MIDI:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/vpme-de-trig31" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/10999.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/vpme-de-trig31" target="_blank" rel="nofollow noopener">vpme.de trig31 - Eurorack Module on ModularGrid</a></h3>
+
+<p>vpme.de trig31 - Eurorack Module - 8 channel trigger to MIDI converter</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<h2>Data - Modulation from &amp; to Axoloti</h2>
+
+<p><strong>Eurorack to Axoloti</strong><br>The <strong>direct</strong> solution from Eurorack to Axoloti here again would be to use the ANALOG capable INs, see here: <a href="//community.axoloti.com/t/official-pin-outs-revised-work-in-progress/1284">http://community.axoloti.com/t/official-pin-outs-revised-work-in-progress/1284</a>  - I counted 15 of them. BUT, here again <strong>you can't go above 3.3v or you would damage the Axoloti!</strong> So, the same idea, a resistor value that scales even 10v to below 3.3v to be secure, but here we deal with continuous information, so I am not sure how our data would be skewed through this theoretical resistor?! Is it simply scaled down? That would be good enough for me. I don't expect "automatic 1v/oct translation" <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:">. &amp; what about negative values like -10v? Not sure what a resistor would do here.</p>
+
+<p>The <strong>indirect</strong> solution would be CV to MIDI (--&gt; to Axoloti). <br>There are several modules out there, that do it:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/doepfer-a-192-1" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/134.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/doepfer-a-192-1" target="_blank" rel="nofollow noopener">Doepfer A-192-1 - Eurorack Module on ModularGrid</a></h3>
+
+<p>Doepfer A-192-1 - Eurorack Module - 16x CV-to-MIDI Interface</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/doepfer-a-192-2" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/135.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/doepfer-a-192-2" target="_blank" rel="nofollow noopener">Doepfer A-192-2 - Eurorack Module on ModularGrid</a></h3>
+
+<p>Doepfer A-192-2 - Eurorack Module - CV/Gate-to-Midi-Interface</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/addac-system-addac221" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/8302.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/addac-system-addac221" target="_blank" rel="nofollow noopener">ADDAC System ADDAC221 - Eurorack Module on ModularGrid</a></h3>
+
+<p>ADDAC System ADDAC221 - Eurorack Module - 10X9 Channel CV to CC MIDI System</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/addac-system-addac222" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/8301.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/addac-system-addac222" target="_blank" rel="nofollow noopener">ADDAC System ADDAC222 - Eurorack Module on ModularGrid</a></h3>
+
+<p>ADDAC System ADDAC222 - Eurorack Module - Multiphonic CV-to-MIDI Notes module</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br> (222 - this one does even notes, so 1v/oct to midi-note conversion, if you have a post-quantizer-note-stream from your modular you want to use inside Axoloti)</p>
+
+<p><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/delptronics-cv2midi" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/8248.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/delptronics-cv2midi" target="_blank" rel="nofollow noopener">Delptronics CV2MIDI - Eurorack Module on ModularGrid</a></h3>
+
+<p>Delptronics CV2MIDI - Eurorack Module - CV 2 Midi Module</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>(delptronics not out yet)</p>
+
+<p>There are even more modules.</p>
+
+<p><strong>Axoloti to Eurorack</strong><br>It seems that PA4 &amp; PA5 are the only analog OUTs. Do they put out also 3.3v? I guess so. So one could go directly to Eurorack with those two. There you could scale them as you wish. You won't get 1v/oct out of Axoloti though, unless there is some Axoloti-module which does the scaling? 3.3v would maybe be high enough in the note-range? Not sure if it is theoretically possible.<br>There are also Midi to CV solutions. Even more than CV to MIDI. Here are my 2 favorites:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/expert-sleepers-fh-2-factotum" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/17055.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/expert-sleepers-fh-2-factotum" target="_blank" rel="nofollow noopener">Expert Sleepers FH-2 'factotum' - Eurorack Module on ModularGrid</a></h3>
+
+<p>Expert Sleepers FH-2 'factotum' - Eurorack Module - MIDI/CV Converter and synchronization center</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+ <br>Factotum does even back &amp; forth, kind of: You can clock Axoloti from your Eurorack, while at the same time putting CCs &amp; Notes &amp; Gates from Axoloti out to Eurorack. But it does NOT CV to Midi (clock only). I didn't tested it yet, as I don't have this module. This should work in theory. Maybe somebody over here does this already?</p>
+
+<p>Another great module, which is not out yet:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/bastl-instruments-1983" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/17134.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/bastl-instruments-1983" target="_blank" rel="nofollow noopener">Bastl Instruments 1983 - Eurorack Module on ModularGrid</a></h3>
+
+<p>Bastl Instruments 1983 - Eurorack Module - MIDI to CV from the FUTURE</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>It has a couple of cool additional features implemented.</p>
+
+<p>Another solution outside of the Eurorack-Format is:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.tindie.com/products/hotchk155/cvocd-a-super-flexible-midi-to-cv-box/" target="_blank" rel="nofollow noopener">tindie.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://cdn.tindiemedia.com/images/resize/6eywzS5OWbjdfafxuznmzrukneY=/p/1200x630/smart/i/6184/products/2016-10-14T15%3A58%3A27.181Z-DSC04215.JPG" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.tindie.com/products/hotchk155/cvocd-a-super-flexible-midi-to-cv-box/" target="_blank" rel="nofollow noopener">CV.OCD - A super flexible MIDI to CV box by Sixty Four Pixels on Tindie</a></h3>
+
+<p>Four analog CV outputs, Twelve gate outputs, a wide range of MIDI to CV mapping options at a budget price!</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>Does also Midi-Note to 1v/oct &amp; has a good price.</p>
+
+<p>I have already ES3 &amp; ES6+7 from Expert Sleepers, but unfortunately Axoloti has no Light-Pipe-I/O - otherwise I wouldn't even write this thread...</p>
+
+<h2>POWER from Eurorack to Axoloti</h2>
+
+<aside class="quote" data-topic="3649" data-slug="answered-powering-axoloti-from-eurorack" data-post="3"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sebo/40/4466_1.png" class="avatar"><a href="//community.axoloti.com/t/answered-powering-axoloti-from-eurorack/3649/3" rel="nofollow noopener">[Answered] Powering Axoloti from Eurorack</a>
+</div>
+<blockquote><p>You should connect Axoloti to +12V and ground (0V). Avoid using -12V. Also take in account the power consuption, If I remember correctly Axoloti alone consumes about 100mA, but if you want to connect something at the USB port, the consuption could rise up to 500mA, wich may be too much for your Eurorack Power Supply.</p></blockquote></aside>
+
+<aside class="quote" data-topic="4800" data-slug="eurorack-power-connection" data-post="2"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ersatzplanet/40/3831_1.png" class="avatar"><a href="//community.axoloti.com/t/eurorack-power-connection/4800/2" rel="nofollow noopener">Eurorack power connection</a>
+</div>
+<blockquote><p>First you won't be able to fit a Axo board into 4-6HP unless you break off the MIDI section and even that will be a tight fit with some euro rails (mainly Z-rails), As far as the power goes though, that is simple, the Axo takes between 7-15V so the +12V of the Eurorack will be no problem. Just take the +12V line and the GRN line and either wire up a compatible plug to go into the power input jack which is in the MIDI section you can't remove if you want a 4-6HP panel or with to the power jacks p…</p></blockquote></aside>
+
+<aside class="quote" data-post="1" data-topic="3182">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/letter_avatar_proxy/v2/letter/s/f14d63/40.png" class="avatar">
+    <a href="//community.axoloti.com/t/connecting-axoloti-directly-to-5v-eurorack-rail/3182?source_topic_id=4825" rel="nofollow noopener">Connecting Axoloti directly to 5V (Eurorack rail)</a> <a class="badge-wrapper  bullet" href="/c/hardware"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects.">Hardware</span></a>
+  </div>
+  <blockquote>
+    Hi, new Axoloti user but pretty advanced electronics nut here.   I have built my own small Eurorack (everything-- case, modules some finished and some in progress, including very smooth custom linear power supply), basically for me it is cheapest to go all DIY with Eurorack!    
+
+Before you tell me to look at Euxoloti, I already read up. But my power limitations are not the same. Any/all digital modules I install must come from the 5V rail which I have as a regulated 5V with 1A capacity, much mo…
+  </blockquote>
+</aside>
+
+
+<p><a href="https://www.thonk.co.uk/shop/transient-breadboard-kit/" class="onebox" target="_blank" rel="nofollow noopener">https://www.thonk.co.uk/shop/transient-breadboard-kit/</a></p>
+
+<h2><strong>Questions</strong></h2>
+
+<p>My basic question is: should one go the <strong>direct</strong> route where it is possible, because MIDI deals always with additional jitter &amp; latency &amp; 128-quantization, losing details? Maybe somebody tested out any Axoloti-MIDI to CV-Trig out solution &amp; can say something if the beat is <strong>tight</strong>? <br>I am biased because I read the detailed MIDI-Jitter-Problem-Essays on <a href="https://innerclocksystems.com/" rel="nofollow noopener">https://innerclocksystems.com/</a>.<br>They also have a module: <br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.modulargrid.net/e/innerclock-systems-sync-gen-iils" target="_blank" rel="nofollow noopener">modulargrid.net</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.modulargrid.net/img/modcache/467.f.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.modulargrid.net/e/innerclock-systems-sync-gen-iils" target="_blank" rel="nofollow noopener">Innerclock Systems Sync-Gen IILS - Eurorack Module on ModularGrid</a></h3>
+
+<p>Innerclock Systems Sync-Gen IILS - Eurorack Module - precision tempo-grid and sample-accurate modular synthesizer to daw synchronisation system</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>Though I am not sure in which category to put it. It needs a specific VST!<br>Here is a thread on this: <a href="//community.axoloti.com/t/creating-a-similar-solution-to-usamo-with-axoloti/1085/2">http://community.axoloti.com/t/creating-a-similar-solution-to-usamo-with-axoloti/1085/2</a></p>
+
+<p>To solve all this, some kind of Frankenstein-Solution comes to mind.<br>MIDI to CV (Module) would be more important, because the Axoloti got much more ANALOG INs than OUTs, but then again there are many uncertainties stated in this thread on how to make use of the ANALOG-INs, so going the full MIDI-Route?<br>In my particular situation I'd like to trigger/clock Axoloti from Modular then generate Triggers/Gates in Axoloti based on that Clock (divide &amp; multiply e.g.) &amp; put them out back into Modular, but I am not sure if this would be a mess through the MIDI-Jitter-Latency situation. How can I find this out? Dropping a few hundred €€ on modules to find out that it doesn't work properly? I have gone this route for the last 5 years in Eurorack <img src="//community.axoloti.com/images/emoji/twitter/joy.png?v=5" title=":joy:" class="emoji" alt=":joy:"> - I am pretty much burned-out already, but still don't want to give up.</p>
+
+<p>OF COURSE there is the mighty, beautiful, amazing Euxoloti-Project ( <a href="http://build.irieelectronics.de/" rel="nofollow noopener">http://build.irieelectronics.de/</a> ) - but Paul disappeared somewhere in 2016/2017 from the scene. <img src="//community.axoloti.com/images/emoji/twitter/worried.png?v=5" title=":worried:" class="emoji" alt=":worried:"> - He didn't respond to my mail.<br>Still, even the Euxoloti does not have any CV-OUT, only lots of CV-IN &amp; 8 Gate-OUTs, which is cool enough in this compact Eurorack-Form-Factor. So additional Midi to CV Gadget would be valuable anyways. BTW, I wonder how there are 8 Knobs + 8 CV-INs  - I see only 15 ANALOG INs.<br><aside class="quote" data-topic="202" data-slug="official-pin-out-ports-documentation" data-post="5"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/paul/40/53_1.png" class="avatar"><a href="//community.axoloti.com/t/official-pin-out-ports-documentation/202/5" rel="nofollow noopener">Official pin out/ports documentation</a>
+</div>
+<blockquote><p>here is my nonofficial gpio I/O port overview.  edited 31.12.2015  <a href="//community.axoloti.com/uploads/default/original/2X/2/2af0b88c77049eb54445f4d9d7c7910561c12247.jpg" title="axoloti-gpio-io-v2.jpg" rel="nofollow noopener">[image]</a> <a href="https://github.com/HerrPaule/Euxoloti.git" rel="nofollow noopener">Download</a></p></blockquote></aside></p>
+
+<p>Another basic question: I was confused that the official PINS can be Digital INS, Analog INS &amp; Digital OUTS &amp; PWM &amp; more stuff I don't even understand. Can they be that at the same time? Probably not, where does the decision comes in? Are there specific Modules in the Axoloti Software to assign the PINS?</p>
+
+<p>At the moment I am waiting for my first 2 Axoloti to arrive, so I can't try out much.</p>
+
+<p>Maybe <a class="mention" href="/u/ersatzplanet">@Ersatzplanet</a> <a class="mention" href="/u/afghanblonde">@afghanblonde</a> <a class="mention" href="/u/paul">@paul</a> can help/are interested in this thread?</p>
+
+<p>I am using this type of web2.0 forum for the first time, damn it is great! So fluent &amp; thought out &amp; self-explained &amp; interconnected. This is the future of forums.</p>
+
+<p>THANKS. <img src="//community.axoloti.com/images/emoji/twitter/kissing_heart.png?v=5" title=":kissing_heart:" class="emoji" alt=":kissing_heart:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825/1</link>
+        <pubDate>Sat, 28 Jul 2018 10:16:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4825-1</guid>
+        <source url="http://community.axoloti.com/t/axoloti-to-eurorack-back-integration-theory-practice-questions/4825.rss">Axoloti to Eurorack &amp; back Integration - Theory &amp; Practice ( + Questions)</source>
+      </item>
+  </channel>
+</rss>

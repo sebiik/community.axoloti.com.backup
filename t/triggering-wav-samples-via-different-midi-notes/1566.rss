@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Triggering WAV-Samples via different MIDI notes</title>
+    <link>http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566</link>
+    <description>Hey there Axoloti Community,
+
+first and foremost I&#39;m absolutely new to the Axoloti and this Community. I bought my first Axoloti about two weeks ago and been playing around with it since. I&#39;m absolutely amazed, but I&#39;ll stop rambling now.
+
+Here&#39;s what I want to do: I got a MPD18 with 16 pads and I want to be able to trigger different WAV-files from the SD card by hitting aforementioned pads. I used the wave/play fn stereo function and am now able to trigger one sound by hitting any pad.
+
+My question(s): What would be the best way to assign different samples to the different MIDI notes that are being played?
+
+And furthermore: How well is the Axoloti able to handle a bigger amount of WAV-Samples that are about 3 to 5 seconds long each?
+
+I really tried to find out the solution to this topic in any other way but could not find anything useful. So sorry for asking noobish questions.
+
+And thanks for your help in advance.</description>
+    
+    <lastBuildDate>Thu, 21 Sep 2017 20:56:02 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Triggering WAV-Samples via different MIDI notes</title>
+        <dc:creator><![CDATA[@johnnydub Jan Willems]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johnnydub">@johnnydub</a> wrote:</p>
+          <blockquote>
+              <p>Hi,</p>
+
+<p>Am i correct that i can only create 12 wave/play fn objects in a patch?<br>If i create more wave/play fn objects then i can't load the patch to the sdcard..?<br>I get following messages:<br>region sram overflowed by 2504 bytes..compiling patch failed..failed uploading file..</p>
+
+<p>thanks for the help!<br>Jan</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566/3</link>
+        <pubDate>Thu, 21 Sep 2017 20:56:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1566-3</guid>
+        <source url="http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566.rss">Triggering WAV-Samples via different MIDI notes</source>
+      </item>
+      <item>
+        <title>Triggering WAV-Samples via different MIDI notes</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>No need to apologize for noobish questions!</p>
+
+<aside class="quote" data-post="1" data-topic="1566"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/d/258eb7/40.png" class="avatar">Digital_Failure:</div>
+<blockquote><p>My question(s): What would be the best way to assign different samples to the different MIDI notes that are being played?</p></blockquote></aside>
+
+<p>"wave/play ..." objects are for streaming sample playback from sdcard. That means data is read from the card in real time. Sdcard can only be accessed through buffered reading, the "wave/play ..." objects do some juggling to hide this, but this is not entirely flexible: for example samples can not be transposed. The advantage of streaming is that there is no length limit except the file size on sdcard (2 Gigabyte I believe, perhaps 4). Several "wave/play..." objects should be fine, but I expect you'll bump into limitations if you 'd attempt to play 16 samples simultaneously.</p>
+
+<p>The other approach is using the on-board SDRAM memory. Besides the "SD" characters in the name there is no similarity. Sdcard is flash memory (keeps data without power). SDRAM is dynamic volatile memory - contents are gone when powered off. SDRAM has better performance and does not need buffering, but on-board SDRAM is limited to 8MB capacity. This is entirely available for use in patches, and corresponds to 86 seconds of mono sound at 48kHz/16bit, for delay lines or tables. To play a sample from SDRAM you need to: </p>
+
+<ul>
+<li>allocate a table though "table/alloc 16b sdram" </li>
+<li>load a sample (from sdCARD) into that table with "table/load", both allocation and loading at startup are integrated in the "table/alloc 16b sdram load" object</li>
+<li>play it with the "table/play" object, referencing the relevant "table/alloc..." object.</li>
+</ul>
+
+<p>For multiple notes with different samples, use several "midi/in/keyb note" objects, each triggering a "table/play..." object. </p>
+
+<p>If you're using the last "stable" 1.0.6 release, significant improvements are in test release concerning automatic upload of sample files and error reporting. Converging improvements in development into a stable release is one of my highest priorities.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566/2</link>
+        <pubDate>Sun, 24 Apr 2016 23:54:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1566-2</guid>
+        <source url="http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566.rss">Triggering WAV-Samples via different MIDI notes</source>
+      </item>
+      <item>
+        <title>Triggering WAV-Samples via different MIDI notes</title>
+        <dc:creator><![CDATA[@Digital_Failure]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/digital_failure">@Digital_Failure</a> wrote:</p>
+          <blockquote>
+              <p>Hey there Axoloti Community,</p>
+
+<p>first and foremost I'm absolutely new to the Axoloti and this Community. I bought my first Axoloti about two weeks ago and been playing around with it since. I'm absolutely amazed, but I'll stop rambling now.</p>
+
+<p>Here's what I want to do: I got a MPD18 with 16 pads and I want to be able to trigger different WAV-files from the SD card by hitting aforementioned pads. I used the wave/play fn stereo function and am now able to trigger one sound by hitting any pad.</p>
+
+<p>My question(s): What would be the best way to assign different samples to the different MIDI notes that are being played?</p>
+
+<p>And furthermore: How well is the Axoloti able to handle a bigger amount of WAV-Samples that are about 3 to 5 seconds long each?</p>
+
+<p>I really tried to find out the solution to this topic in any other way but could not find anything useful. So sorry for asking noobish questions.</p>
+
+<p>And thanks for your help in advance.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566/1</link>
+        <pubDate>Sun, 24 Apr 2016 21:06:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1566-1</guid>
+        <source url="http://community.axoloti.com/t/triggering-wav-samples-via-different-midi-notes/1566.rss">Triggering WAV-Samples via different MIDI notes</source>
+      </item>
+  </channel>
+</rss>

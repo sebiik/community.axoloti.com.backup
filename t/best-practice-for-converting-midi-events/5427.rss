@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Best practice for converting MIDI events?</title>
+    <link>http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427</link>
+    <description>Hi Axoloti community,
+I searched the forum for something like a &quot;MIDI event converter&quot; but did not find anything. After some fiddeling around i was able to solve my problem myself. This little piece of code converts specific `MIDI_PROGRAM_CHANGE` events to specific `MIDI_CONTROL_CHANGE` events. I&#39;ve placed it via `midi/in/script` object.
+
+I have zero experience in coding `C` but luckily i was able to achieve exactly what i wanted. Any advice how to improve this script?
+
+Finding out how to force a different timestamp for fired MIDI events took me some time. so i place my search terms in this post: `sleep`, `usleep`, `wait`, `microwait`, `pause`, `micropause`, `change timestamp`
+
+my solution was `chThdSleepMilliseconds(50);`
+
+so here is my tiny event converter script
+
+    /**
+     * MIDI-Event-Converter for axoloti
+     * from PROGRAM_CHANGE events of a &quot;Boss FC-50 Midi foot controller&quot;
+     * to CONTROL_CHANGE Events for a &quot;Boss RC-505 Loop Station&quot;
+     *
+     * After powering the FC-50 the yellow LED is active
+     * Pedal 1 to 5 fires PROGRAM_CHANGE events with values 0,1,2,3,4
+     * Pedal 6 toggles between yellow and green LED
+     * Pedal 1 to 5 fires PROGRAM_CHANGE events with values 5,6,7,8,9
+     *
+     * there is no possibility to change this behaviour on the FC-50
+     * the RC-505 is not capable to control loops via PROGRAM_CHANGE
+     * so we send CONTROL_CHANGE events instead
+     *
+     */
+    if (dev == MIDI_DEVICE_DIN) {
+      if (status == MIDI_PROGRAM_CHANGE) {
+        int targetCC = 0;
+        
+        /* yellow LED mode on the FC-50 */
+        if(data1 == 0) { targetCC = 21; }
+        if(data1 == 1) { targetCC = 26; }
+        if(data1 == 2) { targetCC = 22; }
+        if(data1 == 3) { targetCC = 27; }
+        
+        /* green LED mode on the FC-50 */
+        if(data1 == 5) { targetCC = 23; }
+        if(data1 == 6) { targetCC = 28; }
+        if(data1 == 7) { targetCC = 24; }
+        if(data1 == 8) { targetCC = 29; }
+        if(targetCC != 0) {
+           /* RC-505 needs a value between 64 and 127 to trigger CC configured loop operation */
+           MidiSend3(MIDI_DEVICE_DIN, 0, MIDI_CONTROL_CHANGE, targetCC, 64);
+           /**
+            * force different timestamp for the next event
+            * otherwise the RC-505 refuses to process incoming event
+            */
+           chThdSleepMilliseconds(50);
+           /* RC-505 needs a value between 0 and 63 to trigger standby for CC configured loop operation */
+           MidiSend3(MIDI_DEVICE_DIN, 0, MIDI_CONTROL_CHANGE, targetCC, 63);
+        }
+      }
+    }
+    
+    /**
+     * additionally pass through incoming clock events of the device port
+     * to the din out port
+     */
+    if (dev == MIDI_DEVICE_USB_DEVICE) {
+      if ((status == MIDI_TIMING_CLOCK) ||
+      (status == MIDI_START) ||
+      (status == MIDI_CONTINUE) ||
+      (status == MIDI_STOP)) {
+        MidiSend1(MIDI_DEVICE_DIN,0,status);
+      }
+    }</description>
+    
+    <lastBuildDate>Sun, 17 Feb 2019 23:09:13 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Best practice for converting MIDI events?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Your script looks good, especially considering you haven't coded in C before (but perhaps you've coded in another language?)</p>
+
+<p>Although it's unlikely to make any practical difference, I'd optimize the if statements (where each one is executed, although data1 will only match in one of them) into either a switch statement, or even, given the data ranges, a look up table, like so:</p>
+
+<pre><code>if(data1 &lt;= 7) {
+  static int lut[8] = { 21, 26, 22, 27, 23, 28, 24, 29 ];
+  int targetCC = lut[data1];
+
+  MidiSend3( ....</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427/3</link>
+        <pubDate>Sun, 17 Feb 2019 23:09:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5427-3</guid>
+        <source url="http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427.rss">Best practice for converting MIDI events?</source>
+      </item>
+      <item>
+        <title>Best practice for converting MIDI events?</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>Hi, I don't know code enough for suggestions for your script, but if I was trying to use a program change to send out a cc I'd patch it using objects. </p>
+
+<p>I'm not at my laptop so don't know the exact names,  but look for a program change object in the midi/in folder, and a cc object in the midi/out folder, and just connect them together. Though if there's a lot of them it could mean a lot of objects...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427/2</link>
+        <pubDate>Fri, 15 Feb 2019 10:22:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5427-2</guid>
+        <source url="http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427.rss">Best practice for converting MIDI events?</source>
+      </item>
+      <item>
+        <title>Best practice for converting MIDI events?</title>
+        <dc:creator><![CDATA[@hankyman hankyman]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hankyman">@hankyman</a> wrote:</p>
+          <blockquote>
+              <p>Hi Axoloti community,<br>I searched the forum for something like a "MIDI event converter" but did not find anything. After some fiddeling around i was able to solve my problem myself. This little piece of code converts specific <code>MIDI_PROGRAM_CHANGE</code> events to specific <code>MIDI_CONTROL_CHANGE</code> events. I've placed it via <code>midi/in/script</code> object.</p>
+
+<p>I have zero experience in coding <code>C</code> but luckily i was able to achieve exactly what i wanted. Any advice how to improve this script?</p>
+
+<p>Finding out how to force a different timestamp for fired MIDI events took me some time. so i place my search terms in this post: <code>sleep</code>, <code>usleep</code>, <code>wait</code>, <code>microwait</code>, <code>pause</code>, <code>micropause</code>, <code>change timestamp</code></p>
+
+<p>my solution was <code>chThdSleepMilliseconds(50);</code></p>
+
+<p>so here is my tiny event converter script</p>
+
+<pre><code>/**
+ * MIDI-Event-Converter for axoloti
+ * from PROGRAM_CHANGE events of a "Boss FC-50 Midi foot controller"
+ * to CONTROL_CHANGE Events for a "Boss RC-505 Loop Station"
+ *
+ * After powering the FC-50 the yellow LED is active
+ * Pedal 1 to 5 fires PROGRAM_CHANGE events with values 0,1,2,3,4
+ * Pedal 6 toggles between yellow and green LED
+ * Pedal 1 to 5 fires PROGRAM_CHANGE events with values 5,6,7,8,9
+ *
+ * there is no possibility to change this behaviour on the FC-50
+ * the RC-505 is not capable to control loops via PROGRAM_CHANGE
+ * so we send CONTROL_CHANGE events instead
+ *
+ */
+if (dev == MIDI_DEVICE_DIN) {
+  if (status == MIDI_PROGRAM_CHANGE) {
+    int targetCC = 0;
+    
+    /* yellow LED mode on the FC-50 */
+    if(data1 == 0) { targetCC = 21; }
+    if(data1 == 1) { targetCC = 26; }
+    if(data1 == 2) { targetCC = 22; }
+    if(data1 == 3) { targetCC = 27; }
+    
+    /* green LED mode on the FC-50 */
+    if(data1 == 5) { targetCC = 23; }
+    if(data1 == 6) { targetCC = 28; }
+    if(data1 == 7) { targetCC = 24; }
+    if(data1 == 8) { targetCC = 29; }
+    if(targetCC != 0) {
+       /* RC-505 needs a value between 64 and 127 to trigger CC configured loop operation */
+       MidiSend3(MIDI_DEVICE_DIN, 0, MIDI_CONTROL_CHANGE, targetCC, 64);
+       /**
+        * force different timestamp for the next event
+        * otherwise the RC-505 refuses to process incoming event
+        */
+       chThdSleepMilliseconds(50);
+       /* RC-505 needs a value between 0 and 63 to trigger standby for CC configured loop operation */
+       MidiSend3(MIDI_DEVICE_DIN, 0, MIDI_CONTROL_CHANGE, targetCC, 63);
+    }
+  }
+}
+
+/**
+ * additionally pass through incoming clock events of the device port
+ * to the din out port
+ */
+if (dev == MIDI_DEVICE_USB_DEVICE) {
+  if ((status == MIDI_TIMING_CLOCK) ||
+  (status == MIDI_START) ||
+  (status == MIDI_CONTINUE) ||
+  (status == MIDI_STOP)) {
+    MidiSend1(MIDI_DEVICE_DIN,0,status);
+  }
+}</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427/1</link>
+        <pubDate>Fri, 15 Feb 2019 07:21:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5427-1</guid>
+        <source url="http://community.axoloti.com/t/best-practice-for-converting-midi-events/5427.rss">Best practice for converting MIDI events?</source>
+      </item>
+  </channel>
+</rss>

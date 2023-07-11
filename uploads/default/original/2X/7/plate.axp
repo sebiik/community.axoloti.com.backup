@@ -1,0 +1,406 @@
+<patch-1.0 appVersion="1.0.10">
+   <obj type="patch/cyclecounter" uuid="6b9e9c2187a0e07fb56029aef6ccaaf1f9621e35" name="cyclecounter_1" x="448" y="0">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="9b0aac47-02a1-4bf5-a20e-2ea25f653183" name="object_6" x="448" y="70">
+      <params>
+         <bin12 name="row1" value="7"/>
+         <bin12 name="row2" value="4"/>
+         <bin12 name="row3" value="60"/>
+         <bin12 name="row4" value="0"/>
+         <int32.hradio name="pickup" value="5"/>
+         <frac32.u.map name="spring" value="1.5"/>
+         <frac32.u.map name="friction" value="4.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="9b0aac47-02a1-4bf5-a20e-2ea25f653183">
+         <sDescription>description</sDescription>
+         <inlets>
+            <frac32buffer name="in1"/>
+            <frac32buffer name="in2"/>
+            <frac32buffer name="in3"/>
+            <frac32buffer name="in4"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out1"/>
+            <frac32buffer name="out2"/>
+            <frac32buffer name="out3"/>
+            <frac32buffer name="out4"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin12 name="row1"/>
+            <bin12 name="row2"/>
+            <bin12 name="row3"/>
+            <bin12 name="row4"/>
+            <int32.hradio name="pickup">
+               <MaxValue i="12"/>
+            </int32.hradio>
+            <frac32.u.map name="spring"/>
+            <frac32.u.map name="friction"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t y1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y1_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v1_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+int32_t y2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y2_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v2_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+int32_t y3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y3_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v3_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+int32_t y4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y4_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v4_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+
+
+
+int32_t calculate_spring(int32_t x_current, int32_t x_other, int32_t k_spring, bool active)
+{
+	if (active)
+	return ___SMMUL(x_other-x_current,k_spring);
+	else return 0;
+}
+
+int32_t calculate_friction(int32_t v_current, int32_t k_friction)
+{
+	return -___SMMUL(v_current,k_friction);
+}
+
+
+
+]]></code.declaration>
+         <code.krate><![CDATA[int i;
+for (i=0;i<12;i++)
+{
+	active_1[i] = param_row1 & (1<<i);
+	active_2[i] = param_row2 & (1<<i);
+	active_3[i] = param_row3 & (1<<i);
+	active_4[i] = param_row4 & (1<<i);
+}
+
+
+
+
+]]></code.krate>
+         <code.srate><![CDATA[for (i=0;i<12;i++)
+{
+	
+
+		if (active_1[i])
+		{
+		a1[i] = calculate_spring(y1_old[i],(i>0)?y1_old[i-1]:inlet_in1,param_spring,(i>0)?active_1[i-1]:1) + calculate_spring(y1_old[i],(i<11)?y1_old[i+1]:1,param_spring,(i<11)?active_1[i+1]:0) + calculate_spring(y1_old[i],y2_old[i],param_spring,active_2[i]);
+		v1[i] = v1_old[i] + a1[i] + calculate_friction(v1_old[i],param_friction);
+		y1[i] = y1_old[i] + (v1[i]>>2);
+		}
+		if (active_2[i])
+		{
+		a2[i] = calculate_spring(y2_old[i],(i>0)?y2_old[i-1]:inlet_in2,param_spring,(i>0)?active_2[i-1]:1) + calculate_spring(y2_old[i],(i<11)?y2_old[i+1]:1,param_spring,(i<11)?active_2[i+1]:0) + calculate_spring(y2_old[i],y3_old[i],param_spring,active_3[i])+ calculate_spring(y2_old[i],y1_old[i],param_spring,active_1[i]);
+		v2[i] = v2_old[i] + a2[i] + calculate_friction(v2_old[i],param_friction);
+		y2[i] = y2_old[i] + (v2[i]>>2);
+		}
+		if (active_3[i])
+		{
+		a3[i] = calculate_spring(y3_old[i],(i>0)?y3_old[i-1]:inlet_in3,param_spring,(i>0)?active_3[i-1]:1) + calculate_spring(y3_old[i],(i<11)?y3_old[i+1]:1,param_spring,(i<11)?active_3[i+1]:0) + calculate_spring(y3_old[i],y4_old[i],param_spring,active_4[i])+ calculate_spring(y3_old[i],y2_old[i],param_spring,active_2[i]);
+		v3[i] = v3_old[i] + a3[i] + calculate_friction(v3_old[i],param_friction);
+		y3[i] = y3_old[i] + (v3[i]>>2);
+		}
+		if (active_4[i])
+		{
+		a4[i] = calculate_spring(y4_old[i],(i>0)?y4_old[i-1]:inlet_in4,param_spring,(i>0)?active_4[i-1]:1) + calculate_spring(y4_old[i],(i<11)?y4_old[i+1]:1,param_spring,(i<11)?active_4[i+1]:0) + calculate_spring(y4_old[i],y3_old[i],param_spring,active_3[i]);
+		v4[i] = v4_old[i] + a4[i] + calculate_friction(v4_old[i],param_friction);
+		y4[i] = y4_old[i] + (v4[i]>>2);
+		}
+
+}
+
+
+for (i=0;i<12;i++)
+{
+	v1_old[i]=v1[i];
+	y1_old[i]=y1[i];
+	v2_old[i]=v2[i];
+	y2_old[i]=y2[i];
+	v3_old[i]=v3[i];
+	y3_old[i]=y3[i];
+	v4_old[i]=v4[i];
+	y4_old[i]=y4[i];
+	
+}
+
+
+
+
+
+outlet_out1 = y1[param_pickup];
+outlet_out2 = y2[param_pickup];
+outlet_out3 = y3[param_pickup];
+outlet_out4 = y4[param_pickup];
+]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="osc/saw" uuid="739ecc36017ef3249479b8f01716b8bbfba9abc1" name="saw_1" x="140" y="112">
+      <params>
+         <frac32.s.map name="pitch" value="-63.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_1" x="280" y="126">
+      <params>
+         <frac32.u.map name="amp" value="44.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_2" x="700" y="126">
+      <params>
+         <frac32.u.map name="amp" value="22.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="896" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="patch/cyclecounter" uuid="6b9e9c2187a0e07fb56029aef6ccaaf1f9621e35" name="cyclecounter_2" x="476" y="364">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/-" uuid="1643d55e6e7ce1c995a5e66db9f54fd969e6c9b7" name="-_1" x="672" y="462">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="854" y="476">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_2" x="910" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="9b0aac47-02a1-4bf5-a20e-2ea25f653183" name="object_5" x="294" y="672">
+      <params>
+         <bin12 name="row1" value="0"/>
+         <bin12 name="row2" value="0"/>
+         <bin12 name="row3" value="0"/>
+         <bin12 name="row4" value="0"/>
+         <int32.hradio name="pickup" value="11"/>
+         <frac32.u.map name="spring" value="27.0"/>
+         <frac32.u.map name="friction" value="27.5"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="9b0aac47-02a1-4bf5-a20e-2ea25f653183">
+         <sDescription>description</sDescription>
+         <inlets>
+            <frac32 name="in1"/>
+            <frac32 name="in2"/>
+            <frac32 name="in3"/>
+            <frac32 name="in4"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out1"/>
+            <frac32 name="out2"/>
+            <frac32 name="out3"/>
+            <frac32 name="out4"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin12 name="row1"/>
+            <bin12 name="row2"/>
+            <bin12 name="row3"/>
+            <bin12 name="row4"/>
+            <int32.hradio name="pickup">
+               <MaxValue i="12"/>
+            </int32.hradio>
+            <frac32.u.map name="spring"/>
+            <frac32.u.map name="friction"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t y1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y1_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v1_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+int32_t y2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y2_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v2_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_2[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+int32_t y3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y3_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v3_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_3[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+int32_t y4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t a4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t y4_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+int32_t v4_old[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+bool active_4[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+
+
+
+int32_t calculate_spring(int32_t x_current, int32_t x_other, int32_t k_spring, bool active)
+{
+	if (active)
+	return ___SMMUL(x_other-x_current,k_spring);
+	else return 0;
+}
+
+int32_t calculate_friction(int32_t v_current, int32_t k_friction)
+{
+	return -___SMMUL(v_current,k_friction);
+}
+
+
+
+]]></code.declaration>
+         <code.krate><![CDATA[int i;
+for (i=0;i<12;i++)
+{
+	active_1[i] = param_row1 & (1<<i);
+	active_2[i] = param_row2 & (1<<i);
+	active_3[i] = param_row3 & (1<<i);
+	active_4[i] = param_row4 & (1<<i);
+}
+
+
+for (i=0;i<12;i++)
+{
+	
+
+		if (active_1[i])
+		{
+		a1[i] = calculate_spring(y1_old[i],(i>0)?y1_old[i-1]:inlet_in1,param_spring,(i>0)?active_1[i-1]:1) + calculate_spring(y1_old[i],(i<11)?y1_old[i+1]:1,param_spring,(i<11)?active_1[i+1]:0) + calculate_spring(y1_old[i],y2_old[i],param_spring,active_2[i]);
+		v1[i] = v1_old[i] + a1[i] + calculate_friction(v1_old[i],param_friction);
+		y1[i] = y1_old[i] + (v1[i]>>2);
+		}
+		if (active_2[i])
+		{
+		a2[i] = calculate_spring(y2_old[i],(i>0)?y2_old[i-1]:inlet_in2,param_spring,(i>0)?active_2[i-1]:1) + calculate_spring(y2_old[i],(i<11)?y2_old[i+1]:1,param_spring,(i<11)?active_2[i+1]:0) + calculate_spring(y2_old[i],y3_old[i],param_spring,active_3[i])+ calculate_spring(y2_old[i],y1_old[i],param_spring,active_1[i]);
+		v2[i] = v2_old[i] + a2[i] + calculate_friction(v2_old[i],param_friction);
+		y2[i] = y2_old[i] + (v2[i]>>2);
+		}
+		if (active_3[i])
+		{
+		a3[i] = calculate_spring(y3_old[i],(i>0)?y3_old[i-1]:inlet_in3,param_spring,(i>0)?active_3[i-1]:1) + calculate_spring(y3_old[i],(i<11)?y3_old[i+1]:1,param_spring,(i<11)?active_3[i+1]:0) + calculate_spring(y3_old[i],y4_old[i],param_spring,active_4[i])+ calculate_spring(y3_old[i],y2_old[i],param_spring,active_2[i]);
+		v3[i] = v3_old[i] + a3[i] + calculate_friction(v3_old[i],param_friction);
+		y3[i] = y3_old[i] + (v3[i]>>2);
+		}
+		if (active_4[i])
+		{
+		a4[i] = calculate_spring(y4_old[i],(i>0)?y4_old[i-1]:inlet_in4,param_spring,(i>0)?active_4[i-1]:1) + calculate_spring(y4_old[i],(i<11)?y4_old[i+1]:1,param_spring,(i<11)?active_4[i+1]:0) + calculate_spring(y4_old[i],y3_old[i],param_spring,active_3[i]);
+		v4[i] = v4_old[i] + a4[i] + calculate_friction(v4_old[i],param_friction);
+		y4[i] = y4_old[i] + (v4[i]>>2);
+		}
+
+}
+
+
+for (i=0;i<12;i++)
+{
+	v1_old[i]=v1[i];
+	y1_old[i]=y1[i];
+	v2_old[i]=v2[i];
+	y2_old[i]=y2[i];
+	v3_old[i]=v3[i];
+	y3_old[i]=y3[i];
+	v4_old[i]=v4[i];
+	y4_old[i]=y4[i];
+	
+}
+
+
+
+
+
+outlet_out1 = y1[param_pickup];
+outlet_out2 = y2[param_pickup];
+outlet_out3 = y3[param_pickup];
+outlet_out4 = y4[param_pickup];
+
+
+]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="98" y="714">
+      <params>
+         <frac32.s.map name="value" value="36.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="cyclecounter_2" outlet="t"/>
+         <dest obj="-_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="cyclecounter_1" outlet="t"/>
+         <dest obj="-_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="-_1" outlet="out"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="object_5" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="object_5" outlet="out2"/>
+         <dest obj="dial_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="object_6" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="object_6" outlet="out3"/>
+         <dest obj="*c_2" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1382</width>
+      <height>784</height>
+   </windowPos>
+</patch-1.0>

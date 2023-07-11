@@ -1,0 +1,49 @@
+<objdefs appVersion="1.0.11">
+   <obj.normal id="counterplus" uuid="71f4ff7f-e6d8-4c8c-8094-6cd4bf19eb76">
+      <sDescription>saturating up/down counter</sDescription>
+      <author>Johannes Taelman</author>
+      <license>BSD</license>
+      <helpPatch>logic.axh</helpPatch>
+      <inlets>
+         <bool32.rising name="inc" description="increment trigger"/>
+         <bool32.rising name="dec" description="decrement trigger"/>
+         <bool32.rising name="r" description="reset"/>
+      </inlets>
+      <outlets>
+         <int32 name="o" description="output"/>
+      </outlets>
+      <displays/>
+      <params>
+         <int32 name="maximum" noLabel="true">
+            <MinValue i="0"/>
+            <MaxValue i="65536"/>
+         </int32>
+         <int32 name="preset">
+            <MinValue i="0"/>
+            <MaxValue i="1000"/>
+         </int32>
+      </params>
+      <attribs/>
+      <code.declaration><![CDATA[int ntrig;
+   int rtrig;
+   int dtrig;
+   int count;]]></code.declaration>
+      <code.init><![CDATA[count=0;
+   ntrig = 0;
+   dtrig = 0;
+   rtrig = 0;]]></code.init>
+      <code.krate><![CDATA[if ((inlet_inc>0) && !ntrig) {
+   count++; if (count+param_preset>=param_maximum) {count = param_maximum-1-param_preset; }
+   ntrig=1;
+}
+else if (!(inlet_inc>0)) ntrig=0;
+if ((inlet_dec>0) && !dtrig) {
+   count--; if (count+param_preset<0) {count = 0-param_preset;}
+   dtrig=1;
+}
+else if (!(inlet_dec>0)) dtrig=0;
+if ((inlet_r>0) && !rtrig) {count=0; rtrig = 1;}
+else if (!(inlet_r>0)) rtrig=0;
+outlet_o= count+param_preset;]]></code.krate>
+   </obj.normal>
+</objdefs>

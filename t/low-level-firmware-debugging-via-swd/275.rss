@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Low level firmware debugging (via SWD)</title>
+    <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275</link>
+    <description>ok, this is not a support topic really just some ramblings on what I doing to try to do firmware debugging (just started) as it might help someone,  and also as a reminder to me :smile:   and thanks to @johannes for helping me get this going!
+
+(Work in progress, I&#39;ll add more, as I learn more )
+
+
+(no blame taken if you get it wrong and blow up your board... (very unlikely but still!))
+
+## Hardware connections
+
+First, locate the 7-pin header labeled X3, close to LEDs. The SWD connector is labeled JP1, near X3, and has 5 pins, and comes without pinheader soldered in.
+
+the board looks something like this, well as closely as ASCII graphics can do.
+e.g. 
+  
+    ———————————
+    LEDR LEDG
+
+    o o o o o o o (X3)
+
+        JP1
+         o (5) NRST
+         o (4) SWDIO
+         o (3) GND
+         o (2) SWCLK
+         o (1) VCC
+    ——————————
+
+you will need to solder in standard header pins, then you can connect with female/female jumper cables.
+
+##SWD to STLink/v2 connections
+
+SWD - STLINK/V2  
+5 - 15 (NRST)
+4 - 7 (SWDIO)
+3 - 8 (GND) 
+2 - 9 (SWCLK)
+1 - 1 (VCC) 
+
+#openocd for debugging
+command line:
+
+/usr/local/opt/open-ocd/share/openocd/scripts/board/stm32f4discovery.cfg
+
+openocd -f ~/stm32f4discovery.cfg  
+
+
+if this works you will see the following, and the COM light will flash RED/GREEN
+
+    Open On-Chip Debugger 0.9.0 (2015-08-08-00:27)
+    Licensed under GNU GPL v2
+    For bug reports, read
+    	http://openocd.org/doc/doxygen/bugs.html
+    Info : The selected transport took over low-level target control. The results might differ compared to plain JTAG/SWD
+    adapter speed: 2000 kHz
+    adapter_nsrst_delay: 100
+    none separate
+    srst_only separate srst_nogate srst_open_drain connect_deassert_srst
+    Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+    Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+    Info : clock speed 1800 kHz
+    Info : STLINK v2 JTAG v23 API v2 SWIM v4 VID 0x0483 PID 0x3748
+    Info : using stlink api v2
+    Info : Target voltage: 3.219895
+    Info : stm32f4x.cpu: hardware has 6 breakpoints, 4 watchpoints
+
+
+if you get something about low voltage, checkout VCC 
+example:
+
+    Info : Target voltage: 1.009287
+    Error: target voltage may be too low for reliable debugging
+
+if it doesn’t communication, check SWDIO/SWCLK
+example:
+
+    Error: init mode failed (unable to connect to the target)
+    in procedure &#39;init&#39; 
+    in procedure &#39;ocd_bouncer&#39;
+
+if you get both, check all your connections :)</description>
+    
+    <lastBuildDate>Sat, 30 Jul 2016 15:44:23 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p>Nevermind!!</p>
+
+<p>I got the ST-link cable pinout "upside-down" (exchanged pin rows)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/11</link>
+        <pubDate>Sat, 30 Jul 2016 15:44:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-11</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p>  Hi guys,</p>
+
+<p>I have installed the openOCD software, put my hands on an ST-Link/v2, and made the connections as instructed in the top post.</p>
+
+<p>I connect the AXO board with the microUSB, the ST-link through its USB cable (drivers also installed), then head over to a project directory and type:</p>
+
+<pre><code>C:\Projects\E407Blinker\STM32-E407_blink_FLASH&gt;openocd -f stm32f4discovery.cfg
+Open On-Chip Debugger 0.9.0 (2015-05-19-12:06)
+Licensed under GNU GPL v2
+For bug reports, read
+        http://openocd.org/doc/doxygen/bugs.html
+Info : The selected transport took over low-level target control. The results mi
+ght differ compared to plain JTAG/SWD
+adapter speed: 2000 kHz
+adapter_nsrst_delay: 100
+none separate
+srst_only separate srst_nogate srst_open_drain connect_deassert_srst
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : clock speed 1800 kHz
+Info : STLINK v2 JTAG v25 API v2 SWIM v4 VID 0x0483 PID 0x3748
+Info : using stlink api v2
+Info : Target voltage: 3.215779
+Error: init mode failed (unable to connect to the target)
+in procedure 'init'
+in procedure 'ocd_bouncer'</code></pre>
+
+<p>So as <a class="mention" href="/users/thetechnobear">@thetechnobear</a> was pointing out, it <strong>might well be</strong>  that my signal connections are crappy. Indeed, they are:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771" href="//community.axoloti.com/uploads/default/original/2X/3/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771.jpg" class="lightbox" title="bull_conns.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/3/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771_1_690x388.jpg" width="690" height="388"><div class="meta">
+<span class="filename">bull_conns.jpg</span><span class="informations">2048x1152 856 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>As you see, no soldering...So it is highly likely that this is the issue, however since I do see a supply voltage there, I am just wondering whether there is some other thing I should keep into account...</p>
+
+<p>Any hints?</p>
+
+<p>Thanks,<br>Mike</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/10</link>
+        <pubDate>Sat, 30 Jul 2016 15:31:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-10</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>The overbar probably disappeared when rasterizing to a bitmap picture.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/9</link>
+        <pubDate>Sun, 24 Jul 2016 17:35:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-9</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p>Cheers <a class="mention" href="/users/johannes">@johannes</a> <img src="/images/emoji/emoji_one/smiley.png?v=2" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p>Yes I'm aware of the overbar convention, however my print didn't resolve that very well and it escaped me.<br>So you've updated the schematics then?</p>
+
+<p>I'll keep going then <img src="/images/emoji/emoji_one/wink.png?v=2" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>Thank you for your very prompt and courteous replies guys!</p>
+
+<p>M</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/8</link>
+        <pubDate>Sun, 24 Jul 2016 17:29:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-8</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Updated the pin numbering to correspond with the schematics in the top post.<br>RST versus NRST, in the schematics there is a (overstrike?) line above RST, this line indicates negative logic. <br>Or sometimes, where overstrike can't be formatted (like here), it is indicated by a N prefix.<br>In any case, it is the processor reset signal, in "active-low logic". Active-low for the reset means, <em>reset</em> is active at the low voltage level, so the processor inactive at logic low. <br>And don't worry, there is no other reset signal involved in SWD setup. And yes, the F4discovery config profile works fine for debugging Axoloti Core.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/7</link>
+        <pubDate>Sun, 24 Jul 2016 17:03:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-7</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p>Hmm that's bizarre!</p>
+
+<p>I would like <a class="mention" href="/users/johannes">@johannes</a> to comment on that, but otherwise will keep flexible when preparing the connection <img src="/images/emoji/emoji_one/smiley.png?v=2" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p>Thank you very much for debugging this!</p>
+
+<p>So...btw...you are treating AXO as if it were an stm32f4discovery board?</p>
+
+<p>Cheers!</p>
+
+<p>M</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/6</link>
+        <pubDate>Sun, 24 Jul 2016 16:58:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-6</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>I was confused as you were... in fact i found correct pinouts (as detailed in top post) partly by trial and error <img src="/images/emoji/emoji_one/wink.png?v=2" title=":wink:" class="emoji" alt=":wink:"> <br>so this is exactly how ive wired up my axoloti and st-link/v2 </p>
+
+<p>(cant comment, on the schematics as i didn't check them, just wanted it working... I'm more a software guy, than hardware <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"> )</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/5</link>
+        <pubDate>Sun, 24 Jul 2016 16:53:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-5</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/johannes">@johannes</a> thank you,</p>
+
+<p>however I am not sure still...In the schematic we have:</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/a/a57a08e953e3c276c64a9167d59f8d42bf27e159.png" width="271" height="201"></p>
+
+<p>So it looks to me that the RST pin is on (5), not (1) as reported above:</p>
+
+<p><code>JP1<br>     o (1) NRST<br>     o (2) SWDIO<br>     o (3) GND<br>     o (4) SWCLK<br>     o (5) VCC</code></p>
+
+<p>Also, the connector on ST-Link/v2 and your board schematics report <strong>RST</strong>, not <strong>NRST</strong>. Why is it indicated as NRST in the post?</p>
+
+<p>Am I missing something?</p>
+
+<p>Thanks,<br>Mike</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/4</link>
+        <pubDate>Sun, 24 Jul 2016 16:46:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-4</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Cleared up confusion in top post...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/3</link>
+        <pubDate>Sun, 24 Jul 2016 16:16:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-3</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@MikeAnblips Michele Ancis]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mikeanblips">@MikeAnblips</a> wrote:</p>
+          <blockquote>
+              <p>Hi <span class="mention">@technobear</span></p>
+
+<p>thank you for this...This is the kind of direction I want to take for AXO so it is comforting that somebody else is thinking in the same direction.</p>
+
+<p>However, I am a bit confused by your indications: according to the schematics, the X3 header has SPI connections (and it is populated on the board), whereas the SWD functionality is on JP1.</p>
+
+<p>Is it just that the post is old and refers to a previous board version?</p>
+
+<p>Thanks,<br>Mike</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/2</link>
+        <pubDate>Sun, 24 Jul 2016 16:06:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-2</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+      <item>
+        <title>Low level firmware debugging (via SWD)</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ok, this is not a support topic really just some ramblings on what I doing to try to do firmware debugging (just started) as it might help someone,  and also as a reminder to me <img src="/images/emoji/emoji_one/smile.png?v=2" title=":smile:" class="emoji" alt=":smile:">   and thanks to <a class="mention" href="/users/johannes">@johannes</a> for helping me get this going!</p>
+
+<p>(Work in progress, I'll add more, as I learn more )</p>
+
+<p>(no blame taken if you get it wrong and blow up your board... (very unlikely but still!))</p>
+
+<h2>Hardware connections</h2>
+
+<p>First, locate the 7-pin header labeled X3, close to LEDs. The SWD connector is labeled JP1, near X3, and has 5 pins, and comes without pinheader soldered in.</p>
+
+<p>the board looks something like this, well as closely as ASCII graphics can do.<br>e.g. </p>
+
+<pre><code>———————————
+LEDR LEDG
+
+o o o o o o o (X3)
+
+    JP1
+     o (5) NRST
+     o (4) SWDIO
+     o (3) GND
+     o (2) SWCLK
+     o (1) VCC
+——————————</code></pre>
+
+<p>you will need to solder in standard header pins, then you can connect with female/female jumper cables.</p>
+
+<h2>SWD to STLink/v2 connections</h2>
+
+<p>SWD - STLINK/V2<br>5 - 15 (NRST)<br>4 - 7 (SWDIO)<br>3 - 8 (GND) <br>2 - 9 (SWCLK)<br>1 - 1 (VCC) </p>
+
+<h1>openocd for debugging</h1>
+
+<p>command line:</p>
+
+<p>/usr/local/opt/open-ocd/share/openocd/scripts/board/stm32f4discovery.cfg</p>
+
+<p>openocd -f ~/stm32f4discovery.cfg  </p>
+
+<p>if this works you will see the following, and the COM light will flash RED/GREEN</p>
+
+<pre><code>Open On-Chip Debugger 0.9.0 (2015-08-08-00:27)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+Info : The selected transport took over low-level target control. The results might differ compared to plain JTAG/SWD
+adapter speed: 2000 kHz
+adapter_nsrst_delay: 100
+none separate
+srst_only separate srst_nogate srst_open_drain connect_deassert_srst
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : clock speed 1800 kHz
+Info : STLINK v2 JTAG v23 API v2 SWIM v4 VID 0x0483 PID 0x3748
+Info : using stlink api v2
+Info : Target voltage: 3.219895
+Info : stm32f4x.cpu: hardware has 6 breakpoints, 4 watchpoints</code></pre>
+
+<p>if you get something about low voltage, checkout VCC <br>example:</p>
+
+<pre><code>Info : Target voltage: 1.009287
+Error: target voltage may be too low for reliable debugging</code></pre>
+
+<p>if it doesn’t communication, check SWDIO/SWCLK<br>example:</p>
+
+<pre><code>Error: init mode failed (unable to connect to the target)
+in procedure 'init' 
+in procedure 'ocd_bouncer'</code></pre>
+
+<p>if you get both, check all your connections <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275/1</link>
+        <pubDate>Wed, 19 Aug 2015 16:23:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-275-1</guid>
+        <source url="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss">Low level firmware debugging (via SWD)</source>
+      </item>
+  </channel>
+</rss>

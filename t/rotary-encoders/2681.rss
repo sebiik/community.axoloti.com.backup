@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Rotary Encoders</title>
+    <link>http://community.axoloti.com/t/rotary-encoders/2681</link>
+    <description>**What is a Rotary Encoder,**
+Also known as a “Shaft” encoder, there are many versions that operate under this name.
+The type I am referring to here is a mechanical device that generates two switching pulses 90 deg out of phase from each other.
+The number of pulses per revolution varies depending on brand and make etc.
+Two common examples are,
+ 
+The following example is the bare bones encoder. These come in 2 types, a 3 pin and 5 pin.
+Below shows 5 pins, the extra 2 pins shown on the other side of the device, serves as a momentary switch which is activated by depressing the shaft.
+If using this type, it is recommended to apply a simple circuit for preferred operating function.
+(circuit shown below A, B and C for rotary function, the other 2 for switching, just omit the switching section for a 3 pin encoder)
+
+ &lt;img src=&quot;/uploads/default/original/2X/c/c84b518bb22b41f9ecfff5d00ea082b0261a12cb.png&quot; width=&quot;265&quot; height=&quot;241&quot;&gt;
+
+ 
+ 
+ 
+ 
+&lt;img src=&quot;/uploads/default/original/2X/a/a12d952c2153928d8ae46598399c943076c192dd.png&quot; width=&quot;439&quot; height=&quot;274&quot;&gt;
+
+The following type is a 5 pin encoder already soldered onto a circuit for preferred operating function.
+As you will see, it even shows what to plug in.
+  
+&lt;img src=&quot;/uploads/default/original/2X/b/b20fe67dd57b3eb2ccc62f3f0f34734077a6aa06.png&quot; width=&quot;288&quot; height=&quot;205&quot;&gt;
+ 
+Both versions are plentiful on website online, and may even be available in your local electronics store.
+Especially note if you require it to have the momentary switch option.
+ 
+One difference you may notice between the two versions is the shaft design.
+The bare bones version shows a slotted shaft with a threaded base for mounting into hardware, the soldered circuit version shows a “D” shape shaft with no threaded base, but has two mounting holes in the circuit board.
+Be mindful of this when purchasing your items to ensure it meets your mounting requirements.
+ 
+**How do they work.**
+The below diagram shows the workings by depending on the direction the shaft is turned, when signal “A” received a rising edge,
+It reads wether signal “B” is either HIGH or LOW.
+In the diagram below, when signal “B” is HIGH, it is turning clockwise, when signal “B” is LOW, it is turning anti-clockwise,
+ 
+ &lt;img src=&quot;/uploads/default/original/2X/2/2ced43b53de31d039c9b0e7ea1ad25a305d0d4cb.png&quot; width=&quot;397&quot; height=&quot;276&quot;&gt;
+ 
+ 
+**Connecting to the Axoloti**
+This connecting a rotary encoder to the Axoloti will require two digital GPIO Input pins to read the rotating value,
+And one additional digital GPIO pin to read the momentary switch if you choose to connect one.
+Based on the encoder and circuit images above, connections are described as follows..
+CLK – “Clock” used to trigger the rising edge.
+DT –  “Data” used to determine the direction delivering a HIGH or LOW signal during CLK rising edge.
+SW – “Momentary Switch” depending on your encoder you may or may not have one.
++    – “Voltage Supply” With Axoloti this is 3.3v from a supply pin.
+GND – “Ground”
+ 
+CLK, DT and SW will each require their own digital GPIO pin, with “+” and “GND” connected as standard to 3.3v and GND pins.
+Be mindful of using any analogue pins that you may require for any analogue readings.
+ 
+When selecting the pin number in the GPIO digital Input object, be sure to select as “PULLDOWN”
+  
+**The Patch, Object and Code**
+This section could go into various directions and create multiple debates about certain setups.
+There are many de-bounce concepts, acceleration methods meaning the faster you turn the encoder, the higher the steps, and also many interrupt methods to support these ideas.
+ 
+I will focus only on what appears to be the most common basic code setup which is how the object “Rotary Encoder Basic” is coded.
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/b/b991336103f813c511577c6e4ec81195c9faeed7.axo&quot;&gt;Rotary Encoder Basic.axo&lt;/a&gt; (1.1 KB)
+
+Giving you the option to make whatever changes meet your needs.
+ 
+Add the GPIO digital Input objects for the pins connected to “CLK” and “DT”
+Object contains two inputs “trig” for the rising edge trigger, “dir” for determining the direction it is turning.
+In the Patch, connect object connected to “CLK” to encoder object input “trig” and “DT” to “dir” respectively.
+ 
+Contains only one output which is the current changing value weather decreasing or increasing.
+The output can be connected to an Factory/disp/“i” object to display the value.
+ 
+You can either modify the object used in the above explanation, or use the following code to help develop your own object.
+
+_Inlets:_
+Inlet_trig – (bool32.rising)
+Inlet_dir – (bool32.rising)
+
+_Outlets:_
+Outlet_o – (int32)
+
+_Local Data:_
+int encoderPos;
+int encoderLast;
+int inval;
+
+_Int Code:_
+encoderPos = 0;
+encoderLast = 0;
+inval = 0; 
+
+_K-rate code:_
+inval = inlet_trig;
+if ((encoderLast == 0) &amp;&amp; (inval &gt; 0)) {
+	if (inlet_dir == 0) {
+	    	  encoderPos--;
+	} else {
+	    	  encoderPos++;
+	}
+} 
+encoderLast = inval;
+outlet_o=encoderPos; 
+ 
+ 
+**Summary**
+Now that you have the basic setup, you can modify to whatever meets your needs.
+You will see over time various versions appear in my contributions once it is up and running.
+ 
+Some things you may want to consider,
+-        Minimums and Maximums.
+-        How to apply presets.
+-        Increment / Decrement size.</description>
+    
+    <lastBuildDate>Fri, 04 Sep 2020 20:56:47 +0000</lastBuildDate>
+    <category>User Guide</category>
+    <atom:link href="http://community.axoloti.com/t/rotary-encoders/2681.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>I got it!  It was as simple as the valueB attribute being incorrectly capitalized.  Tested and working.  <img src="//community.axoloti.com/images/emoji/twitter/star_struck.png?v=5" title=":star_struck:" class="emoji" alt=":star_struck:"></p>
+
+<p>Many thanks to <a class="mention" href="/u/nosnibor">@nosnibor</a> for the heads up in my PMs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/27">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/27</link>
+        <pubDate>Fri, 04 Sep 2020 20:56:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-27</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>As an update:  from my totally unqualified perspective, it seems like this is possible: </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/7b27075c765a18fe5a871114591e6fa1a191b430" href="//community.axoloti.com/uploads/default/original/2X/7/7b27075c765a18fe5a871114591e6fa1a191b430.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/7/7b27075c765a18fe5a871114591e6fa1a191b430_1_690x436.png" width="690" height="436"><div class="meta">
+<span class="filename">image.png</span><span class="informations">864x546 25.5 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>I'm getting an error that 'param_valueB' was not declared in this scope.  When I added the inlet for valueB (I renamed "value" to "valueA" to differentiate) I copied the type and attributes from the stock value param.  I've looked through all the tabs and don't see anywhere that value is declared, but obviously it is somewhere and I'm missing it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/26">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/26</link>
+        <pubDate>Thu, 03 Sep 2020 20:59:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-26</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>Hello again <a class="mention" href="/u/gavin">@gavin</a> <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>First of all - thank you so much for these objects.  They are amazing, and work wonderfully now that you got me all straightened out.  </p>
+
+<p>I have another question (which perhaps becomes a request) related to the "value" parameter -- </p>
+
+<p>I currently have 4 encoders set up with your objects -- 16 total Rot Env Value objects.  When I press the button on an encoder it fires out a number, which activates a group of 4 objects per the setting in the value box.  Essentially, I've created 4 pages of 4 parameters each.  If I am correct, then the value box is essentially just a logic statement: "if value input = value, then true"</p>
+
+<p>What I am wondering is it it's possible to add a second value input so that the logic would be: "if value input_A = value_A <strong>AND</strong> value input_B = value_B, then true"</p>
+
+<p>What this would do (if my thinking is sound) is allow the 3 buttons on my hardware to choose between 3 groups of 4 pages for a total of 48 controls.  The main goal I am driving at is to have a combo patch that contains a simple synth, a master effects (for the internal synth and external input) and a 16 parameter cc controller to send midi to another device.  </p>
+
+<p>Hopefully I am explaining this well enough!  My controller patch is attached in hopes that it clears up anything I failed to convey.  Hope all is well in your world, wherever that might be!</p>
+
+<p> <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/c/caac52919ca2bbd53a1a62487874d06625769ee4.axp">Encoder control patch.axp</a> (28.4 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/25</link>
+        <pubDate>Thu, 03 Sep 2020 16:35:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-25</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>No problem!  Life has a way of slowing us down, for better or worse.  <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>Thanks for the object update!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/24</link>
+        <pubDate>Sun, 08 Jul 2018 19:18:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-24</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/spacelordmother">@spacelordmother</a>, sorry for the delay getting it updated, I was having power and conection issues with my Axo setup, so I pulled everything apart, and while it was appart I made a few changes, but haven't forgotten what I said I would do.</p>
+
+<p>As it was quite some time ago when I did the Rot Enc objects, I had completely forgotten why I did them in the first place and the related goals. In fact the "Rot Enc Value" object was originaly designed to go into the negatives as well, the reason why it didn't was because I forgot to compare the rotary value and the minimum value in the code correctly, and instead was comparing to zero which I gues was a setup in a previous object.</p>
+
+<p>Any how, I have replaced a "0" with "param_min" and all works perfectly now.<br>Enjoy. Every thing has been updated to the community library.<br><img src="//community.axoloti.com/images/emoji/twitter/grin.png?v=5" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/23</link>
+        <pubDate>Sun, 08 Jul 2018 10:05:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-23</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>Not quite sick yet.  <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:">  </p>
+
+<p>Ahhhhhh yes!  I remember that object now, just got confused since I was able to set the value negative.  </p>
+
+<p>Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/22</link>
+        <pubDate>Thu, 28 Jun 2018 15:28:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-22</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>Not sick of you, are you sure your not sick of my incomplete objects !! <img src="//community.axoloti.com/images/emoji/twitter/stuck_out_tongue_winking_eye.png?v=5" title=":stuck_out_tongue_winking_eye:" class="emoji" alt=":stuck_out_tongue_winking_eye:"><br>The object you are using are unipolar, there is a bipolar version I created, but it doesn't have a value select. In the next day or two I will mod this one to be bipolar.<br>In the mean time, the math solution you have should work fine.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/21</link>
+        <pubDate>Wed, 27 Jun 2018 22:31:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-21</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>This is all GREAT information, thank you!  </p>
+
+<p>More like this?</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/fa94f95a31e16851453e18e864f4cf495f886d28" href="//community.axoloti.com/uploads/default/original/2X/f/fa94f95a31e16851453e18e864f4cf495f886d28.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/fa94f95a31e16851453e18e864f4cf495f886d28_1_690x257.png" width="690" height="257"><div class="meta">
+<span class="filename">image.png</span><span class="informations">847x316 25.8 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>This also brings up another question, hope you're not sick of me yet!  I would like to patch one of the objects to control the semi-tune of an oscillator, so +/- 11 steps.  In the middle object you see I have set the range from -11 to +11.  Works great in theory, but I can't get it to turn down below 0.  If I set the present to -12 I get -11 at patch load, but once I turn up past zero it won't go back down into the negative.  </p>
+
+<p>It works as desired on the right, but would prefer to have less objects if there's something I am missing.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/20</link>
+        <pubDate>Wed, 27 Jun 2018 16:02:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-20</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>The reason for adding the preset value to 0 is because of 2 parts..<br>1 - I already had an object without a preset, so when adding one, I wanted to keep the additional code for feature to an absolute minimum.<br>2 - To initiate a preset value as a starting integer, a single cycle is required to make it the preset value. So to avoid this extra work, I decided it was easier to just add it as an offset.</p>
+
+<p>Processing order is definitely an issue, and recommend the digital inputs are above the rot_enc objects positioned left to right.</p>
+
+<p>The general order of things is left to right, top to bottom.<br>So as per your image,  The first digital input is first, then the three rot-enc obj  split by the int display, then the 2nd digital input, then the third, and it repeats in the same order.</p>
+
+<p>So you want it to read all the digital inputs first, then the rot-enc's to read the inputs and as all three digital inputs would have been processed all the rot-enc inputs will be valid signals.</p>
+
+<p>When you apply the value setting, a counter etc to select which one you are adjusting, you also want the value processed before the rot-enc's are processed, so the selection is clearly identifiable when the rot-enc object is processed.</p>
+
+<p>When I build my patches, I focus on having the objects in groups of the tasks they are doing, and I make every effort to keep the object within each group left to right, and each group below the next. This is not always clear cut and very often exceptions, but for me it helps.</p>
+
+<p>So the digital inputs is one group left to right,<br>Then the value selector left to right,<br>Then the rot-enc's underneath left to right.</p>
+
+<p>Its just trial and error, lots of practice etc..<br>Hope above helps..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/19</link>
+        <pubDate>Wed, 27 Jun 2018 02:26:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-19</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>Genuine question: why the preset/add vs just setting the default in the box?  </p>
+
+<p>Seems like a reset inlet would be very handy!  </p>
+
+<p>Regarding my last post -- it's some sort of processing order issue.  Having them stacked gets me different values.  Having them all in a row gets me 1 less (0 + preset value) every time.  </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/fb087a660f03e54eb417048945da939a0535f532" href="//community.axoloti.com/uploads/default/original/2X/f/fb087a660f03e54eb417048945da939a0535f532.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/fb087a660f03e54eb417048945da939a0535f532_1_690x193.png" width="690" height="193"><div class="meta">
+<span class="filename">image.png</span><span class="informations">886x248 19.7 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/18</link>
+        <pubDate>Wed, 27 Jun 2018 00:30:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-18</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>If I remember correctly, as I am no where near my PC to open up the code, the preset value is always added to the output value, so it is never added to obtain a full integer, it is more of an offset, so on startup, the offset / preset value is added to zero. Now that I think about it, maybe there should be a reset input, to push the output back to preset. Would this help ??</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/17</link>
+        <pubDate>Tue, 26 Jun 2018 22:30:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-17</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/gavin">@Gavin</a></p>
+
+<p>Strange.  Testing w/ multiple encoder objects gets me 3 different outcomes:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/f48c79aeaaed919ca1bbf1ccd685d8016141978d" href="//community.axoloti.com/uploads/default/original/2X/f/f48c79aeaaed919ca1bbf1ccd685d8016141978d.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/f48c79aeaaed919ca1bbf1ccd685d8016141978d_1_401x499.png" width="401" height="499"><div class="meta">
+<span class="filename">image.png</span><span class="informations">466x580 26.1 KB</span><span class="expand"></span>
+</div></a></div> </p>
+
+<p>Any logic?  Thanks again...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/16</link>
+        <pubDate>Tue, 26 Jun 2018 17:16:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-16</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/gavin">@Gavin</a> Another question -  is there a way to set a default value for each encoder?  Would be handy for situations where you don’t want it to load at 0.  </p>
+
+<p>Is this perhaps a part of the “preset” box on the value object? (This just occurred to me and I’m not near Axo to test...)</p>
+
+<p>EDIT -- Yes, it appears that's what it is!  Putting a number in the preset box outputs that number -1 on patch load.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/15</link>
+        <pubDate>Tue, 26 Jun 2018 13:47:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-15</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>It all works great now.  I knew I had to be missing something.  Great objects, thanks!!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/14</link>
+        <pubDate>Mon, 25 Jun 2018 11:04:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-14</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>I only refer to the demux, because it was in your previous patch, and I was not entirely sure of what you were after, but what you have done above is exactly how I designed it to be used. And on a dyslexic side of things, I don't always remember every little detail of what I did when I created the object.<br>But I am glad you have a use for it.<br><img src="//community.axoloti.com/images/emoji/twitter/grin.png?v=5" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/13</link>
+        <pubDate>Mon, 25 Jun 2018 01:23:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-13</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p>Thanks!  You know, I had started down this path and for some reason I abandoned it in favor of the result above.  Could you explain the demux?  I was playing around with your objects, and this also seems to work for achieving control over all the parameters:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/26c1f27afcadf169e157d54b05e75ac99b2a3680" href="//community.axoloti.com/uploads/default/original/2X/2/26c1f27afcadf169e157d54b05e75ac99b2a3680.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/26c1f27afcadf169e157d54b05e75ac99b2a3680_1_690x330.png" width="690" height="330"><div class="meta">
+<span class="filename">image.png</span><span class="informations">728x349 34.2 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/12</link>
+        <pubDate>Sun, 24 Jun 2018 22:44:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-12</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>I think you patch is somewhat back to front, but a good attempt anyway.<br>If you want to control 4 parameters, the easiest way to do it, is to have 4 "Rot_Enc Value" objects, and it is then the link between digital ins to the trg &amp; dir that goes through a demux. Get rid of the hookmods, and logic change. If you are not sure what I mean, I can look into it later for you..<img src="//community.axoloti.com/images/emoji/twitter/grin.png?v=5" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/11</link>
+        <pubDate>Sun, 24 Jun 2018 22:26:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-11</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@spacelordmother matthew]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/spacelordmother">@spacelordmother</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/gavin">@Gavin</a> -- A question about your encoder objects, if I may.</p>
+
+<p>Below is a small section of a larger patch -- this allows 1 encoder to control 4 separate parameters.  Hookmod keeps the receiving object from jumping when switching between parameters.   </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/1cfae7b36262e72a394061dda0ef6451b70c541e" href="//community.axoloti.com/uploads/default/original/2X/1/1cfae7b36262e72a394061dda0ef6451b70c541e.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/1/1cfae7b36262e72a394061dda0ef6451b70c541e_1_690x227.png" width="690" height="227"><div class="meta">
+<span class="filename">image.png</span><span class="informations">898x296 34.8 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>This all works great, however -- it's working more like an analog potetiometer than an encoder.  Seems like there should be an input on the encoder object to snap the encoder value to an outside integer.  In this case, when I turn the encoder to a value, let's say 32, and then switch away to control another parameter, when I switch back to the parameter set to 32 the encoder value should snap there rather than having to turn the encoder up or down to hit the value before hook releases.  That is the point of an encoder, no?  </p>
+
+<p>Does that make sense, or maybe I am missing something?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/10</link>
+        <pubDate>Sun, 24 Jun 2018 21:12:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-10</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>I finally got around to uploading my quadrature decoder object to the axoloti-contrib repository, under objects/ricard/logic/qdecode.axo (it is the same as attached to my post above though).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/9</link>
+        <pubDate>Sun, 04 Mar 2018 21:40:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-9</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@stepan.dvoracek Štěpán Dvořáček]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/stepan.dvoracek">@stepan.dvoracek</a> wrote:</p>
+          <blockquote>
+              <p>Ok, this is my best solution so far. It's not perfect but I'm slowly getting there <img src="//community.axoloti.com/images/emoji/emoji_one/grinning.png?v=3" title=":grinning:" class="emoji" alt=":grinning:">. When I change the sense of rotation it can change it's value up to three times towards the previous one depending on the internal position of the encoder, because I'm not updating the shift register quickly enough.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/7052137a1e9d2caa5a37d1fba7a61100f32abd84" href="//community.axoloti.com/uploads/default/original/2X/7/7052137a1e9d2caa5a37d1fba7a61100f32abd84.PNG" class="lightbox" title="Výstřižek.PNG"><img src="//community.axoloti.com/uploads/default/optimized/2X/7/7052137a1e9d2caa5a37d1fba7a61100f32abd84_1_690x294.PNG" width="690" height="294"><div class="meta">
+<span class="filename">Výstřižek.PNG</span><span class="informations">783x334 22.9 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/8</link>
+        <pubDate>Sun, 28 May 2017 19:36:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-8</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>I know for 2 x resultion, or you need to do is invert the signal from the pins and have a second set of objects, this way the falling edge will be come the rising edge and it will work fine.<br>But the challenge with 4 x, is you need the state of both pins to define the direction, not entirely sure, but if you were able to store the state of the last read and do a compare on both normal and inverted signals, you might be able to get there. For now thats all I could think of.<br><img src="//community.axoloti.com/images/emoji/emoji_one/grinning.png?v=3" title=":grinning:" class="emoji" alt=":grinning:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/7</link>
+        <pubDate>Sat, 27 May 2017 23:38:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-7</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@stepan.dvoracek Štěpán Dvořáček]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/stepan.dvoracek">@stepan.dvoracek</a> wrote:</p>
+          <blockquote>
+              <p>I tried interfacing this 24 pulse non detent encoder: <a href="https://goo.gl/0X5sSu" rel="nofollow noopener">https://goo.gl/0X5sSu</a> in a way that it increments each time any of the pins changes a state resulting in a 4 times finer resolution! <br>The trouble is that I still need to detect the sense of rotation. The easiest way I find is to compare current state of pin A with the previous state of pin B and if it gives logic AND output 1 or 0 it means CW or CCW sense of direction. Right now I have to use a switch for that. I checked different objects but none of them seems to do the trick. Is there any way to patch it or do I need a custom script for this?</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/0/0100fee6b35589ad5af528c2624065624a216882.jpg" width="125" height="185"></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4fc081ba64f5a50ce92d37216dfdd25ee758e920" href="//community.axoloti.com/uploads/default/original/2X/4/4fc081ba64f5a50ce92d37216dfdd25ee758e920.PNG" class="lightbox" title="Výstřižek.PNG"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/4fc081ba64f5a50ce92d37216dfdd25ee758e920_1_690x282.PNG" width="690" height="282"><div class="meta">
+<span class="filename">Výstřižek.PNG</span><span class="informations">702x287 11.2 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/6</link>
+        <pubDate>Sat, 27 May 2017 11:00:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-6</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="2681"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/g/439d5e/40.png" class="avatar">Gavin:</div>
+<blockquote><p>zero value shows on the bipolar dial as 32</p></blockquote></aside>
+
+<p>Wrong way around.. zero value shows on the unipolar dial as 32 ... <img src="//community.axoloti.com/images/emoji/emoji_one/flushed.png?v=3" title=":flushed:" class="emoji" alt=":flushed:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/5</link>
+        <pubDate>Mon, 13 Feb 2017 21:37:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-5</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>The range you want to adjust is between negative - 64 to positive + 64, when you are using a unipolar display dial you should 0.5 increment / decrement. If you swap to a bipolar display dial it will be singular steps, but you will notice that a zero value shows on the bipolar dial as 32. Either way you achieve a total of 128 steps. It all depends on the display you want to use. The easiest solution to your patch above is add in a minus 64 object just before your unipolar display dial. You should get 0 to 64 with 0.5 step increments shown. But don't fret, this is just how it is shown on the dial, you are still using 0 to 128 in your counter. I kept mine this way because I have built it all into internal midi controls so it keeps it all consistent not matter which parameter I connect it to.<br>Or the other even simpler thing you could do instead, is use an integer display object instead.</p>
+
+<p>About the de-bounce, did you test the difference with or without and notice a difference ? I couldn't so I got rid of it. <br><img src="//community.axoloti.com/images/emoji/emoji_one/grinning.png?v=3" title=":grinning:" class="emoji" alt=":grinning:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/4</link>
+        <pubDate>Mon, 13 Feb 2017 21:35:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-4</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+      <item>
+        <title>Rotary Encoders</title>
+        <dc:creator><![CDATA[@stepan.dvoracek Štěpán Dvořáček]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/stepan.dvoracek">@stepan.dvoracek</a> wrote:</p>
+          <blockquote>
+              <p>Hi, I'm using this patch <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/2/23b889312db1cfe29f613845da11deeb288dc5c7.axp">encoder inputs.axp</a> (4.0 KB) with hardware debouncing (I want to use just the timer/pulselength object in the future), and it works quite nice, but here is, what happens if I get to the largest value - 64. When I turn the encoder down right after getting 64, it goes immediately to 63, but if i slowly turn it clockwise, the more I do it, the more I than have to turn it anticlockwise before it lowers the value. If I turn it really quickly, the disp/dial sometimes turns red, refusing to go back to normal state. I guess it's a software issue, because it does what is expected at the minimum value. Do you have any suggestions?</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/f656716442794f064bec964b8258ea771cd40360" href="//community.axoloti.com/uploads/default/original/2X/f/f656716442794f064bec964b8258ea771cd40360.jpg" class="lightbox" title="rotenc.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/f656716442794f064bec964b8258ea771cd40360_1_690x331.jpg" width="690" height="331"><div class="meta">
+<span class="filename">rotenc.jpg</span><span class="informations">921x442 134 KB</span><span class="expand"></span>
+</div></a></div><br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/5a330c7725cf5892fc4baa906c963cecf87fd0bc" href="//community.axoloti.com/uploads/default/original/2X/5/5a330c7725cf5892fc4baa906c963cecf87fd0bc.PNG" class="lightbox" title="Výstřižek.PNG"><img src="//community.axoloti.com/uploads/default/optimized/2X/5/5a330c7725cf5892fc4baa906c963cecf87fd0bc_1_527x500.PNG" width="527" height="500"><div class="meta">
+<span class="filename">Výstřižek.PNG</span><span class="informations">701x664 31.2 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoders/2681/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoders/2681/3</link>
+        <pubDate>Mon, 13 Feb 2017 19:10:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2681-3</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoders/2681.rss">Rotary Encoders</source>
+      </item>
+  </channel>
+</rss>

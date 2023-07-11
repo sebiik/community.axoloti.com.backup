@@ -1,0 +1,994 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="data" x="1092" y="0">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="1048576"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="1218" y="0" text="data stored here"/>
+   <comment type="patch/comment" x="1218" y="14" text="can use a 16b table, but i think 32b sounds better? "/>
+   <comment type="patch/comment" x="1218" y="28" text="I may be imagining this!"/>
+   <comment type="patch/comment" x="840" y="70" text="FUN FACTS **********************************"/>
+   <comment type="patch/comment" x="840" y="98" text="recording notes and setting sustain points is fun"/>
+   <comment type="patch/comment" x="840" y="126" text="recording tiny loops and using the loop as a kind of oscillator is also fun"/>
+   <comment type="patch/comment" x="252" y="154" text="SAMPLE SETTINGS ****************************************"/>
+   <comment type="patch/comment" x="840" y="154" text="recording phrases/longer loops can be fun too"/>
+   <comment type="patch/comment" x="252" y="182" text="oneshot - off = looping/sustain, on = one shot playback"/>
+   <comment type="patch/comment" x="840" y="182" text="it&apos;s quite fun"/>
+   <comment type="patch/comment" x="252" y="210" text="sample start/end points for trimming  (0-64 = beginning to end of sample)"/>
+   <comment type="patch/comment" x="252" y="238" text="sustain point - this sets a portion of the sample to &quot;sustain&quot;. it has no effect on one shot mode"/>
+   <comment type="patch/comment" x="322" y="266" text="What it&apos;s doing is setting a loop point within the sample "/>
+   <comment type="patch/comment" x="812" y="266" text="SAMPLE PLAYBACK   ********************************************************************************"/>
+   <comment type="patch/comment" x="42" y="280" text="records when pressed"/>
+   <comment type="patch/comment" x="322" y="280" text="and fading between that and the same thing reversed."/>
+   <comment type="patch/comment" x="812" y="294" text="pitch to stretch - if off stretch is the set by the stretch dial, no matter what you midi note you play"/>
+   <comment type="patch/comment" x="42" y="308" text="record"/>
+   <comment type="patch/comment" x="126" y="308" text="mute input"/>
+   <comment type="patch/comment" x="322" y="308" text="0-64 is scaled from start point to end point. "/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="42" y="322">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_4" x="126" y="322">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="896" y="322" text="if on the midi note is sent to stretch - so the sample speeds up/slows down with the notes, and the dial offsets it"/>
+   <comment type="patch/comment" x="322" y="336" text="0=off"/>
+   <comment type="patch/comment" x="1288" y="336" text="(this sounds more natural)"/>
+   <comment type="patch/comment" x="322" y="364" text="if rate is going forwards the looped section will be between the end and the sustain point."/>
+   <comment type="patch/comment" x="812" y="364" text=" pitch -dial offsets midi note for tuning"/>
+   <comment type="patch/comment" x="322" y="378" text="if rate is going backwards the looped section will be between the start and the sustain point."/>
+   <comment type="patch/comment" x="812" y="392" text="stretch - offset or set sample stretch depending on toggle"/>
+   <comment type="patch/comment" x="224" y="420" text="oneshot"/>
+   <comment type="patch/comment" x="322" y="420" text="start"/>
+   <comment type="patch/comment" x="420" y="420" text="end"/>
+   <comment type="patch/comment" x="518" y="420" text="sustain point"/>
+   <comment type="patch/comment" x="812" y="420" text="rate - does what it says, negative values reverse sample"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_2" x="224" y="434">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_4" x="322" y="434">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_7" x="420" y="434">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_10" x="518" y="434">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="812" y="448" text="damping -toggles on a low pass filter to dampen "/>
+   <comment type="patch/comment" x="854" y="462" text="some of the artifacts when playing low notes"/>
+   <comment type="patch/comment" x="812" y="504" text="adsr for playback vca"/>
+   <comment type="patch/comment" x="70" y="546" text="save/load sample to/from sdcard"/>
+   <comment type="patch/comment" x="70" y="560" text="saving can take a while if using a big table"/>
+   <comment type="patch/comment" x="616" y="574" text="midi to stretch"/>
+   <comment type="patch/comment" x="728" y="574" text="pitch"/>
+   <comment type="patch/comment" x="812" y="574" text="stretch"/>
+   <comment type="patch/comment" x="896" y="574" text="rate"/>
+   <comment type="patch/comment" x="994" y="574" text="damping"/>
+   <comment type="patch/comment" x="1134" y="574" text="attack"/>
+   <comment type="patch/comment" x="1232" y="574" text="decay"/>
+   <comment type="patch/comment" x="1302" y="574" text="sustain"/>
+   <comment type="patch/comment" x="1386" y="574" text="release"/>
+   <comment type="patch/comment" x="70" y="588" text=" loading samples not recorded with the recorder "/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_3" x="616" y="588">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="728" y="588">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_2" x="812" y="588">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_3" x="896" y="588">
+      <params>
+         <frac32.s.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="994" y="588">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_5" x="1120" y="588">
+      <params>
+         <frac32.s.map name="value" value="-53.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_6" x="1204" y="588">
+      <params>
+         <frac32.s.map name="value" value="-36.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_11" x="1302" y="588">
+      <params>
+         <frac32.u.map name="value" value="45.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_8" x="1386" y="588">
+      <params>
+         <frac32.s.map name="value" value="-25.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="70" y="602" text="doesn&apos;t work at the moment... "/>
+   <comment type="patch/comment" x="70" y="630" text="save"/>
+   <comment type="patch/comment" x="168" y="630" text="load"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_2" x="70" y="644">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_3" x="168" y="644">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="504" y="714" text="FACT EDITOR stores sample settings at beginnning of table"/>
+   <comment type="patch/comment" x="504" y="728" text="set start and end and sustain points for sample"/>
+   <comment type="patch/comment" x="504" y="756" text="settings are stored in the table, so you can delete "/>
+   <comment type="patch/comment" x="504" y="770" text="the editor object after saving the table"/>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="168" y="798">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="308" y="798" text="FACT RECORDER"/>
+   <comment type="patch/comment" x="504" y="798" text="can avoid clicks by using a lowpass "/>
+   <comment type="patch/comment" x="308" y="812" text="records sample when "/>
+   <comment type="patch/comment" x="504" y="812" text="between dial and start/end"/>
+   <comment type="patch/comment" x="308" y="826" text="inlet rec is high"/>
+   <comment type="patch/comment" x="504" y="826" text="but will get pitch wobbles"/>
+   <comment type="patch/comment" x="714" y="826" text="FACT PLAYER SUBPATCH"/>
+   <obj type="audio/in left" uuid="d40e60b7641fe75af4d7c91b45bb038aacafc52e" name="in_1" x="70" y="840">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="c16a625a661f40e4b359db604dcd00b3befcdbe3" name="*_1" x="168" y="840">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="fb64a9d1-119f-4bb4-a872-d5aaada62780" name="Fact_2" x="308" y="840">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+      <object id="patch/object" uuid="fb64a9d1-119f-4bb4-a872-d5aaada62780">
+         <sDescription>Difficult to name. Pitchshifter, time-stretcher, play-rate adjuster (stretch+pitchshift), sampler, delay, granulizer...
+
+See inputs/controls for their functions (hoover above them)</sDescription>
+         <author>Remco van der most</author>
+         <license>BSD</license>
+         <helpPatch>delay.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="audio input"/>
+            <bool32 name="rec" description="when high, records to buffer"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[//static const uint32_t LENGTHPOW = (attr_size);
+//static const uint32_t LENGTH = (1<<attr_size);
+//static const uint32_t LENGTHMASK = ((1<<attr_size)-1);
+
+uint32_t writepos;
+uint32_t wpos;
+
+bool rec;
+
+
+int32_t cnt;
+int32_t fade;
+int32_t fd;]]></code.declaration>
+         <code.krate><![CDATA[fade=1<<10;
+fd=10;
+
+
+
+
+
+
+
+
+
+
+if((inlet_rec>0)&&!rec){
+	rec=1;
+	
+	writepos=0;
+	cnt=0;
+}
+else if((inlet_rec==0)&&rec){
+	wpos=writepos;
+	rec=0;
+	attr_table.array[0]=((writepos)/(1<<15));
+
+	attr_table.array[1]=writepos-(((writepos)/(1<<15))<<15);
+
+	//attr_table.array[0]=writepos;
+	cnt=fade;
+	}]]></code.krate>
+         <code.srate><![CDATA[if(rec>0){
+attr_table.array[writepos+32] = __SSAT(inlet_in>>14,16);
+}
+if(cnt>0){
+attr_table.array[writepos+32]=__SSAT(inlet_in>>14,16);
+cnt-=1;
+}
+writepos = (writepos + 1)&attr_table.LENGTHMASK;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="fb64a9d1-119f-4bb4-a872-d5aaada62780" name="Fact_7" x="504" y="840">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+      <object id="patch/object" uuid="fb64a9d1-119f-4bb4-a872-d5aaada62780">
+         <sDescription>Difficult to name. Pitchshifter, time-stretcher, play-rate adjuster (stretch+pitchshift), sampler, delay, granulizer...
+
+See inputs/controls for their functions (hoover above them)</sDescription>
+         <author>Remco van der most</author>
+         <license>BSD</license>
+         <helpPatch>delay.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="oneshot"/>
+            <frac32.positive name="start"/>
+            <frac32.positive name="end"/>
+            <frac32.positive name="sustainpoint"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t Lpos;
+
+
+int32_t Fphase;
+int32_t start;
+
+
+int32_t end;
+
+int32_t total;
+
+
+int32_t length;
+
+
+int32_t fade;
+
+
+bool oneshot;]]></code.declaration>
+         <code.krate><![CDATA[fade=1<<10;
+
+
+
+oneshot=inlet_oneshot;
+total=(attr_table.array[0]<<15)+attr_table.array[1];
+
+start=((inlet_start<<4)/(0x7FFFFFF0/total));
+end=(( (0x07FFFFFF-inlet_end)<<4)/(0x7FFFFFF0/(total-start)));
+Lpos=(( (inlet_sustainpoint)<<4)/(0x7FFFFFF0/(total-start-end)));
+
+if (oneshot){
+length=total+fade-start-end;
+}
+else {length=total-start-end;}
+
+Fphase=((0x7FFFFFF0/length)*fade);
+
+
+
+
+// length
+//Fphase
+//start
+//inlet_sustainpoint
+//oneshot
+//xlength
+
+// 0 + 1 = total
+//attr_table.array[0]=((writepos)/(1<<15));
+//attr_table.array[1]=writepos-(((writepos)/(1<<15))<<15);
+// 2 + 3 = length
+attr_table.array[2]=((length)/(1<<15));
+attr_table.array[3]=length-(((length)/(1<<15))<<15);
+// 4 + 5 = start
+attr_table.array[4]=((start)/(1<<15));
+attr_table.array[5]=start-(((start)/(1<<15))<<15);
+// 6 + 7 = inlet sustain point
+attr_table.array[6]=((inlet_sustainpoint)/(1<<15));
+attr_table.array[7]=inlet_sustainpoint-(((inlet_sustainpoint)/(1<<15))<<15);
+// 8 + 9 = Lpos
+attr_table.array[8]=((Lpos)/(1<<15));
+attr_table.array[9]=Lpos-(((Lpos)/(1<<15))<<15);
+//10 = oneshot
+attr_table.array[10]=oneshot;
+// 11 + 12 = Fphase
+attr_table.array[11]=((Fphase)/(1<<15));
+attr_table.array[12]=Fphase-(((Fphase)/(1<<15))<<15);]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="714" y="840" text="it can go nuts if poly is too high... and can seem fine until you have too many notes playing"/>
+   <patcher type="patch/patcher" uuid="556eda97-4eda-4982-aedb-f770526a4cf0" name="patcher_1" x="714" y="854">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="4"/>
+         <combo attributeName="midichannel" selection="8"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="pitch" x="0" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="stretch" x="84" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="rate" x="168" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="a" x="280" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="d" x="364" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="s" x="462" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="r" x="546" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="damping" x="644" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="pitch to stretch" x="742" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="midi/in/keyb mod" uuid="abcd509d15e7d13d5381203fd2b4d0ac6fe57bb3" name="keyb_1" x="42" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="env/adsr m" uuid="98bd39fb828c392b28126d259cb5175e6f6ea34b" name="adsr_1" x="196" y="98">
+            <params>
+               <frac32.s.map name="a" value="0.0"/>
+               <frac32.s.map name="d" value="0.0"/>
+               <frac32.u.map name="s" value="0.0"/>
+               <frac32.s.map name="r" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="3bcb8a666381ed18b8962eda50b1aa679136f618" name="mux_2" x="112" y="350">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="322" y="420" text="FACT PLAYER SUS"/>
+         <comment type="patch/comment" x="98" y="434" text="pitch"/>
+         <comment type="patch/comment" x="196" y="434" text="stretch"/>
+         <comment type="patch/comment" x="322" y="434" text="fact  voice player (with sustain) "/>
+         <obj type="math/+" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_1" x="98" y="448">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/+" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_2" x="196" y="448">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="919093eb-2aa3-40a0-a44e-b7d8d40118a2" name="1_2" x="322" y="448">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../data"/>
+            </attribs>
+            <object id="patch/object" uuid="919093eb-2aa3-40a0-a44e-b7d8d40118a2">
+               <sDescription>Difficult to name. Pitchshifter, time-stretcher, play-rate adjuster (stretch+pitchshift), sampler, delay, granulizer...
+
+See inputs/controls for their functions (hoover above them)</sDescription>
+               <author>Remco van der most</author>
+               <license>BSD</license>
+               <helpPatch>delay.axh</helpPatch>
+               <inlets>
+                  <bool32 name="trigger" description="when high, restarts at &quot;phase-position&quot;  of phase input+parameter"/>
+                  <frac32.bipolar name="pitchshift" description="ONLY pitchshifts the signal without stretching it. normal semitone response."/>
+                  <frac32.bipolar name="stretch" description="ONLY stretches the signal without pitchshifting it. normal semitone response."/>
+                  <frac32.bipolar name="rate"/>
+               </inlets>
+               <outlets>
+                  <frac32buffer name="out"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="table"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int32_t xlength;
+int32_t xLNG;
+int32_t xenv;
+int32_t xenvA;
+int32_t xenvB;
+int32_t env;
+
+
+int32_t out;
+int32_t _Aout;
+int32_t _Bout;
+
+int32_t Lpos;
+int32_t phase;
+int32_t sphase;
+int32_t spoint;
+
+int32_t Fphase;
+int32_t start;
+
+//int32_t inend;
+int32_t Lpoint;
+int32_t LpointB;
+//int32_t end;
+int32_t phs;
+int32_t sphs;
+//int32_t total;
+
+int32_t rate;
+int32_t xrate;
+//int32_t ratein;
+int32_t length;
+
+int32_t cnt;
+int32_t fade;
+int32_t fd;
+float32_t ratio;
+int32_t fBase;
+int32_t fRate;
+int32_t LNG;
+
+int32_t READ(int T,uint32_t R,uint32_t L){
+      int32_t tmp_a2;
+      int32_t tmp_di = T/R;
+      int32_t tmp_w1 = (T-tmp_di*R)*R>>2;
+      int32_t tmp_a1 = attr_table.array[tmp_di+32+start];
+      tmp_a1 = (tmp_a1<<14)+___SMMUL(attr_table.array[(tmp_di+1)+32+start]-tmp_a1<<16,tmp_w1);
+      if(tmp_di<fade){
+      tmp_a2 = attr_table.array[tmp_di+L+32+start];
+      tmp_a2 = (tmp_a2<<14)+___SMMUL(attr_table.array[(tmp_di+1)+L+32+start]-tmp_a2<<16,tmp_w1);
+      tmp_a1+=___SMMUL(tmp_a2-tmp_a1,__USAT(fade-tmp_di,30)<<(30-fd))<<2;
+      }
+     
+      
+      return out= tmp_a1;
+}
+uint32_t prv;
+int32_t prevv;
+
+bool play;
+bool snc;
+
+bool oneshot;
+bool gate;
+
+bool sustain;]]></code.declaration>
+               <code.krate><![CDATA[fade=1<<10;
+fd=10;
+//reverse=param_p2;
+//oneshot=inlet_oneshot;
+//total=(attr_table.array[0]<<15)+attr_table.array[1];
+
+
+// 0 + 1 = total
+//attr_table.array[0]=((writepos)/(1<<15));
+//attr_table.array[1]=writepos-(((writepos)/(1<<15))<<15);
+// 2 + 3 = length
+length=(attr_table.array[2]<<15)+attr_table.array[3];
+
+// 4 + 5 = start
+start=(attr_table.array[4]<<15)+attr_table.array[5];
+
+// 6 + 7 = inlet sustain point
+spoint=(attr_table.array[6]<<15)+attr_table.array[7];
+
+// 8 + 9 = Lpos
+Lpos=(attr_table.array[8]<<15)+attr_table.array[9];
+
+//10 = oneshot
+oneshot=attr_table.array[10];
+// 11 + 12 = Fphase
+Fphase=(attr_table.array[11]<<15)+attr_table.array[12];
+
+
+
+
+if((inlet_trigger>0)&&!snc){
+	if (inlet_rate>=0){	
+		phase=0;
+		
+		}
+	else if (inlet_rate<0){
+		phase=0-(Fphase<<4);
+		}
+		
+sustain=0;
+prevv=phase;
+play=1;
+phs=0;
+snc=1;
+sphase=phase;
+sphs=phs;
+
+}
+else if(inlet_trigger==0){
+	snc=0;
+	
+	}
+
+Lpoint=(spoint<<5);
+
+//ratein=inlet_rate;
+
+//start=((inlet_start<<4)/(0x7FFFFFF0/total));
+//end=(( (0x07FFFFFF-inlet_end)<<4)/(0x7FFFFFF0/(total-start)));
+//Lpos=(( (inlet_sustainpoint)<<4)/(0x7FFFFFF0/(total-start-end)));
+
+
+//if (oneshot){
+//length=total+fade-start-end;
+//}
+//else {length=total-start-end;}
+
+//Fphase=((0x7FFFFFF0/length)*fade);
+
+// length
+//Fphase
+//start
+//inlet_sustainpoint
+//oneshot
+//xlength
+
+if (inlet_rate>=0){
+	LpointB= ((spoint+(((1<<27)-spoint)>>1))<<5);
+	xlength=length-Lpos;
+
+	if (oneshot &&   (((phase>=(-(Fphase<<4)))  && (phase<0))  ||  ((phase>=0)  && (prevv<0)))  ){
+			play=0;
+		}
+		if (!oneshot &&   ((phase>=0)  && (prevv<0)))  {
+
+			if ((spoint>0)){
+				phase=Lpoint;
+				env=1<<26;
+				
+			}
+			
+			}
+		if (!oneshot &&   (((phase>=LpointB)  && (prevv<LpointB))  )  ){
+			if ((spoint>0)){
+				sustain=1;
+				sphase=0;
+				env=0;
+			}
+			
+			}
+	}
+else {
+	LpointB= ((spoint-((spoint)>>1))<<5);
+	xlength=Lpos;
+	
+		if   ((!(phase>0))&&((prevv)>0))  {
+			
+			if (!oneshot && ((spoint>0))){
+				phase=Lpoint;
+				env=1<<26;
+			}
+			if (oneshot){
+				play=0;
+			}
+			
+		}
+		if (!oneshot &&   ((!(phase>LpointB))&&((prevv)>LpointB))  ){
+			if ((spoint>0)){
+				sustain=1;
+				sphase=Lpoint;
+				env=0;	
+			}
+			
+		}
+}
+
+
+
+if (!sustain){
+	xenvA=1<<27;
+}
+else if (sustain){
+       if (env>=0){
+       	xenv=env;
+       }
+       else {xenv=(-env);}
+        int32_t xr;
+       SINE2TINTERP((xenv<<5)+(1<<30),xr)
+       xenvA= (xr>>5)+(1<<26);
+	}
+
+	
+xenvB=(1<<27)-xenvA;
+MTOFEXTENDED(0,fBase);
+MTOFEXTENDED(inlet_stretch,fRate)
+ratio=(float32_t)fRate/fBase;
+
+
+LNG=___SMMUL(length,(0x7FFFFFF0))<<1;
+xLNG=___SMMUL(xlength,(0x7FFFFFF0))<<1;
+
+rate=((uint64_t)1<<32)/LNG;
+xrate=((uint64_t)1<<32)/xLNG;
+int32_t RATE=rate*ratio;
+int32_t xRATE=xrate*ratio;
+
+int32_t prate;
+MTOFEXTENDED(inlet_pitchshift-inlet_stretch,prate)
+float32_t pratio=(float32_t)prate/fBase;
+int32_t window=((uint64_t)0x7FFFFFF0<<12)/length;
+
+
+float32_t wratio=(float32_t)(1<<30)/(window>>1);
+prate=(int64_t)((int64_t)RATE*pratio-RATE)*wratio;
+
+
+prevv=phase;]]></code.krate>
+               <code.srate><![CDATA[int32_t FRQ=___SMMUL(prate<<2,inlet_rate<<3);
+int32_t FRQQ=___SMMUL(RATE<<2,inlet_rate<<3);
+int32_t LFRQQ=___SMMUL(xRATE<<2,(inlet_rate)<<3);
+
+
+phase+=FRQQ;
+phs+=FRQ;
+env+=(LFRQQ>>5);
+if (env>=(1<<27)){
+	env=1<<27;
+}
+
+sphase+=(-FRQQ);
+sphs+=(-FRQ);	
+
+	
+if (play){
+	int32_t P1=((uint32_t)phs)>>1;
+	int32_t P2=((uint32_t)phs+(1<<31))>>1;
+	int32_t tmp1=READ(phase+(___SMMUL(P1,window)<<2),rate,LNG);
+	int32_t tmp2=READ(phase+(___SMMUL(P2,window)<<2),rate,LNG);
+	int32_t mp;
+	SINE2TINTERP(phs-(1<<30),mp)
+	mp=(mp>>2)+(1<<29);
+	int32_t out=tmp2+(___SMMUL(tmp1-tmp2,mp)<<2);
+
+	_Aout=out;
+	}
+	else {
+		_Aout=0;
+	}
+if (play){
+	int32_t P1=((uint32_t)sphs)>>1;
+	int32_t P2=((uint32_t)sphs+(1<<31))>>1;
+	int32_t tmp1=READ(sphase+(___SMMUL(P1,window)<<2),rate,LNG);
+	int32_t tmp2=READ(sphase+(___SMMUL(P2,window)<<2),rate,LNG);
+	int32_t mp;
+	SINE2TINTERP(sphs-(1<<30),mp)
+	mp=(mp>>2)+(1<<29);
+	int32_t out=tmp2+(___SMMUL(tmp1-tmp2,mp)<<2);
+
+	_Bout=out;
+	}
+	else {
+		_Bout=0;
+	}
+outlet_out=(( ___SMMUL((xenvA)<<3,_Aout<<2))+( ___SMMUL((xenvB)<<3,_Bout<<2)));
+
+prv=phs;]]></code.srate>
+            </object>
+         </patchobj>
+         <obj type="filter/lp m" uuid="1aa1bc51da479ed92429af700591f9d7b9f45f22" name="lp_1" x="504" y="448">
+            <params>
+               <frac32.s.map name="pitch" value="64.0"/>
+               <frac32.u.map name="reso" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="539c246f4c360ac476e128cfbfa84348fb7f7e73" name="mux_1" x="616" y="448">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="700" y="448">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="770" y="462">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="keyb_1" outlet="gate"/>
+               <dest obj="1_2" inlet="trigger"/>
+            </net>
+            <net>
+               <source obj="1_2" outlet="out"/>
+               <dest obj="lp_1" inlet="in"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="adsr_1" outlet="env"/>
+               <dest obj="vca_1" inlet="v"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="note"/>
+               <dest obj="lp_1" inlet="pitch"/>
+               <dest obj="+_1" inlet="in1"/>
+               <dest obj="mux_2" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="vca_1" outlet="o"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="rate" outlet="inlet"/>
+               <dest obj="1_2" inlet="rate"/>
+            </net>
+            <net>
+               <source obj="a" outlet="inlet"/>
+               <dest obj="adsr_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="d" outlet="inlet"/>
+               <dest obj="adsr_1" inlet="d"/>
+            </net>
+            <net>
+               <source obj="s" outlet="inlet"/>
+               <dest obj="adsr_1" inlet="s"/>
+            </net>
+            <net>
+               <source obj="r" outlet="inlet"/>
+               <dest obj="adsr_1" inlet="r"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="gate2"/>
+               <dest obj="adsr_1" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="vca_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="out"/>
+               <dest obj="1_2" inlet="pitchshift"/>
+            </net>
+            <net>
+               <source obj="pitch" outlet="inlet"/>
+               <dest obj="+_1" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="+_2" outlet="out"/>
+               <dest obj="1_2" inlet="stretch"/>
+            </net>
+            <net>
+               <source obj="stretch" outlet="inlet"/>
+               <dest obj="+_2" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="damping" outlet="inlet"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+            <net>
+               <source obj="lp_1" outlet="out"/>
+               <dest obj="mux_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_2" outlet="o"/>
+               <dest obj="+_2" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="pitch to stretch" outlet="inlet"/>
+               <dest obj="mux_2" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>0</y>
+            <width>1210</width>
+            <height>862</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="868" y="854">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out left" uuid="b11a3c09b2fdd575ea8212f2ce7743d5269253b1" name="out_1" x="966" y="854">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="1092" y="924">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/ilovematt"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="1260" y="924">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="1400" y="924">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="in_1" outlet="wave"/>
+         <dest obj="Fact_2" inlet="in"/>
+         <dest obj="*_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="Fact_2" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="button_3" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="button_2" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="Fact_7" inlet="oneshot"/>
+      </net>
+      <net>
+         <source obj="dial_7" outlet="out"/>
+         <dest obj="Fact_7" inlet="end"/>
+      </net>
+      <net>
+         <source obj="dial_4" outlet="out"/>
+         <dest obj="Fact_7" inlet="start"/>
+      </net>
+      <net>
+         <source obj="dial_3" outlet="out"/>
+         <dest obj="patcher_1" inlet="rate"/>
+      </net>
+      <net>
+         <source obj="dial_10" outlet="out"/>
+         <dest obj="Fact_7" inlet="sustainpoint"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="out_1" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="dial_6" outlet="out"/>
+         <dest obj="patcher_1" inlet="d"/>
+      </net>
+      <net>
+         <source obj="dial_5" outlet="out"/>
+         <dest obj="patcher_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="dial_11" outlet="out"/>
+         <dest obj="patcher_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="dial_8" outlet="out"/>
+         <dest obj="patcher_1" inlet="r"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="patcher_1" inlet="damping"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="patcher_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="patcher_1" inlet="stretch"/>
+      </net>
+      <net>
+         <source obj="toggle_3" outlet="o"/>
+         <dest obj="patcher_1" inlet="pitch to stretch"/>
+      </net>
+      <net>
+         <source obj="patcher_1" outlet="outlet_1"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="toggle_4" outlet="o"/>
+         <dest obj="inv_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="o"/>
+         <dest obj="*_1" inlet="b"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

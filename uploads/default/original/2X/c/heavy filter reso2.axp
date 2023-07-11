@@ -1,0 +1,260 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="728" y="84">
+      <params>
+         <frac32.s.map name="pitch" value="10.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="364" y="112">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="294" y="154">
+      <params>
+         <frac32.s.map name="pitch" value="-59.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="392" y="182">
+      <params>
+         <frac32.s.map name="a" value="46.0"/>
+         <frac32.s.map name="d" value="46.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_1" x="574" y="182">
+      <params>
+         <frac32.u.map name="amp" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_2" x="798" y="182">
+      <params>
+         <frac32.u.map name="amp" value="13.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="1526" y="308">
+      <params>
+         <frac32.u.map name="volume" value="30.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/saw" uuid="739ecc36017ef3249479b8f01716b8bbfba9abc1" name="saw_1" x="294" y="322">
+      <params>
+         <frac32.s.map name="pitch" value="-30.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="2b0224c3-0a81-4d1d-8c23-789e8891cbdb" name="lp1_2" x="616" y="322">
+      <params>
+         <frac32.u.map name="IN_pre" value="38.5"/>
+         <frac32.u.map name="IN_tres" value="25.5"/>
+         <frac32.u.map name="IN_headroom" value="30.0"/>
+         <frac32.s.map name="FILTER_cutoff" value="-7.0"/>
+         <frac32.u.map name="FILTER_res" value="59.0"/>
+         <frac32.u.map name="FILTER_character" value="56.0"/>
+         <frac32.u.map name="FILTER_tres" value="43.0"/>
+         <frac32.u.map name="FILTER_headroom" value="29.0"/>
+         <frac32.u.map name="FILTER_fuel" value="31.5"/>
+         <frac32.u.map name="FILTER_poleAmp" value="27.0"/>
+         <frac32.s.map name="FILTER_poleCut" value="-2.0"/>
+         <frac32.u.map name="FILTER_poleRes" value="56.0"/>
+         <int32.hradio name="mode" value="1"/>
+         <bool32.tgl name="OS" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="2b0224c3-0a81-4d1d-8c23-789e8891cbdb">
+         <sDescription>1st order lowpass filter</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>filter.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="input"/>
+            <frac32.bipolar name="cutoff"/>
+            <frac32.positive name="res"/>
+            <frac32buffer name="fm"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="IN_pre">
+               <DefaultValue v="0.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="IN_tres">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="IN_headroom">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.s.map.pitch name="FILTER_cutoff"/>
+            <frac32.u.map name="FILTER_res"/>
+            <frac32.u.map name="FILTER_character"/>
+            <frac32.u.map name="FILTER_tres">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="FILTER_headroom">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="FILTER_fuel">
+               <DefaultValue v="0.0"/>
+            </frac32.u.map>
+            <frac32.u.map name="FILTER_poleAmp"/>
+            <frac32.s.map name="FILTER_poleCut"/>
+            <frac32.u.map name="FILTER_poleRes"/>
+            <int32.hradio name="mode">
+               <MaxValue i="12"/>
+            </int32.hradio>
+            <bool32.tgl name="OS"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val[4];
+int32_t dc;
+int32_t prvF,prvV;
+
+int32_t SAT(int32_t in,int32_t trs,int32_t mx)
+{
+	int32_t norm=in;norm=norm>trs?trs:(norm<-trs?-trs:norm);
+	int32_t left=in-norm;
+	float32_t ratio=(float32_t)mx/(mx+(left>0?left:-left));
+	return left=left*ratio+norm;
+}]]></code.declaration>
+         <code.init><![CDATA[val[1]=0;]]></code.init>
+         <code.krate><![CDATA[int32_t F;
+   MTOF(__SSAT(param_FILTER__cutoff+(1<<24)+inlet_cutoff,28),F);
+   int32_t res=__USAT(param_FILTER__res+inlet_res,27)<<4;
+   //res=res-(___SMMUL(F,res));
+   res=__USAT((uint32_t)(1<<31)-(1<<25)-res,31);
+   res=___SMMUL(res,res)<<1;
+   res=___SMMUL(res,res)<<1;
+int32_t boost=(1<<30)+(F>>1);
+int32_t max=___SMMUL(param_FILTER__headroom<<4,(1<<28)-param_FILTER__tres<<1)+1;
+int32_t mIN=___SMMUL(param_IN__headroom<<4,(1<<28)-param_IN__tres<<1)+1;
+int32_t pre=param_IN__pre<<4;
+int OS=param_OS+1;
+int32_t r2=__USAT(param_FILTER__poleRes,27)<<4;
+r2=__USAT((uint32_t)(1<<31)-(1<<25)-r2,31);
+   r2=___SMMUL(r2,r2)<<1;
+   r2=___SMMUL(r2,r2)<<1;
+
+int32_t V;
+MTOF(__SSAT(param_FILTER__poleCut+inlet_cutoff+(1<<24)+param_FILTER__cutoff,28),V)
+
+int32_t stpF=F-prvF>>4;
+int32_t pF=prvF;
+prvF=F;
+int32_t stpV=V-prvV>>4;
+int32_t pV=prvV;
+prvV=V;]]></code.krate>
+         <code.srate><![CDATA[//audio input pre-amplification for freq/res/pre-gain and limiting outcome
+
+int64_t f=(int64_t)pF+(___SMMUL(pF,inlet_fm)<<7);
+f=f>((1<<31)-1)?(1<<31)-1:(f<-((1<<31)-1)?-((1<<31)-1):f);
+
+int32_t in=inlet_in+___SMMUL(inlet_in<<1,pre);
+in=SAT(in,param_IN__tres,mIN);
+int32_t lin=___SMMUL(in,f)<<1;
+int32_t tin=___SMMUL(res,lin)<<1;
+tin+=___SMMUL(lin-tin,boost)<<1;
+int32_t high,notch;
+for(int i=0;i<OS;i++)
+{
+val[2]-=(___SMMUL(val[1],pV)<<1)+(___SMMUL(val[2],r2)<<1);
+val[2]=SAT(val[2],param_FILTER__tres,max);
+
+//val[2]=___SMMUL(param_on,val[2])<<1;
+notch=in-(___SMMUL(val[0],((1<<31)-1)-res)<<1);
+//filter cosine (lp) calculation and limiting outcome
+val[1]+=___SMMUL(val[0],f)-___SMMUL(val[1],res)+___SMMUL((___SMMUL(val[2],param_FILTER__poleAmp)<<5),pV)<<1;
+val[1]+=___SMMUL(val[1],param_FILTER__fuel)>>2;
+val[1]=SAT(val[1],param_FILTER__tres,max);
+
+high=notch-val[1];
+//filter sine (bp) calculation and limiting outcome
+int32_t hg=high+(___SMMUL(-val[1]-high<<1,param_FILTER__character<<4));
+val[0]+=(___SMMUL(hg,f)<<1)-(___SMMUL(val[0],res)<<1)+___SMMUL(tin<<1,param_FILTER__character<<4);
+val[0]+=___SMMUL(val[0],param_FILTER__fuel)>>2;
+val[0]=SAT(val[0],param_FILTER__tres,max);
+}
+int32_t filter[12];
+filter[0]=-val[1];//low1
+filter[1]=val[2];//low2
+filter[2]=val[0]+val[2];//low3
+filter[3]=val[0]-val[2]>>1;//low4
+filter[4]=val[2]-val[1]+val[0];//low5
+filter[5]=val[2]+val[1]+val[0];//low6
+filter[6]=val[0]-val[1];//lowband
+filter[7]=val[0];//band1
+filter[8]=high;//high
+filter[9]=notch;//notch1
+filter[10]=notch+val[1];//notch2
+filter[11]=(high>>1)+val[2];//ripples
+
+outlet_out=filter[param_mode];
+pF+=stpF;
+pV+=stpV;]]></code.srate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="420" y="392" text="thru-zro frequency modulation input"/>
+   <comment type="patch/comment" x="798" y="406" text="boost the pre-filter audio up to 2x (don&apos;t send &quot;too hot&quot; signals in here.. eg. signals above twice the normally used max value)"/>
+   <comment type="patch/comment" x="798" y="448" text="treshold of the pre-filter audio, below this value it will respond linearly, above will be soft-clipped depending on available headroom"/>
+   <comment type="patch/comment" x="798" y="476" text="headroom of the pre-filter audio soft-clipping. The higher the value, the more &quot;room&quot; the signal gets and the least distorted it is. Set to 0 for hard clipping at treshold value."/>
+   <comment type="patch/comment" x="798" y="518" text="main filter &quot;center&quot; cutoff frequency. Exact frequency changes when changing third pole"/>
+   <comment type="patch/comment" x="798" y="560" text="main filter resonance amount. Very dependent on character, soft-clipper treshold, headroom, fuel and the third pole"/>
+   <comment type="patch/comment" x="798" y="588" text="changes the way the filter is fed. 0=normal svf&amp;low resonance, high=boosted resonance"/>
+   <comment type="patch/comment" x="798" y="602" text="note that &quot;higher&quot; character will undo the highpass mode function. But has a lot of influence on all filter modes"/>
+   <comment type="patch/comment" x="798" y="630" text="internal treshold of the filter, below this value it will respond linearly, above will be soft-clipped depending on available headroom"/>
+   <comment type="patch/comment" x="798" y="658" text="headroom of the internal filter soft-clipping. The higher the value, the more &quot;room&quot; the signal gets and the least distorted it is. Set to 0 for hard clipping at treshold value."/>
+   <comment type="patch/comment" x="798" y="700" text="boosts the internal filter values before they&apos;re being soft-clipped. This causes a more aggressive resonance. With high character, screaming resonances/oscillations will occur"/>
+   <comment type="patch/comment" x="798" y="742" text="a third pole has been added that co-influences the lowpass filter pole. Allowing even more alteration upon the normal responses"/>
+   <comment type="patch/comment" x="798" y="770" text="the third pole has a cutoff-offset in relation to the main cutoff (moves along with FILTER_cutoff parameter and input)"/>
+   <comment type="patch/comment" x="798" y="798" text="resonance amoutn of the third pole"/>
+   <comment type="patch/comment" x="798" y="826" text="filter response type. Some types respond differently depending on character and use of the third pole (mostly highpass and notch are not really working then, but become some kind of ripple/comb filter something..)"/>
+   <comment type="patch/comment" x="798" y="854" text="filter 2x oversampling, for if you really need to reach higher frequencies"/>
+   <nets>
+      <net>
+         <source obj="lp1_2" outlet="out"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="lp1_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="ad_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="ad_1" outlet="env"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="lp1_2" inlet="cutoff"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="*c_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="lp1_2" inlet="fm"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1874</width>
+      <height>1096</height>
+   </windowPos>
+</patch-1.0>

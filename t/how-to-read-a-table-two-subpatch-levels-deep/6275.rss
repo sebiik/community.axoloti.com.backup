@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>How to read a table two subpatch levels deep</title>
+    <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275</link>
+    <description>I have tables in my main patch.
+I want to read them in a subpatch that is inside my polyphonic voice subpatch. 
+So I am reading them two subpatch levels deep. 
+
+I know with one subpatch level you use the prefix: &quot;../&quot;
+
+But what about two subpatch levels? I tried &quot;../../&quot; and &quot;.../&quot; but these are wrong. 
+
+How doe you reference a table from multiple levels down?</description>
+    
+    <lastBuildDate>Fri, 20 Dec 2019 14:35:52 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>answered on your other topic <a href="//community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/6">here</a></p>
+
+<p>please can I ask that next time you do not cross-post...<br>its unnecessary to have multiple topics, and creates noise on the forum, and it will not get you a faster response <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>also, please ensure you search the forum... axoloti has been around a good amount of time, and we have helped a lot of new users, so there is a ton of good information on the forum already.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/26">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/26</link>
+        <pubDate>Fri, 20 Dec 2019 14:35:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-26</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/jaffasplaffa">@jaffasplaffa</a> <a class="mention" href="/u/mattilynmattroe">@MattilynMattroe</a> <a class="mention" href="/u/thetechnobear">@thetechnobear</a></p>
+
+<p>Thanks for pointing me in this direction... I had a go at programming my own object and it sort of works... but could use some help making it better. The first version i made, to my surprise, actually works, but still uses up a bit too much ram (i need 44 of them in my voice patch (which means this number is times 4) to link up all the modulation targets. With this version I was able to get 21 of them going. Not bad at all! Huge increase in efficiency.</p>
+
+<p>The first object i made was this: </p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/3/30a8d5b7aa244b44431e20cbc08804cfd12b2474.png" width="205" height="295"></p>
+
+<p>It collects the appropriate tables. The target attribute corresponds to the offset for that modulation destination, so I'll set that individually for each one. The other attributes are the tables. The mod amounts are processed from unipolar to bipolar, and then they are multiplied with the corresponding values of the modulation sources. Then these are all summed with the initial value and sent to the output. </p>
+
+<p>int te1 = attr_t1.array[<em>_USAT((attr</em>target),attr_t1.LENGTHPOW)]&lt;&lt;attr_t1.GAIN;<br>int te2 = attr_t2.array[<em>_USAT((attr</em>target),attr_t2.LENGTHPOW)]&lt;&lt;attr_t2.GAIN;<br>int tl1 = attr_t3.array[<em>_USAT((attr</em>target),attr_t3.LENGTHPOW)]&lt;&lt;attr_t3.GAIN;<br>int tl2 = attr_t4.array[<em>_USAT((attr</em>target),attr_t4.LENGTHPOW)]&lt;&lt;attr_t4.GAIN;<br>int tx = attr_t5.array[<em>_USAT((attr</em>target),attr_t5.LENGTHPOW)]&lt;&lt;attr_t5.GAIN;<br>int ty = attr_t7.array[<em>_USAT((attr</em>target),attr_t6.LENGTHPOW)]&lt;&lt;attr_t6.GAIN;<br>int tz = attr_t7.array[<em>_USAT((attr</em>target),attr_t7.LENGTHPOW)]&lt;&lt;attr_t7.GAIN;</p>
+
+<p>int bpe1 = (te1-(1&lt;&lt;26))&lt;&lt;1;<br>int bpe2 = (te2-(1&lt;&lt;26))&lt;&lt;1;<br>int bpl1 = (tl1-(1&lt;&lt;26))&lt;&lt;1;<br>int bpl2 = (tl2-(1&lt;&lt;26))&lt;&lt;1;<br>int bpx = (tx-(1&lt;&lt;26))&lt;&lt;1;<br>int bpy = (ty-(1&lt;&lt;26))&lt;&lt;1;<br>int bpz = (tz-(1&lt;&lt;26))&lt;&lt;1;</p>
+
+<p>int se1 = attr_ms.array[<em>_USAT((0),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int se2 = attr_ms.array[<em>_USAT((1),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sl1 = attr_ms.array[<em>_USAT((2),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sl2 = attr_ms.array[<em>_USAT((3),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sx = attr_ms.array[<em>_USAT((4),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sy = attr_ms.array[<em>_USAT((5),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sz = attr_ms.array[<em>_USAT((6),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;</p>
+
+<p>int e1 = ___SMMUL(bpe1&lt;&lt;3,se1&lt;&lt;2);<br>int e2 = ___SMMUL(bpe2&lt;&lt;3,se2&lt;&lt;2);<br>int l1 = ___SMMUL(bpl1&lt;&lt;3,sl1&lt;&lt;2);<br>int l2 = ___SMMUL(bpl2&lt;&lt;3,sl2&lt;&lt;2);<br>int xt = ___SMMUL(bpx&lt;&lt;3,sx&lt;&lt;2);<br>int yt = ___SMMUL(bpy&lt;&lt;3,sy&lt;&lt;2);<br>int zt = ___SMMUL(bpz&lt;&lt;3,sz&lt;&lt;2);</p>
+
+<p>outlet_total = e1 + e2 + l1 + l2 + xt + yt + zt + inlet_initial;</p>
+
+<p>But obviously this is not efficient. </p>
+
+<p>So I've tried to compress everything into a single equation:</p>
+
+<p>outlet_total = <br>(<em>__SMMUL((((attr</em>t1.array[<strong>USAT((attr_target),attr_t1.LENGTHPOW)]&lt;&lt;attr_t1.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((0),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+ <br>(<em>__SMMUL((((attr</em>t2.array[<strong>USAT((attr_target),attr_t2.LENGTHPOW)]&lt;&lt;attr_t2.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((1),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t3.array[<strong>USAT((attr_target),attr_t3.LENGTHPOW)]&lt;&lt;attr_t3.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((2),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t4.array[<strong>USAT((attr_target),attr_t4.LENGTHPOW)]&lt;&lt;attr_t4.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((3),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t5.array[<strong>USAT((attr_target),attr_t5.LENGTHPOW)]&lt;&lt;attr_t5.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((4),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t7.array[<strong>USAT((attr_target),attr_t6.LENGTHPOW)]&lt;&lt;attr_t6.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((5),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t7.array[<strong>USAT((attr_target),attr_t7.LENGTHPOW)]&lt;&lt;attr_t7.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((6),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>inlet_initial;</p>
+
+<p>This compiles but for some reason the DSP maxes out... </p>
+
+<p>Any ideas?</p>
+
+<p>The DSP is usually nowhere near maxing out. Is this too much for a single operation or something like that?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/24</link>
+        <pubDate>Thu, 19 Dec 2019 20:18:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-24</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="22" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/m/e8c25b/40.png" class="avatar">MattilynMattroe:</div>
+<blockquote><p>poly midi Looper</p></blockquote></aside>
+
+<p>thanks, I'm not sure how to use polyindex for this. How can I find this poly midi looper? is it in the community patches? I could take a look. </p>
+
+<p>I am not using one big table but a bunch of smaller tables. One for each source (which manages the amounts of mod being sent to all the destinations).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/23</link>
+        <pubDate>Thu, 19 Dec 2019 17:13:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-23</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>As a quick aside, in case it's useful - </p>
+
+<p>regarding poly patches: for my poly midi Looper I have a table in the parent patch and then use polyindex inside the poly subpatch to tell it where to right into the table. Like, if polyindex=0 write to offset 0, if polyindex=1 write to offset 100, or whatever. Haven't touched mpe though...</p>
+
+<p>How big are the tables? If they're small I wouldn't worry about them being multiplied. Thinking about it, isn't it more or less the same? Instead of one big table in the parent patch you have lots of smaller ones in the subpatches? But then if you needed to save the table it's easier with one big one...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/22</link>
+        <pubDate>Thu, 19 Dec 2019 16:38:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-22</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="20" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>If I could access the tables in an object and do all the computations within the object, I think I could save a bunch of ram</p></blockquote></aside>
+
+<p>Yes  one reason is because you would have a lot less inlets and outlets, which uses sram.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/21</link>
+        <pubDate>Thu, 19 Dec 2019 16:17:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-21</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Thanks <a class="mention" href="/u/thetechnobear">@thetechnobear</a></p>
+
+<p>Are there any beginner resources for this?</p>
+
+<p>I've never even heard of singleton patterns. I don't mind being hacky but I am a real beginner in c++. I don't know where to start.</p>
+
+<p>If I could access the tables in an object and do all the computations within the object, I think I could save a bunch of ram. But when a table is read within an object, within a subpatch, is it still two subpatch levels down? Because if it is essentially just one level down, then it could work. Right?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/20</link>
+        <pubDate>Thu, 19 Dec 2019 15:47:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-20</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="18" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>How do you access tables in objects?</p></blockquote></aside>
+
+<p>you use attributes (see table/read as an example) to get the names, <br>then you need to be very careful of things likes scaling (again see table/read and write for examples) </p>
+
+<p>but its very likely you do NOT want to do this... since if your not careful you'll just re-create the same issue in your own object <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> <br>what you want to do is a singleton pattern (or a global static if you wanna be a bit hacky)  , this will then be in scope to all objects, regardless of where they are in the patch.</p>
+
+<p>(note to self: I need to have a look at this in 2.0, see if the new memory/patch layout changes this at all!)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/19</link>
+        <pubDate>Thu, 19 Dec 2019 14:52:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-19</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="17" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>writing a custom object,</p></blockquote></aside>
+
+<p>I guess this is what I have to do... </p>
+
+<p>How do you access tables in objects?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/18</link>
+        <pubDate>Thu, 19 Dec 2019 14:22:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-18</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>k, just to confuse things <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>in 1.0.12, yes its specific to polyexpression - looks like a bug</p>
+
+<p>in 2.0.0, the issue is with all polyphonic sub patches, as there is a bit of code generation that has not yet been 'ported',</p>
+
+<p>I cannot think of a workaround... other than writing a custom object, which can bypass the issue by not using attributes (and parents)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/17</link>
+        <pubDate>Thu, 19 Dec 2019 14:18:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-17</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Also, why would this functionality be different in normal poly vs mpe poly?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/16</link>
+        <pubDate>Thu, 19 Dec 2019 14:04:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-16</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Is there a way to implement poly mpe manually? <br>I mean without using the subpatch settings. </p>
+
+<p>If I copy my voice 4 times, make them each mono and make them react each to a single channel, wouldn't that be equivalent to using the polyphonic expression subpatch setting?</p>
+
+<p>that way I could use the table properly.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/15</link>
+        <pubDate>Thu, 19 Dec 2019 14:03:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-15</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="13" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>but then will all my tables be copied as many times as there are voices in the polypatch?</p></blockquote></aside>
+
+<p>That's what I do in all my patches. I think it has to be like that, that's how polyphony works, I think, that you have to assign all objects in the polyphonic subpatch to each of it's own voice. Or else it will not be polyphonic.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/14</link>
+        <pubDate>Thu, 19 Dec 2019 14:00:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-14</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="10" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>any reference in a polyphonic voice is considered to be 'per voice'</p></blockquote></aside>
+
+<p>is there a way to use the poly/index to find the table in the main patch?</p>
+
+<p>is there another way to do it? I thought maybe i could put the tables in the voice patch, but then will all my tables be copied as many times as there are voices in the polypatch?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/13</link>
+        <pubDate>Thu, 19 Dec 2019 13:58:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-13</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Ahh but my subpatch is not MPE. It works for regular poly, haven't tried MPE, though. Which Technobear says might be an issue.....</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/12</link>
+        <pubDate>Thu, 19 Dec 2019 13:57:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-12</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="9" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/jaffasplaffa/40/5808_1.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>I am using that type of table reference, in a poly patch and it works fine.</p></blockquote></aside>
+
+<p>how do you do it?</p>
+
+<p>here is an image of mine: </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/cc109f6ddfe091ac971c573462e42be350d95a9a" href="//community.axoloti.com/uploads/default/original/2X/c/cc109f6ddfe091ac971c573462e42be350d95a9a.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/c/cc109f6ddfe091ac971c573462e42be350d95a9a_1_690x336.png" width="690" height="336"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1317x643 79.6 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>as you can see it is two levels down...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/11</link>
+        <pubDate>Thu, 19 Dec 2019 13:55:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-11</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>nope .. not possible as far as i remember.</p>
+
+<p>(that said, id need to go double check the generator code, see if there was a special case defined) </p>
+
+<p>the underlying issue is... <br>any reference in a polyphonic voice is considered to be 'per voice', there is no way to differentiate common elements like the reference to the parent.<br>there is no way to go from the root, its relative </p>
+
+<p>(*) unfortunately, given 2.0.0 is just released, id not want to dig into the 1.0 code now.. as id prefer to concentrate on 2.0 <br>(note: 2.0.0 has same 'issue')</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/10</link>
+        <pubDate>Thu, 19 Dec 2019 13:50:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-10</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>I am using that type of table reference, in a poly patch and it works fine.</p>
+
+<p>Attach a screenshot maybe?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/9</link>
+        <pubDate>Thu, 19 Dec 2019 13:50:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-9</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Ok Damn!<br>I just checked with a subpatch within a subpatch... it works. but not in mpe poly patch mode. </p>
+
+<p>That is a real bummer. Is there a work around? can it be fixed? For example, can we address the main patch directly without going through the chain of parents, like with: root/test</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/8</link>
+        <pubDate>Thu, 19 Dec 2019 13:33:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-8</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Right. I need this to work in the polypatch or the whole idea of using tables for the mpe modmatrix will not work, since the whole point is to have globally available variables.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/7</link>
+        <pubDate>Thu, 19 Dec 2019 13:28:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-7</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ah, yeah im not sure this works in poly patches... id need to test.<br>(usually im using this technique in mono patches)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/6</link>
+        <pubDate>Thu, 19 Dec 2019 13:27:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-6</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Weird. this does not work for me... One subpatch down works fine. but two does not. </p>
+
+<p>But does it make a difference if the first level down is an polyphonic expression subpatch?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/5</link>
+        <pubDate>Thu, 19 Dec 2019 13:25:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-5</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>both, as expected</p>
+
+<p>../test if sub patch <br>../../test if sub patch of a sub patch</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/4</link>
+        <pubDate>Thu, 19 Dec 2019 13:16:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-4</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>this works ok for me</p></blockquote></aside>
+
+<p>Which one of these works? ../../ or .../</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/3</link>
+        <pubDate>Thu, 19 Dec 2019 13:08:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-3</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="6275"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>But what about two subpatch levels? I tried "../../" and ".../" but these are wrong.</p></blockquote></aside>
+
+<p>this works ok for me</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/2</link>
+        <pubDate>Thu, 19 Dec 2019 12:58:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-2</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+      <item>
+        <title>How to read a table two subpatch levels deep</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>I have tables in my main patch.<br>I want to read them in a subpatch that is inside my polyphonic voice subpatch. <br>So I am reading them two subpatch levels deep. </p>
+
+<p>I know with one subpatch level you use the prefix: "../"</p>
+
+<p>But what about two subpatch levels? I tried "../../" and ".../" but these are wrong. </p>
+
+<p>How doe you reference a table from multiple levels down?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275/1</link>
+        <pubDate>Thu, 19 Dec 2019 11:42:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6275-1</guid>
+        <source url="http://community.axoloti.com/t/how-to-read-a-table-two-subpatch-levels-deep/6275.rss">How to read a table two subpatch levels deep</source>
+      </item>
+  </channel>
+</rss>

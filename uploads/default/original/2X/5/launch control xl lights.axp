@@ -1,0 +1,615 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="rbrt/patching/loadbang" uuid="45d1f29d-ac62-4e5b-86f8-2201d2f6c689" name="loadbang_1" x="42" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="timer/delayedpulseduration" uuid="3b7bf0a7b7f89fad06a734667f48de051deb5c78" name="delayedpulseduration_1" x="210" y="84">
+      <params>
+         <frac32.s.map name="delay" value="34.0"/>
+         <frac32.s.map name="pulselength" value="-18.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="timer/delayedpulse" uuid="3f05ee534ca67755fb20c7437f9e4de3d4c2f73d" name="delayedpulse_2" x="364" y="84">
+      <params>
+         <frac32.s.map name="delay" value="-14.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="686" y="84" text="clears all leds"/>
+   <patchobj type="patch/object" uuid="796028ee-7c24-4de6-b2ca-8dffbbd96375" name="launch_1" x="686" y="98">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="9"/>
+         <combo attributeName="colour" selection="off"/>
+      </attribs>
+      <object id="patch/object" uuid="796028ee-7c24-4de6-b2ca-8dffbbd96375">
+         <sDescription></sDescription>
+         <author></author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <bool32.risingfalling name="active" description="active??"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+            <combo name="colour">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int rtrig;
+uint8_t map[127];
+int i;
+int vt;
+int trigt;
+int prevt[64];
+int length;
+int plength;
+
+uint8_t colouron;
+uint8_t start;
+uint8_t colouroff;
+uint32_t offset;]]></code.declaration>
+         <code.init><![CDATA[{ 
+  int i;
+  for(i=0;i<24;i++) prevt[i]= -666 ;}
+
+  { 
+  int i;
+  for(i=0;i<24;i++) 
+
+map[0] = 13;
+map[1] = 29;
+map[2] = 45;
+map[3] = 61;
+map[4] = 77;
+map[5] = 93;
+map[6] = 109;
+map[7] = 125;
+map[8] = 14;
+map[9] = 30;
+map[10] = 46;
+map[11] = 62;
+map[12] = 78;
+map[13] = 94;
+map[14] = 110;
+map[15] = 126;
+ map[16] = 15;
+map[17] = 31;
+map[18] = 47;
+map[19] = 63;
+map[20] = 79;
+map[21] = 95;
+map[22] = 111;
+map[23] = 127;
+map[24] = 41;
+map[25] = 42;
+map[26] = 43;
+map[27] = 44;
+map[28] = 57;
+map[29] = 58;
+map[30] = 59;
+map[31] = 60;
+map[32] = 73;
+map[33] = 74;
+map[34] = 75;
+map[35] = 76;
+map[36] = 89;
+map[37] = 90;
+map[38] = 91;
+map[39] = 92;
+}]]></code.init>
+         <code.krate><![CDATA[if (inlet_active) { 
+{ 
+  i += 1;
+  if (i == (40)) i = 0; 
+MidiSend3((midi_device_t) MIDI_DEVICE_USB_HOST, 9, MIDI_NOTE_ON + (attr_channel-1)  ,map[(i + 0)],(attr_colour));  trigt=1;
+}
+ }]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="42" y="238" text="lights - use one object for each colour, and just put in the notes you are using"/>
+   <patchobj type="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a" name="vel_4" x="42" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb host port 1"/>
+         <spinner attributeName="channel" value="9"/>
+         <combo attributeName="colour" selection="red S"/>
+         <spinner attributeName="noteA" value="13"/>
+         <spinner attributeName="noteB" value="29"/>
+         <spinner attributeName="noteC" value="0"/>
+         <spinner attributeName="noteD" value="0"/>
+         <spinner attributeName="noteE" value="0"/>
+         <spinner attributeName="noteF" value="0"/>
+         <spinner attributeName="noteG" value="0"/>
+         <spinner attributeName="noteH" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a">
+         <sDescription></sDescription>
+         <author></author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="active"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <combo name="colour">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="noteA" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteB" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteC" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteD" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteE" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteF" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteG" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteH" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t prev;]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_active!=prev){
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteA,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteB,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteC,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteD,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteE,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteF,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteG,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteH,attr_colour);
+prev=inlet_active;}]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a" name="vel_2" x="196" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb host port 1"/>
+         <spinner attributeName="channel" value="9"/>
+         <combo attributeName="colour" selection="yellow S"/>
+         <spinner attributeName="noteA" value="45"/>
+         <spinner attributeName="noteB" value="61"/>
+         <spinner attributeName="noteC" value="46"/>
+         <spinner attributeName="noteD" value="62"/>
+         <spinner attributeName="noteE" value="47"/>
+         <spinner attributeName="noteF" value="63"/>
+         <spinner attributeName="noteG" value="43"/>
+         <spinner attributeName="noteH" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a">
+         <sDescription>sends 4 note velocities,no gate,no bullshit.for controllers that feel like receiving them.</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="active"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <combo name="colour">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="noteA" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteB" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteC" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteD" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteE" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteF" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteG" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteH" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t prev;]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_active!=prev){
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteA,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteB,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteC,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteD,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteE,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteF,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteG,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteH,attr_colour);
+prev=inlet_active;}]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a" name="vel_1" x="336" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb host port 1"/>
+         <spinner attributeName="channel" value="9"/>
+         <combo attributeName="colour" selection="green S"/>
+         <spinner attributeName="noteA" value="77"/>
+         <spinner attributeName="noteB" value="93"/>
+         <spinner attributeName="noteC" value="78"/>
+         <spinner attributeName="noteD" value="94"/>
+         <spinner attributeName="noteE" value="79"/>
+         <spinner attributeName="noteF" value="95"/>
+         <spinner attributeName="noteG" value="0"/>
+         <spinner attributeName="noteH" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a">
+         <sDescription>sends 4 note velocities,no gate,no bullshit.for controllers that feel like receiving them.</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="active"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <combo name="colour">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="noteA" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteB" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteC" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteD" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteE" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteF" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteG" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteH" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t prev;]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_active!=prev){
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteA,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteB,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteC,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteD,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteE,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteF,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteG,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteH,attr_colour);
+prev=inlet_active;}]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a" name="vel_3" x="476" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb host port 1"/>
+         <spinner attributeName="channel" value="9"/>
+         <combo attributeName="colour" selection="orange S"/>
+         <spinner attributeName="noteA" value="109"/>
+         <spinner attributeName="noteB" value="110"/>
+         <spinner attributeName="noteC" value="111"/>
+         <spinner attributeName="noteD" value="0"/>
+         <spinner attributeName="noteE" value="0"/>
+         <spinner attributeName="noteF" value="0"/>
+         <spinner attributeName="noteG" value="0"/>
+         <spinner attributeName="noteH" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="530ca13e-1263-4da6-b5a4-8c0ffa87594a">
+         <sDescription>sends 4 note velocities,no gate,no bullshit.for controllers that feel like receiving them.</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="active"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <combo name="colour">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="noteA" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteB" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteC" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteD" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteE" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteF" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteG" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="noteH" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t prev;]]></code.declaration>
+         <code.krate><![CDATA[if (inlet_active!=prev){
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteA,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteB,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteC,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteD,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteE,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteF,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteG,attr_colour);
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1),attr_noteH,attr_colour);
+prev=inlet_active;}]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="delayedpulse_2" outlet="pulse"/>
+         <dest obj="vel_2" inlet="active"/>
+         <dest obj="vel_1" inlet="active"/>
+         <dest obj="vel_3" inlet="active"/>
+         <dest obj="vel_4" inlet="active"/>
+      </net>
+      <net>
+         <source obj="loadbang_1" outlet="pulse"/>
+         <dest obj="delayedpulseduration_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="delayedpulseduration_1" outlet="pulse"/>
+         <dest obj="delayedpulse_2" inlet="trig"/>
+         <dest obj="launch_1" inlet="active"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

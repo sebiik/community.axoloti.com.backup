@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Xml parse errors after trying to copy an object</title>
+    <link>http://community.axoloti.com/t/xml-parse-errors-after-trying-to-copy-an-object/2530</link>
+    <description>I was working to an object (with patch/object) and got to a pretty serious issue: after trying to make a copy of it (which was correct, C-wise, since the patch would compile), the patch started giving xml parse errors. 
+The object could not be copied, and apparently reloading the patch (which i did not save, by the way) gave the same error again.
+
+I opened the patch with a text editor and found what caused the bug: grafted arrays.
+I&#39;ll explain this better: the code contained something like this: ....array1[ array2[index]] ...
+Those two square brackets caused the bug, since in the xml file, portions of code are delimited with [CDATA[]] tags.
+
+Those two square brackets were causing the bug.
+I solved the problem putting an empty comment between my two brackets, like this: ....array1[ array2[index] /**/] ...
+
+the error message by the way was: 
+    javax.xml.stream.XMLStreamException: ParseError at [row,col]:[514,71]
+    Message: Il contenuto degli elementi deve essere composto da dati o markup di caratteri con formato corretto.
+    javax.xml.stream.XMLStreamException: ParseError at [row,col]:[514,71]
+    Message: Il contenuto degli elementi deve essere composto da dati o markup di caratteri con formato corretto.
+        at com.sun.org.apache.xerces.internal.impl.XMLStreamReaderImpl.next(XMLStreamReaderImpl.java:596)
+        at com.sun.xml.internal.stream.XMLEventReaderImpl.nextEvent(XMLEventReaderImpl.java:83)
+        at org.simpleframework.xml.stream.StreamReader.read(StreamReader.java:110)
+        at org.simpleframework.xml.stream.StreamReader.next(StreamReader.java:94)
+        at org.simpleframework.xml.stream.StreamReader.peek(StreamReader.java:77)
+        at org.simpleframework.xml.stream.NodeReader.readText(NodeReader.java:258)
+        at org.simpleframework.xml.stream.NodeReader.readValue(NodeReader.java:235)
+        at org.simpleframework.xml.stream.InputElement.getValue(InputElement.java:201)
+        at org.simpleframework.xml.core.Primitive.read(Primitive.java:163)
+        at org.simpleframework.xml.core.Primitive.readElement(Primitive.java:207)
+        at org.simpleframework.xml.core.Primitive.readElement(Primitive.java:189)
+        at org.simpleframework.xml.core.Primitive.read(Primitive.java:124)
+        at org.simpleframework.xml.core.Composite.readVariable(Composite.java:623)
+        at org.simpleframework.xml.core.Composite.readInstance(Composite.java:573)
+        at org.simpleframework.xml.core.Composite.readUnion(Composite.java:549)
+        at org.simpleframework.xml.core.Composite.readElement(Composite.java:532)
+        at org.simpleframework.xml.core.Composite.readElements(Composite.java:445)
+        at org.simpleframework.xml.core.Composite.access$400(Composite.java:59)
+        at org.simpleframework.xml.core.Composite$Builder.read(Composite.java:1383)
+        at org.simpleframework.xml.core.Composite.read(Composite.java:201)
+        at org.simpleframework.xml.core.Composite.read(Composite.java:148)
+        at org.simpleframework.xml.core.Composite.readVariable(Composite.java:623)
+        at org.simpleframework.xml.core.Composite.readInstance(Composite.java:573)
+        at org.simpleframework.xml.core.Composite.readUnion(Composite.java:549)
+        at org.simpleframework.xml.core.Composite.readElement(Composite.java:532)
+        at org.simpleframework.xml.core.Composite.readElements(Composite.java:445)
+        at org.simpleframework.xml.core.Composite.access$400(Composite.java:59)
+        at org.simpleframework.xml.core.Composite$Builder.read(Composite.java:1383)
+        at org.simpleframework.xml.core.Composite.read(Composite.java:201)
+        at org.simpleframework.xml.core.Composite.read(Composite.java:148)
+        at org.simpleframework.xml.core.Traverser.read(Traverser.java:92)
+        at org.simpleframework.xml.core.CompositeInlineList.read(CompositeInlineList.java:190)
+        at org.simpleframework.xml.core.CompositeInlineList.read(CompositeInlineList.java:167)
+        at org.simpleframework.xml.core.CompositeInlineList.read(CompositeInlineList.java:144)
+        at org.simpleframework.xml.core.CompositeListUnion.readElement(CompositeListUnion.java:189)
+        at org.simpleframework.xml.core.CompositeListUnion.read(CompositeListUnion.java:162)
+        at org.simpleframework.xml.core.Variable$Adapter.read(Variable.java:482)
+        at org.simpleframework.xml.core.Composite.readVariable(Composite.java:613)
+        at org.simpleframework.xml.core.Composite.readInstance(Composite.java:573)
+        at org.simpleframework.xml.core.Composite.readUnion(Composite.java:549)
+        at org.simpleframework.xml.core.Composite.readElement(Composite.java:532)
+        at org.simpleframework.xml.core.Composite.readElements(Composite.java:445)
+        at org.simpleframework.xml.core.Composite.access$400(Composite.java:59)
+        at org.simpleframework.xml.core.Composite$Builder.read(Composite.java:1383)
+        at org.simpleframework.xml.core.Composite.read(Composite.java:201)
+        at org.simpleframework.xml.core.Composite.read(Composite.java:148)
+        at org.simpleframework.xml.core.Traverser.read(Traverser.java:92)
+        at org.simpleframework.xml.core.Persister.read(Persister.java:625)
+        at org.simpleframework.xml.core.Persister.read(Persister.java:606)
+        at org.simpleframework.xml.core.Persister.read(Persister.java:584)
+        at org.simpleframework.xml.core.Persister.read(Persister.java:543)
+        at org.simpleframework.xml.core.Persister.read(Persister.java:521)
+        at org.simpleframework.xml.core.Persister.read(Persister.java:426)
+        at axoloti.PatchGUI.OpenPatchInvisible(PatchGUI.java:1003)
+        at axoloti.PatchGUI.OpenPatch(PatchGUI.java:1025)
+        at axoloti.MainFrame.actionPerformed(MainFrame.java:1156)
+        at javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:2022)
+        at javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2348)
+        at javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:402)
+        at javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:259)
+        at javax.swing.AbstractButton.doClick(AbstractButton.java:376)
+        at javax.swing.plaf.basic.BasicMenuItemUI.doClick(BasicMenuItemUI.java:833)
+        at javax.swing.plaf.basic.BasicMenuItemUI$Handler.mouseReleased(BasicMenuItemUI.java:877)
+        at java.awt.Component.processMouseEvent(Component.java:6535)
+        at javax.swing.JComponent.processMouseEvent(JComponent.java:3324)
+        at java.awt.Component.processEvent(Component.java:6300)
+        at java.awt.Container.processEvent(Container.java:2236)
+        at java.awt.Component.dispatchEventImpl(Component.java:4891)
+        at java.awt.Container.dispatchEventImpl(Container.java:2294)
+        at java.awt.Component.dispatchEvent(Component.java:4713)
+        at java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4888)
+        at java.awt.LightweightDispatcher.processMouseEvent(Container.java:4525)
+        at java.awt.LightweightDispatcher.dispatchEvent(Container.java:4466)
+        at java.awt.Container.dispatchEventImpl(Container.java:2280)
+        at java.awt.Window.dispatchEventImpl(Window.java:2750)
+        at java.awt.Component.dispatchEvent(Component.java:4713)
+        at java.awt.EventQueue.dispatchEventImpl(EventQueue.java:758)
+        at java.awt.EventQueue.access$500(EventQueue.java:97)
+        at java.awt.EventQueue$3.run(EventQueue.java:709)
+        at java.awt.EventQueue$3.run(EventQueue.java:703)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:76)
+        at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)
+        at java.awt.EventQueue$4.run(EventQueue.java:731)
+        at java.awt.EventQueue$4.run(EventQueue.java:729)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:76)
+        at java.awt.EventQueue.dispatchEvent(EventQueue.java:728)
+        at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:201)
+        at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:116)
+        at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:105)
+        at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+        at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:93)
+        at java.awt.EventDispatchThread.run(EventDispatchThread.java:82)</description>
+    
+    <lastBuildDate>Mon, 14 Nov 2016 18:31:18 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/xml-parse-errors-after-trying-to-copy-an-object/2530.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Xml parse errors after trying to copy an object</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>I was working to an object (with patch/object) and got to a pretty serious issue: after trying to make a copy of it (which was correct, C-wise, since the patch would compile), the patch started giving xml parse errors. <br>The object could not be copied, and apparently reloading the patch (which i did not save, by the way) gave the same error again.</p>
+
+<p>I opened the patch with a text editor and found what caused the bug: grafted arrays.<br>I'll explain this better: the code contained something like this: ....array1[ array2[index]] ...<br>Those two square brackets caused the bug, since in the xml file, portions of code are delimited with [CDATA[]] tags.</p>
+
+<p>Those two square brackets were causing the bug.<br>I solved the problem putting an empty comment between my two brackets, like this: ....array1[ array2[index] /**/] ...</p>
+
+<p>the error message by the way was: <br>    javax.xml.stream.XMLStreamException: ParseError at [row,col]:[514,71]<br>    Message: Il contenuto degli elementi deve essere composto da dati o markup di caratteri con formato corretto.<br>    javax.xml.stream.XMLStreamException: ParseError at [row,col]:[514,71]<br>    Message: Il contenuto degli elementi deve essere composto da dati o markup di caratteri con formato corretto.<br>        at com.sun.org.apache.xerces.internal.impl.XMLStreamReaderImpl.next(XMLStreamReaderImpl.java:596)<br>        at com.sun.xml.internal.stream.XMLEventReaderImpl.nextEvent(XMLEventReaderImpl.java:83)<br>        at org.simpleframework.xml.stream.StreamReader.read(StreamReader.java:110)<br>        at org.simpleframework.xml.stream.StreamReader.next(StreamReader.java:94)<br>        at org.simpleframework.xml.stream.StreamReader.peek(StreamReader.java:77)<br>        at org.simpleframework.xml.stream.NodeReader.readText(NodeReader.java:258)<br>        at org.simpleframework.xml.stream.NodeReader.readValue(NodeReader.java:235)<br>        at org.simpleframework.xml.stream.InputElement.getValue(InputElement.java:201)<br>        at org.simpleframework.xml.core.Primitive.read(Primitive.java:163)<br>        at org.simpleframework.xml.core.Primitive.readElement(Primitive.java:207)<br>        at org.simpleframework.xml.core.Primitive.readElement(Primitive.java:189)<br>        at org.simpleframework.xml.core.Primitive.read(Primitive.java:124)<br>        at org.simpleframework.xml.core.Composite.readVariable(Composite.java:623)<br>        at org.simpleframework.xml.core.Composite.readInstance(Composite.java:573)<br>        at org.simpleframework.xml.core.Composite.readUnion(Composite.java:549)<br>        at org.simpleframework.xml.core.Composite.readElement(Composite.java:532)<br>        at org.simpleframework.xml.core.Composite.readElements(Composite.java:445)<br>        at org.simpleframework.xml.core.Composite.access$400(Composite.java:59)<br>        at org.simpleframework.xml.core.Composite$Builder.read(Composite.java:1383)<br>        at org.simpleframework.xml.core.Composite.read(Composite.java:201)<br>        at org.simpleframework.xml.core.Composite.read(Composite.java:148)<br>        at org.simpleframework.xml.core.Composite.readVariable(Composite.java:623)<br>        at org.simpleframework.xml.core.Composite.readInstance(Composite.java:573)<br>        at org.simpleframework.xml.core.Composite.readUnion(Composite.java:549)<br>        at org.simpleframework.xml.core.Composite.readElement(Composite.java:532)<br>        at org.simpleframework.xml.core.Composite.readElements(Composite.java:445)<br>        at org.simpleframework.xml.core.Composite.access$400(Composite.java:59)<br>        at org.simpleframework.xml.core.Composite$Builder.read(Composite.java:1383)<br>        at org.simpleframework.xml.core.Composite.read(Composite.java:201)<br>        at org.simpleframework.xml.core.Composite.read(Composite.java:148)<br>        at org.simpleframework.xml.core.Traverser.read(Traverser.java:92)<br>        at org.simpleframework.xml.core.CompositeInlineList.read(CompositeInlineList.java:190)<br>        at org.simpleframework.xml.core.CompositeInlineList.read(CompositeInlineList.java:167)<br>        at org.simpleframework.xml.core.CompositeInlineList.read(CompositeInlineList.java:144)<br>        at org.simpleframework.xml.core.CompositeListUnion.readElement(CompositeListUnion.java:189)<br>        at org.simpleframework.xml.core.CompositeListUnion.read(CompositeListUnion.java:162)<br>        at org.simpleframework.xml.core.Variable$Adapter.read(Variable.java:482)<br>        at org.simpleframework.xml.core.Composite.readVariable(Composite.java:613)<br>        at org.simpleframework.xml.core.Composite.readInstance(Composite.java:573)<br>        at org.simpleframework.xml.core.Composite.readUnion(Composite.java:549)<br>        at org.simpleframework.xml.core.Composite.readElement(Composite.java:532)<br>        at org.simpleframework.xml.core.Composite.readElements(Composite.java:445)<br>        at org.simpleframework.xml.core.Composite.access$400(Composite.java:59)<br>        at org.simpleframework.xml.core.Composite$Builder.read(Composite.java:1383)<br>        at org.simpleframework.xml.core.Composite.read(Composite.java:201)<br>        at org.simpleframework.xml.core.Composite.read(Composite.java:148)<br>        at org.simpleframework.xml.core.Traverser.read(Traverser.java:92)<br>        at org.simpleframework.xml.core.Persister.read(Persister.java:625)<br>        at org.simpleframework.xml.core.Persister.read(Persister.java:606)<br>        at org.simpleframework.xml.core.Persister.read(Persister.java:584)<br>        at org.simpleframework.xml.core.Persister.read(Persister.java:543)<br>        at org.simpleframework.xml.core.Persister.read(Persister.java:521)<br>        at org.simpleframework.xml.core.Persister.read(Persister.java:426)<br>        at axoloti.PatchGUI.OpenPatchInvisible(PatchGUI.java:1003)<br>        at axoloti.PatchGUI.OpenPatch(PatchGUI.java:1025)<br>        at axoloti.MainFrame.actionPerformed(MainFrame.java:1156)<br>        at javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:2022)<br>        at javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2348)<br>        at javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:402)<br>        at javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:259)<br>        at javax.swing.AbstractButton.doClick(AbstractButton.java:376)<br>        at javax.swing.plaf.basic.BasicMenuItemUI.doClick(BasicMenuItemUI.java:833)<br>        at javax.swing.plaf.basic.BasicMenuItemUI$Handler.mouseReleased(BasicMenuItemUI.java:877)<br>        at java.awt.Component.processMouseEvent(Component.java:6535)<br>        at javax.swing.JComponent.processMouseEvent(JComponent.java:3324)<br>        at java.awt.Component.processEvent(Component.java:6300)<br>        at java.awt.Container.processEvent(Container.java:2236)<br>        at java.awt.Component.dispatchEventImpl(Component.java:4891)<br>        at java.awt.Container.dispatchEventImpl(Container.java:2294)<br>        at java.awt.Component.dispatchEvent(Component.java:4713)<br>        at java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4888)<br>        at java.awt.LightweightDispatcher.processMouseEvent(Container.java:4525)<br>        at java.awt.LightweightDispatcher.dispatchEvent(Container.java:4466)<br>        at java.awt.Container.dispatchEventImpl(Container.java:2280)<br>        at java.awt.Window.dispatchEventImpl(Window.java:2750)<br>        at java.awt.Component.dispatchEvent(Component.java:4713)<br>        at java.awt.EventQueue.dispatchEventImpl(EventQueue.java:758)<br>        at java.awt.EventQueue.access$500(EventQueue.java:97)<br>        at java.awt.EventQueue$3.run(EventQueue.java:709)<br>        at java.awt.EventQueue$3.run(EventQueue.java:703)<br>        at java.security.AccessController.doPrivileged(Native Method)<br>        at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:76)<br>        at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)<br>        at java.awt.EventQueue$4.run(EventQueue.java:731)<br>        at java.awt.EventQueue$4.run(EventQueue.java:729)<br>        at java.security.AccessController.doPrivileged(Native Method)<br>        at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:76)<br>        at java.awt.EventQueue.dispatchEvent(EventQueue.java:728)<br>        at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:201)<br>        at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:116)<br>        at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:105)<br>        at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)<br>        at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:93)<br>        at java.awt.EventDispatchThread.run(EventDispatchThread.java:82)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/xml-parse-errors-after-trying-to-copy-an-object/2530/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/xml-parse-errors-after-trying-to-copy-an-object/2530/1</link>
+        <pubDate>Mon, 14 Nov 2016 18:31:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2530-1</guid>
+        <source url="http://community.axoloti.com/t/xml-parse-errors-after-trying-to-copy-an-object/2530.rss">Xml parse errors after trying to copy an object</source>
+      </item>
+  </channel>
+</rss>

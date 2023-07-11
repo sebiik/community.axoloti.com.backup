@@ -1,0 +1,416 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="350" y="28" text="this translates the first row of knobs to CCs 10-17 on channel 3"/>
+   <comment type="patch/comment" x="322" y="56" text="custom cc send object with channel option"/>
+   <patchobj type="patch/object" uuid="7ce58fdb-6612-4fd6-9c2b-c7a087bc30f0" name="poly_1" x="364" y="70">
+      <params>
+         <int32 name="startcc" value="13"/>
+      </params>
+      <attribs>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="7ce58fdb-6612-4fd6-9c2b-c7a087bc30f0">
+         <sDescription>outputs the state of 8 controllers starting from &apos;startcc&apos;</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <inlets>
+            <int32 name="startcc"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="cc0"/>
+            <frac32.positive name="cc1"/>
+            <frac32.positive name="cc2"/>
+            <frac32.positive name="cc3"/>
+            <frac32.positive name="cc4"/>
+            <frac32.positive name="cc5"/>
+            <frac32.positive name="cc6"/>
+            <frac32.positive name="cc7"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="startcc" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="127"/>
+            </int32>
+         </params>
+         <attribs>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t cc [128];
+uint8_t start;]]></code.declaration>
+         <code.krate><![CDATA[start = (inlet_startcc + param_startcc);
+
+outlet_cc0 = cc[start] <<20;
+outlet_cc1 = cc[start +1] <<20;
+outlet_cc2 = cc[start +2] <<20;
+outlet_cc3 = cc[start +3] <<20;
+
+outlet_cc4 = cc[start +4] <<20;
+outlet_cc5 = cc[start +5] <<20;
+outlet_cc6 = cc[start +6] <<20;
+outlet_cc7 = cc[start +7] <<20;]]></code.krate>
+         <code.midihandler><![CDATA[if (status == (attr_channel-1) + MIDI_CONTROL_CHANGE) cc[data1] = data2;]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="rbrt/midi/out/cc send 8" uuid="b878aae8-2a28-4f01-8581-5d87525a3b9e" name="cc_1" x="574" y="70">
+      <params>
+         <int32 name="startcc" value="10"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="3"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="406" y="350" text="this translates the first knob of the second row to CC 100 on channel 6"/>
+   <comment type="patch/comment" x="350" y="392" text="custom cc in object - midi channel option"/>
+   <patchobj type="patch/object" uuid="63bcd49f-4478-4f38-95de-c0f40855db69" name="cc_2" x="392" y="406">
+      <params/>
+      <attribs>
+         <spinner attributeName="cc" value="29"/>
+         <spinner attributeName="default" value="0"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="63bcd49f-4478-4f38-95de-c0f40855db69">
+         <sDescription>Receives Midi Continuous Controller messages</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32.positive name="midiCC" description="midi CC 0-63.5"/>
+            <bool32.pulse name="trig" description="trigger output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="cc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="default" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t ccv;
+int32_t ntrig;]]></code.declaration>
+         <code.init><![CDATA[ccv = attr_default << 20;]]></code.init>
+         <code.krate><![CDATA[outlet_midiCC= ccv;
+outlet_trig = ntrig;
+ntrig = 0;]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == (attr_channel-1) + MIDI_CONTROL_CHANGE)&&(data1 == attr_cc)) { ccv = data2<<20; ntrig = 1;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_3" x="630" y="406">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="6"/>
+         <spinner attributeName="cc" value="100"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="546" y="588" text="this translates the 3rd row of knobs to:"/>
+   <comment type="patch/comment" x="546" y="602" text=" knob 1 - cc100 channel 10, knob 2 - cc100 channel 11, knob 3 - cc100 channel 12  knob 5 -  cc100 channel 13."/>
+   <comment type="patch/comment" x="546" y="616" text="knobs 5-8 - cc 5-8 channel 16"/>
+   <patchobj type="patch/object" uuid="7ce58fdb-6612-4fd6-9c2b-c7a087bc30f0" name="poly_2" x="196" y="644">
+      <params>
+         <int32 name="startcc" value="49"/>
+      </params>
+      <attribs>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="7ce58fdb-6612-4fd6-9c2b-c7a087bc30f0">
+         <sDescription>outputs the state of 8 controllers starting from &apos;startcc&apos;</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <inlets>
+            <int32 name="startcc"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="cc0"/>
+            <frac32.positive name="cc1"/>
+            <frac32.positive name="cc2"/>
+            <frac32.positive name="cc3"/>
+            <frac32.positive name="cc4"/>
+            <frac32.positive name="cc5"/>
+            <frac32.positive name="cc6"/>
+            <frac32.positive name="cc7"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="startcc" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="127"/>
+            </int32>
+         </params>
+         <attribs>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t cc [128];
+uint8_t start;]]></code.declaration>
+         <code.krate><![CDATA[start = (inlet_startcc + param_startcc);
+
+outlet_cc0 = cc[start] <<20;
+outlet_cc1 = cc[start +1] <<20;
+outlet_cc2 = cc[start +2] <<20;
+outlet_cc3 = cc[start +3] <<20;
+
+outlet_cc4 = cc[start +4] <<20;
+outlet_cc5 = cc[start +5] <<20;
+outlet_cc6 = cc[start +6] <<20;
+outlet_cc7 = cc[start +7] <<20;]]></code.krate>
+         <code.midihandler><![CDATA[if (status == (attr_channel-1) + MIDI_CONTROL_CHANGE) cc[data1] = data2;]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="logic/change" uuid="42071f8cb4cfe1f35956c0bd5a313a57e049bec4" name="change_1" x="308" y="644">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="42071f8cb4cfe1f35956c0bd5a313a57e049bec4" name="change_2" x="420" y="644">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="42071f8cb4cfe1f35956c0bd5a313a57e049bec4" name="change_3" x="532" y="644">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="42071f8cb4cfe1f35956c0bd5a313a57e049bec4" name="change_4" x="644" y="644">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_4" x="868" y="644">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="10"/>
+         <spinner attributeName="cc" value="100"/>
+      </attribs>
+   </obj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_5" x="1008" y="644">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="11"/>
+         <spinner attributeName="cc" value="100"/>
+      </attribs>
+   </obj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_6" x="1148" y="644">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="12"/>
+         <spinner attributeName="cc" value="100"/>
+      </attribs>
+   </obj>
+   <obj type="midi/out/cc" uuid="7ca9b2c1b4339022c491a8afd70353c17d765584" name="cc_7" x="1288" y="644">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="13"/>
+         <spinner attributeName="cc" value="100"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/midi/out/cc send 4" uuid="29673ede-ad04-49ea-bb7a-3ecf7cdcf098" name="cc_8" x="868" y="770">
+      <params>
+         <int32 name="startcc" value="5"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="16"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="370" y="968" text="this puts the faders straight through"/>
+   <patchobj type="patch/object" uuid="7ce58fdb-6612-4fd6-9c2b-c7a087bc30f0" name="poly_3" x="378" y="980">
+      <params>
+         <int32 name="startcc" value="77"/>
+      </params>
+      <attribs>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="7ce58fdb-6612-4fd6-9c2b-c7a087bc30f0">
+         <sDescription>outputs the state of 8 controllers starting from &apos;startcc&apos;</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <inlets>
+            <int32 name="startcc"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="cc0"/>
+            <frac32.positive name="cc1"/>
+            <frac32.positive name="cc2"/>
+            <frac32.positive name="cc3"/>
+            <frac32.positive name="cc4"/>
+            <frac32.positive name="cc5"/>
+            <frac32.positive name="cc6"/>
+            <frac32.positive name="cc7"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="startcc" noLabel="true">
+               <MinValue i="0"/>
+               <MaxValue i="127"/>
+            </int32>
+         </params>
+         <attribs>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t cc [128];
+uint8_t start;]]></code.declaration>
+         <code.krate><![CDATA[start = (inlet_startcc + param_startcc);
+
+outlet_cc0 = cc[start] <<20;
+outlet_cc1 = cc[start +1] <<20;
+outlet_cc2 = cc[start +2] <<20;
+outlet_cc3 = cc[start +3] <<20;
+
+outlet_cc4 = cc[start +4] <<20;
+outlet_cc5 = cc[start +5] <<20;
+outlet_cc6 = cc[start +6] <<20;
+outlet_cc7 = cc[start +7] <<20;]]></code.krate>
+         <code.midihandler><![CDATA[if (status == (attr_channel-1) + MIDI_CONTROL_CHANGE) cc[data1] = data2;]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="rbrt/midi/out/cc send 8" uuid="b878aae8-2a28-4f01-8581-5d87525a3b9e" name="cc_9" x="504" y="980">
+      <params>
+         <int32 name="startcc" value="77"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="poly_1" outlet="cc0"/>
+         <dest obj="cc_1" inlet="v0"/>
+      </net>
+      <net>
+         <source obj="poly_1" outlet="cc1"/>
+         <dest obj="cc_1" inlet="v1"/>
+      </net>
+      <net>
+         <source obj="poly_1" outlet="cc2"/>
+         <dest obj="cc_1" inlet="v2"/>
+      </net>
+      <net>
+         <source obj="poly_1" outlet="cc3"/>
+         <dest obj="cc_1" inlet="v3"/>
+      </net>
+      <net>
+         <source obj="poly_1" outlet="cc4"/>
+         <dest obj="cc_1" inlet="v4"/>
+      </net>
+      <net>
+         <source obj="poly_1" outlet="cc5"/>
+         <dest obj="cc_1" inlet="v5"/>
+      </net>
+      <net>
+         <source obj="poly_1" outlet="cc6"/>
+         <dest obj="cc_1" inlet="v6"/>
+      </net>
+      <net>
+         <source obj="poly_1" outlet="cc7"/>
+         <dest obj="cc_1" inlet="v7"/>
+      </net>
+      <net>
+         <source obj="cc_2" outlet="midiCC"/>
+         <dest obj="cc_3" inlet="v"/>
+      </net>
+      <net>
+         <source obj="cc_2" outlet="trig"/>
+         <dest obj="cc_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc4"/>
+         <dest obj="cc_8" inlet="v0"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc5"/>
+         <dest obj="cc_8" inlet="v1"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc6"/>
+         <dest obj="cc_8" inlet="v2"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc7"/>
+         <dest obj="cc_8" inlet="v3"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc0"/>
+         <dest obj="cc_4" inlet="v"/>
+         <dest obj="change_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="cc_4" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc1"/>
+         <dest obj="change_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc2"/>
+         <dest obj="change_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="poly_2" outlet="cc3"/>
+         <dest obj="change_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="change_2" outlet="trig"/>
+         <dest obj="cc_5" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="change_3" outlet="trig"/>
+         <dest obj="cc_6" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="change_4" outlet="trig"/>
+         <dest obj="cc_7" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc0"/>
+         <dest obj="cc_9" inlet="v0"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc1"/>
+         <dest obj="cc_9" inlet="v1"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc2"/>
+         <dest obj="cc_9" inlet="v2"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc3"/>
+         <dest obj="cc_9" inlet="v3"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc4"/>
+         <dest obj="cc_9" inlet="v4"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc5"/>
+         <dest obj="cc_9" inlet="v5"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc6"/>
+         <dest obj="cc_9" inlet="v6"/>
+      </net>
+      <net>
+         <source obj="poly_3" outlet="cc7"/>
+         <dest obj="cc_9" inlet="v7"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

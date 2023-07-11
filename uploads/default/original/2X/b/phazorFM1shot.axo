@@ -1,0 +1,58 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="phazorFM1shot" uuid="0103189e-bdbd-45ed-93ff-7cd1d917933a">
+      <sDescription>1-period phasor, triggered</sDescription>
+      <author>JFC</author>
+      <license>BSD</license>
+      <helpPatch>phasor.axh</helpPatch>
+      <inlets>
+         <frac32 name="pitch" description="pitch"/>
+         <bool32.rising name="trig"/>
+         <frac32buffer name="freq"/>
+         <frac32 name="FMW"/>
+      </inlets>
+      <outlets>
+         <frac32buffer.positive name="phasor" description="ramp"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.s.map.pitch name="pitch" noLabel="true"/>
+      </params>
+      <attribs/>
+      <code.declaration><![CDATA[uint32_t phase;
+uint32_t phase2;
+int triggered;
+int first;]]></code.declaration>
+      <code.init><![CDATA[phase = 0;
+phase2 = 0;
+triggered = 0;
+first = 0;]]></code.init>
+      <code.krate><![CDATA[uint32_t freq;
+uint32_t freq2;
+   MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+   MTOFEXTENDED(param_pitch + inlet_pitch,freq2);
+if ((inlet_trig>0) && !triggered) {
+   triggered = 1;
+   first = 1;
+} else if (!(inlet_trig>0)) {
+   triggered = 0;
+}]]></code.krate>
+      <code.srate><![CDATA[if (first > 0) {
+	
+	phase = freq;
+     first = 0;
+     } else if (phase + freq < freq) { // almost over
+	phase = 0;
+	} else if (phase == 0) { // over
+	//phase = 0; redundant
+	} else { // normal
+     phase += freq;
+     //r = 0; redundant
+     }
+if (phase != 0) {
+int32_t FM=___SMMUL(inlet_freq<<3,freq<<4);
+FM=___SMMUL(FM<<3,inlet_FMW<<2);
+phase2 += freq + FM; }
+else {phase2 = 0;}
+outlet_phasor = phase2>>5;]]></code.srate>
+   </obj.normal>
+</objdefs>

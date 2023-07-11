@@ -1,0 +1,70 @@
+<objdefs appVersion="1.0.10">
+   <obj.normal id="beatmachine" uuid="b18ebda9-d335-48b9-9479-428668eb0a86">
+      <sDescription></sDescription>
+      <author>hc</author>
+      <license>GPL</license>
+      <inlets>
+         <frac32.bipolar name="rate"/>
+         <int32 name="divider"/>
+         <bool32.rising name="rst"/>
+         <frac32 name="x"/>
+         <frac32 name="y"/>
+         <frac32 name="z"/>
+      </inlets>
+      <outlets>
+         <frac32buffer name="t"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs>
+         <table name="beat"/>
+      </attribs>
+      <code.declaration><![CDATA[uint32_t t;
+uint64_t index;
+int32_t inc;
+uint32_t rate;
+uint32_t divider;
+
+int32_t x;
+int32_t y;
+int32_t z;
+int32_t w;
+int32_t n;
+int32_t r;
+int32_t p;
+int32_t q;
+
+]]></code.declaration>
+      <code.init><![CDATA[inc = 0;
+t = 0;
+index = 0;
+x = 0;
+y = 0;
+z = 0;
+
+r = 1;
+
+]]></code.init>
+      <code.srate><![CDATA[x = inlet_x >> 21;
+y = inlet_y >> 21;
+z = inlet_z >> 21;
+
+inc = inlet_rate >> 20;
+
+if ((inlet_rst==1) && rate) {
+	index = 0;
+	rate = 0;
+} else {
+	if (inlet_rst == 0) 
+		rate = 1;
+		inc = inc << 1;
+		index += inc;
+		t = index >> inlet_divider;
+		outlet_t = (((attr_beat ) << 23) -(1<<26))<<1;
+	
+		
+	
+}
+]]></code.srate>
+   </obj.normal>
+</objdefs>

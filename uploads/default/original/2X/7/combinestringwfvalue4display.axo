@@ -1,0 +1,55 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="combinestringwfvalue4display" uuid="9b28ef2d-6b7a-48cd-ac0c-862a754a27b2">
+      <sDescription>adds 8chars of string, then &apos;+&apos; or &apos;-&apos;, then two-digit blue number</sDescription>
+      <author>db</author>
+      <license>LGPL</license>
+      <inlets>
+         <charptr32 name="prefix"/>
+         <frac32 name="i"/>
+         <bool32 name="prefchg"/>
+      </inlets>
+      <outlets>
+         <charptr32 name="o"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs/>
+      <code.declaration><![CDATA[char c[12];
+char *p=c+8;
+bool first=1;
+int l;]]></code.declaration>
+      <code.init><![CDATA[//strcpy(&c[0],(char *)inlet_prefix);
+//inl = inlet_prefix;
+int k;
+bool first=1;
+//while(k<6){il[k]=inlet_prefix[k];k++;}]]></code.init>
+      <code.krate><![CDATA[float f = inlet_i * (1.0f/(1<<21));
+if(inlet_prefchg){
+int k=0;
+while(k<8){
+//if (l<k){c[k]='*';}
+//else{	
+c[k]=inlet_prefix[k];//}
+	k++;first=1;}
+}
+if(inlet_i > 0)       p[0] = '+';
+else if(inlet_i < 0) {p[0] = '-'; f = -f; }
+else p[0] = ' ';
+if(f >= 1000){
+  p[1]=127;p[2]=127;p[3]=0;
+} else {
+  {
+    int diz=(int)(f/10);
+    if(diz == 0) p[1] = ' '; else p[1]='0' + diz;
+    f -= diz * 10;
+  }
+  {
+    int un = (int)(f);
+    p[2] = '0' + un;
+    f -= un * 1;
+  }
+}
+
+outlet_o= c;]]></code.krate>
+   </obj.normal>
+</objdefs>

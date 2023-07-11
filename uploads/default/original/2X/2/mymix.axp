@@ -1,0 +1,122 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="84" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="dc7c9bed-bec0-41db-ad73-b692fb661c92" name="mix_1" x="364" y="98">
+      <params>
+         <frac32.u.map name="gain1" value="14.0"/>
+         <frac32.u.map name="gain2" value="14.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="dc7c9bed-bec0-41db-ad73-b692fb661c92">
+         <sDescription>2 input s-rate mixer, shows gain units</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32buffer name="bus_in" description="input with unity gain"/>
+            <frac32buffer name="in1" description="input 1"/>
+            <frac32buffer name="in2" description="input 2"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="mix out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map.gain name="gain1">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.gain>
+            <frac32.u.map.gain name="gain2">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.gain>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;]]></code.declaration>
+         <code.init><![CDATA[val = 0;]]></code.init>
+         <code.krate><![CDATA[val = ___SMMLA(val-param_gain1,(-1<<26)+(15>>1),val);]]></code.krate>
+         <code.srate><![CDATA[int32_t accum = ___SMMUL(inlet_in1,val);
+   accum = ___SMMLA(inlet_in2,param_gain2,accum);
+;   outlet_out=  __SSAT(inlet_bus__in + (accum<<1),28);]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="546" y="140">
+      <params>
+         <frac32.u.map name="volume" value="20.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/smooth" uuid="6c5d08c282bb08bff24af85b4891447f99bcbc97" name="smooth_1" x="112" y="252">
+      <params>
+         <frac32.u.map name="time" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="dc7c9bed-bec0-41db-ad73-b692fb661c92" name="MIX" x="742" y="252">
+      <params>
+         <frac32.u.map name="gain1" value="14.0"/>
+         <frac32.u.map name="gain2" value="14.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="dc7c9bed-bec0-41db-ad73-b692fb661c92">
+         <sDescription>2 input s-rate mixer, shows gain units</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32buffer name="bus_in" description="input with unity gain"/>
+            <frac32buffer name="in1" description="input 1"/>
+            <frac32buffer name="in2" description="input 2"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="mix out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map.gain name="gain1">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.gain>
+            <frac32.u.map.gain name="gain2">
+               <DefaultValue v="32.0"/>
+            </frac32.u.map.gain>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val1;
+int32_t val2;]]></code.declaration>
+         <code.init><![CDATA[val1 = 0;
+val2 = 0;]]></code.init>
+         <code.krate><![CDATA[val1 = ___SMMLA(val1-param_gain1,(-1<<26)+(15>>1),val1);
+val2 = ___SMMLA(val2-param_gain2,(-1<<26)+(15>>1),val2);]]></code.krate>
+         <code.srate><![CDATA[int32_t accum = ___SMMUL(inlet_in1,val1);
+   accum = ___SMMLA(inlet_in2,val2,accum);
+;   outlet_out=  __SSAT(inlet_bus__in + (accum<<1),28);]]></code.srate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="280" y="280" text="val = ___SMMLA(val-param_gain1,(-1&lt;&lt;26)+(15&gt;&gt;1),val);"/>
+   <comment type="patch/comment" x="14" y="350" text="   val = ___SMMLA(val-inlet_in,(-1&lt;&lt;26)+(param_time&gt;&gt;1),val);"/>
+   <comment type="patch/comment" x="742" y="434" text="MIX NO CRACK"/>
+   <nets>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="mix_1" inlet="in1"/>
+         <dest obj="mix_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>121</x>
+      <y>48</y>
+      <width>1042</width>
+      <height>661</height>
+   </windowPos>
+</patch-1.0>

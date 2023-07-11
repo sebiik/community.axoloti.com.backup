@@ -1,0 +1,150 @@
+<patch-1.0 appVersion="1.0.9">
+   <obj type="disp/kscope 128 p" uuid="664f9317a38a6910ae9bc020e00ca2dd2ee692fa" name="kscope_5" x="392" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="798" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/==" uuid="deaf0d36642c57876c4101e86f8a0b6a06021ab2" name="==_1" x="560" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/flipflop toggle" uuid="195e489e5fc3d275944b0de56c7a91c8641ea22a" name="flipflop_1" x="644" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="const/i" uuid="e202f44b2df17ae0b3e663b98ea6b14c8ff00408" name="i_8" x="462" y="266">
+      <params/>
+      <attribs>
+         <spinner attributeName="value" value="63"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="42" y="280" text="set the toggle to start setting a new tempo,reset and watch the resulting saw!"/>
+   <obj type="rbrt/control/timer" uuid="d4a352fc-5acf-466d-b462-079a1b5a2b41" name="timer_1" x="784" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_7" x="896" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="98" y="308">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="rbrt/control/timer" uuid="d4a352fc-5acf-466d-b462-079a1b5a2b41" name="object_4" x="224" y="350">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="d4a352fc-5acf-466d-b462-079a1b5a2b41">
+         <sDescription>while &apos;toggle&apos; is true,timer is counting..
+if &apos;toggle&apos; is false,timer spits out the time</sDescription>
+         <author>robert schirmer</author>
+         <license>who cares</license>
+         <helpPatch>timeri.axh</helpPatch>
+         <inlets>
+            <bool32.risingfalling name="toggle" description="start counting,output the time interval"/>
+         </inlets>
+         <outlets>
+            <frac32 name="wave"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t trigstart;
+int32_t trigstop;
+float tb;
+uint32_t Phase;
+
+bool init;
+
+
+]]></code.declaration>
+         <code.init><![CDATA[trigstart = 0;
+trigstop = 0;
+
+init = 0;]]></code.init>
+         <code.dispose><![CDATA[]]></code.dispose>
+         <code.krate><![CDATA[if ((inlet_toggle) && !trigstart) {
+  tb = 0;
+  trigstart = 1;
+  init = 1;
+} else if (!(inlet_toggle)) {
+    trigstart = 0;
+    }
+
+if (trigstart ){
+	tb += (128<<5);
+	Phase = 0;
+	outlet_wave = 0;
+
+}
+
+if ((!trigstart )&& init) {
+         Phase +=  ((int)(281474976710656.f/tb)) >> 4;
+   outlet_wave= (Phase>>5);
+    } 
+    
+    
+]]></code.krate>
+         <code.srate><![CDATA[]]></code.srate>
+         <code.midihandler><![CDATA[]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="826" y="364" text="this prooves it&apos;s actually working"/>
+   <obj type="rbrt/control/timer" uuid="d4a352fc-5acf-466d-b462-079a1b5a2b41" name="timer_4" x="700" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_11" x="826" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="timer_1" outlet="t"/>
+         <dest obj="i_7" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_8" outlet="out"/>
+         <dest obj="==_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="==_1" outlet="out"/>
+         <dest obj="flipflop_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="flipflop_1" outlet="o"/>
+         <dest obj="timer_1" inlet="toggle"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="object_4" inlet="toggle"/>
+         <dest obj="timer_4" inlet="toggle"/>
+      </net>
+      <net>
+         <source obj="object_4" outlet="wave"/>
+         <dest obj="kscope_5" inlet="in"/>
+         <dest obj="==_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="timer_4" outlet="t"/>
+         <dest obj="i_11" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

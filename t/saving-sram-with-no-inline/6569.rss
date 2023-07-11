@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Saving SRAM with &#39;no inline&#39;</title>
+    <link>http://community.axoloti.com/t/saving-sram-with-no-inline/6569</link>
+    <description>Hi all,
+it&#39;s been said before here and there, but only as part of other topics,
+so I want to say it again, loud and clear and bright:
+When you are using / writing code-heavy objects that will be used like &gt;5 times 
+in a patch, it makes total sense to do the following:
+- chop your code into functions, and tell axo&#39;s compiler NOT TO INLINE THEM
+- collect it inside a &#39;master- object&#39;
+-refer to it from other &#39;slave - objects&#39;.
+
+code - snippet what I mean by not inlining:
+
+&lt;img src=&quot;/uploads/default/original/2X/4/4d52e39dc6c2849f55c4a309785f9baac6059501.PNG&quot; width=&quot;386&quot; height=&quot;50&quot;&gt;
+I&#39;ve attached a patch demonstrating the technique.
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/e/ee35d59f6dd427dd2a37f4791497d60f9ed00518.axp&quot;&gt;no inline.axp&lt;/a&gt; (11.4 KB)
+
+
+
+..&#39;no inline&#39; will eventually hit your CPU a bit, but at k-rate not all that much, but can save a lot of SRAM.
+
+I&#39;m so ON about this because I noticed the factory table/save/load - objects are eating TONS of SRAM
+when you are using more than 1 or 2 of them, probably because they also have a dependency to &#39;fatfs&#39;
+included.
+so what I did was to tear apart the code and centralize them into a &#39;master-object&#39;,
+they are now in the community library (rbrt/SD...)
+I&#39;ll post something right away.</description>
+    
+    <lastBuildDate>Sat, 25 Apr 2020 22:11:02 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/saving-sram-with-no-inline/6569.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Saving SRAM with &#39;no inline&#39;</title>
+        <dc:creator><![CDATA[@jcgriggs John Griggs]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jcgriggs">@jcgriggs</a> wrote:</p>
+          <blockquote>
+              <p>Methods in classes can be inline.  Class scope is enforced by the compiler but does not apply to its output.  Inline compilation is a scheme for avoiding call overhead (copying vars, setting up a stack and return address, etc.) for small methods.  It's an instruction to the compiler for how to process the code, not a scope annotation.</p>
+
+<p>Hope this helps,<br>   John</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/saving-sram-with-no-inline/6569/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/saving-sram-with-no-inline/6569/4</link>
+        <pubDate>Sat, 25 Apr 2020 22:11:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6569-4</guid>
+        <source url="http://community.axoloti.com/t/saving-sram-with-no-inline/6569.rss">Saving SRAM with &#39;no inline&#39;</source>
+      </item>
+      <item>
+        <title>Saving SRAM with &#39;no inline&#39;</title>
+        <dc:creator><![CDATA[@rbrt]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rbrt">@rbrt</a> wrote:</p>
+          <blockquote>
+              <p>Hi <a class="mention" href="/u/arno">@aRNo</a> , <br></p>
+
+<aside class="quote" data-post="2" data-topic="6569"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/a/a5b964/40.png" class="avatar">aRNo:</div>
+<blockquote><p>But I wonder if for objects defined by class c ++, it would work? given that a class instance contains its own data in addition to functions</p></blockquote></aside>
+
+<p>...good question,honstely I don't know <img src="//community.axoloti.com/images/emoji/twitter/thinking.png?v=5" title=":thinking:" class="emoji" alt=":thinking:"><br>Actually, I'm not a 'trained' C++ - programmer,I just learn by doing with my axoloti.<br>However, 'attr_noinline' is just passing a directive to the compiler <br>not to inline (to inline ==  to replace every function call with the respective code),<br>so this makes the compiled program shorter and thus saves RAM.<br>I don't know how that relates to data.<br>hmmm.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/saving-sram-with-no-inline/6569/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/saving-sram-with-no-inline/6569/3</link>
+        <pubDate>Sat, 25 Apr 2020 12:05:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6569-3</guid>
+        <source url="http://community.axoloti.com/t/saving-sram-with-no-inline/6569.rss">Saving SRAM with &#39;no inline&#39;</source>
+      </item>
+      <item>
+        <title>Saving SRAM with &#39;no inline&#39;</title>
+        <dc:creator><![CDATA[@aRNo Arnaud Laussen]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/arno">@aRNo</a> wrote:</p>
+          <blockquote>
+              <p>Hi rbrt,<br>good idea.<br>it seems good. I think use it for some big repetitive patch. But I wonder if for objects defined by class c ++, it would work? given that a class instance contains its own data in addition to functions ...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/saving-sram-with-no-inline/6569/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/saving-sram-with-no-inline/6569/2</link>
+        <pubDate>Fri, 24 Apr 2020 11:35:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6569-2</guid>
+        <source url="http://community.axoloti.com/t/saving-sram-with-no-inline/6569.rss">Saving SRAM with &#39;no inline&#39;</source>
+      </item>
+      <item>
+        <title>Saving SRAM with &#39;no inline&#39;</title>
+        <dc:creator><![CDATA[@rbrt]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rbrt">@rbrt</a> wrote:</p>
+          <blockquote>
+              <p>Hi all,<br>it's been said before here and there, but only as part of other topics,<br>so I want to say it again, loud and clear and bright:<br>When you are using / writing code-heavy objects that will be used like &gt;5 times <br>in a patch, it makes total sense to do the following:<br>- chop your code into functions, and tell axo's compiler NOT TO INLINE THEM<br>- collect it inside a 'master- object'<br>-refer to it from other 'slave - objects'.</p>
+
+<p>code - snippet what I mean by not inlining:</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/4/4d52e39dc6c2849f55c4a309785f9baac6059501.PNG" width="386" height="50"><br>I've attached a patch demonstrating the technique.<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/e/ee35d59f6dd427dd2a37f4791497d60f9ed00518.axp">no inline.axp</a> (11.4 KB)</p>
+
+<p>..'no inline' will eventually hit your CPU a bit, but at k-rate not all that much, but can save a lot of SRAM.</p>
+
+<p>I'm so ON about this because I noticed the factory table/save/load - objects are eating TONS of SRAM<br>when you are using more than 1 or 2 of them, probably because they also have a dependency to 'fatfs'<br>included.<br>so what I did was to tear apart the code and centralize them into a 'master-object',<br>they are now in the community library (rbrt/SD...)<br>I'll post something right away.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/saving-sram-with-no-inline/6569/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/saving-sram-with-no-inline/6569/1</link>
+        <pubDate>Fri, 17 Apr 2020 20:46:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6569-1</guid>
+        <source url="http://community.axoloti.com/t/saving-sram-with-no-inline/6569.rss">Saving SRAM with &#39;no inline&#39;</source>
+      </item>
+  </channel>
+</rss>

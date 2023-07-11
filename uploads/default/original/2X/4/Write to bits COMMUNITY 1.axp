@@ -1,0 +1,581 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="bits" x="28" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="32"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="784" y="28" text="Read bits of a bin"/>
+   <patchobj type="patch/object" uuid="15f6228d-a5ec-4db3-8b77-0a93abdf0db4" name="1scale_2" x="784" y="42">
+      <params>
+         <bin12 name="p1" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="15f6228d-a5ec-4db3-8b77-0a93abdf0db4">
+         <sDescription>46-scale scaling module
+
+All the generated notes will be scaled to the selected scale. 46! scales are included and each scale can be set to a key. See the Local Date for which scales are included. Scales are somewhat ordered on alphabetic orde (except the main major/minor scale variations which are the first ones). You can always set them to another order if you want, but keep the total at 46 as this selecting value gets wrapped above 46 in the code.</sDescription>
+         <author>Remco van der Most</author>
+         <license>BSD</license>
+         <inlets/>
+         <outlets>
+            <frac32buffer name="o"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin12 name="p1"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[//Scales//
+int note[12]={		
+0,0,4,4,5,5,9,9,9,11,11,11,	//34 = Hirajoshi 2
+};]]></code.declaration>
+         <code.krate><![CDATA[//if(param_p1 & (1 << 0)) { outlet_o[0] = 1;}	else{outlet_o[0] = 0;}
+
+outlet_o[0] = param_p1 & (1 << 0);
+outlet_o[1] = param_p1 & (1 << 1);
+outlet_o[2] = param_p1 & (1 << 2);
+outlet_o[3] = param_p1 & (1 << 3);
+
+outlet_o[4] = param_p1 & (1 << 4);
+outlet_o[5] = param_p1 & (1 << 5);
+outlet_o[6] = param_p1 & (1 << 6);
+outlet_o[7] = param_p1 & (1 << 7);
+
+
+outlet_o[8] = param_p1 & (1 << 8);
+outlet_o[9] = param_p1 & (1 << 9);
+outlet_o[10] = param_p1 & (1 << 10);
+outlet_o[11] = param_p1 & (1 << 11);
+
+
+outlet_o[12] = param_p1 & (1 << 12);
+outlet_o[13] = param_p1 & (1 << 13);
+outlet_o[14] = param_p1 & (1 << 14);
+outlet_o[15] = param_p1 & (1 << 15);]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="e442fcbc-5d82-457b-adbe-44e7e92e4839" name="is12o_1" x="966" y="42">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="e442fcbc-5d82-457b-adbe-44e7e92e4839">
+         <sDescription>See help patch for usage !!
+
+Advanced version of the SixSteps oscillator:
+* it have a built-in Master oscillator for sync sounds.
+* 12 steps instead of 6 (use tiar/osc/wf_12Steps on waveform inlet)
+* oversampling by 2 (use tiar/conv/O2_to_SR_59 on the output) 
+
+
+The waveform of the12Steps oscillator is controlled by 12 parameters: the 12 steps levels.
+These 12 steps levels must be provided by a tiar/osc/wf_12Steps object connected to the waveform inlet.
+
+
+This object allows to generate waveforms reminiscent of old pseudo digital synths (such as the RMI and it&apos;s digit harmonics based on Walsh functions).
+
+It is **anti aliased** with an algorithm that is based on both BLEPs and DPWs... i think it is quite original and efficient with this kind of waveforms. 
+
+(the steppy signal goes through a second order leaky &quot;analytic&quot; integrator, when a transient occurs the state variable of the integrator is updated taking account of the subsample time of the transient - much like BLEPs -... at the end the signal is high passed with a second order differentiator - like a second order DPW...)</sDescription>
+         <author>T.Rochebois</author>
+         <license>LGPL</license>
+         <helpPatch>O2_12stepsSync.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="i"/>
+         </inlets>
+         <outlets>
+            <int32 name="o1"/>
+            <int32 name="o2"/>
+            <int32 name="o3"/>
+            <int32 name="o4"/>
+            <int32 name="o5"/>
+            <int32 name="o6"/>
+            <int32 name="o7"/>
+            <int32 name="o8"/>
+            <int32 name="o9"/>
+            <int32 name="o10"/>
+            <int32 name="o11"/>
+            <int32 name="o12"/>
+            <int32 name="o13"/>
+            <int32 name="o14"/>
+            <int32 name="o15"/>
+            <int32 name="o16"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[/*
+ * You can send/receive up to 16 k-rate signals
+ * over one s-rate cable.
+ */
+
+outlet_o1 = inlet_i[0];
+outlet_o2 = inlet_i[1];
+outlet_o3 = inlet_i[2];
+outlet_o4 = inlet_i[3];
+outlet_o5 = inlet_i[4];
+outlet_o6 = inlet_i[5];
+outlet_o7 = inlet_i[6];
+outlet_o8 = inlet_i[7];
+outlet_o9 = inlet_i[8];
+outlet_o10 = inlet_i[9];
+outlet_o11 = inlet_i[10];
+outlet_o12 = inlet_i[11];
+outlet_o13 = inlet_i[12];
+outlet_o14 = inlet_i[13];
+outlet_o15 = inlet_i[14];
+outlet_o16 = inlet_i[15];]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="7ff6ca7d-ba23-4212-86d8-d6cce0419422" name="d8f_1" x="1050" y="42">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="7ff6ca7d-ba23-4212-86d8-d6cce0419422">
+         <sDescription>displays bipolar k-rate signals</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>disp.axh</helpPatch>
+         <inlets>
+            <int32 name="1"/>
+            <int32 name="2"/>
+            <int32 name="3"/>
+            <int32 name="4"/>
+            <int32 name="5"/>
+            <int32 name="6"/>
+            <int32 name="7"/>
+            <int32 name="8"/>
+            <int32 name="9"/>
+            <int32 name="10"/>
+            <int32 name="11"/>
+            <int32 name="12"/>
+            <int32 name="13"/>
+            <int32 name="14"/>
+            <int32 name="15"/>
+            <int32 name="16"/>
+         </inlets>
+         <outlets/>
+         <displays>
+            <int32.label name="1"/>
+            <int32.label name="2"/>
+            <int32.label name="3"/>
+            <int32.label name="4"/>
+            <int32.label name="5"/>
+            <int32.label name="6"/>
+            <int32.label name="7"/>
+            <int32.label name="8"/>
+            <int32.label name="9"/>
+            <int32.label name="10"/>
+            <int32.label name="11"/>
+            <int32.label name="12"/>
+            <int32.label name="13"/>
+            <int32.label name="14"/>
+            <int32.label name="15"/>
+            <int32.label name="16"/>
+         </displays>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[disp_1=inlet_1;
+disp_2=inlet_2;
+disp_3=inlet_3;
+disp_4=inlet_4;
+disp_5=inlet_5;
+disp_6=inlet_6;
+disp_7=inlet_7;
+disp_8=inlet_8;
+disp_9=inlet_9;
+disp_10=inlet_10;
+disp_11=inlet_11;
+disp_12=inlet_12;
+disp_13=inlet_13;
+disp_14=inlet_14;
+disp_15=inlet_15;
+disp_16=inlet_16;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="28" y="154" text="Clean start version"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_3" x="28" y="168">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_3" x="112" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="224" y="168">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2" name="write_2" x="294" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="bits"/>
+      </attribs>
+      <object id="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2">
+         <sDescription>write to table</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index (integer, not fraction)"/>
+            <bool32 name="v"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;]]></code.declaration>
+         <code.init><![CDATA[int ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      ntrig=1;
+      if (inlet_a < attr_table.LENGTH)
+         // attr_table.array[inlet_a]=__SSAT(inlet_v,28)>>attr_table.GAIN;
+         (attr_table.array[ inlet_a ]=__SSAT(inlet_v  ,28)>>attr_table.GAIN);
+   }
+   if (!(inlet_trig>0)) ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="77899fad-36d4-4583-bfb6-44b05d8e8c77" name="read_3" x="434" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="bits"/>
+      </attribs>
+      <object id="patch/object" uuid="77899fad-36d4-4583-bfb6-44b05d8e8c77">
+         <sDescription>read from table, nearest neighbour</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[// outlet_o= attr_table.array[__USAT(inlet_a,attr_table.LENGTHPOW)]<<attr_table.GAIN;
+
+outlet_o= attr_table.array[__USAT(  inlet_a   ,attr_table.LENGTHPOW)]<<attr_table.GAIN ;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="574" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="28" y="294" text="try 1"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_4" x="28" y="308">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_4" x="112" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_3" x="224" y="308">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2" name="write_3" x="294" y="308">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="bits"/>
+      </attribs>
+      <object id="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2">
+         <sDescription>write to table</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index (integer, not fraction)"/>
+            <bool32 name="v"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;]]></code.declaration>
+         <code.init><![CDATA[int ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      ntrig=1;
+      if (inlet_a < attr_table.LENGTH)
+         // attr_table.array[inlet_a]=__SSAT(inlet_v,28)>>attr_table.GAIN;
+         (attr_table.array[ inlet_a & (1 << 0) ]=__SSAT(inlet_v  ,28)>>attr_table.GAIN);
+   
+   }
+   if (!(inlet_trig>0)) ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="77899fad-36d4-4583-bfb6-44b05d8e8c77" name="read_4" x="434" y="308">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="bits"/>
+      </attribs>
+      <object id="patch/object" uuid="77899fad-36d4-4583-bfb6-44b05d8e8c77">
+         <sDescription>read from table, nearest neighbour</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[// outlet_o= attr_table.array[__USAT(inlet_a,attr_table.LENGTHPOW)]<<attr_table.GAIN;
+
+outlet_o= attr_table.array[__USAT(  inlet_a & (1 << 0)  ,attr_table.LENGTHPOW)]<<attr_table.GAIN;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_3" x="574" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="28" y="434" text="try 2"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_5" x="28" y="448">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_5" x="112" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_4" x="224" y="448">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2" name="write_4" x="294" y="448">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="bits"/>
+      </attribs>
+      <object id="patch/object" uuid="df18637e-e2ab-4973-a0cd-3e34fd7a75c2">
+         <sDescription>write to table</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index (integer, not fraction)"/>
+            <bool32 name="v"/>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;]]></code.declaration>
+         <code.init><![CDATA[int ntrig = 0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+      ntrig=1;
+      if (inlet_a < attr_table.LENGTH)
+         // attr_table.array[inlet_a]=__SSAT(inlet_v,28)>>attr_table.GAIN;
+         (attr_table.array[ inlet_a & (1 << 1) ]=__SSAT(inlet_v  ,28)>>attr_table.GAIN)  & (1 << 1);
+   
+   }
+   if (!(inlet_trig>0)) ntrig=0;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="77899fad-36d4-4583-bfb6-44b05d8e8c77" name="read_5" x="434" y="448">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="bits"/>
+      </attribs>
+      <object id="patch/object" uuid="77899fad-36d4-4583-bfb6-44b05d8e8c77">
+         <sDescription>read from table, nearest neighbour</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <int32.positive name="a" description="index"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[// outlet_o= attr_table.array[__USAT(inlet_a,attr_table.LENGTHPOW)]<<attr_table.GAIN;
+
+outlet_o= (attr_table.array[__USAT(  inlet_a & (1 << 1)  ,attr_table.LENGTHPOW)]<<attr_table.GAIN)  & (1 << 1);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_4" x="574" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="70" y="532" text="(bool (param_p1 &amp;( 1 &lt;&lt; i)))"/>
+   <comment type="patch/comment" x="70" y="546" text="&amp; (1 &lt;&lt; 0)"/>
+   <nets>
+      <net>
+         <source obj="1scale_2" outlet="o"/>
+         <dest obj="is12o_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o3"/>
+         <dest obj="d8f_1" inlet="3"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o4"/>
+         <dest obj="d8f_1" inlet="4"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o1"/>
+         <dest obj="d8f_1" inlet="1"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o2"/>
+         <dest obj="d8f_1" inlet="2"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o5"/>
+         <dest obj="d8f_1" inlet="5"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o6"/>
+         <dest obj="d8f_1" inlet="6"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o7"/>
+         <dest obj="d8f_1" inlet="7"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o8"/>
+         <dest obj="d8f_1" inlet="8"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o9"/>
+         <dest obj="d8f_1" inlet="9"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o10"/>
+         <dest obj="d8f_1" inlet="10"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o11"/>
+         <dest obj="d8f_1" inlet="11"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o12"/>
+         <dest obj="d8f_1" inlet="12"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o13"/>
+         <dest obj="d8f_1" inlet="13"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o14"/>
+         <dest obj="d8f_1" inlet="14"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o15"/>
+         <dest obj="d8f_1" inlet="15"/>
+      </net>
+      <net>
+         <source obj="is12o_1" outlet="o16"/>
+         <dest obj="d8f_1" inlet="16"/>
+      </net>
+      <net>
+         <source obj="read_3" outlet="o"/>
+         <dest obj="bool_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="write_2" inlet="a"/>
+         <dest obj="read_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="toggle_3" outlet="o"/>
+         <dest obj="change_3" inlet="in"/>
+         <dest obj="write_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="change_3" outlet="trig"/>
+         <dest obj="write_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="read_4" outlet="o"/>
+         <dest obj="bool_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="write_3" inlet="a"/>
+         <dest obj="read_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="toggle_4" outlet="o"/>
+         <dest obj="change_4" inlet="in"/>
+         <dest obj="write_3" inlet="v"/>
+      </net>
+      <net>
+         <source obj="change_4" outlet="trig"/>
+         <dest obj="write_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="read_5" outlet="o"/>
+         <dest obj="bool_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_4" outlet="out"/>
+         <dest obj="write_4" inlet="a"/>
+         <dest obj="read_5" inlet="a"/>
+      </net>
+      <net>
+         <source obj="toggle_5" outlet="o"/>
+         <dest obj="change_5" inlet="in"/>
+         <dest obj="write_4" inlet="v"/>
+      </net>
+      <net>
+         <source obj="change_5" outlet="trig"/>
+         <dest obj="write_4" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>20</x>
+      <y>23</y>
+      <width>1228</width>
+      <height>683</height>
+   </windowPos>
+</patch-1.0>

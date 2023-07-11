@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Hacking objects 101: adding modulation inlets</title>
+    <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969</link>
+    <description>Some users often ask contributors to **add modulation inlets** to their objects.
+While a workaround exists (adding a  **patch/modsource object** and right-clicking on the parameter to modulate), sometimes this solution is not efficient or not available at all (see for example integer boxes).
+
+What to do in one of these cases?
+1) you can ask the contributor here on the forum to add inlets (**lame**!) (just kidding!!!) (not really: **we are lazy**) 
+2) you can **HACK THE OBJECT** in few steps
+
+Click on the little arrow of the object you want to edit
+
+&lt;img src=&quot;/uploads/default/original/2X/a/adf493844afc976b7fa142c146c106455d14ad63.png&quot; width=&quot;145&quot; height=&quot;125&quot;&gt;
+
+Embed as patch/object, this way you can&#39;t do permanent disasters. **DON&#39;T EDIT OBJECT DEFINITION, UNLESS YOU&#39;RE VERY SKILLED IN TROUBLESHOOTING C++ CODE**
+
+&lt;img src=&quot;/uploads/default/original/2X/7/7c7cb0193cabfcc642192e86c56f68ec8bb6ff9e.png&quot; width=&quot;194&quot; height=&quot;157&quot;&gt;
+
+Click on edit
+
+&lt;img src=&quot;/uploads/default/original/2X/4/49b4c322a70b54e6dcd20966fbf4566a6260d665.png&quot; width=&quot;104&quot; height=&quot;114&quot;&gt;
+
+Select the inlet tab on the left and then add as many inlets as you need.
+
+&lt;img src=&quot;/uploads/default/original/2X/8/8ccdcb8b525ef4e6ec5afe7f6d7200b21fb5a08d.png&quot; width=&quot;563&quot; height=&quot;419&quot;&gt;
+
+Give a name to such inlets, something you can remember. Do not use spaces or symbols, just letters or numbers.
+As for the type: dials (knobs) correspond to frac32 inlets (blue). Buttons and toggles correspond to bool32 inlets. Integer boxes correspond to int32 inlets. All the other stuff is just labels on the object (you can experiment on this).
+Also, buffered inlets refer to the audio rate stuff. It&#39;s not the case to touch those.
+
+&lt;img src=&quot;/uploads/default/original/2X/f/f469d452209e3e82ad51ed16eb716b9491b1b915.png&quot; width=&quot;554&quot; height=&quot;414&quot;&gt;
+
+Now the tricky part: you have to search in the k-rate and s-rate code every reference to the parameter you want to hack. You&#39;ll find stuff like **param_ParameterName**. 
+You have a few options here: you can add the inlet to the parameter (see the middle portion of image) or override it completely (delete param_ParameterName and substitute it with inlet_InletName) 
+Remember to add &quot;;&quot; at the end of rows (the code won&#39;t start otherwise).
+If you choose to override completely a parameter you can then go in the parameters tab and delete the parameter.
+
+&lt;img src=&quot;/uploads/default/original/2X/f/fbd078051bc80df29b5225e2ab06fd42f2d7b110.png&quot; width=&quot;543&quot; height=&quot;408&quot;&gt;
+
+You&#39;re done!
+
+&lt;img src=&quot;/uploads/default/original/2X/2/25baeadf5dc80119eeeff7710d138cf32dc280db.png&quot; width=&quot;115&quot; height=&quot;138&quot;&gt;
+
+For this example i hacked ctrl/dial.
+
+
+
+**Something can go wrong** while doing this. Aside from **syntax errors**, there are some cases in which a parameter is bound inside a very specific **range**. Outside that range weird stuff might happen (pleasantly weird but also patch-crashing weird).
+This might happen because of variable overflowing, for reading/writing arrays outside their range or for similar reasons.
+Troubleshooting these errors is often hard and requires skill. If you don&#39;t have the skill, just be careful with what you feed into these inlets. You could use **math/sat** and math/satp objects as a quick fix</description>
+    
+    <lastBuildDate>Wed, 08 Apr 2020 21:55:44 +0000</lastBuildDate>
+    <category>User Guide</category>
+    <atom:link href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@xoanxil xoanxil]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/xoanxil">@xoanxil</a> wrote:</p>
+          <blockquote>
+              <p>Great! Thanks JeromeB and jaffasplaffa I think it is working.</p>
+
+<p>Best!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/24</link>
+        <pubDate>Wed, 08 Apr 2020 21:55:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-24</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@JeromeB]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jeromeb">@JeromeB</a> wrote:</p>
+          <blockquote>
+              <p>Try this (confusion between "&gt;&gt;" and "&lt;&lt;" in your previous code).<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/3/3b8337e155d7d6154d40fc62ed29725abc9b138a.axp">eucly_2.axp</a> (5.1 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/23</link>
+        <pubDate>Wed, 08 Apr 2020 20:09:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-23</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@xoanxil xoanxil]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/xoanxil">@xoanxil</a> wrote:</p>
+          <blockquote>
+              <p>Ok jaffasplaffa. Thanks anyway. Let see if someone else can shed some light on it.</p>
+
+<p>Best</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/22</link>
+        <pubDate>Wed, 08 Apr 2020 16:47:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-22</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>The scaling works fine, it seems to me.</p>
+
+<p>I added some displays so you can see the scaling on the object. They are all scaled 0-63 now in integer. Can be tuned so it fits bette fo the purpose, like 1-16 instead of 0-63.</p>
+
+<p>Besides that sorry, I have no idea why it wont work. I tried a few things and yeah it just doesnt seem to work properly when using dials. After it has been rescaled, it should work the same. Sorry I am out of suggestions.</p>
+
+<p>Here is the patch with the display:<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/a/a395bd832918a1d2c9e97848f1467714d0bf9b76.axp">eucly_2.axp</a> (5.1 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/21</link>
+        <pubDate>Wed, 08 Apr 2020 16:38:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-21</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@xoanxil xoanxil]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/xoanxil">@xoanxil</a> wrote:</p>
+          <blockquote>
+              <p>Sorry... Please, try now</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/3/3679ffd9d8e423dc16c00cfae2f8708d3d4a8a6a.axp">eucly_2.axp</a> (4.8 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/20</link>
+        <pubDate>Wed, 08 Apr 2020 16:15:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-20</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>The euclydSeq_2 object is not there. </p>
+
+<p>You need to embed it first.<br>1. Push the small triangle in top left corner of object.<br>2. Select Embed as patch/object.</p>
+
+<p>And then save the patch and post again.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/19</link>
+        <pubDate>Wed, 08 Apr 2020 15:03:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-19</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@xoanxil xoanxil]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/xoanxil">@xoanxil</a> wrote:</p>
+          <blockquote>
+              <p>Here it is</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/c/cbaebb357cf40ff7d0255c4138044db2b40570c6.axp">eucly_2.axp</a> (3.1 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/18</link>
+        <pubDate>Wed, 08 Apr 2020 15:01:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-18</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Just changing the inlet doesnt do it, you also need to do the rescaling.</p>
+
+<aside class="quote" data-post="16" data-topic="2969"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/xoanxil/40/4653_1.png" class="avatar">xoanxil:</div>
+<blockquote><p>The &lt;&gt; option cannot be executed it said "shell task failed, exit value: 2".</p></blockquote></aside>
+
+<p>It was either &gt;&gt;21 or &lt;&lt;21 ...</p>
+
+<p>Could you post the patch? </p>
+
+<p>It makes it a lot easier to troubleshoot.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/17</link>
+        <pubDate>Wed, 08 Apr 2020 14:49:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-17</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@xoanxil xoanxil]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/xoanxil">@xoanxil</a> wrote:</p>
+          <blockquote>
+              <p>Thank you very much for your answer jaffasplaffa.</p>
+
+<p>I have tried it but the first option doesn't make any difference. It doesnt respond to the Dials, even changing to int32 in Type inlet options and getting them green.</p>
+
+<p>The &lt;&gt; option cannot be executed it said "shell task failed, exit value: 2".</p>
+
+<p>Any other idea.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/16</link>
+        <pubDate>Wed, 08 Apr 2020 14:31:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-16</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>The blue inlet you are using and the parameters you feed to the blue inlets are not the same type of variables as the destination that you are trying to change.</p>
+
+<p>The parameters fed to the blue inlet are fractionals. The destination are integers. So you need to rescale the fractional blue inlets to integers. Try something like this:</p>
+
+<p>o = ((((counter++ + param_rotation + <strong>(inlet_rot&lt;&lt;21)</strong>) * param_hits + <strong>(inlet_hits&lt;&lt;21)</strong>) % param_length + <strong>(inlet_leng&lt;&lt;21)</strong>) &lt; param_hits + <strong>(inlet_hits&lt;&lt;21)</strong>);</p>
+
+<p>Basically putting a parantese around the inlet_leng, so ONLY the inlet is affectced and then bit shift 21:<br>(inlet_leng&lt;&lt;21)</p>
+
+<p>If that doest work, then try to switch the &lt;&gt; for all of the changes I have made. I don't have my Axo board fired up ath the moment and I always get those two switched around, so if one doesn't work, try the other.</p>
+
+<p>To understand Axoloti and working with variables a bit better:<br>Red color    = Audio<br>Blue color   =  K-rate/fractionals<br>Green color = Integers</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/15</link>
+        <pubDate>Wed, 08 Apr 2020 13:12:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-15</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@xoanxil xoanxil]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/xoanxil">@xoanxil</a> wrote:</p>
+          <blockquote>
+              <p>Hi,</p>
+
+<p>I am trying to add extra inlets to an Euclydiean Rhythm object. It seems to be ok, but when I am trying to change values with dials it does anything.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/b25f24748a548b680b9144390e0a9a42fe4b362d" href="//community.axoloti.com/uploads/default/original/2X/b/b25f24748a548b680b9144390e0a9a42fe4b362d.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/b/b25f24748a548b680b9144390e0a9a42fe4b362d_1_690x262.png" width="690" height="262"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1045x397 37.3 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Here is the code:</p>
+
+<p>o = 0;<br>if(inlet_trig &gt; 0 &amp;&amp; !ntrig){<br>	ntrig = 1;<br>	o = ((((counter++ + param_rotation + inlet_rot) * param_hits + inlet_hits) % param_length + inlet_leng) &lt; param_hits + inlet_hits);<br>}<br>if(!(inlet_trig &gt; 0)) ntrig = 0;<br>outlet_trig = o;</p>
+
+<p>Any idea?</p>
+
+<p>Thanks,</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/14</link>
+        <pubDate>Wed, 08 Apr 2020 12:02:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-14</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="12" data-topic="2969"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/deef/40/5455_1.png" class="avatar">deef:</div>
+<blockquote><p>Probably I confuse what RAM is needed for what. All the dials on an object is it in SRAM, right?</p></blockquote></aside>
+
+<p>I dont think you should worry too much about a couple of dials, there are other things that will take up alot more memory than dial, like for example if you use a delay that uses S-ram, instead of the SD-ram version. </p>
+
+<p>I am no expert on the details about how much resources they use, I think someone else who know code a lot better than me can answer that for you... Ut a couple of dials...... Dont worry about that <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>Anyway, I think you should just start patching and if you eventually get to the point where you hit the limit there are always ways to optimize a little bit here and there. But overall I think you should just build what you like and the realise if you actually have issues or not. Use some of the tips above, like use SD-rams for the delay anf you will go far.</p>
+
+<p>About the stereo thing, the essence of stereo is, that its two channels, so if you want stereo.... <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>I know the community library is huge, but its definately worth the while spending some hours looking through it to see whats there. Its a really good way of finding inspiration for your own pacthes. Not only check the community library objects but also the the patches that you find in &gt; </p>
+
+<p>file &gt; library<br>file &gt; community</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/13</link>
+        <pubDate>Sat, 15 Sep 2018 15:02:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-13</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@deef]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deef">@deef</a> wrote:</p>
+          <blockquote>
+              <p>How would be the subpatch way go? I mean I'd have to still have the module 2x in the subpatch + make all the parameters/dials available on parent, to assign them to midi quickly.... or is that actually the main SRAM saving tip, to have simply INS &amp; OUTS on parent &amp; rest hidden in the subpatch, but still mapped to midi or analog-pots? Hm...<br>Probably I confuse what RAM is needed for what. All the dials on an object is it in SRAM, right?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/12</link>
+        <pubDate>Sat, 15 Sep 2018 13:47:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-12</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="10" data-topic="2969"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/deef/40/5455_1.png" class="avatar">deef:</div>
+<blockquote><p>Is it as "easy" (as easy as modulation-inputs) to make stereo out of mono-modules?</p></blockquote></aside>
+
+<p>I think the easiest way is to make a subpatch and throw it all in there.</p>
+
+<aside class="quote" data-post="10" data-topic="2969"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/deef/40/5455_1.png" class="avatar">deef:</div>
+<blockquote><p>Or is to dublicate the modules the best way?</p></blockquote></aside>
+
+<p>You can write it in code, for example making a for loop X times depending on how many you want.</p>
+
+<p>Or you could just copy the code inside and object and rename the variables for the second version. Like if you have some variables called "int a" and you copy that one, you neeed to rename it, cause you can only have one variable with that specific name.</p>
+
+<p>So basically if you know a little code you can try the above.</p>
+
+<aside class="quote" data-post="10" data-topic="2969"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/deef/40/5455_1.png" class="avatar">deef:</div>
+<blockquote><p>It would save a lot of sram + time to setting up...</p></blockquote></aside>
+
+<p>Time yes, but S-ram I am not sure, cause you still need 2 of each. I think its going to be very little you save if its just a stereo delay.</p>
+
+<p>For the S-ram, try using the delay that uses SD-ram. There are a lot more SD-ram than S-ram, so you can save the S-ram for other purposes.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/11</link>
+        <pubDate>Sat, 15 Sep 2018 12:46:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-11</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@deef]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deef">@deef</a> wrote:</p>
+          <blockquote>
+              <p>I didn't want to start an extra 101-thread, so:<br>Is it as "easy" (as easy as modulation-inputs) to make stereo out of mono-modules?<br>e.g. "stereorize" a filter/sampler/delay?<br>Or is to dublicate the modules the best way? <br>It would save a lot of sram + time to setting up...<br>Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/10</link>
+        <pubDate>Sat, 15 Sep 2018 12:10:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-10</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@JonasBers Jonas Bers]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jonasbers">@JonasBers</a> wrote:</p>
+          <blockquote>
+              <p>Hi! </p>
+
+<p>After using workarounds for a while, I'm trying to mashup some oscillator objects that I like to create my dream oscillator. I've had a little bit of success, but now I'm stuck. </p>
+
+<p>For vector synthesis, I need: </p>
+
+<ol>
+<li><p>an oscillator with a fast, stable sync input so that i can use it in conjunction with video VSYNC pulses. <a class="mention" href="/u/toneburst">@toneburst</a> sinesync is the only thing i've found that syncs stably. </p></li>
+<li><p>multiple waveforms (<a class="mention" href="/u/drjustice">@DrJustice</a> multiwave LFO, <a class="mention" href="/u/beat">@beat</a> multiwave)</p></li>
+<li><p>Quadrature outputs for to use for rotating a video raster. </p></li>
+<li><p>An LFO version, and a VCO version (k-rate, s-rate)</p></li>
+</ol>
+
+<p>SO, an amalgam of a few of these oscillators would do it, but none of them are up to the task on their own. </p>
+
+<p>Here's what I was able to accomplish -- I successfully added a quadrature outputs to sine-sync.  (<img src="//community.axoloti.com/uploads/default/original/2X/6/676eb48dbad2272f073fb36298f9fc79ab160d8c.png" width="437" height="464"></p>
+
+<p>Now I just need to add the other waveforms and I'm a little overwhelmed. I also tried converting the dual multiwave LFO to s-rate, but I can't get it to work. I changed the inlet/outlet types and parameter types to match what i've seen other s-rate oscillators use. I also cut and paste the code from k-rate to s-rate. Didn't work, lol. Am I even close?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/9</link>
+        <pubDate>Mon, 20 Aug 2018 20:55:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-9</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/mlbstrd">@mlbstrd</a> You can make your own versions of those objects, the rings for example:</p>
+
+<ol>
+<li>Embed the object.</li>
+<li>Go to "edit object definition" and "copy to library" to save the object as a real object to a folder you like.</li>
+<li>Go to the "rings" folder, in the factory library, then simply copy the header file "rings_fx.h" to the folder that you saved your own version of the object in.</li>
+<li>Voila, the object will now load and you have created your own local version that you can edit to taste <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:">
+</li>
+</ol>
+
+<p>(It's because the object need to have a specific path so it MUST be saved(copy to library).... And then next the object expects the headerfile to be in the same folder as the object itself. So you need to copy it over manually, as described above).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/8</link>
+        <pubDate>Wed, 09 May 2018 16:59:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-8</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="5" data-topic="2969"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/m/a9adbd/40.png" class="avatar">mlbstrd:</div>
+<blockquote><h1>include "./rings_fx.h"</h1></blockquote></aside>
+
+<p>this is where things go wrong.</p>
+
+<p>you see, the example <a class="mention" href="/u/sputnki">@Sputnki</a> gave with embedding objects only works for self contained objects (objects without reference to external files) </p>
+
+<p>the generated error means, that an include file is missing, because you embedded the object and there is currently no way to include a file in an embedded object.</p>
+
+<p>so, in this case this method won't work. that being said, there are only a handful of objects with includes in axoloti world.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/7</link>
+        <pubDate>Fri, 04 May 2018 07:37:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-7</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@axoman]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/axoman">@axoman</a> wrote:</p>
+          <blockquote>
+              <p>Sorry mlbstrd, but I never got to the point where did a specific edit to a specific object, I was just super-pleased that I could do it at all.  I know I practiced at the time and saw results, but whether it was done right and bug free is another thing entirely.</p>
+
+<p>The problem might not actually be your coding, it might be something to do with the patching environment so hopefully someone who knows what they're talking about will step in and advise, but I'm sorry I can't help.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/6</link>
+        <pubDate>Fri, 13 Apr 2018 14:50:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-6</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@mlbstrd]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlbstrd">@mlbstrd</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/axoman">@axoman</a> did you have any luck with this? I just tried the same - got a compiling error: </p>
+
+<p>Compiling patch... with /Applications/Axoloti.app/Contents/Java/firmware<br>BDIR = /Users/mitchadmin/Documents/axoloti/build<br>FIRMWARE = .<br>RM<br>APP<br>! /Users/mitchadmin/Documents/axoloti/build/xpatch.h.gch<br>/Users/mitchadmin/Documents/axoloti/build/xpatch.cpp:1:24: fatal error: ./rings_fx.h: No such file or directory<br> <span class="hashtag">#include</span> "./rings_fx.h"<br>                        ^<br>compilation terminated.<br>make: *** [/Users/mitchadmin/Documents/axoloti/build/xpatch.bin] Error 1<br>shell task failed, exit value: 2<br>Compiling patch failed ( /Users/mitchadmin/Desktop/AXOLOTI/reverb inlet test.axp )  </p>
+
+<p>Any ideas? Would be great to easily add inlets this easily!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/5</link>
+        <pubDate>Fri, 13 Apr 2018 12:24:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-5</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@axoman]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/axoman">@axoman</a> wrote:</p>
+          <blockquote>
+              <p>That makes way more sense now that I see it <img src="//community.axoloti.com/images/emoji/emoji_one/smile.png?v=3" title=":smile:" class="emoji" alt=":smile:"><br>Thanks again!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/4</link>
+        <pubDate>Sun, 26 Feb 2017 19:14:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-4</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>You can see in the image all references to the parameters highlighted. <br><img src="//community.axoloti.com/uploads/default/original/2X/8/82d8b3d34ee832278905270b7c28d491cd88c990.png" width="552" height="435"><br>You could substitute row 6 with the following:<br></p>
+
+<p></p><pre><code class="lang-auto">reverb.set_amount(q27_to_float(param_amount + inlet_test));</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/3</link>
+        <pubDate>Sun, 26 Feb 2017 19:06:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-3</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@axoman]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/axoman">@axoman</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for posting this, Sputnki.</p>
+
+<p>I get so far, but I'm confused about how I need to edit the code.  I'll give a step-by-step of what I did so that you have exactly what I have.  If you were to copy what I did using the exact same object and input name that I used, you could post a screenshot of the edited k-rate code, then I would understand.</p>
+
+<ul>
+<li>Add the object <strong>fx/lmnts/reverb</strong>
+</li>
+<li>Add an inlet and name it <strong>test</strong>
+</li>
+<li>Assign the type as <strong>frac32</strong>
+</li>
+</ul>
+
+<p>In my example, I wish to use the inlet named <strong>test</strong> to drive the dial named <strong>amount</strong>.  In this case, there's no code to edit under S-rate, only K-rate, but what do I change to make it work?</p>
+
+<p>It'd be great if you would post a screenshot of the edited K-rate code for my specific example, it'd be easier to understand because it'd be a real example to learn from.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/2</link>
+        <pubDate>Sun, 26 Feb 2017 18:57:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-2</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+      <item>
+        <title>Hacking objects 101: adding modulation inlets</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Some users often ask contributors to <strong>add modulation inlets</strong> to their objects.<br>While a workaround exists (adding a  <strong>patch/modsource object</strong> and right-clicking on the parameter to modulate), sometimes this solution is not efficient or not available at all (see for example integer boxes).</p>
+
+<p>What to do in one of these cases?<br>1) you can ask the contributor here on the forum to add inlets (<strong>lame</strong>!) (just kidding!!!) (not really: <strong>we are lazy</strong>) <br>2) you can <strong>HACK THE OBJECT</strong> in few steps</p>
+
+<p>Click on the little arrow of the object you want to edit</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/a/adf493844afc976b7fa142c146c106455d14ad63.png" width="145" height="125"></p>
+
+<p>Embed as patch/object, this way you can't do permanent disasters. <strong>DON'T EDIT OBJECT DEFINITION, UNLESS YOU'RE VERY SKILLED IN TROUBLESHOOTING C++ CODE</strong></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/7/7c7cb0193cabfcc642192e86c56f68ec8bb6ff9e.png" width="194" height="157"></p>
+
+<p>Click on edit</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/4/49b4c322a70b54e6dcd20966fbf4566a6260d665.png" width="104" height="114"></p>
+
+<p>Select the inlet tab on the left and then add as many inlets as you need.</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/8/8ccdcb8b525ef4e6ec5afe7f6d7200b21fb5a08d.png" width="563" height="419"></p>
+
+<p>Give a name to such inlets, something you can remember. Do not use spaces or symbols, just letters or numbers.<br>As for the type: dials (knobs) correspond to frac32 inlets (blue). Buttons and toggles correspond to bool32 inlets. Integer boxes correspond to int32 inlets. All the other stuff is just labels on the object (you can experiment on this).<br>Also, buffered inlets refer to the audio rate stuff. It's not the case to touch those.</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/f/f469d452209e3e82ad51ed16eb716b9491b1b915.png" width="554" height="414"></p>
+
+<p>Now the tricky part: you have to search in the k-rate and s-rate code every reference to the parameter you want to hack. You'll find stuff like <strong>param_ParameterName</strong>. <br>You have a few options here: you can add the inlet to the parameter (see the middle portion of image) or override it completely (delete param_ParameterName and substitute it with inlet_InletName) <br>Remember to add ";" at the end of rows (the code won't start otherwise).<br>If you choose to override completely a parameter you can then go in the parameters tab and delete the parameter.</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/f/fbd078051bc80df29b5225e2ab06fd42f2d7b110.png" width="543" height="408"></p>
+
+<p>You're done!</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/2/25baeadf5dc80119eeeff7710d138cf32dc280db.png" width="115" height="138"></p>
+
+<p>For this example i hacked ctrl/dial.</p>
+
+<p><strong>Something can go wrong</strong> while doing this. Aside from <strong>syntax errors</strong>, there are some cases in which a parameter is bound inside a very specific <strong>range</strong>. Outside that range weird stuff might happen (pleasantly weird but also patch-crashing weird).<br>This might happen because of variable overflowing, for reading/writing arrays outside their range or for similar reasons.<br>Troubleshooting these errors is often hard and requires skill. If you don't have the skill, just be careful with what you feed into these inlets. You could use <strong>math/sat</strong> and math/satp objects as a quick fix</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969/1</link>
+        <pubDate>Sun, 26 Feb 2017 16:13:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2969-1</guid>
+        <source url="http://community.axoloti.com/t/hacking-objects-101-adding-modulation-inlets/2969.rss">Hacking objects 101: adding modulation inlets</source>
+      </item>
+  </channel>
+</rss>

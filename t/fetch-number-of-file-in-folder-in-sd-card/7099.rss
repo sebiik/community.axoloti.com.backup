@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Fetch number of file in folder in SD card</title>
+    <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099</link>
+    <description>Hi all!
+
+I&#39;m working on a kind of rhythm machine based mainly on sample. I would like to be able to load Raw samples on different folders and not having to go inside the patch to mention the program how much raw file there is in a folder.
+
+So I wanted to know if there is a method so that the patch will, at a certain point, fetch the number of file inside a certain folder and return it as an integer value.
+
+Thanks!</description>
+    
+    <lastBuildDate>Sun, 02 Jan 2022 17:52:48 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>I found this function and remembered this question, just pasting here without having read the full thread - please excuse my ignorance. Hope it helps.</p>
+
+<p></p><pre><code class="lang-auto">uint16_t getNumFilesInDir (char* path)
+{
+	FRESULT res;
+	FILINFO fno;
+	DIR dir;
+	char *fn;
+	static char lfn[_MAX_LFN + 1];
+	fno.lfname = lfn;
+	fno.lfsize = sizeof(lfn);
+	int i = 0;
+
+	res = f_opendir(&amp;dir, path);                       /* Open the directory */
+	if (res == FR_OK) {
+		for (;;) {
+			res = f_readdir(&amp;dir, &amp;fno);                   /* Read a directory item */
+			if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+			fn = *fno.lfname ? fno.lfname : fno.fname;
+
+			if (!(fno.fattrib &amp; AM_DIR))                   /* It is a file. */
+				i++;
+		}
+	}
+	return i;
+}</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/33">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/33</link>
+        <pubDate>Sun, 02 Jan 2022 17:52:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-33</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/tele_player">@tele_player</a> <br>I use the object from rbrt "choose" that outputs a constant string based on an input index. Basically, everytime I push a button, the path of a folder changes.<br>I'd like to take this path as a string and feed your object with it, that will in turn give me the number of file present in this folder.<br>Maybe I need a trigger input to tell your object to search the folder only once when a trigger is present?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/32">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/32</link>
+        <pubDate>Sat, 25 Dec 2021 17:59:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-32</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Specifically, how will user enter the folder name? Select from a list? A fixed list, or one that is generated at run time according the contents of the SD?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/31">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/31</link>
+        <pubDate>Sat, 25 Dec 2021 17:33:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-31</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>So I'm back at my Axoloti.<br>I can't seem to make your object work with a string inlet.<br>I believe your code is in the Init part so it will only run once?<br>What I would like to do is be able to read the number of file in a folder while being able to change the folder path dynamically.</p>
+
+<p>I tried to fiddle with the code but i'm not good enough to make it work yet I guess.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/30">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/30</link>
+        <pubDate>Sat, 25 Dec 2021 16:57:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-30</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@AndrewChi]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andrewchi">@AndrewChi</a> wrote:</p>
+          <blockquote>
+              <p>Thanks so much!!! This is brilliant!! <img src="//community.axoloti.com/images/emoji/twitter/pray.png?v=5" title=":pray:" class="emoji" alt=":pray:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/29">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/29</link>
+        <pubDate>Thu, 16 Dec 2021 13:58:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-29</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>Yes, and it is of great help, I understand how it works now!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/28">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/28</link>
+        <pubDate>Wed, 15 Dec 2021 10:53:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-28</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Yes, that’s a simple change. I just wanted to demonstrate the use of  opendir and readdir, and how to use Init Code to do something just once.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/27">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/27</link>
+        <pubDate>Wed, 15 Dec 2021 04:43:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-27</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>Hey great thanks a lot!<br>I'm away from my axo for a week, I'll test your object as soon as I get back.<br>For my use, i would need to have the folder directory as a string inlet.<br>I guess if I replace the attr_folder with an charptr32 inlet it would work?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/26">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/26</link>
+        <pubDate>Tue, 14 Dec 2021 20:27:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-26</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Try this:</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/0/0637f28c4fe807fbbd73c9486156318218200b0f.axp">filecount2.axp</a> (1.8 KB)</p>
+
+<p>The embedded object has an edit button, use it to enter the folder name; be sure to include the leading /    .</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/25</link>
+        <pubDate>Tue, 14 Dec 2021 17:26:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-25</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>if teleplayer is right about the  f_opendir() and f_readdir() working on the axoloti, I'ld go that way...<br>my way was a work around as I didn't know these codes either, but they should be waaay faster.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/24</link>
+        <pubDate>Tue, 14 Dec 2021 11:56:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-24</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>Hey, yes, I could share it here once I'm done cleaning the object.</p>
+
+<p>At the moment it is working but I still need to resolve some trouble in my patch: I'm actually using it in some kind of drum machine. When I press a button, my patch is looking for a sample folder and the samples inside this folder are played/streamed directly to the output of the AXO. <br>But it seems that the Axo does not like having different operations on the SD card at the same time: when i change the folder and the custom object is browsing the files, there is a digital blip/glitch if a sample is being played at the same time.</p>
+
+<p>I might have to ask the object to browse every folder at the start of the patch, before playing samples, and store the values of the number of files in each folder in tables so I can recall it while playing.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/23</link>
+        <pubDate>Mon, 13 Dec 2021 21:34:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-23</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@AndrewChi]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andrewchi">@AndrewChi</a> wrote:</p>
+          <blockquote>
+              <p>Great to read that it works!!<br>Are you planning to share the object?<br>Sounds like a very useful thing <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/22</link>
+        <pubDate>Mon, 13 Dec 2021 18:46:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-22</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>Yup, that did the trick, I added an inlet and the following code:<br>if ((inlet_reset&gt;0) &amp;&amp; !ntrig) {<br>	ntrig = 1;<br>cnt = 0;<br>}</p>
+
+<p>So basically each time I press the "change folder path" button, it triggers the reset, then a delayed pulse object triggers the Findfree inlet.</p>
+
+<p>It seems to work well like this but it seems to need at least 100ms of delay beatween the triggers, otherwise it stays stuck at cnt=0.</p>
+
+<p>Thanks a lot!</p>
+
+<p><a class="mention" href="/u/tele_player">@tele_player</a><br>Oh great, I'm only reverse engineering the objects so coding from scratch is still out of reach at the moment, but i'll look into the commands you are refering to!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/21</link>
+        <pubDate>Mon, 13 Dec 2021 18:29:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-21</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>The normal way to do this (on a real OS) would be to use f_opendir() and f_readdir(). I'm pretty sure these exist in chibiOS.</p>
+
+<p>Edit: confirmed, this works on Axoloti</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/20</link>
+        <pubDate>Mon, 13 Dec 2021 18:02:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-20</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>you could try to "manually" reset the cnt-value to zero with an external trigger, perhaps this might fix it.<br>But also, could it be that it is still reading the old location or have you conformation that it actually switched folder?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/19</link>
+        <pubDate>Mon, 13 Dec 2021 16:22:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-19</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>thanks a lot for your help!<br>I managed to make it work thanks to your examples.<br>Now the only problem is that when I change the prefix (the path of the folder to scrape) the amount of files only updates when it is higher than the previous one.<br>For an example, if a folder has 10 files in it, it will output 10, but if the nex one has less, like 5, the output will stay at 10.<br>Weird…</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/18</link>
+        <pubDate>Mon, 13 Dec 2021 15:26:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-18</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>hmmm... not really getting it to work with an external prefix inlet.<br>It's really tiresome to check this out as I have the unmount/mount my SDcard all the time to check whether it's creating the right file names.</p>
+
+<p>It currently does seem to count the files, but not sure it's actually working correctly..<br>I've used your code to create the string, but made one change. I've added the part where it gets the offset.<br>Then the strcat uses this offset to see where it needs to add the 000suffix, as I think your version overwrites the prefix part..</p>
+
+<pre><code>strcpy(&amp;c[0],inlet_prefix);
+offset = strlen(inlet_prefix);
+strcat(&amp;c[offset],"000attr_suffix");
+strcpy(&amp;C[0],inlet_prefix);
+strcat(&amp;C[offset],"000attr_suffix");</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/17</link>
+        <pubDate>Mon, 13 Dec 2021 09:47:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-17</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>I think this should work. At least, when I used the save-file first a couple of times to save a file, it was able to tell me how many of these files were on the disk..</p>
+
+<p>change the first part to this:</p>
+
+<p>if(inlet_findFree&amp;&amp;!ntrig){<br>	stop=0;<br>	ntrig=1;</p>
+
+<pre><code>strcpy(&amp;c[0],"inlet_prefix000attr_suffix");
+offset = strlen("inlet_prefix");
+strcpy(&amp;C[0],"inlet_prefix000attr_suffix");</code></pre>
+
+<p>}<br>else if((!inlet_findFree)&amp;&amp;ntrig){ntrig=0;}</p>
+
+<p>oh, no, forget it, this didn't work.. it saved as inlet_prefi000.tab... haha..of course</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/16</link>
+        <pubDate>Mon, 13 Dec 2021 09:17:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-16</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>oef, it's a bit hard to get this module changed because of the header-problem we mentioned earlier.<br>Had to do quite a search again for the project that I build this in.</p>
+
+<p>Remember, that, to change this module, you cannot embed it. You first need to save it to a folder of your own (so not in my sss-folder, but I assume you've already done this).</p>
+
+<p>So once it's in your own folder that also contains the header file, you'll need to change the code without embedding the module and overwrite/save the module after you've changed something.</p>
+
+<p>As you only need the amount of files in a folder,you'ld only need this part of the K-rate code:</p>
+
+<p>if(inlet_findFree&amp;&amp;!ntrig){<br>	stop=0;<br>	ntrig=1;<br>}<br>else if((!inlet_findFree)&amp;&amp;ntrig){ntrig=0;}</p>
+
+<p>while(!stop){<br>   int i = cnt;<br>   int i0 = i/10;<br>   C[offset+2] = '0'+i-10*i0;<br>   i = i0; i0 = i/10;<br>   C[offset+1] = '0'+i-10*i0;<br>   i = i0; i0 = i/10;<br>   C[offset+0] = '0'+i-10*i0;<br>   FIL FileObject;<br>   FRESULT err;<br>  err = f_open(&amp;FileObject, &amp;C[0], FA_READ | FA_OPEN_EXISTING);<br>if (err == FR_OK) {cnt+=1;}<br>else if(err!=FR_OK){stop=1;}<br>}</p>
+
+<p>indeed, the "cnt-1" will show you the last file that is in use (so "cnt" is the amount of samples, where the samples start at index 000 up to index cnt-1)</p>
+
+<p>for changing the prefix into an inlet, I'll need to experimentate a bit.. not sure if I can get it to work yet..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/15</link>
+        <pubDate>Mon, 13 Dec 2021 09:07:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-15</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>Hello <a class="mention" href="/u/sirsicksik">@SirSickSik</a> </p>
+
+<p>I have been trying to finish and clean a patch that I'm working on lately. I'm using your findFree object but i'd like to use only one instance of it to find the number of files in multiple folders.<br>Basically, i just need to have the "prefix" as an inlet instead of an attribute. I have been trying to use strcat in your code in such a way:</p>
+
+<p><strong>strcpy(&amp;c[0],inlet_prefix);</strong><br><strong>strcat(&amp;c[0],"000attr_suffix");</strong><br><strong>strcpy(&amp;C[0],inlet_prefix);</strong><br><strong>strcat(&amp;C[0],"000attr_suffix");</strong></p>
+
+<p>It was not working if I was putting this code inside the init code tab so i moved it to K-rate code tab (I deducted this while studying the concat objects).</p>
+
+<p>The path is right if I output both the <strong>c</strong> and <strong>C</strong> strings but the "free" display dos not light up and my "amount" outlet that I added in your code (outlet_amount=cnt;) only outputs 0.</p>
+
+<p>Do you have any idea what goes wrong here?</p>
+
+<p>Also, for the sake of saving SRAM, I'd like to erase all other functions that i'm not using, could you point me to what chunks of code I can delete?</p>
+
+<p>thanks a lot!</p>
+
+<p>best</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/14</link>
+        <pubDate>Sun, 12 Dec 2021 18:52:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-14</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>Not sure what you call the header file. the patch was not executing because of the path of the  (chibios/ext/fatfs/src/ff.h) not being right.<br>So I managed to find the ff.h file in my LXR firmware folder, copied it into the root of my patch and told the object to find that file directly at the root.</p>
+
+<p>This was enough for the object and the patch to execute and perform what I needed.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/13</link>
+        <pubDate>Fri, 29 Jan 2021 15:40:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-13</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>I meant the header file, what exactly did you change and where?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/12</link>
+        <pubDate>Fri, 29 Jan 2021 14:21:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-12</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>For my use, i figured out I only need your custom "findFree" object.<br>The first thing I have done is to replace the header include with "ff.h".<br>Then I added an int32 outlet (called amount) and declared in the K-rate Code: "outlet_amount=cnt;".</p>
+
+<p>I do not use any of the other inlet or outlet functions at the moment. I may try to delete the function I don't use to save Ram, but it may take me some time to understand what part of the code is relevant to my use and what part is not.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/11</link>
+        <pubDate>Fri, 29 Jan 2021 09:31:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-11</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>what exactly did you change to get it to work?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/10</link>
+        <pubDate>Thu, 28 Jan 2021 22:35:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-10</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+      <item>
+        <title>Fetch number of file in folder in SD card</title>
+        <dc:creator><![CDATA[@Paulus]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/paulus">@Paulus</a> wrote:</p>
+          <blockquote>
+              <p>Awesome, I managed to make it work by fiddling with the code. It's not very optimised yet ( a lot of the initial purpose of your object is still there although I don't need it) but it is outputing the right number of file in a certain folder!</p>
+
+<p>thanks a lot!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099/9</link>
+        <pubDate>Thu, 28 Jan 2021 16:48:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7099-9</guid>
+        <source url="http://community.axoloti.com/t/fetch-number-of-file-in-folder-in-sd-card/7099.rss">Fetch number of file in folder in SD card</source>
+      </item>
+  </channel>
+</rss>

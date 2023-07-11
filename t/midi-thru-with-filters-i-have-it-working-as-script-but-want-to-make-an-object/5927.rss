@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+    <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927</link>
+    <description>Beginner questions.
+
+My new midi keyboard doesn&#39;t have zones, so I looked into getting the Ax to do that for me.
+I&#39;ve done a lot of coding, but nothing on the Ax before.
+
+Here&#39;s the script, modded from a simple thru found on the forum ( I&#39;ve looked for a MidiThru object, seen mention of it but can&#39;t find the actual file)
+
+if (dev == MIDI_DEVICE_USB_HOST) {
+  uint8_t status_type = status &amp; 0xF0;
+  uint8_t midi_ch     = status &amp; 0x0F;
+  uint8_t split_note  = 0x3F;
+  uint8_t left_zone_ch= 0x01;
+  uint8_t right_zone_ch= 0x00;
+
+  if ((status_type == MIDI_CONTROL_CHANGE) ||
+      (status_type == MIDI_POLY_PRESSURE) ||
+      (status_type == MIDI_PITCH_BEND)) {
+    MidiSend3(MIDI_DEVICE_DIN,0,status,data1,data2);
+  } else if ((status_type == MIDI_PROGRAM_CHANGE) ||
+      (status_type == MIDI_CHANNEL_PRESSURE)) {
+    MidiSend2(MIDI_DEVICE_DIN,0,status,data1);
+  } else if ((status_type == MIDI_NOTE_OFF) ||
+      (status_type == MIDI_NOTE_ON)){
+    uint8_t status_ch = status;
+    if ( data1&lt;split_note ) {
+    	 status_ch = status_type | left_zone_ch;
+    } else {
+    	 status_ch = status_type | right_zone_ch;
+    }
+    MidiSend3(MIDI_DEVICE_DIN,0,status_ch,data1,data2);  	
+  }
+}
+
+So it just sends the top half of the keyboard to Ch1, bottom half to Ch2. Any commands other than Notes keep their channel.
+
+To some extent I can just work on the script do whatever want as regards octave shifts or whatever, but I&#39;d like to make it configurable by midi Prog Ch for performance.
+
+I read that the script obj is deprecated, and I want to be able to write to persistent variables.
+
+So any pointers as to how to take the next step, which is presumably to move that code over to an object?
+
+Where can I look at the functions and variables that will be in scope for the code in the objects?</description>
+    
+    <lastBuildDate>Sun, 18 Aug 2019 11:19:24 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>It won't be shared unless you set up stuff on github I think.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/13</link>
+        <pubDate>Sun, 18 Aug 2019 11:19:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-13</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@andybutler andy butler]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andybutler">@andybutler</a> wrote:</p>
+          <blockquote>
+              <p>Excellent.<br>Thankyou.</p>
+
+<p>so if I save in 'contrib' will that be shared?</p>
+
+<p>If so I won't put stuff 'under construction' in there.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/12</link>
+        <pubDate>Sun, 18 Aug 2019 10:59:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-12</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>It automatically saves with the patch when you close the editor and save the patch. To save the object in the library for other patches, use 'copy to library' from the file menu in the object editor...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/11</link>
+        <pubDate>Sun, 18 Aug 2019 09:39:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-11</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@andybutler andy butler]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andybutler">@andybutler</a> wrote:</p>
+          <blockquote>
+              <p>Ahhh!<br>type "object", not object.<br>I was typing in the name of the object.</p>
+
+<p>thankyou</p>
+
+<p>Now how do I save it?<br>"Save as" doesn't exist.<br>"Save" is greyed out, although I don't in any case want to</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/10</link>
+        <pubDate>Sun, 18 Aug 2019 09:36:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-10</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>Something doesn't sound right, so try this:</p>
+
+<p>Open a new patch and double click the background, type object into the search bar and you should see this:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/6cdad5ed1cd8e0baf4fbb539d3e9e9b5d5eaeecd" href="//community.axoloti.com/uploads/default/original/2X/6/6cdad5ed1cd8e0baf4fbb539d3e9e9b5d5eaeecd.jpg" class="lightbox" title="20190818_102029.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/6/6cdad5ed1cd8e0baf4fbb539d3e9e9b5d5eaeecd_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">20190818_102029.jpg</span><span class="informations">2015x1511 1.51 MB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Double click the highlighted patch/object and it should load the empty object and look like this:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/36d8447d45490fe605da2352ea2f156abcc63376" href="//community.axoloti.com/uploads/default/original/2X/3/36d8447d45490fe605da2352ea2f156abcc63376.jpg" class="lightbox" title="20190818_102037.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/3/36d8447d45490fe605da2352ea2f156abcc63376_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">20190818_102037.jpg</span><span class="informations">2851x2138 2.81 MB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Click the edit button on the object and that's where you put the code. Should look like this:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/d4b215ca25dee3c7749f7ade9f3c8a77a34b66a7" href="//community.axoloti.com/uploads/default/original/2X/d/d4b215ca25dee3c7749f7ade9f3c8a77a34b66a7.jpg" class="lightbox" title="20190818_102047.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/d/d4b215ca25dee3c7749f7ade9f3c8a77a34b66a7_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">20190818_102047.jpg</span><span class="informations">2015x1511 1.55 MB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Use the tabs on the left to see where you can put the code, you'll prob want the midi tab.</p>
+
+<p>Put your code in, close the object editor and test...<br>At this point your object is saved in the patch, not the library.<br>When it's working open the object editor and then from the top menu file/copy to library. Choose 'home' as the library, give it a name and save it. Now it should show in the object library for use in other patches.</p>
+
+<p>Hope that works!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/9</link>
+        <pubDate>Sun, 18 Aug 2019 09:27:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-9</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@andybutler andy butler]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andybutler">@andybutler</a> wrote:</p>
+          <blockquote>
+              <p>hi Mattilyn,<br>thanks for helping.<br> I already followed lokki's instruction.<br>When I type into the search bar the editor loads an existing object.<br>e.g. <br>as soon as i type 'a' it loads a "logic AND' object.</p>
+
+<p>So is that a bug? does it work for you?</p>
+
+<p>....and there's no "save as" option, which would allow to create a new  (copy) object without overwriting the original</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/8</link>
+        <pubDate>Sun, 18 Aug 2019 09:03:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-8</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>You create the the patch/object by typing object into the search bar... The object that loads IS the blank canvas. It's basically an empty object. Click the edit button to edit it with your code.</p>
+
+<p>Good luck!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/7</link>
+        <pubDate>Sat, 17 Aug 2019 21:40:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-7</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@andybutler andy butler]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andybutler">@andybutler</a> wrote:</p>
+          <blockquote>
+              <p><img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"><br>OK. Thanks for advice, I'm not quite there though.</p>
+
+<p>"typing object in search field" always seems to find an object, not a blank canvas.<br>(otoh I now found a midi-thru object by a773...it's all learning)</p>
+
+<p>The "Coding axoloti Objects" text has "create a patch/object object"....doesn't say how.</p>
+
+<p>Doesn't seem to be a "Save As" option available if starting from an existing object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/6</link>
+        <pubDate>Sat, 17 Aug 2019 18:56:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-6</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>Check this out for making new objects, etc.</p>
+
+<aside class="quote" data-post="1" data-topic="2606">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/user_avatar/community.axoloti.com/sputnki/40/175_1.png" class="avatar">
+    <a href="//community.axoloti.com/t/coding-axoloti-objects/2606?source_topic_id=5927" rel="nofollow noopener">Coding axoloti objects</a> <a class="badge-wrapper  bullet" href="/c/user-guide"><span class="badge-category-bg" style="background-color: #3AB54A;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category contains posts to help users use Axoloti, a dynamic user guide.">User Guide</span></a>
+  </div>
+  <blockquote>
+    A pretty big subject, but i think it might be useful to shed some light for newbies: 
+
+Contents
+
+
+<a href="#needtoknow">What do you need to know to code objects</a>
+<a href="#startcoding">How do you start coding an object?</a>
+<a href="#editlibrary">How do you edit a library object?</a>
+<a href="#codeinout">Coding with input/output (and parameters)</a>
+<a href="#localdata">Local data</a>
+<a href="#initcode">Init code</a>
+<a href="#kratesrate">K-rate and S-rate cycles</a>
+<a href="#inletsoutlets">Inlets/Outlets</a>
+<a href="#parameters">Parameters</a>
+<a href="#rangeformat">Normal range and number format</a>
+<a href="#elementarymath">Elementary math in axoloti</a>
+<a href="#32bitvar">32bit variables</a>
+<a href="#bitshifts">Bitshifts</a>
+<a href="#fixedpointmath">Fixed point math</a>
+<a href="#functions">Functions</a>
+<a href="#assembly">Assembly functions</a>
+<a href="#bitwise">Bitwise operations</a>
+
+
+
+
+
+<a name="needtoknow" href="#"></a>What do you need to know…
+  </blockquote>
+</aside>
+
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/5</link>
+        <pubDate>Sat, 17 Aug 2019 17:58:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-5</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>try typing object in the search field, it should give you an empty object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/4</link>
+        <pubDate>Sat, 17 Aug 2019 17:58:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-4</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@andybutler andy butler]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andybutler">@andybutler</a> wrote:</p>
+          <blockquote>
+              <p>thanks, I still need help with that though ;-(</p>
+
+<p>Edit&gt;New Object only seems to let me load existing objects</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/3</link>
+        <pubDate>Sat, 17 Aug 2019 17:30:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-3</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>just create a new object in the patcher and paste your code into the midi tab after opening the edit portion of the object. i think that should just work...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/2</link>
+        <pubDate>Sat, 17 Aug 2019 16:50:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-2</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+      <item>
+        <title>Midi Thru with filters...I have it working as script but want to make an object</title>
+        <dc:creator><![CDATA[@andybutler andy butler]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andybutler">@andybutler</a> wrote:</p>
+          <blockquote>
+              <p>Beginner questions.</p>
+
+<p>My new midi keyboard doesn't have zones, so I looked into getting the Ax to do that for me.<br>I've done a lot of coding, but nothing on the Ax before.</p>
+
+<p>Here's the script, modded from a simple thru found on the forum ( I've looked for a MidiThru object, seen mention of it but can't find the actual file)</p>
+
+<p>if (dev == MIDI_DEVICE_USB_HOST) {<br>  uint8_t status_type = status &amp; 0xF0;<br>  uint8_t midi_ch     = status &amp; 0x0F;<br>  uint8_t split_note  = 0x3F;<br>  uint8_t left_zone_ch= 0x01;<br>  uint8_t right_zone_ch= 0x00;</p>
+
+<p>  if ((status_type == MIDI_CONTROL_CHANGE) ||<br>      (status_type == MIDI_POLY_PRESSURE) ||<br>      (status_type == MIDI_PITCH_BEND)) {<br>    MidiSend3(MIDI_DEVICE_DIN,0,status,data1,data2);<br>  } else if ((status_type == MIDI_PROGRAM_CHANGE) ||<br>      (status_type == MIDI_CHANNEL_PRESSURE)) {<br>    MidiSend2(MIDI_DEVICE_DIN,0,status,data1);<br>  } else if ((status_type == MIDI_NOTE_OFF) ||<br>      (status_type == MIDI_NOTE_ON)){<br>    uint8_t status_ch = status;<br>    if ( data1&lt;split_note ) {<br>    	 status_ch = status_type | left_zone_ch;<br>    } else {<br>    	 status_ch = status_type | right_zone_ch;<br>    }<br>    MidiSend3(MIDI_DEVICE_DIN,0,status_ch,data1,data2);  	<br>  }<br>}</p>
+
+<p>So it just sends the top half of the keyboard to Ch1, bottom half to Ch2. Any commands other than Notes keep their channel.</p>
+
+<p>To some extent I can just work on the script do whatever want as regards octave shifts or whatever, but I'd like to make it configurable by midi Prog Ch for performance.</p>
+
+<p>I read that the script obj is deprecated, and I want to be able to write to persistent variables.</p>
+
+<p>So any pointers as to how to take the next step, which is presumably to move that code over to an object?</p>
+
+<p>Where can I look at the functions and variables that will be in scope for the code in the objects?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927/1</link>
+        <pubDate>Sat, 17 Aug 2019 15:27:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5927-1</guid>
+        <source url="http://community.axoloti.com/t/midi-thru-with-filters-i-have-it-working-as-script-but-want-to-make-an-object/5927.rss">Midi Thru with filters...I have it working as script but want to make an object</source>
+      </item>
+  </channel>
+</rss>

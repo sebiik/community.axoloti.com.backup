@@ -1,0 +1,356 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="224" y="28">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="presets"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="182" y="112">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="table/alloc 16b" uuid="597fcaac36aa638ba120b0fbdcadcde4ad405a7e" name="data" x="322" y="112">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="64"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="420" y="112">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/patching/loadbang" uuid="45d1f29d-ac62-4e5b-86f8-2201d2f6c689" name="loadbang_1" x="42" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="70" y="210">
+      <params>
+         <frac32.s.map name="pitch" value="10.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="182" y="210">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="5f711ff2-7335-40e1-b96f-092adc711213" name="bitselector_1" x="280" y="210">
+      <params>
+         <bin16 name="ch1" value="4369"/>
+         <bin16 name="ch2" value="640"/>
+         <bin16 name="ch3" value="-1"/>
+         <bin16 name="ch4" value="4112"/>
+         <int32.hradio name="preset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+      <object id="patch/object" uuid="5f711ff2-7335-40e1-b96f-092adc711213">
+         <author>toneburst</author>
+         <license>BSD</license>
+         <inlets>
+            <int32.positive name="step" description="Step select"/>
+         </inlets>
+         <outlets>
+            <bool32.pulse name="save" description="Save preset"/>
+            <bool32 name="ch1" description="Sequence channel 1"/>
+            <bool32 name="ch2" description="Sequence channel 2"/>
+            <bool32 name="ch3" description="Sequence channel 3"/>
+            <bool32 name="ch4" description="Sequence channel 4"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin16 name="ch1" description="Sequence channel 1" noLabel="true"/>
+            <bin16 name="ch2" description="Sequence channel 2"/>
+            <bin16 name="ch3" description="Sequence channel 3"/>
+            <bin16 name="ch4" description="Sequence channel 4"/>
+            <int32.hradio name="preset" description="Preset select">
+               <MaxValue i="16"/>
+            </int32.hradio>
+         </params>
+         <attribs>
+            <objref name="table" description="Sequence data table (MUST be 64 length)"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[///////////////
+// Variables //
+///////////////
+
+// Current/previous state of sequencer ch display
+uint16_t current_channel_state[4] = {0, 0, 0, 0};
+uint16_t old_channel_state[4] = {0, 0, 0, 0};
+
+// Current/previous preset
+uint8_t current_preset;
+uint8_t old_preset;
+
+// Start index into sequence data table
+uint16_t preset_table_start;
+
+// Current/previous sequence step
+uint8_t current_step;
+uint8_t old_step;
+
+// ON/OFF state for current step of 4 channels
+bool current_step_states[4] = {0, 0, 0, 0};
+
+// Save table trigger flag
+bool old_save_trigger;
+
+// Bitmask for channel steps/bits
+uint16_t step_mask;
+
+// Loop-counter
+uint8_t i;]]></code.declaration>
+         <code.init><![CDATA[current_preset		= 0;
+old_preset		= 0;
+preset_table_start	= 0;
+current_step		= 0;
+old_step			= 0;
+old_save_trigger	= false;
+step_mask			= 1;
+i				= 0;]]></code.init>
+         <code.krate><![CDATA[// Update preset number
+current_preset = param_preset;
+
+// Current sequencer step
+// Ensure value doesn't exceed 15 (max value for 4 bit unsigned integer)
+current_step = __USAT(inlet_step, 4);
+
+/////////////////////////////////
+// Detect preset-select change //
+/////////////////////////////////
+
+if(current_preset != old_preset) {
+
+	// Update offset into table data based on selected preset index
+	// Each channel = 1 16-bit item in the table
+	preset_table_start = 4 * current_preset;
+
+	// Update channel 1-4 step display
+	// Note really sure how this works, just copying your object here ;)
+	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_ch1], attr_table.array[preset_table_start    ],0xFFFD);
+	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_ch2], attr_table.array[preset_table_start + 1],0xFFFD);
+	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_ch3], attr_table.array[preset_table_start + 2],0xFFFD);
+	PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_ch4], attr_table.array[preset_table_start + 3],0xFFFD);
+}
+
+// Update old preset value
+old_preset = param_preset;
+
+/////////////////////////////////////////
+// Update current state for 4 channels //
+/////////////////////////////////////////
+
+current_channel_state[0] = param_ch1;
+current_channel_state[1] = param_ch2;
+current_channel_state[2] = param_ch3;
+current_channel_state[3] = param_ch4;
+
+/////////////////////////////////////////////////////////
+// Detect changes to channel states (ie steps toggled) //
+/////////////////////////////////////////////////////////
+
+// Set save outlet false
+// This will be overridden if changes to sequences detected below
+outlet_save = false;
+
+for(i = 0; i < 4; i++) {
+
+	// Check if channel edited
+	if(current_channel_state[i] != old_channel_state[i]) {
+
+		// Save data to table
+		attr_table.array[preset_table_start + i] = current_channel_state[i];
+
+		// Update old channel states
+		old_channel_state[i] = current_channel_state[i];
+
+		// Send pulse from save outlet
+		outlet_save = true;
+	}
+}
+
+////////////////////////
+// Detect step change //
+////////////////////////
+
+if(current_step != old_step) {
+
+	// Step value has changed, update channel outlets
+
+	// Update bit-mask for current step by bit-shifting
+	// 00000000000000001.. step 0
+	// 00000000000000010.. step 1
+	// 00000000000000100.. step 2
+	// etc.
+	step_mask = 1 << current_step;
+
+	// Get step value from 16-bit integers representing state of each channel.
+	// Combining state integer and mask using '&'(boolean AND) mask out required bit.
+	// Casting to boolean produces TRUE if both state integer and mask bits are 1
+	// i.e.
+	// 0000000000000001
+	// &
+	// 0000000000000001
+	// = TRUE
+	//
+	// 0000000000000001
+	// &
+	// 0000000000000010
+	// = FALSE
+	outlet_ch1 = (bool)(current_channel_state[0] & step_mask);
+	outlet_ch2 = (bool)(current_channel_state[1] & step_mask);
+	outlet_ch3 = (bool)(current_channel_state[2] & step_mask);
+	outlet_ch4 = (bool)(current_channel_state[3] & step_mask);
+		
+} else {
+
+	// No change to step, set all outputs low
+	// This ensures outlets are only ever high/TRUE for one cycle, on rising edge of step value change
+	outlet_ch1 = false;
+	outlet_ch2 = false;
+	outlet_ch3 = false;
+	outlet_ch4 = false;
+}
+
+// Update old step
+old_step = current_step;
+
+// DEBUG]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="edrum/bd1" uuid="c4eef953-955a-413a-a68e-97daa6c08b72" name="obj_1" x="518" y="210">
+      <params>
+         <frac32.s.map name="d1" value="-16.0"/>
+         <frac32.s.map name="lp1" value="32.0"/>
+         <frac32.s.map name="d2" value="-12.0"/>
+         <frac32.u.map name="amt" value="63.5"/>
+         <frac32.s.map name="sine_1" value="-44.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 4 g" uuid="36f472cd81da2e17bd4b4ee11b53b4c82527220c" name="mix_1" x="980" y="210">
+      <params>
+         <frac32.u.map name="gain1" value="64.0"/>
+         <frac32.u.map name="gain2" value="64.0"/>
+         <frac32.u.map name="gain3" value="9.5"/>
+         <frac32.u.map name="gain4" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1092" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/brds/snare" uuid="6cfef612-0d2d-4dbf-9e01-ce8704bf86c9" name="snare_1" x="630" y="266">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.u.map name="timbre" value="64.0"/>
+         <frac32.u.map name="color" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="edrum/hh" uuid="99cca3c8-e1c3-4992-826c-39cf9d611fa8" name="obj_2" x="742" y="294">
+      <params>
+         <frac32.s.map name="env" value="-34.0"/>
+         <frac32.s.map name="bpf:pitch" value="41.0"/>
+         <frac32.u.map name="bpf:reso" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gao/edrum/clap" uuid="0c072be7-f72c-4304-a413-c8e383d0d601" name="obj_3" x="854" y="322">
+      <params>
+         <frac32.s.map name="pulse hp:pitch" value="10.0"/>
+         <frac32.u.map name="pulse hp:reso" value="40.0"/>
+         <frac32.s.map name="ad:a" value="-40.0"/>
+         <frac32.s.map name="ad:d" value="-37.0"/>
+         <frac32.s.map name="fb ad:a" value="-57.0"/>
+         <frac32.s.map name="fb ad:d" value="-17.0"/>
+         <frac32.s.map name="bp:pitch" value="23.0"/>
+         <frac32.u.map name="bp:reso" value="51.5"/>
+         <frac32.s.map name="lp:pitch" value="30.0"/>
+         <frac32.u.map name="lp:reso" value="40.0"/>
+         <frac32.u.map name="gain" value="16.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="loadbang_1" outlet="pulse"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="bitselector_1" outlet="save"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="bitselector_1" inlet="step"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="bitselector_1" outlet="ch1"/>
+         <dest obj="obj_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="obj_1" outlet="out"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="bitselector_1" outlet="ch2"/>
+         <dest obj="snare_1" inlet="strike"/>
+      </net>
+      <net>
+         <source obj="snare_1" outlet="wave"/>
+         <dest obj="mix_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="bitselector_1" outlet="ch3"/>
+         <dest obj="obj_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="obj_2" outlet="out"/>
+         <dest obj="mix_1" inlet="in3"/>
+      </net>
+      <net>
+         <source obj="obj_3" outlet="outlet_1"/>
+         <dest obj="mix_1" inlet="in4"/>
+      </net>
+      <net>
+         <source obj="bitselector_1" outlet="ch4"/>
+         <dest obj="obj_3" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>173</x>
+      <y>71</y>
+      <width>1380</width>
+      <height>861</height>
+   </windowPos>
+</patch-1.0>

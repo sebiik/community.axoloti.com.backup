@@ -1,0 +1,153 @@
+<patch-1.0 appVersion="1.0.10">
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_1" x="546" y="98">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/saw cheap" uuid="1f8efc3f480aec1c02c1059cc3e3ad689aa4052" name="saw_1" x="728" y="98">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="854" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 1 g" uuid="e6982841c1bf323ee2062a4b6cc2737adafbd668" name="mix_1" x="938" y="126">
+      <params>
+         <frac32.u.map name="gain1" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1078" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="3762ef71-7284-443b-bc83-f131865274f0" name="keyb_1" x="168" y="154">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="3762ef71-7284-443b-bc83-f131865274f0">
+         <sDescription>Monophonic MIDI keyboard note input, gate, velocity and release velocity</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32.bipolar name="note" description="midi note number (-64..63)"/>
+            <bool32 name="gate" description="key pressed, no retrigger legato"/>
+            <bool32 name="gate2" description="key pressed, retrigger on legato"/>
+            <frac32.positive name="velocity" description="note-on velocity"/>
+            <frac32.positive name="releaseVelocity" description="note-off velocity"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int8_t _note;
+int32_t _gate;
+int32_t _gate2;
+uint8_t _velo;
+uint8_t _rvelo;
+uint8_t _noteCount;
+int8_t _noteTrig;]]></code.declaration>
+         <code.init><![CDATA[_gate = 0;
+_note = 0;
+_noteCount = 0;
+_noteTrig = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_note= _note<<21;
+outlet_gate= _gate;
+outlet_gate2= _gate && ! _noteTrig;
+outlet_velocity= _velo<<20;
+outlet_releaseVelocity= _rvelo<<20;
+_noteTrig = 0;]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_midichannel) && (data2)) {
+  _velo = data2;
+  _note = data1-64;
+  _gate = 1<<27;
+  _noteTrig = 1;
+  _noteCount++;
+} else if (((status == MIDI_NOTE_ON + attr_midichannel) && (!data2))||
+          (status == MIDI_NOTE_OFF + attr_midichannel)) {
+  _noteCount = _noteCount > 0 ? _noteCount - 1 : 0 ;
+  _gate = _noteCount>0;
+} else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+  _gate = 0;
+  _noteCount = 0;
+  _noteTrig = 0;
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="854" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="env/ad" uuid="255cb0cd67470c7498f9c33b820facd26aa629ce" name="ad_2" x="546" y="252">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/saw cheap" uuid="1f8efc3f480aec1c02c1059cc3e3ad689aa4052" name="saw_2" x="728" y="252">
+      <params>
+         <frac32.s.map name="pitch" value="-12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="keyb_1" outlet="gate"/>
+         <dest obj="ad_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate2"/>
+         <dest obj="ad_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="ad_1" outlet="env"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="ad_2" outlet="env"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="saw_2" outlet="wave"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="mix_1" inlet="bus_in"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="saw_1" inlet="pitch"/>
+         <dest obj="saw_2" inlet="pitch"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>17</x>
+      <y>121</y>
+      <width>1234</width>
+      <height>775</height>
+   </windowPos>
+</patch-1.0>

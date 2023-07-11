@@ -1,0 +1,1842 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 16b" uuid="597fcaac36aa638ba120b0fbdcadcde4ad405a7e" name="data" x="84" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="32"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="854" y="28" text="INSTRUCTIONS"/>
+   <comment type="patch/comment" x="187" y="35" text="&lt;--  all the data is stored here. 0-15 is the sequencer gate, 16-31 is pitch"/>
+   <comment type="patch/comment" x="784" y="42" text="************************************************************"/>
+   <comment type="patch/comment" x="812" y="70" text="16 bottoms buttons are step toggles"/>
+   <comment type="patch/comment" x="812" y="98" text="the top two rows of knobs control the step pitch"/>
+   <comment type="patch/comment" x="84" y="126" text="this uses the midi input from  the 16 buttons "/>
+   <comment type="patch/comment" x="812" y="126" text="bottom lower right side button is play"/>
+   <comment type="patch/comment" x="84" y="140" text="to toggle on/off the first 16 parts of the table"/>
+   <patchobj type="patch/object" uuid="c59382e1-0fe1-4bef-840e-13ea7a9fb854" name="launch_3" x="84" y="154">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="c59382e1-0fe1-4bef-840e-13ea7a9fb854">
+         <sDescription>adapted from rbrt&apos;s launchpad objects - all mistakes my own. Mattilyn Mattroe
+
+toggles an element of a table : if the element at index == 0,the element is set to the dial &apos;value&apos;.
+if the element &gt; 0 ,the element is set to 0.</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>step_seq.axh</helpPatch>
+         <inlets>
+            <int32.positive name="offset" description="offset in the table"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+bool op;
+int8_t _note;
+uint8_t _gate;]]></code.declaration>
+         <code.krate><![CDATA[if ((_gate>0) && !ntrig) {
+      ntrig=1;
+      op = attr_table.array[(_note + inlet_offset)];
+      op = !op ;
+         attr_table.array[(_note + inlet_offset)]= (op * (__SSAT(((1<<27)),28)>>attr_table.GAIN));
+         
+   }
+   if (!(_gate>0)) {
+   	ntrig=0;
+   }]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 41)) {
+    _note = 0;
+    _gate = 1;
+}
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 42)) {
+    _note = 1;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 43)) {
+    _note = 2;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 44)) {
+    _note = 3;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 57)) {
+    _note = 4;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 58)) {
+    _note = 5;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + + (attr_channel-1)) && (data2) && (data1 == 59)) {
+    _note = 6;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 60)) {
+    _note = 7;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 73)) {
+    _note = 8;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 74)) {
+    _note = 9;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 75)) {
+    _note = 10;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 76)) {
+    _note = 11;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 89)) {
+    _note = 12;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 90)) {
+    _note = 13;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 91)) {
+    _note = 14;
+    _gate = 1;
+} 
+if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2) && (data1 == 92)) {
+    _note = 15;
+    _gate = 1;
+} 
+else if (((status == MIDI_NOTE_ON + (attr_channel-1)) && (!data2))||          (status == MIDI_NOTE_OFF + (attr_channel-1))) {
+    _gate = 0;
+  }
+ 
+ else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+   _gate = 0;
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="490" y="168" text="refreshes the lights when patch loads"/>
+   <obj type="rbrt/patching/loadbang" uuid="45d1f29d-ac62-4e5b-86f8-2201d2f6c689" name="loadbang_1" x="490" y="182">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="770" y="252" text="this handles the lights for the 16 buttons. "/>
+   <comment type="patch/comment" x="42" y="266" text="button input from lower right buttons - bottom right button is play/stop"/>
+   <comment type="patch/comment" x="770" y="266" text="it takes the values stored in the table by the "/>
+   <patchobj type="patch/object" uuid="cc0b80f6-c7eb-4c63-b915-1255be84f8d8" name="launch_5" x="42" y="280">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="cc0b80f6-c7eb-4c63-b915-1255be84f8d8">
+         <sDescription>gate input for lower right buttons on launch controlxl</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <bool32 name="button1" description="key pressed?"/>
+            <bool32 name="button2"/>
+            <bool32 name="button3"/>
+            <bool32 name="button4"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint8_t _gate1;
+uint8_t _gate2;
+uint8_t _gate3;
+uint8_t _gate4;]]></code.declaration>
+         <code.krate><![CDATA[outlet_button1= _gate1;
+outlet_button2= _gate2;
+outlet_button3= _gate3;
+outlet_button4= _gate4;]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + (attr_channel-1)) && (data2)) 
+{
+	
+if (data1 == 105) 
+{
+   _gate1 = 1;
+}
+
+if (data1 == 106) 
+{
+   _gate2 = 1;
+}
+
+if (data1 == 107) 
+{
+   _gate3 = 1;
+}
+
+if (data1 == 108) 
+{
+   _gate4 = 1;
+}
+
+
+}
+else if (status == MIDI_NOTE_OFF + (attr_channel-1)) {
+	
+if (data1 == 105) 
+{
+   _gate1 = 0;
+}
+
+if (data1 == 106) 
+{
+   _gate2 = 0;
+}
+
+if (data1 == 107) 
+{
+   _gate3 = 0;
+}
+
+if (data1 == 108) 
+{
+   _gate4 = 0;
+}
+
+
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="770" y="280" text="step toggle and sends them back to the launch control"/>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_1" x="154" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="770" y="294" text=" for light feedback"/>
+   <comment type="patch/comment" x="1120" y="294" text="this does the same thing but sends to the knob LEDS"/>
+   <comment type="patch/comment" x="364" y="308" text="clock"/>
+   <patchobj type="patch/object" uuid="928383a6-9eb0-4522-8db8-d2a2163e0355" name="launch_1" x="770" y="308">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+         <int32 name="length" value="16"/>
+         <int32 name="start" value="0"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="blocksize" selection="1"/>
+         <combo attributeName="coloron" selection="green S"/>
+         <combo attributeName="coloroff" selection="yellow W"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="928383a6-9eb0-4522-8db8-d2a2163e0355">
+         <sDescription>adapted from rbrt&apos;s launchpad objects - all mistakes my own. Mattilyn Mattroe
+
+visual feedback of table data for midi controllers</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <int32 name="offset" description="offset in the table to read from"/>
+            <int32 name="start" description="display start modulation"/>
+            <int32 name="length" description="display length modulation"/>
+            <int32 name="coloron" description="color on modulation"/>
+            <int32 name="coloroff" description="color off modulation"/>
+            <bool32.risingfalling name="active" description="active??"/>
+            <bool32.rising name="redraw"/>
+         </inlets>
+         <outlets>
+            <int32 name="offset" description="offset through"/>
+            <int32 name="start" description="start through"/>
+            <int32 name="coloron" description="color on through"/>
+            <int32 name="coloroff" description="color off through"/>
+            <int32 name="blocksize"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="active" description="active??"/>
+            <int32 name="length" description="length of the area to display">
+               <MinValue i="1"/>
+               <MaxValue i="16"/>
+            </int32>
+            <int32 name="start" description="display start on the LP">
+               <MinValue i="0"/>
+               <MaxValue i="16"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="10000000"/>
+            </int32>
+         </params>
+         <attribs>
+            <objref name="table" description="name of the table to display"/>
+            <combo name="device">
+               <MenuEntries>
+                  <string>usb host port / LP</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 9</string>
+               </CEntries>
+            </combo>
+            <combo name="blocksize">
+               <MenuEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+               </CEntries>
+            </combo>
+            <combo name="coloron">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <combo name="coloroff">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int rtrig;
+uint8_t map[127];
+int i;
+int vt;
+int trigt;
+int prevt[64];
+int length;
+int plength;
+
+uint8_t coloron;
+uint8_t start;
+uint8_t coloroff;
+uint32_t offset;]]></code.declaration>
+         <code.init><![CDATA[{ 
+  int i;
+  for(i=0;i<16;i++) prevt[i]= -666 ;}
+
+  { 
+  int i;
+  for(i=0;i<16;i++) 
+
+  map[0] = 41;
+map[1] = 42;
+map[2] = 43;
+map[3] = 44;
+map[4] = 57;
+map[5] = 58;
+map[6] = 59;
+map[7] = 60;
+map[8] = 73;
+map[9] = 74;
+map[10] = 75;
+map[11] = 76;
+map[12] = 89;
+map[13] = 90;
+map[14] = 91;
+map[15] = 92;
+}]]></code.init>
+         <code.krate><![CDATA[coloron = inlet_coloron + attr_coloron;
+coloroff = inlet_coloroff + attr_coloroff;
+offset = param_offset + inlet_offset;
+start = inlet_start+ param_start;
+length = inlet_length +param_length;
+
+//redraw
+if (inlet_redraw > 0)
+  { 
+  int ii;
+  for(ii=0;ii<16;ii++) prevt[ii]= -666 ;}
+  
+  { 
+  int ii;
+  for(ii=0;ii<16;ii++) 
+
+  map[0] = 41;
+map[1] = 42;
+map[2] = 43;
+map[3] = 44;
+map[4] = 57;
+map[5] = 58;
+map[6] = 59;
+map[7] = 60;
+map[8] = 73;
+map[9] = 74;
+map[10] = 75;
+map[11] = 76;
+map[12] = 89;
+map[13] = 90;
+map[14] = 91;
+map[15] = 92;
+}
+
+
+
+
+    
+//display steps
+  if (inlet_active || param_active) { 
+{ 
+  i += 1;
+  if (i == (length)) i = 0; 
+  vt = attr_table.array[__USAT((offset + (i << attr_blocksize)),attr_table.LENGTHPOW)]<<attr_table.GAIN;
+if (prevt[i] != vt ) trigt = 0;
+prevt[i] = vt;
+if (vt && (!trigt)) {
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1)   ,map[(i + start)],(coloron));  trigt=1;
+}
+if ((!vt) && (!trigt)){
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1)  ,map[(i + start)],(coloroff));  trigt=1;
+}
+ }
+}
+
+
+
+outlet_coloron = coloron;
+outlet_coloroff = coloroff;
+outlet_offset = offset;
+outlet_start = start;
+outlet_blocksize = attr_blocksize;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="0f77f103-0a50-45d3-8912-8af5aa5e5886" name="launch_2" x="1120" y="308">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+         <int32 name="length" value="16"/>
+         <int32 name="start" value="0"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="blocksize" selection="1"/>
+         <spinner attributeName="offset" value="0"/>
+         <combo attributeName="colouron" selection="green S"/>
+         <combo attributeName="colouroff" selection="yellow W"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="0f77f103-0a50-45d3-8912-8af5aa5e5886">
+         <sDescription>adapted from rbrt&apos;s launchpad objects - all mistakes my own. Mattilyn Mattroe
+
+visual feedback of table data for midi controllers</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <int32 name="offset" description="offset in the table to read from"/>
+            <int32 name="start" description="display start modulation"/>
+            <int32 name="length" description="display length modulation"/>
+            <bool32.risingfalling name="active" description="active??"/>
+            <bool32.rising name="redraw"/>
+         </inlets>
+         <outlets>
+            <int32 name="offset" description="offset through"/>
+            <int32 name="start" description="start through"/>
+            <int32 name="colouron" description="color on through"/>
+            <int32 name="colouroff" description="color off through"/>
+            <int32 name="blocksize"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="active" description="active??"/>
+            <int32 name="length" description="length of the area to display">
+               <MinValue i="1"/>
+               <MaxValue i="24"/>
+            </int32>
+            <int32 name="start" description="display start on the LP">
+               <MinValue i="0"/>
+               <MaxValue i="24"/>
+            </int32>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="10000000"/>
+            </int32>
+         </params>
+         <attribs>
+            <objref name="table" description="name of the table to display"/>
+            <combo name="device">
+               <MenuEntries>
+                  <string>usb host port / LP</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 9</string>
+               </CEntries>
+            </combo>
+            <combo name="blocksize">
+               <MenuEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+               </CEntries>
+            </combo>
+            <spinner name="offset" MinValue="0" MaxValue="1000" DefaultValue="0"/>
+            <combo name="colouron">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <combo name="colouroff">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int rtrig;
+uint8_t map[127];
+int i;
+int vt;
+int trigt;
+int prevt[64];
+int length;
+int plength;
+
+uint8_t colouron;
+uint8_t start;
+uint8_t colouroff;
+uint32_t offset;]]></code.declaration>
+         <code.init><![CDATA[{ 
+  int i;
+  for(i=0;i<24;i++) prevt[i]= -666 ;}
+
+  { 
+  int i;
+  for(i=0;i<24;i++) 
+
+map[0] = 13;
+map[1] = 29;
+map[2] = 45;
+map[3] = 61;
+map[4] = 77;
+map[5] = 93;
+map[6] = 109;
+map[7] = 125;
+map[8] = 14;
+map[9] = 30;
+map[10] = 46;
+map[11] = 62;
+map[12] = 78;
+map[13] = 94;
+map[14] = 110;
+map[15] = 126;
+ map[16] = 15;
+map[17] = 31;
+map[18] = 47;
+map[19] = 63;
+map[20] = 79;
+map[21] = 95;
+map[22] = 111;
+map[23] = 127;
+}]]></code.init>
+         <code.krate><![CDATA[offset = param_offset + inlet_offset;
+start = inlet_start+ param_start;
+length = inlet_length +param_length;
+
+//redraw
+if (inlet_redraw > 0)
+{ 
+  int i;
+  for(i=0;i<24;i++) prevt[i]= -666 ;}
+{ 
+  int ii;
+  for(ii=0;ii<24;ii++) prevt[ii];
+  }
+
+
+
+
+    
+//display steps
+  if (inlet_active || param_active) { 
+{ 
+  i += 1;
+  if (i == (length)) i = 0; 
+  vt = attr_table.array[__USAT((offset + (i << attr_blocksize)),attr_table.LENGTHPOW)]<<attr_table.GAIN;
+if (prevt[i] != vt ) trigt = 0;
+prevt[i] = vt;
+if (vt && (!trigt)) {
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1)   ,map[(i + start)],(attr_colouron));  trigt=1;
+}
+if ((!vt) && (!trigt)){
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1)  ,map[(i + start)],(attr_colouroff));  trigt=1;
+}
+ }
+}
+
+
+
+outlet_colouron = attr_colouron;
+outlet_colouroff = attr_colouroff;
+
+
+outlet_offset = offset;
+outlet_start = start;
+outlet_blocksize = attr_blocksize;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="322" y="322">
+      <params>
+         <frac32.s.map name="pitch" value="12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="434" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="518" y="322">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="56" y="462" text="light feedback"/>
+   <comment type="patch/comment" x="42" y="476" text="sends the play/stop button "/>
+   <comment type="patch/comment" x="42" y="490" text="back to the launch control for "/>
+   <comment type="patch/comment" x="42" y="504" text="light feedback"/>
+   <obj type="rbrt/midi/out/note send" uuid="53e66cf7-7e70-42a7-8980-54c3778059f8" name="note_2" x="42" y="518">
+      <params>
+         <int32 name="startnote" value="108"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="usb host port 1"/>
+         <spinner attributeName="channel" value="9"/>
+         <spinner attributeName="velon" value="127"/>
+         <spinner attributeName="veloff" value="0"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="798" y="588" text="this is the play position light"/>
+   <comment type="patch/comment" x="798" y="602" text="(the red light that chases across the step buttons)"/>
+   <comment type="patch/comment" x="1106" y="602" text="this is the play position light for the knobs"/>
+   <comment type="patch/comment" x="756" y="616" text="it&apos;s important to link the relevant outputs from the matrix display"/>
+   <patchobj type="patch/object" uuid="e832d437-8cff-482f-84e8-3cd9d3ebd5d4" name="launch_4" x="798" y="630">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="color" selection="red S"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="e832d437-8cff-482f-84e8-3cd9d3ebd5d4">
+         <sDescription>adapted from rbrt&apos;s launchpad objects - all mistakes my own. Mattilyn Mattroe
+
+display a step counter on a midi controller</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <int32 name="offset" description="offset in the table to read from"/>
+            <int32 name="start" description="display start on the LP"/>
+            <int32 name="coloron" description="color on"/>
+            <int32 name="coloroff" description="color off"/>
+            <int32 name="blocksize"/>
+            <int32 name="color" description="step color modulation"/>
+            <int32 name="step" description="current step"/>
+            <bool32 name="active" description="active??"/>
+            <bool32.rising name="redraw"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="active" noLabel="true"/>
+         </params>
+         <attribs>
+            <objref name="table" description="table to display"/>
+            <combo name="device">
+               <MenuEntries>
+                  <string>usb host port / LP</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+               </CEntries>
+            </combo>
+            <combo name="color">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int rtrig;
+int prev;
+int32_t map[126];
+int32_t v;]]></code.declaration>
+         <code.init><![CDATA[{ 
+  int i;
+  for(i=0;i<126;i++) 
+
+map[0] = 41;
+map[1] = 42;
+map[2] = 43;
+map[3] = 44;
+map[4] = 57;
+map[5] = 58;
+map[6] = 59;
+map[7] = 60;
+map[8] = 73;
+map[9] = 74;
+map[10] = 75;
+map[11] = 76;
+map[12] = 89;
+map[13] = 90;
+map[14] = 91;
+map[15] = 92;
+
+}]]></code.init>
+         <code.krate><![CDATA[if (param_active || inlet_active){ 
+	rtrig = 0;
+
+if ((inlet_redraw > 0) && !ntrig){
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[inlet_step + inlet_start],(attr_color + inlet_color));
+
+}
+	
+
+
+if (inlet_step  != prev) {
+  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(inlet_step  + inlet_start)],(attr_color + inlet_color));
+  
+  v = attr_table.array[__USAT((inlet_offset + (prev << inlet_blocksize)),attr_table.LENGTHPOW)]<<attr_table.GAIN ;
+  if (v) MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(prev  + inlet_start)],inlet_coloron);
+     	else
+     	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(prev + inlet_start)],inlet_coloroff);
+prev = inlet_step;
+}
+
+}
+
+else if (!rtrig){
+v = attr_table.array[__USAT((inlet_offset + (inlet_step << inlet_blocksize)),attr_table.LENGTHPOW)]<<attr_table.GAIN ;
+  if (v) MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(inlet_step  + inlet_start)],inlet_coloron);
+     	else
+     	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(inlet_step + inlet_start)],inlet_coloroff);
+rtrig = 1;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="d7f16b5a-18ca-490d-92df-ef807e5a61d4" name="launch_6" x="1106" y="630">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="color" selection="red S"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="d7f16b5a-18ca-490d-92df-ef807e5a61d4">
+         <sDescription>adapted from rbrt&apos;s launchpad objects - all mistakes my own. Mattilyn Mattroe
+
+display a step counter on a midi controller</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <int32 name="offset" description="offset in the table to read from"/>
+            <int32 name="start" description="display start on the LP"/>
+            <int32 name="coloron" description="color on"/>
+            <int32 name="coloroff" description="color off"/>
+            <int32 name="blocksize"/>
+            <int32 name="color" description="step color modulation"/>
+            <int32 name="step" description="current step"/>
+            <bool32 name="active" description="active??"/>
+            <bool32.rising name="redraw"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params>
+            <bool32.tgl name="active" noLabel="true"/>
+         </params>
+         <attribs>
+            <objref name="table" description="table to display"/>
+            <combo name="device">
+               <MenuEntries>
+                  <string>usb host port / LP</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+               </CEntries>
+            </combo>
+            <combo name="color">
+               <MenuEntries>
+                  <string>off</string>
+                  <string>red W</string>
+                  <string>red M</string>
+                  <string>red S</string>
+                  <string>orange W</string>
+                  <string>orange S</string>
+                  <string>green W</string>
+                  <string>green M</string>
+                  <string>green S</string>
+                  <string>lime 1 W</string>
+                  <string>lime 1 S</string>
+                  <string>lime 2</string>
+                  <string>yellow W</string>
+                  <string>yellow M</string>
+                  <string>yellow S</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>18</string>
+                  <string>35</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>48</string>
+                  <string>33</string>
+                  <string>50</string>
+                  <string>49</string>
+                  <string>17</string>
+                  <string>34</string>
+                  <string>51</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="9"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int rtrig;
+int prev;
+int32_t map[126];
+int32_t v;]]></code.declaration>
+         <code.init><![CDATA[{ 
+  int i;
+  for(i=0;i<126;i++) 
+
+map[0] = 13;
+map[1] = 29;
+map[2] = 45;
+map[3] = 61;
+map[4] = 77;
+map[5] = 93;
+map[6] = 109;
+map[7] = 125;
+map[8] = 14;
+map[9] = 30;
+map[10] = 46;
+map[11] = 62;
+map[12] = 78;
+map[13] = 94;
+map[14] = 110;
+map[15] = 126;
+ map[16] = 15;
+
+}]]></code.init>
+         <code.krate><![CDATA[if (param_active || inlet_active) { 
+	rtrig = 0;
+
+if ((inlet_redraw > 0) && !ntrig){
+	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[inlet_step + inlet_start],(attr_color + inlet_color));
+
+}
+	
+
+
+if (inlet_step  != prev) {
+  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(inlet_step  + inlet_start)],(attr_color + inlet_color));
+  
+  v = attr_table.array[__USAT((inlet_offset + (prev << inlet_blocksize)),attr_table.LENGTHPOW)]<<attr_table.GAIN ;
+  if (v) MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(prev  + inlet_start)],inlet_coloron);
+     	else
+     	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(prev + inlet_start)],inlet_coloroff);
+prev = inlet_step;
+}
+
+}
+
+else if (!rtrig){
+v = attr_table.array[__USAT((inlet_offset + (inlet_step << inlet_blocksize)),attr_table.LENGTHPOW)]<<attr_table.GAIN ;
+  if (v) MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(inlet_step  + inlet_start)],inlet_coloron);
+     	else
+     	MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_channel-1) ,map[(inlet_step + inlet_start)],inlet_coloroff);
+rtrig = 1;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="140" y="882" text="these record the CCs from the first two rows of knobs and sends them to the table (16-31)"/>
+   <comment type="patch/comment" x="140" y="896" text="the knobs set the step pitch"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="140" y="924">
+      <params>
+         <int32 name="value" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="322" y="924">
+      <params>
+         <int32 name="value" value="24"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="4f123346-fb51-4142-973f-6f980fc0d7a0" name="table_3" x="140" y="1008">
+      <params>
+         <int32 name="offset" value="0"/>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <spinner attributeName="startcc" value="13"/>
+         <spinner attributeName="length" value="8"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="4f123346-fb51-4142-973f-6f980fc0d7a0">
+         <sDescription>writes midi controler data to a table.set the start of the range of the controlers to read out with &apos;startcc&apos;,the length of the range with &apos;length&apos;.
+the data is written to the table starting at &apos;offset&apos;.</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <int32 name="offset"/>
+            <int32 name="startcc"/>
+            <bool32.risingfalling name="active"/>
+         </inlets>
+         <outlets>
+            <bool32.pulse name="chtrig" description="pulse if any cc value changes"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="1000000"/>
+            </int32>
+            <bool32.tgl name="active"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="startcc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="length" MinValue="1" MaxValue="128" DefaultValue="1"/>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int8_t cc;
+int8_t cv;
+uint8_t prevcv;
+uint8_t prevcc;
+
+uint8_t end;
+uint8_t start;
+uint32_t offset;
+
+bool chtrig;]]></code.declaration>
+         <code.init><![CDATA[prevcv=  0;
+prevcc = 0;
+chtrig = 0;]]></code.init>
+         <code.krate><![CDATA[start = attr_startcc + inlet_startcc;
+end = start + attr_length;
+offset = (inlet_offset + param_offset);
+	
+
+if (((cc >= start) && (cc < end)) && (inlet_active || param_active)) {
+
+if ((cv != prevcv)||(cc != prevcc)){
+      attr_table.array[(cc - start) + offset]= ((cv << 20) >>attr_table.GAIN);
+      prevcv = cv; 
+      prevcc = cc;
+      chtrig = 1;   
+   }  
+
+   outlet_chtrig = chtrig;
+  chtrig = 0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if (status == (attr_channel-1) + MIDI_CONTROL_CHANGE) {cc = data1;cv = data2;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4f123346-fb51-4142-973f-6f980fc0d7a0" name="table_4" x="322" y="1008">
+      <params>
+         <int32 name="offset" value="0"/>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <spinner attributeName="startcc" value="29"/>
+         <spinner attributeName="length" value="8"/>
+         <spinner attributeName="channel" value="9"/>
+      </attribs>
+      <object id="patch/object" uuid="4f123346-fb51-4142-973f-6f980fc0d7a0">
+         <sDescription>writes midi controler data to a table.set the start of the range of the controlers to read out with &apos;startcc&apos;,the length of the range with &apos;length&apos;.
+the data is written to the table starting at &apos;offset&apos;.</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>launchpad.axh</helpPatch>
+         <rotatedParams>true</rotatedParams>
+         <inlets>
+            <int32 name="offset"/>
+            <int32 name="startcc"/>
+            <bool32.risingfalling name="active"/>
+         </inlets>
+         <outlets>
+            <bool32.pulse name="chtrig" description="pulse if any cc value changes"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="offset">
+               <MinValue i="0"/>
+               <MaxValue i="1000000"/>
+            </int32>
+            <bool32.tgl name="active"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+            <spinner name="startcc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="length" MinValue="1" MaxValue="128" DefaultValue="1"/>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int8_t cc;
+int8_t cv;
+uint8_t prevcv;
+uint8_t prevcc;
+
+uint8_t end;
+uint8_t start;
+uint32_t offset;
+
+bool chtrig;]]></code.declaration>
+         <code.init><![CDATA[prevcv=  0;
+prevcc = 0;
+chtrig = 0;]]></code.init>
+         <code.krate><![CDATA[start = attr_startcc + inlet_startcc;
+end = start + attr_length;
+offset = (inlet_offset + param_offset);
+	
+
+if (((cc >= start) && (cc < end)) && (inlet_active || param_active)) {
+
+if ((cv != prevcv)||(cc != prevcc)){
+      attr_table.array[(cc - start) + offset]= ((cv << 20) >>attr_table.GAIN);
+      prevcv = cv; 
+      prevcc = cc;
+      chtrig = 1;   
+   }  
+
+   outlet_chtrig = chtrig;
+  chtrig = 0;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if (status == (attr_channel-1) + MIDI_CONTROL_CHANGE) {cc = data1;cv = data2;}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="476" y="1246" text="note output"/>
+   <comment type="patch/comment" x="476" y="1260" text="this reads the table from 16 - 31 "/>
+   <comment type="patch/comment" x="476" y="1274" text="to output the note values"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_3" x="392" y="1288">
+      <params>
+         <int32 name="value" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/seq/step read" uuid="b1f7ea1e-9c45-44ff-8088-aa839d65d0d2" name="step_2" x="476" y="1302">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="770" y="1302" text="scales the note output to a more usable range"/>
+   <obj type="rbrt/math/scale" uuid="0ee2fe10-0178-4217-b4c1-c4c64338dcc0" name="scale_1" x="770" y="1316">
+      <params>
+         <frac32.u.map name="high" value="56.28499984741211"/>
+         <frac32.u.map name="low" value="20.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/unipolar2bipolar" uuid="efc8ee28c508740c5edf7995eaaa07a6d6818e5e" name="unipolar2bipolar_1" x="882" y="1330">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/to i" uuid="305966430ee86b5c3b8e18cde0c721657c558a87" name="to_1" x="1022" y="1330">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="476" y="1456" text="gate output"/>
+   <comment type="patch/comment" x="476" y="1470" text="this reads the table from 0-15 for the step toggle gate output"/>
+   <obj type="rbrt/seq/step read" uuid="b1f7ea1e-9c45-44ff-8088-aa839d65d0d2" name="step_1" x="476" y="1484">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="616" y="1484">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="784" y="1610" text="&apos;and&apos; gate to stop hung "/>
+   <comment type="patch/comment" x="782" y="1624" text="notes when playback stops"/>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_2" x="784" y="1638">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="952" y="1666" text="sends midi to synth subpatch"/>
+   <obj type="midi/intern/note" uuid="8181e221d6ee6b2c63e7dbdbf20f69de43c232bf" name="note_1" x="952" y="1680">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="4"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="vol" x="1092" y="1792">
+      <params>
+         <frac32.u.map name="value" value="32.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="detune" x="1204" y="1792">
+      <params>
+         <frac32.u.map name="value" value="6.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="6e177f52-1416-4525-ac6f-347b00d26c2a" name="patcher_1" x="1288" y="1806">
+      <params>
+         <frac32.s.map name="filter_env:a" value="-64.0"/>
+         <frac32.s.map name="filter_env:d" value="-23.0"/>
+         <frac32.u.map name="filter_env:s" value="0.0"/>
+         <frac32.s.map name="filter_env:r" value="6.0"/>
+         <frac32.u.map name="envdpth" value="11.5"/>
+         <frac32.s.map name="VCA_env:a" value="-60.0"/>
+         <frac32.s.map name="VCA_env:d" value="-14.0"/>
+         <frac32.u.map name="VCA_env:s" value="50.5"/>
+         <frac32.s.map name="VCA_env:r" value="6.0"/>
+         <frac32.u.map name="OSC1:timbre" value="27.0"/>
+         <frac32.u.map name="OSC2:timbre" value="30.5"/>
+         <frac32.u.map name="mix_1:gain1" value="35.0"/>
+         <frac32.u.map name="mix_1:gain2" value="35.0"/>
+         <frac32.s.map name="LP FILTER:pitch" value="2.0"/>
+         <frac32.u.map name="LP FILTER:reso" value="12.5"/>
+         <frac32.u.map name="LEVEL" value="33.5"/>
+      </params>
+      <attribs>
+         <combo attributeName="midichannel" selection="4"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="detune" x="1190" y="0">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_1" x="1260" y="0">
+            <params>
+               <frac32.u.map name="amp" value="0.5"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="midi/in/keyb touch" uuid="edfcb4cfd5b2064e95f5a7ee644bca56252ec11f" name="keyb_2" x="56" y="56">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="edce03cf-1280-4cf6-a98f-9dd5a2e01c09" name="filter_env" x="490" y="70">
+            <params>
+               <frac32.s.map name="a" onParent="true" value="-48.0"/>
+               <frac32.s.map name="d" onParent="true" value="-25.0"/>
+               <frac32.u.map name="s" onParent="true" value="14.5"/>
+               <frac32.s.map name="r" onParent="true" value="28.0"/>
+            </params>
+            <attribs/>
+            <object id="patch/object" uuid="edce03cf-1280-4cf6-a98f-9dd5a2e01c09">
+               <sDescription>Attack/decay/sustain/release envelope with retrigger and hard-reset inputs</sDescription>
+               <author>Remco van der Most</author>
+               <license>BSD</license>
+               <helpPatch>adsr.axh</helpPatch>
+               <inlets>
+                  <bool32.risingfalling name="gate" description="gate"/>
+                  <bool32 name="retrig"/>
+                  <bool32 name="reset"/>
+                  <frac32.positive name="s"/>
+               </inlets>
+               <outlets>
+                  <frac32.positive name="env" description="envelope output"/>
+               </outlets>
+               <displays/>
+               <params>
+                  <frac32.s.map.klineartime.exp2 name="a"/>
+                  <frac32.s.map.kdecaytime.exp name="d"/>
+                  <frac32.u.map name="s"/>
+                  <frac32.s.map.kdecaytime.exp name="r"/>
+               </params>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int8_t stage;
+int ntrig;
+int32_t val;
+bool rtrg;
+bool rst;
+uint32_t cnt;]]></code.declaration>
+               <code.init><![CDATA[stage = 0;
+ntrig = 0;
+val = 0;]]></code.init>
+               <code.krate><![CDATA[bool retrig=inlet_retrig&&inlet_gate;
+if((retrig>0)&&!rtrg){
+	rtrg=1;
+	stage=1;
+	cnt=0;
+}
+else if(retrig<1){rtrg=0;}
+if((inlet_reset>0)&&!rst){
+	rst=1;
+	val=0;
+	cnt=0;
+	stage=1;
+}
+else if(inlet_reset<1){rst=0;}
+if ((inlet_gate>0) && !ntrig) {
+   stage = 1;
+   ntrig = 1;
+   cnt=0;
+}
+if (!(inlet_gate>0) && ntrig) {
+   stage = 0;
+   ntrig=0;
+}
+
+if (stage == 0){
+   val = ___SMMUL(val,param_r)<<1;
+} else if (stage == 1){
+   val = val + param_a;
+   if (val<0) {
+      val =0x7FFFFFFF;
+      stage = 2;
+   }
+} else if (stage == 2) {
+   val = (param_s + inlet_s<<4) + (___SMMUL(val - (param_s +inlet_s<<4),param_d)<<1);
+}
+
+outlet_env = val>>4;]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="envdpth" x="588" y="70">
+            <params>
+               <frac32.u.map name="amp" onParent="true" value="52.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="kfilter/lowpass" uuid="4f0d68b39b6f6b1c1d371b028d84391d14062d68" name="lowpass_1" x="714" y="70">
+            <params>
+               <frac32.s.map name="freq" value="28.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="edce03cf-1280-4cf6-a98f-9dd5a2e01c09" name="VCA_env" x="1022" y="84">
+            <params>
+               <frac32.s.map name="a" onParent="true" value="-35.0"/>
+               <frac32.s.map name="d" onParent="true" value="-20.0"/>
+               <frac32.u.map name="s" onParent="true" value="20.5"/>
+               <frac32.s.map name="r" onParent="true" value="7.0"/>
+            </params>
+            <attribs/>
+            <object id="patch/object" uuid="edce03cf-1280-4cf6-a98f-9dd5a2e01c09">
+               <sDescription>Attack/decay/sustain/release envelope with retrigger and hard-reset inputs</sDescription>
+               <author>Remco van der Most</author>
+               <license>BSD</license>
+               <helpPatch>adsr.axh</helpPatch>
+               <inlets>
+                  <bool32.risingfalling name="gate" description="gate"/>
+                  <bool32 name="retrig"/>
+                  <bool32 name="reset"/>
+                  <frac32.positive name="s"/>
+               </inlets>
+               <outlets>
+                  <frac32.positive name="env" description="envelope output"/>
+               </outlets>
+               <displays/>
+               <params>
+                  <frac32.s.map.klineartime.exp2 name="a"/>
+                  <frac32.s.map.kdecaytime.exp name="d"/>
+                  <frac32.u.map name="s"/>
+                  <frac32.s.map.kdecaytime.exp name="r"/>
+               </params>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int8_t stage;
+int ntrig;
+int32_t val;
+bool rtrg;
+bool rst;
+uint32_t cnt;]]></code.declaration>
+               <code.init><![CDATA[stage = 0;
+ntrig = 0;
+val = 0;]]></code.init>
+               <code.krate><![CDATA[bool retrig=inlet_retrig&&inlet_gate;
+if((retrig>0)&&!rtrg){
+	rtrg=1;
+	stage=1;
+	cnt=0;
+}
+else if(retrig<1){rtrg=0;}
+if((inlet_reset>0)&&!rst){
+	rst=1;
+	val=0;
+	cnt=0;
+	stage=1;
+}
+else if(inlet_reset<1){rst=0;}
+if ((inlet_gate>0) && !ntrig) {
+   stage = 1;
+   ntrig = 1;
+   cnt=0;
+}
+if (!(inlet_gate>0) && ntrig) {
+   stage = 0;
+   ntrig=0;
+}
+
+if (stage == 0){
+   val = ___SMMUL(val,param_r)<<1;
+} else if (stage == 1){
+   val = val + param_a;
+   if (val<0) {
+      val =0x7FFFFFFF;
+      stage = 2;
+   }
+} else if (stage == 2) {
+   val = (param_s + inlet_s<<4) + (___SMMUL(val - (param_s +inlet_s<<4),param_d)<<1);
+}
+
+outlet_env = val>>4;]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="math/-" uuid="3280bb759e9fc189e134300e48dda7e903c9a110" name="-_1" x="1246" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="math/+" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_1" x="1358" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="vol" x="924" y="322">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="osc/brds/square" uuid="9fe639b7-264e-4152-90be-49c8d82cc03b" name="OSC1" x="126" y="378">
+            <params>
+               <frac32.s.map name="pitch" value="0.0"/>
+               <frac32.u.map name="timbre" onParent="true" value="26.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="osc/brds/square" uuid="9fe639b7-264e-4152-90be-49c8d82cc03b" name="OSC2" x="364" y="378">
+            <params>
+               <frac32.s.map name="pitch" value="0.0"/>
+               <frac32.u.map name="timbre" onParent="true" value="26.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="mix/mix 2 g" uuid="221f038da51943034a75e442c90624fcebfe6112" name="mix_1" x="616" y="378">
+            <params>
+               <frac32.u.map name="gain1" onParent="true" value="32.0"/>
+               <frac32.u.map name="gain2" onParent="true" value="32.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="5763e825-2274-426f-9c59-4da10848b4d6" name="LP FILTER" x="728" y="378">
+            <params>
+               <frac32.s.map name="pitch" onParent="true" value="-21.09999990463257"/>
+               <frac32.u.map name="reso" onParent="true" value="31.5"/>
+            </params>
+            <attribs/>
+            <object id="patch/object" uuid="5763e825-2274-426f-9c59-4da10848b4d6">
+               <sDescription>Low pass filter, state-variable type</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>filter.axh</helpPatch>
+               <inlets>
+                  <frac32buffer name="in" description="filter input"/>
+                  <frac32.positive name="p"/>
+                  <frac32.positive name="p2"/>
+                  <frac32.positive name="p3"/>
+               </inlets>
+               <outlets>
+                  <frac32buffer name="out" description="filter output"/>
+               </outlets>
+               <displays/>
+               <params>
+                  <frac32.s.map.pitch name="pitch"/>
+                  <frac32.u.map.filterq name="reso"/>
+               </params>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int32_t low;
+int32_t band;]]></code.declaration>
+               <code.init><![CDATA[low = 0;
+band = 0;]]></code.init>
+               <code.krate><![CDATA[int32_t damp = (0x80<<24) - (param_reso<<4);
+damp = ___SMMUL(damp,damp);
+int32_t alpha;
+int32_t freq;
+MTOFEXTENDED(param_pitch + inlet_p + inlet_p2 + inlet_p3,alpha);
+SINE2TINTERP(alpha,freq);]]></code.krate>
+               <code.srate><![CDATA[int32_t in1 = inlet_in;
+int32_t notch = inlet_in - (___SMMUL(damp,band)<<1);
+low = low + (___SMMUL(freq,band)<<1);
+int32_t high  = notch - low;
+band = (___SMMUL(freq,high)<<1) + band;// - drive*band*band*band;
+int32_t out1 = low;
+outlet_out = out1;]]></code.srate>
+            </object>
+         </patchobj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="868" y="378">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mix/mix 1 g" uuid="e6982841c1bf323ee2062a4b6cc2737adafbd668" name="LEVEL" x="952" y="378">
+            <params>
+               <frac32.u.map name="gain1" onParent="true" value="33.5"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="math/*" uuid="3ac307b9f782049739ed62504081b96d580ea336" name="*_1" x="1092" y="378">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="1302" y="406">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="VCA_env" outlet="env"/>
+               <dest obj="vca_1" inlet="v"/>
+            </net>
+            <net>
+               <source obj="filter_env" outlet="env"/>
+               <dest obj="envdpth" inlet="in"/>
+            </net>
+            <net>
+               <source obj="LP FILTER" outlet="out"/>
+               <dest obj="vca_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="vca_1" outlet="o"/>
+               <dest obj="LEVEL" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="keyb_2" outlet="note"/>
+               <dest obj="LP FILTER" inlet="p"/>
+               <dest obj="-_1" inlet="in1"/>
+               <dest obj="+_1" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="keyb_2" outlet="gate"/>
+               <dest obj="filter_env" inlet="gate"/>
+               <dest obj="VCA_env" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="envdpth" outlet="out"/>
+               <dest obj="lowpass_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="lowpass_1" outlet="out"/>
+               <dest obj="LP FILTER" inlet="p2"/>
+            </net>
+            <net>
+               <source obj="LEVEL" outlet="out"/>
+               <dest obj="*_1" inlet="b"/>
+            </net>
+            <net>
+               <source obj="OSC2" outlet="wave"/>
+               <dest obj="mix_1" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="OSC1" outlet="wave"/>
+               <dest obj="mix_1" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="mix_1" outlet="out"/>
+               <dest obj="LP FILTER" inlet="in"/>
+            </net>
+            <net>
+               <source obj="-_1" outlet="out"/>
+               <dest obj="OSC1" inlet="pitch"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="out"/>
+               <dest obj="OSC2" inlet="pitch"/>
+            </net>
+            <net>
+               <source obj="*c_1" outlet="out"/>
+               <dest obj="-_1" inlet="in2"/>
+               <dest obj="+_1" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="*_1" outlet="result"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="vol" outlet="inlet"/>
+               <dest obj="*_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="keyb_2" outlet="touch"/>
+               <dest obj="LP FILTER" inlet="p3"/>
+            </net>
+            <net>
+               <source obj="detune" outlet="inlet"/>
+               <dest obj="*c_1" inlet="in"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>normal</subpatchmode>
+            <MidiChannel>4</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>-8</x>
+            <y>-8</y>
+            <width>1616</width>
+            <height>876</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1428" y="1806">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="loadbang_1" outlet="pulse"/>
+         <dest obj="launch_1" inlet="redraw"/>
+         <dest obj="launch_2" inlet="redraw"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="and_1" inlet="i2"/>
+         <dest obj="counter_1" inlet="r"/>
+         <dest obj="note_2" inlet="g0"/>
+         <dest obj="and_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="and_2" outlet="o"/>
+         <dest obj="note_1" inlet="trig"/>
+         <dest obj="note_1" inlet="velo"/>
+      </net>
+      <net>
+         <source obj="patcher_1" outlet="outlet_1"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="vol" outlet="out"/>
+         <dest obj="patcher_1" inlet="vol"/>
+      </net>
+      <net>
+         <source obj="launch_1" outlet="offset"/>
+         <dest obj="launch_4" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="launch_1" outlet="start"/>
+         <dest obj="launch_4" inlet="start"/>
+      </net>
+      <net>
+         <source obj="launch_1" outlet="coloron"/>
+         <dest obj="launch_4" inlet="coloron"/>
+      </net>
+      <net>
+         <source obj="launch_1" outlet="coloroff"/>
+         <dest obj="launch_4" inlet="coloroff"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="step_1" inlet="step"/>
+         <dest obj="step_2" inlet="step"/>
+         <dest obj="launch_4" inlet="step"/>
+         <dest obj="launch_6" inlet="step"/>
+      </net>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="step_2" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="step_2" outlet="value"/>
+         <dest obj="scale_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="unipolar2bipolar_1" outlet="o"/>
+         <dest obj="to_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="table_3" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="table_4" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="detune" outlet="out"/>
+         <dest obj="patcher_1" inlet="detune"/>
+      </net>
+      <net>
+         <source obj="step_1" outlet="value"/>
+         <dest obj="xor_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="step_1" outlet="trig"/>
+         <dest obj="xor_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="launch_5" outlet="button4"/>
+         <dest obj="toggle_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="xor_1" outlet="o"/>
+         <dest obj="and_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="launch_2" outlet="offset"/>
+         <dest obj="launch_6" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="launch_2" outlet="start"/>
+         <dest obj="launch_6" inlet="start"/>
+      </net>
+      <net>
+         <source obj="launch_2" outlet="colouron"/>
+         <dest obj="launch_6" inlet="coloron"/>
+      </net>
+      <net>
+         <source obj="launch_2" outlet="colouroff"/>
+         <dest obj="launch_6" inlet="coloroff"/>
+      </net>
+      <net>
+         <source obj="scale_1" outlet="out"/>
+         <dest obj="unipolar2bipolar_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="to_1" outlet="o"/>
+         <dest obj="note_1" inlet="note"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

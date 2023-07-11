@@ -1,0 +1,185 @@
+<patch-1.0 appVersion="1.0.11">
+   <patchobj type="patch/object" uuid="3fe5538a-e5d2-4bb9-8a34-98e6221c6d4f" name="analog_1" x="14" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="channel" selection="PA1 (ADC1_IN1)"/>
+      </attribs>
+      <object id="patch/object" uuid="3fe5538a-e5d2-4bb9-8a34-98e6221c6d4f">
+         <sDescription>Reads an external analog voltage. Voltage range 0 to 3.3V maps to 0..64, with 12-bit precision. Apply no more than 3.3V!</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>analog.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="channel">
+               <MenuEntries>
+                  <string>PA0 (ADC1_IN0)</string>
+                  <string>PA1 (ADC1_IN1)</string>
+                  <string>PA2 (ADC1_IN2)</string>
+                  <string>PA3 (ADC1_IN3)</string>
+                  <string>PA4 (ADC1_IN4)</string>
+                  <string>PA5 (ADC1_IN5)</string>
+                  <string>PA6 (ADC1_IN6)</string>
+                  <string>PA7 (ADC1_IN7)</string>
+                  <string>PB0 (ADC1_IN8)</string>
+                  <string>PB1 (ADC1_IN9)</string>
+                  <string>PC0 (ADC1_IN10)</string>
+                  <string>PC1 (ADC1_IN11)</string>
+                  <string>PC2 (ADC1_IN12)</string>
+                  <string>PC3 (ADC1_IN13)</string>
+                  <string>PC4 (ADC1_IN14)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int val;]]></code.declaration>
+         <code.init><![CDATA[val = 0;]]></code.init>
+         <code.krate><![CDATA[val= adcvalues[attr_channel]<<15;
+val= val>>3;
+val= (val + 0x100000)&0xFFE00000;
+outlet_out= val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="182" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/to i" uuid="305966430ee86b5c3b8e18cde0c721657c558a87" name="to_1" x="182" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="1cf4f82e-8b75-467a-9d1b-2d2c3922753c" name="i_2" x="266" y="112">
+      <params/>
+      <attribs>
+         <spinner attributeName="value" value="1"/>
+      </attribs>
+      <object id="patch/object" uuid="1cf4f82e-8b75-467a-9d1b-2d2c3922753c">
+         <sDescription>constant</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>i.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <int32 name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="value" MinValue="-2147483648" MaxValue="2147483647" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= attr_value;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="b332b4f8-c982-465c-bd69-d201931d2ec6" name="==_1" x="378" y="112">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="b332b4f8-c982-465c-bd69-d201931d2ec6">
+         <sDescription>equal</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <int32 name="in1" description="in1"/>
+            <int32 name="in2" description="in2"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out" description="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1==inlet_in2 ;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="59a4ecef-1d9e-49ab-b439-16ed0f68b012" name="toggle_1" x="476" y="112">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="59a4ecef-1d9e-49ab-b439-16ed0f68b012">
+         <sDescription>toggle</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>logic.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[   int ntrig;
+   int op;
+]]></code.declaration>
+         <code.init><![CDATA[ntrig = 0;
+op = 0;
+]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {op = !op; ntrig=1;}
+if (!(inlet_trig>0)) ntrig=0;
+outlet_o= op;
+]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="574" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="analog_1" outlet="out"/>
+         <dest obj="i_1" inlet="in"/>
+         <dest obj="to_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="==_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="==_1" outlet="out"/>
+         <dest obj="toggle_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="to_1" outlet="o"/>
+         <dest obj="==_1" inlet="in2"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1696</width>
+      <height>1026</height>
+   </windowPos>
+</patch-1.0>

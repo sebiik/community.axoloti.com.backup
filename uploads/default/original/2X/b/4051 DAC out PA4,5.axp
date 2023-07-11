@@ -1,0 +1,95 @@
+<patch-1.0>
+   <obj type="ctrl/i radio 8 v" sha="a2ed8a60e7db97fda888b7f7c66aa23711070918" uuid="577436e6982cb8ac1f816144195641eeb6846f79" name="Y PIN" x="126" y="98">
+      <params>
+         <int32.vradio name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" sha="e98a25a12afc62efc1991c3bb5290ccdf7214102" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="224" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="336" y="224" text="s0 = PA0"/>
+   <comment type="patch/comment" x="336" y="238" text="s1 = PA1"/>
+   <comment type="patch/comment" x="336" y="252" text="s2 = P A2"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="DAC 1" x="126" y="266">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" name="multiplexer_count" x="336" y="280">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[/*
+marked comments with "*" are from axoloti "script" object
+code isn't tested
+*/
+
+int i;   // select y-input
+
+void setup(void){
+	palSetPadMode(GPIOA,0,PAL_MODE_OUTPUT_PUSHPULL);	// s0 Pin of 4051
+	palSetPadMode(GPIOA,1,PAL_MODE_OUTPUT_PUSHPULL);	// S1 Pin of 4051
+	palSetPadMode(GPIOA,2,PAL_MODE_OUTPUT_PUSHPULL);	// s2 Pin of 4051
+
+	palSetPadMode(GPIOA, 4, PAL_MODE_INPUT_ANALOG);		// DAC OUTPUT PA4*
+	palSetPadMode(GPIOA, 5, PAL_MODE_INPUT_ANALOG);		// DAC OUTPUT PA5*
+
+RCC->APB1ENR |= 0x20000000;	// *
+	DAC->CR |= 0x00030003;	// *
+
+	i = 0;
+}
+
+void loop(void){
+
+	i = in1;		//script object in1 controls 4051's Y output selection
+	if (i == 8) {
+		i = 0;
+	}
+
+	
+
+	palWritePad(GPIOA,0,((i& 0x01) > 0));		// write s0
+	palWritePad(GPIOA,1,(((i>>1)& 0x01) > 0));	// write s1
+	palWritePad(GPIOA,2,(((i>>2)& 0x01) > 0));	// write s2
+
+	
+	// select pin of the 4051 and route the DAC output value to it.
+	switch (i){
+		case 0: 	
+			DAC->DHR12R1 = in2>>15;				// check "input 1" of the "script" object and control DAC PA4 *
+			/*DAC->DHR12R2 = in2>>15;				// check "input 2" of the "script" object and control DAC PA5* */
+		break;
+	}
+
+	
+	chThdSleepMilliseconds(5);	// short delay
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="DAC 1" outlet="out"/>
+         <dest obj="multiplexer_count" inlet="in2_"/>
+      </net>
+      <net>
+         <source obj="Y PIN" outlet="out"/>
+         <dest obj="multiplexer_count" inlet="in1_"/>
+         <dest obj="i_2" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>604</x>
+      <y>23</y>
+      <width>795</width>
+      <height>954</height>
+   </windowPos>
+</patch-1.0>

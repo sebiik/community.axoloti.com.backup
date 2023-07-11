@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Help with division and multiplication of float values [solved]</title>
+    <link>http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562</link>
+    <description>Hello everyone. 
+I&#39;m currently trying to make a knee object (kinda like the one i have recently put in the library, you can find it as knee k and knee s)
+This time i&#39;d like to make the knee move horizontally (see the picture)
+&lt;img src=&quot;/uploads/default/original/2X/7/71d7ea39c9705fe5b0622dccb58f3362b1697f02.png&quot; width=&quot;690&quot; height=&quot;379&quot;&gt;
+
+As you can see, i already calculated the math formulas for the two ramps (nothing hard really).
+For K=l/2 the two ramps are basically just one continuous ramp (x=y)
+The hard part comes  now: have to scale all values to axoloti&#39;s weird ranges. 
+
+For the other object i got away without doing divisions and using only ___SMMUL and bitshifts. This time however i have to divide for quantities that are not fixed and that route is no longer viable.
+
+I tried to see how the math/reciprocal works, and it does its thing with
+
+          float inf = inlet_in;
+          outlet_out = (int)(281474976710656.f/inf);
+
+I copied that into my object and got this code (which partially works, but only of the first part of the ramp)
+
+
+    /*
+         * inlet_in=x
+         * outlet_out=y
+         * 
+         * param_amp= knob value ( ParameterFrac32UMapGain type)
+         * inlet_mod= additional mod input value ( inletFrac32Bipolar type )
+         * the param_amp and inlet_mod are then added to provide the K parameter
+        */
+        
+        param = param_amp + (inlet_mod&lt;&lt;4); // this is K
+        float fparam = (param&gt;&gt;4);
+        float temp;
+        float input = (inlet_in);
+        
+        if (inlet_in&lt; (param&gt;&gt;4)) //if x&lt;K -&gt; output the first part of the ramp (this one works as intended)
+        {
+            temp=(281474976710656.f/(fparam)); 
+            outlet_out= ___SMMUL((int)(temp/2),inlet_in)&lt;&lt;11;
+        }
+        else //if x&gt;K -&gt; output the second part of the ramp (and here comes the trouble, it does not work as expected at all)
+        
+        {
+            temp=(281474976710656.f/(64-fparam)); 
+            outlet_out=___SMMUL((int)(temp/2),(inlet_in+(1&lt;&lt;27)-(param&gt;&gt;3)))&lt;&lt;11;
+        }
+
+Can someone help? 
+I&#39;m getting several downward ramps in the output, that variate in number when you rotate the knob. Totally not what i was expecting, and at this point my programming skills break down
+I&#39;ll post the object and an example patch
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/f/f5ca1341b07f9a280fc446ab89b81c8dae4f2396.axo&quot;&gt;knee h k.axo&lt;/a&gt; (1.5 KB)
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/9/95291ffc82c945fc5f6cdbaf99ed53c902cd9469.axp&quot;&gt;bend prova.axp&lt;/a&gt; (1.3 KB)</description>
+    
+    <lastBuildDate>Wed, 27 Apr 2016 13:46:30 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Help with division and multiplication of float values [solved]</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>A post was split to a new topic: <a href="/t/smmul-and-other-intrinsics-debugging-strategies/1583">SMMUL and other intrinsics, debugging strategies</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/5</link>
+        <pubDate>Wed, 27 Apr 2016 14:54:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1562-5</guid>
+        <source url="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562.rss">Help with division and multiplication of float values [solved]</source>
+      </item>
+      <item>
+        <title>Help with division and multiplication of float values [solved]</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Great explanation, thanks! I had no idea of the existence of this format. I had already figured out that operations were made in fixed point but with some weird scaling (this and the weird scaling of input and parameter values), however my approach was more of a trial and error and long process adding bitshifts here and there until i got the desired result.</p>
+
+<p>If only there was a manual!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/4</link>
+        <pubDate>Sun, 24 Apr 2016 17:49:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1562-4</guid>
+        <source url="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562.rss">Help with division and multiplication of float values [solved]</source>
+      </item>
+      <item>
+        <title>Help with division and multiplication of float values [solved]</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>interesting...</p>
+
+<p>I thought Id have a play with this too, its interesting to understand Q Numbers...<br>... so this is not intended as a solution, as you already have one.</p>
+
+<p>but thought if someone searches in the future, might be an interesting side note.</p>
+
+<p>281474976710656 = 2^48<br>Im not going to use, it, but I was interested to know what this number was <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>ok, on to division in Q number format..<br>division is explained here:<br><aside class="onebox wikipedia">
+  <header class="source">
+    <a href="https://en.wikipedia.org/wiki/Q_(number_format)">
+      
+      en.wikipedia.org
+    </a>
+  </header>
+  <article class="onebox-body">
+    <img src="//upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Internet_map_1024.jpg/28px-Internet_map_1024.jpg" class="thumbnail" width="28" height="28">
+
+<h3><a href="https://en.wikipedia.org/wiki/Q_(number_format)">Q (number format)</a></h3>
+
+<p>Q is a fixed point number format where the number of fractional bits (and optionally the number of integer bits) is specified. For example, a Q15 number has 15 fractional bits; a Q1.14 number has 1 integer bit and 14 fractional bits. Q format is often used in hardware that does not have a floating-point unit and in applications that require constant resolution.   Q format numbers are notionally fixed point numbers, that is, they are stored and operated upon as regular binary signed integers, thus...</p>
+
+  </article>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>so, we are using 32 bit numbers, and Q is 27<br>(so we need to use int32_t and int64_4) </p>
+
+<p>so a quick conversion, gives us... (I've kept it the same as much as possible, to make it clear) </p>
+
+<pre><code>int32_t a = inlet_a;
+int32_t b = inlet_b;
+
+int32_t result;
+int64_t temp;
+
+// pre-multiply by the base (Upscale to Q16 so that the result will be in Q8 format)
+temp = (int64_t) a &lt;&lt; 27;
+// Rounding: mid values are rounded up (down for negative values).
+if ((temp &gt;= 0 &amp;&amp; b &gt;= 0) || (temp &lt; 0 &amp;&amp; b &lt; 0))
+    temp += b / 2;
+else
+    temp -= b / 2;
+result = (int32_t)(temp / b);
+
+outlet_c = result;</code></pre>
+
+<p>and it works....</p>
+
+<p>so lets see it in use... as perhaps the results are not 'obvious', and perhaps not what you want <a class="mention" href="/users/sputnki">@Sputnki</a> (hence why i say its a side note)</p>
+
+<p>a = 64 b = 64 , result = 64</p>
+
+<p>this may seem wrong initially, but remember 64 = 1.0 , so actually 1/1 = 1 <br>from here its clear...<br>a = 16 b = 32  , result = 32  , which is 0.25 / 0.5 = 0.5</p>
+
+<p>now this is why we have to be careful with division, as numbers get big quite quickly<br>a = 16, b = 8,  result = 128 (so red on a dial, but its not really overflowed)    .25/.125 = 2</p>
+
+<p>so what if instead we use the math/recip object?<br>so implement. <br>res = a * ( 1/b) </p>
+
+<p>well we get perhaps what might have been expected...<br>a = 16, b = 8,  result = 2</p>
+
+<p>this actually surprised me in someways... as its stepping out of our data typing... where we view 0-64 as 0 to 1,<br>instead its actually giving us straight division... I would suspect this because its generally more useful/whats expected.</p>
+
+<p>of course, the first approach, can easily be changed to implement the second </p>
+
+<p>simply change the last line to </p>
+
+<pre><code>  outlet_c = result &gt;&gt; 6;</code></pre>
+
+<p>(i.e. divide by 64) </p>
+
+<p>anyway, as I say... I personally, just wanted to play with Q Numbers, the more I play and experiment, the more I understand... and thought Id pass the it on, as it may help others. </p>
+
+<p>(apologises if you read this a found obvious, boring, or generally ... so what <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> )</p>
+
+<p>test patch (Axoloti 1.0.9)  , showing 3 different implementations</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/d/df3893df3033e0cf2c4122fd17edd8a776687aa6.axp">divtest109.axp</a> (6.4 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/3</link>
+        <pubDate>Sun, 24 Apr 2016 12:07:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1562-3</guid>
+        <source url="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562.rss">Help with division and multiplication of float values [solved]</source>
+      </item>
+      <item>
+        <title>Help with division and multiplication of float values [solved]</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Okay, i no longer need help, i figured it out myself: iside the last parenthesis i have put this thing here:</p>
+
+<pre><code>{    
+    temp=(281474976710656.f/((1&lt;&lt;27)-fparam)); 
+    outlet_out=(___SMMUL((int)(temp/2),inlet_in-(param&gt;&gt;4))&lt;&lt;11) +(1&lt;&lt;26); 
+}</code></pre>
+
+<p>Basically the operation 281474976710656.f / "stuff" performs a recyprocal. however what you put inside "stuff" is an integer, not a float (this may seem odd because i declared fparam as a float value, but that will remain a mistery for me since i'm no software engineer).</p>
+
+<p>Now it works. Apparently i did not even divide by zero.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/2</link>
+        <pubDate>Sun, 24 Apr 2016 09:38:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1562-2</guid>
+        <source url="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562.rss">Help with division and multiplication of float values [solved]</source>
+      </item>
+      <item>
+        <title>Help with division and multiplication of float values [solved]</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>Hello everyone. <br>I'm currently trying to make a knee object (kinda like the one i have recently put in the library, you can find it as knee k and knee s)<br>This time i'd like to make the knee move horizontally (see the picture)<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/71d7ea39c9705fe5b0622dccb58f3362b1697f02" href="//community.axoloti.com/uploads/default/original/2X/7/71d7ea39c9705fe5b0622dccb58f3362b1697f02.png" class="lightbox" title="Immagine.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/7/71d7ea39c9705fe5b0622dccb58f3362b1697f02_1_690x379.png" width="690" height="379"><div class="meta">
+<span class="filename">Immagine.png</span><span class="informations">837x460 16.9 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>As you can see, i already calculated the math formulas for the two ramps (nothing hard really).<br>For K=l/2 the two ramps are basically just one continuous ramp (x=y)<br>The hard part comes  now: have to scale all values to axoloti's weird ranges. </p>
+
+<p>For the other object i got away without doing divisions and using only ___SMMUL and bitshifts. This time however i have to divide for quantities that are not fixed and that route is no longer viable.</p>
+
+<p>I tried to see how the math/reciprocal works, and it does its thing with</p>
+
+<pre><code>      float inf = inlet_in;
+      outlet_out = (int)(281474976710656.f/inf);</code></pre>
+
+<p>I copied that into my object and got this code (which partially works, but only of the first part of the ramp)</p>
+
+<pre><code>/*
+     * inlet_in=x
+     * outlet_out=y
+     * 
+     * param_amp= knob value ( ParameterFrac32UMapGain type)
+     * inlet_mod= additional mod input value ( inletFrac32Bipolar type )
+     * the param_amp and inlet_mod are then added to provide the K parameter
+    */
+    
+    param = param_amp + (inlet_mod&lt;&lt;4); // this is K
+    float fparam = (param&gt;&gt;4);
+    float temp;
+    float input = (inlet_in);
+    
+    if (inlet_in&lt; (param&gt;&gt;4)) //if x&lt;K -&gt; output the first part of the ramp (this one works as intended)
+    {
+        temp=(281474976710656.f/(fparam)); 
+        outlet_out= ___SMMUL((int)(temp/2),inlet_in)&lt;&lt;11;
+    }
+    else //if x&gt;K -&gt; output the second part of the ramp (and here comes the trouble, it does not work as expected at all)
+    
+    {
+        temp=(281474976710656.f/(64-fparam)); 
+        outlet_out=___SMMUL((int)(temp/2),(inlet_in+(1&lt;&lt;27)-(param&gt;&gt;3)))&lt;&lt;11;
+    }</code></pre>
+
+<p>Can someone help? <br>I'm getting several downward ramps in the output, that variate in number when you rotate the knob. Totally not what i was expecting, and at this point my programming skills break down<br>I'll post the object and an example patch</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/f/f5ca1341b07f9a280fc446ab89b81c8dae4f2396.axo">knee h k.axo</a> (1.5 KB)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/9/95291ffc82c945fc5f6cdbaf99ed53c902cd9469.axp">bend prova.axp</a> (1.3 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562/1</link>
+        <pubDate>Sun, 24 Apr 2016 06:54:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1562-1</guid>
+        <source url="http://community.axoloti.com/t/help-with-division-and-multiplication-of-float-values-solved/1562.rss">Help with division and multiplication of float values [solved]</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Fuzz, overdrive and distortion modelling</title>
+    <link>http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008</link>
+    <description>Generally speaking analog circuits can be pretty well simulated with a circuit simulator, like the freeware [ltspice](http://www.linear.com/solutions/ltspice). I mean, I don&#39;t think there is black magic behavior in transistors, tubes or transformers that can&#39;t be expressed in a circuit-level simulation model. 
+I don&#39;t have a &quot;golden&quot;object or patch available, but here I&#39;ll try to break down (guitar) distortion into parts that may or may not be a relevant part of its desirable character.
+
+###waveshaping
+A common approach to modeling distortion is simulating the amplitude distortion, like a waveshaper. A &quot;naive&quot; sample-by-sample digital implementation a waveshaper often suffers from aliasing artefacts. Combating aliases is an important requirement when modeling high gain distortion. Current objects that have some sort of strategy to reduce aliasing are &quot;dist/inf&quot;, &quot;dist/rectifier&quot;, &quot;dist/rectifier full&quot; and &quot;dist/hardclip&quot;, and the newer &quot;jt/dist/class a&quot;.
+[This](https://www.youtube.com/watch?v=zqDuADvNApc) video shows quite some fuzzbox waveforms on an oscilloscope, I mainly observe waveshaping behavior, and it seems pretty close to hard clipping, not much evidence of a soft transition between clipped and unclipped or frequency-dependent behavior. 
+
+###operating point
+But remarkable is that the clip levels seem to shift with the amplitude, at [this](https://youtu.be/zqDuADvNApc?t=211) point, you can see that over 180 degrees of a sinewave cycle is clipped away, meaning that the positive side clip threshold moved to a negative level. So the operating point of the waveshaping is dynamic, if the positive side clip level had been static at a negative level, it would gate small signals.
+Still waveshaping is not always a sufficiently complete model.
+
+###filtered waveshaping
+Looking at the schematic of a tubescreamer, there are not just 2 clipping diodes in the feedback path of the opamp, there is also a RC network to the virtual ground, adding some filtering into the distortion. 
+
+###subsonics
+Also some gentle high-pass filtering before distorting is relevant, I have noticed guitar pickups can produce substantial subsonic output by just pushing the strings near the pickup. Without filtering, this would change the operating point of the distortion.
+
+###sag
+In a guitar tube power-amp, producing loud output may &quot;starve&quot; the powersupply, causing the supply voltage to drop when you hit the strings, called &quot;sag&quot;. This changes the operating point of the whole circuit, adding a sort of compression. I have also heard anecdotes of guitar players preferring the sound of a nearly empty battery in a tubescreamer distortion pedal. Something similar can happen there. [This video](https://www.youtube.com/watch?v=z8bjPYIa4xY) demonstrates a potentiometer between battery and a tubescreamer to control the sag. Remarkable is the production of **sub**harmonics, while a waveshaper can only add overtones. I think (subtle) addition of subharmonics are desirable. And I imagine, when a tube amplifier power supply is sagging, it also increases the amount of mains hum. But I haven&#39;t heard of anyone using a mains frequency converter to tune the hum to be in harmony, or bands tuning their instruments consciously to mains (requires convincing the other band members...). For 50Hz mains (Europe), hum is between G and G#, in the US, 60Hz, between A# and B. I also haven&#39;t seen any guitar tuner that offers mains frequencies as an alternate tuning reference :)
+
+###memory
+Transformers do not just simply saturate, their response also has a sort of memory called hysteresis.
+
+###feedback
+Typical guitar tube power-amps use corrective feedback, from after the transformer to the input of the poweramp, reducing gain but increasing its linearity. But as this happens across all the effects listed above, assuming its effect is only linearizing is probably an oversimplification.
+
+###analysis
+Not every effect necessarily has a substantial or desirable contribution to the final sound, not everything needs to be modeled to obtain a satisfactory model. A good synthetic test-waveform to play and record through &quot;test&quot; pedals and amps that reveal specific properties should be designed. For instance, a pulse is invariant to waveshaping, and will reveal the frequency response of the system after the distortion. And low-amplitude pulse mixed to a low-frequency sine wave can reveal the small signal impulse response at different operating points by varying the phase of the pulse and the sine wave. Then, the recorded wave could be analyzed with Octave or Scilab. Is anyone aware of such an (open source) effort?
+
+But even without further scientific analysis I hope this breakdown could be inspiring in patching up distortion techniques. And if it sounds good, it is good.
+
+Comments welcome...</description>
+    
+    <lastBuildDate>Mon, 29 Aug 2016 18:53:50 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Fuzz, overdrive and distortion modelling</title>
+        <dc:creator><![CDATA[@MrBim Bim ]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mrbim">@MrBim</a> wrote:</p>
+          <blockquote>
+              <p>I am also not an electronics wiz but my understanding was the pre filtering is to remove the pop caused by the foot switch. <br>I could well be wrong tho.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/6</link>
+        <pubDate>Mon, 29 Aug 2016 18:53:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2008-6</guid>
+        <source url="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008.rss">Fuzz, overdrive and distortion modelling</source>
+      </item>
+      <item>
+        <title>Fuzz, overdrive and distortion modelling</title>
+        <dc:creator><![CDATA[@halford88 Hal]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/halford88">@halford88</a> wrote:</p>
+          <blockquote>
+              <p>I'm not the best with electronics, but about a yea ago I started by trying to build some fuzz boxes. The pro-co Rat is my favorite, and <a href="http://www.electrosmash.com/proco-rat" rel="nofollow">this circuit analysis</a> was a great resource. </p>
+
+<p>The Tube Screamer and Rat Schematics are similar in a lot of ways, but they both implement pre-filter resistor network to avoid ground pops, and filter out some un-wanted frequencies. Pre-Filtering seems to be a common practice in stomp boxes, and is easily achieved with the current axo build.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/5</link>
+        <pubDate>Mon, 29 Aug 2016 17:38:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2008-5</guid>
+        <source url="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008.rss">Fuzz, overdrive and distortion modelling</source>
+      </item>
+      <item>
+        <title>Fuzz, overdrive and distortion modelling</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>A post was split to a new topic: <a href="/t/converting-a-fuzz-model-from-spice/2164">Converting a fuzz model from Spice?</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/4</link>
+        <pubDate>Sun, 28 Aug 2016 13:53:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2008-4</guid>
+        <source url="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008.rss">Fuzz, overdrive and distortion modelling</source>
+      </item>
+      <item>
+        <title>Fuzz, overdrive and distortion modelling</title>
+        <dc:creator><![CDATA[@Sputnki Filippo Tamagnini]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sputnki">@Sputnki</a> wrote:</p>
+          <blockquote>
+              <p>You could approximate tanh with a taylor polynomial expansion, maybe you could break the function in several ones to get a better result (for example for x&lt;-1 and x&gt;1 and for<code>-1  &lt; x &lt; 1</code> )</p>
+
+<p>As for the hysteresis thing.. that might be trickier to implement, especially if you don't want some hard hysteresis like schmitt trigger but something more like the ferromagnetic one. Maybe you could switch between different curves whenever the signal goes over some value, but that won't be realistic since ferromagnetic hysteresis cycle size depend on how much the material is magnetized (therefore you can have infinitely many curves depending on the signal)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/3</link>
+        <pubDate>Thu, 21 Jul 2016 20:51:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2008-3</guid>
+        <source url="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008.rss">Fuzz, overdrive and distortion modelling</source>
+      </item>
+      <item>
+        <title>Fuzz, overdrive and distortion modelling</title>
+        <dc:creator><![CDATA[@Knutt Max]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/knutt">@Knutt</a> wrote:</p>
+          <blockquote>
+              <p>Hi Johannes !</p>
+
+<p>I heard that the Tanh function is heavily used for "smooth" digital distortion. It's supposed to be a modelling of tube behavior or a good start i guess.</p>
+
+<p>We can decompose the function with exponential but i don't know how to do it without an open math/div function <img src="/images/emoji/emoji_one/confused.png?v=2" title=":confused:" class="emoji" alt=":confused:"> </p>
+
+<p>Modified tanh function looks tastier. </p>
+
+<p><a href="http://folk.ntnu.no/oyvinbra/gdsp/Lesson4Modtanh.html" class="onebox" target="_blank" rel="nofollow">http://folk.ntnu.no/oyvinbra/gdsp/Lesson4Modtanh.html</a></p>
+
+<p>On this upgraded equation, it should be really interesting to implement an "hysteresis" behavior on a &amp; b like :<br>Input or Output informations at n finetune a &amp; b for n+1 and so on. not based on real circuits however <img src="/images/emoji/emoji_one/blush.png?v=2" title=":blush:" class="emoji" alt=":blush:"></p>
+
+<p>Arctan or any sloppish static function is commonly used for VST/VA distortion but Tanh seems easier to implementent</p>
+
+<p>I'm not familiar with objects coding so i'm a bit blocked but maybe someone </p>
+
+<p>From VOS's blog:  <a href="https://varietyofsound.wordpress.com/2010/12/04/towards-stateful-saturation/" rel="nofollow">https://varietyofsound.wordpress.com/2010/12/04/towards-stateful-saturation/</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/2</link>
+        <pubDate>Thu, 21 Jul 2016 17:25:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2008-2</guid>
+        <source url="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008.rss">Fuzz, overdrive and distortion modelling</source>
+      </item>
+      <item>
+        <title>Fuzz, overdrive and distortion modelling</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Generally speaking analog circuits can be pretty well simulated with a circuit simulator, like the freeware <a href="http://www.linear.com/solutions/ltspice" rel="nofollow">ltspice</a>. I mean, I don't think there is black magic behavior in transistors, tubes or transformers that can't be expressed in a circuit-level simulation model. <br>I don't have a "golden"object or patch available, but here I'll try to break down (guitar) distortion into parts that may or may not be a relevant part of its desirable character.</p>
+
+<h3>waveshaping</h3>
+
+<p>A common approach to modeling distortion is simulating the amplitude distortion, like a waveshaper. A "naive" sample-by-sample digital implementation a waveshaper often suffers from aliasing artefacts. Combating aliases is an important requirement when modeling high gain distortion. Current objects that have some sort of strategy to reduce aliasing are "dist/inf", "dist/rectifier", "dist/rectifier full" and "dist/hardclip", and the newer "jt/dist/class a".<br><a href="https://www.youtube.com/watch?v=zqDuADvNApc" rel="nofollow">This</a> video shows quite some fuzzbox waveforms on an oscilloscope, I mainly observe waveshaping behavior, and it seems pretty close to hard clipping, not much evidence of a soft transition between clipped and unclipped or frequency-dependent behavior. </p>
+
+<h3>operating point</h3>
+
+<p>But remarkable is that the clip levels seem to shift with the amplitude, at <a href="https://youtu.be/zqDuADvNApc?t=211" rel="nofollow">this</a> point, you can see that over 180 degrees of a sinewave cycle is clipped away, meaning that the positive side clip threshold moved to a negative level. So the operating point of the waveshaping is dynamic, if the positive side clip level had been static at a negative level, it would gate small signals.<br>Still waveshaping is not always a sufficiently complete model.</p>
+
+<h3>filtered waveshaping</h3>
+
+<p>Looking at the schematic of a tubescreamer, there are not just 2 clipping diodes in the feedback path of the opamp, there is also a RC network to the virtual ground, adding some filtering into the distortion. </p>
+
+<h3>subsonics</h3>
+
+<p>Also some gentle high-pass filtering before distorting is relevant, I have noticed guitar pickups can produce substantial subsonic output by just pushing the strings near the pickup. Without filtering, this would change the operating point of the distortion.</p>
+
+<h3>sag</h3>
+
+<p>In a guitar tube power-amp, producing loud output may "starve" the powersupply, causing the supply voltage to drop when you hit the strings, called "sag". This changes the operating point of the whole circuit, adding a sort of compression. I have also heard anecdotes of guitar players preferring the sound of a nearly empty battery in a tubescreamer distortion pedal. Something similar can happen there. <a href="https://www.youtube.com/watch?v=z8bjPYIa4xY" rel="nofollow">This video</a> demonstrates a potentiometer between battery and a tubescreamer to control the sag. Remarkable is the production of <strong>sub</strong>harmonics, while a waveshaper can only add overtones. I think (subtle) addition of subharmonics are desirable. And I imagine, when a tube amplifier power supply is sagging, it also increases the amount of mains hum. But I haven't heard of anyone using a mains frequency converter to tune the hum to be in harmony, or bands tuning their instruments consciously to mains (requires convincing the other band members...). For 50Hz mains (Europe), hum is between G and G#, in the US, 60Hz, between A# and B. I also haven't seen any guitar tuner that offers mains frequencies as an alternate tuning reference <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<h3>memory</h3>
+
+<p>Transformers do not just simply saturate, their response also has a sort of memory called hysteresis.</p>
+
+<h3>feedback</h3>
+
+<p>Typical guitar tube power-amps use corrective feedback, from after the transformer to the input of the poweramp, reducing gain but increasing its linearity. But as this happens across all the effects listed above, assuming its effect is only linearizing is probably an oversimplification.</p>
+
+<h3>analysis</h3>
+
+<p>Not every effect necessarily has a substantial or desirable contribution to the final sound, not everything needs to be modeled to obtain a satisfactory model. A good synthetic test-waveform to play and record through "test" pedals and amps that reveal specific properties should be designed. For instance, a pulse is invariant to waveshaping, and will reveal the frequency response of the system after the distortion. And low-amplitude pulse mixed to a low-frequency sine wave can reveal the small signal impulse response at different operating points by varying the phase of the pulse and the sine wave. Then, the recorded wave could be analyzed with Octave or Scilab. Is anyone aware of such an (open source) effort?</p>
+
+<p>But even without further scientific analysis I hope this breakdown could be inspiring in patching up distortion techniques. And if it sounds good, it is good.</p>
+
+<p>Comments welcome...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008/1</link>
+        <pubDate>Mon, 18 Jul 2016 20:54:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2008-1</guid>
+        <source url="http://community.axoloti.com/t/fuzz-overdrive-and-distortion-modelling/2008.rss">Fuzz, overdrive and distortion modelling</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,153 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="simple delay" uuid="723f2066-522c-44aa-8b9f-3b4ccefd8804">
+      <license>GPL</license>
+      <inlets>
+         <frac32buffer name="in"/>
+         <frac32.positive name="time"/>
+         <bool32 name="active"/>
+      </inlets>
+      <outlets>
+         <frac32buffer name="out"/>
+         <frac32buffer name="delsig"/>
+         <int32.positive name="time"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.u.map name="time" noLabel="true"/>
+      </params>
+      <attribs>
+         <combo name="length">
+            <MenuEntries>
+               <string>256 (5.33ms)</string>
+               <string>512 (10.66ms)</string>
+               <string>1024 (21.33ms)</string>
+               <string>2048 (42.66ms)</string>
+               <string>4096 (85.33ms)</string>
+               <string>8192 (170ms)</string>
+               <string>16384 (341ms)</string>
+               <string>32768 (682ms)</string>
+               <string>65536 (1.36s)</string>
+               <string>131072 (2.73s)</string>
+               <string>262144 (5.46s)</string>
+               <string>524288 (10.9s)</string>
+               <string>1048576 (21.8s)</string>
+               <string>2097152 (43.7s)</string>
+            </MenuEntries>
+            <CEntries>
+               <string>8</string>
+               <string>9</string>
+               <string>10</string>
+               <string>11</string>
+               <string>12</string>
+               <string>13</string>
+               <string>14</string>
+               <string>15</string>
+               <string>16</string>
+               <string>17</string>
+               <string>18</string>
+               <string>19</string>
+               <string>20</string>
+               <string>21</string>
+            </CEntries>
+         </combo>
+         <combo name="a1">
+            <MenuEntries>
+               <string>256 (5.33ms)</string>
+               <string>512 (10.66ms)</string>
+               <string>1024 (21.33ms)</string>
+               <string>2048 (42.66ms)</string>
+               <string>4096 (85.33ms)</string>
+               <string>8192 (170ms)</string>
+               <string>16384 (341ms)</string>
+               <string>32768 (682ms)</string>
+               <string>65536 (1.36s)</string>
+               <string>131072 (2.73s)</string>
+               <string>262144 (5.46s)</string>
+               <string>524288 (10.9s)</string>
+               <string>1048576 (21.8s)</string>
+               <string>2097152 (43.7s)</string>
+            </MenuEntries>
+            <CEntries>
+               <string>8</string>
+               <string>9</string>
+               <string>10</string>
+               <string>11</string>
+               <string>12</string>
+               <string>13</string>
+               <string>14</string>
+               <string>15</string>
+               <string>16</string>
+               <string>17</string>
+               <string>18</string>
+               <string>19</string>
+               <string>20</string>
+               <string>21</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <code.declaration><![CDATA[int32_t writepos;
+int32_t readpos;
+float *array[attr_length];
+float fOut, fDelSig = 0;]]></code.declaration>
+      <code.init><![CDATA[//for(int i=0;i<attr_length;i++){ 
+//	delayline[i] = 0;
+//   buffwritepos = 0;
+//   buffreadpos = 1;
+//   
+//   //the buffer loop
+//static float _delayline[attr_poly][1<<attr_length]  __attribute__ ((section (".sdram")));
+//
+//delayline = &_delayline[parent->polyIndex][0];
+//   int i;
+//   buffwritepos = 0;
+//   for(i=0;i<attr_length;i++) delayline[i] = 0;
+
+static float _array[attr_poly][1<<attr_length]  __attribute__ ((section (".sdram")));
+*array = &_array[parent->polyIndex][0];
+   int i;
+   writepos = 0;
+   readpos = 1;
+   for(i=0;i<attr_length;i++)
+   { 
+   	*array[i] = 0;
+   }]]></code.init>
+      <code.krate><![CDATA[float time = (q27_to_float(param_time + inlet_time));
+time = ((time * 10000)+1);
+outlet_time = time;]]></code.krate>
+      <code.srate><![CDATA[float fIn = (q27_to_float(inlet_in));
+
+	writepos = writepos ++;
+											//increment buffer pos.....
+	if(writepos >= attr_length)
+	{
+		writepos = 0;                                 //write pos wrapper
+	}
+	*array[writepos] = fIn;         				// write input into buffer
+
+	readpos = writepos - time;
+	if(readpos < 0)	
+	{
+		readpos = 0;                                 //read pos wrapper
+	}	
+	
+	fDelSig = *array[readpos];                      
+
+	outlet_delsig =  float_to_q27(fDelSig);     		//this is to check if signal is going into buffer
+	outlet_out = float_to_q27(fIn + fDelSig);
+
+//	 
+//	if (writepos < timm)
+//	{
+//		readpos = (attr_length - (timm - writepos));
+//	}
+//	else
+//	{
+//		readpos = (writepos - timm);
+//	}        //delay time at 0.25s in samples
+
+//	if(readpos < 0) 
+//	{
+//		readpos = readpos + attr_length;
+//	}]]></code.srate>
+   </obj.normal>
+</objdefs>

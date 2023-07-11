@@ -1,0 +1,93 @@
+<objdefs>
+   <obj.normal id="patch/object" uuid="d9f44795bfd6115f91bc84d9b38087afd0709f6e" sha="bdf0a34633bcf0e126de6e1adf5a70b332ec7777">
+      <sDescription>description</sDescription>
+      <author>Johannes Taelman</author>
+      <license>BSD</license>
+      <inlets>
+         <frac32 name="i0"/>
+         <frac32 name="i1"/>
+         <frac32 name="i2"/>
+         <frac32 name="i3"/>
+         <int32 name="test"/>
+      </inlets>
+      <outlets>
+         <frac32 name="0"/>
+         <frac32 name="1"/>
+         <frac32 name="2"/>
+         <frac32 name="3"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs/>
+      <code.declaration><![CDATA[   int i;
+uint32_t z;
+    uint32_t y;
+  uint32_t hold_0;
+  uint32_t hold_1;
+  uint32_t hold_2;
+  uint32_t hold_3;
+ ]]></code.declaration>
+      <code.init><![CDATA[i = 0 ;
+	palSetPadMode(GPIOA,0,PAL_MODE_OUTPUT_PUSHPULL);	// s0 Pin of 4051
+	palSetPadMode(GPIOA,1,PAL_MODE_OUTPUT_PUSHPULL);	// S1 Pin of 4051
+	
+	palSetPadMode(GPIOA, 4, PAL_MODE_INPUT_ANALOG);   //axoloti analog out
+	//palSetPadMode(GPIOA, 5, PAL_MODE_INPUT_ANALOG);
+	RCC->APB1ENR |= 0x20000000;
+	DAC->CR |= 0x00030003;	]]></code.init>
+      <code.krate><![CDATA[i += 1;
+if(i==4)
+i= 0;
+
+// set the 4051's destination
+	palWritePad(GPIOA,0,((i& 0x01) > 0));		// write s0
+	palWritePad(GPIOA,1,(((i>>1)& 0x01) > 0));	// write s1
+	palWritePad(GPIOA,2,(((i>>2)& 0x01) > 0));	// write s2
+
+
+//selects input 1-4 AND writes to A4
+   switch(i){
+      case 0: DAC->DHR12R1 = inlet_i0 >>15;break;
+      case 1: DAC->DHR12R1 = inlet_i1 >>15;break;
+      case 2: DAC->DHR12R1 = inlet_i2 >>15;break;
+      case 3: DAC->DHR12R1 = inlet_i3 >>15;break;
+      default:DAC->DHR12R1 = inlet_i0;break;
+}
+
+
+//this part read pins A6,A7,B0,B1
+// there seems to be 1 cycle delay ,because 'i' has to be shifted +1
+if(i == 1) {
+	hold_0 = adcvalues[6]<<15;
+	outlet_0= hold_0;
+}else {
+	outlet_0 = hold_0;
+}
+
+if(i == 2) {
+	hold_1 = adcvalues[7]<<15;
+	outlet_1= hold_1;
+}else {
+	outlet_1 = hold_1;
+}
+
+if(i == 3) {
+	hold_2 = adcvalues[8]<<15;
+	outlet_2= hold_2;
+}else {
+	outlet_2 = hold_2;
+}
+if(i == 0) {
+	hold_3 = adcvalues[9]<<15;
+	outlet_3= hold_3;
+}else {
+	outlet_3 = hold_3;
+}
+
+
+
+
+
+]]></code.krate>
+   </obj.normal>
+</objdefs>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:48 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Best Practices for I2C Objects/Drivers - AxoObject coding - Axoloti Community</title>
+    <meta name="description" content="@SmashedTransistors wrote: 
+
+Maybe it is a good idea to start a new thread about &amp;quot;tips and good practices for I2C objects&amp;quot;. 
+
+Here&amp;#39;s my take on writing I2C drivers for Axoloti. Feel free to comment/contribute. 
+
+Introduc&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="5075.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Best Practices for I2C Objects/Drivers&#39;" href="5075.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/2X/b/b06df6b64f4e7280e5bcba6611bca0567cfbb537.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/2X/b/b06df6b64f4e7280e5bcba6611bca0567cfbb537.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075" />
+<meta property="og:title" content="Best Practices for I2C Objects/Drivers" />
+<meta name="twitter:title" content="Best Practices for I2C Objects/Drivers" />
+<meta property="og:description" content="@SmashedTransistors wrote:   Maybe it is a good idea to start a new thread about &quot;tips and good practices for I2C objects&quot;.   Here&#39;s my take on writing I2C drivers for Axoloti. Feel free to comment/contribute.   Introduction  I2C is a shared bus technology. i2c wikipedia   Lot&#39;s of interesting chips have an I2C interface and the Axoloti provides an I2C bus on the IO pins. If you have a new I2C device you want to hook up, you&#39;ll need to write an I2C driver/object for it.   I2C is a shared bus.   T..." />
+<meta name="twitter:description" content="@SmashedTransistors wrote:   Maybe it is a good idea to start a new thread about &quot;tips and good practices for I2C objects&quot;.   Here&#39;s my take on writing I2C drivers for Axoloti. Feel free to comment/contribute.   Introduction  I2C is a shared bus technology. i2c wikipedia   Lot&#39;s of interesting chips have an I2C interface and the Axoloti provides an I2C bus on the IO pins. If you have a new I2C device you want to hook up, you&#39;ll need to write an I2C driver/object for it.   I2C is a shared bus.   T..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="4 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="7 ❤" />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../index.html"><img src="../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="5075.html">Best Practices for I2C Objects/Drivers</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../c/axoobject-code.html" itemprop="url">
+        <span itemprop="title">AxoObject coding</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/deadsy.html'><b itemprop='author'>deadsy</b></a>
+           
+           <time datetime='2018-10-20T17:18:08Z' itemprop='datePublished'>
+             2018-10-20 17:18:08 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../u/smashedtransistors-2.html">@SmashedTransistors</a> wrote:</p>
+
+<blockquote><p>Maybe it is a good idea to start a new thread about "tips and good practices for I2C objects".</p></blockquote>
+
+<p>Here's my take on writing I2C drivers for Axoloti. Feel free to comment/contribute.</p>
+
+<h2>Introduction</h2>
+
+<p>I2C is a shared bus technology.<br><a href="https://en.wikipedia.org/wiki/I²C" rel="nofollow noopener">i2c wikipedia</a></p>
+
+<p>Lot's of interesting chips have an I2C interface and the Axoloti provides an I2C bus on the IO pins.<br>If you have a new I2C device you want to hook up, you'll need to write an I2C driver/object for it.</p>
+
+<p>I2C is a <em>shared</em> bus.</p>
+
+<p>The Axoloti is the bus master. Each device is a bus slave. There can be multiple slaves on a single bus (each with a unique 7-bit I2C address). The Axoloti initiates a bus transaction (read/write) and the slave device responds. Each device is controlled by it's own driver- which will typically be a patch object.</p>
+
+<p>Here are some best practices to ensure different device drivers work well on the same bus.</p>
+
+<h2>1. Provide a way for the user to specify a unique device address.</h2>
+
+<p>When the master (Axoloti) starts a transaction on the bus, it specifies the device it wants to talk to by using a 7-bit I2C address. The master talks to one device at a time, so each device needs a unique I2C address. The device datasheet will tell you which addresses a specific device can use. The device will often have some pins to customize (with hardware jumpers) some bits of the address. This allows the user to have multiple instances of the same device on the bus, each with a unique address. The driver writer needs to provide a way to specify which device address a driver should be using.</p>
+
+<p>The device address needs to be specified at compile time. On Axoloti this can be handled by an attribute in the object:<br><code><br>&lt;attribs&gt;<br>    &lt;combo name="adr"&gt;<br>      &lt;MenuEntries&gt;<br>          &lt;string&gt;0x1d&lt;/string&gt;<br>          &lt;string&gt;0x53&lt;/string&gt;<br>      &lt;/MenuEntries&gt;<br>      &lt;CEntries&gt;<br>          &lt;string&gt;0x1d&lt;/string&gt;<br>          &lt;string&gt;0x53&lt;/string&gt;<br>      &lt;/CEntries&gt;<br>    &lt;/combo&gt;<br>&lt;/attribs&gt;<br></code></p>
+
+<h2>2. Initialise the I2C bus only once.</h2>
+
+<p>The I2C bus needs to be initialized in the patch. A given patch might control multiple I2C devices, but the I2C bus should only be initialized once. The bus is initialized by a call to the i2cStart() function. This should <em>not</em> be called within the driver because with multiple devices each driver would make a call to initialize the bus. It should be called through a single instance of the i2c config object.<br><code><br>axoloti-factory/objects/gpio/i2c/config.axo<br></code></p>
+
+<p>This object does not connect to anything in the patch, it just handles the IO setup and shutdown for the I2C bus.</p>
+
+<p><img src="../../uploads/default/original/2X/b/b06df6b64f4e7280e5bcba6611bca0567cfbb537.png" width="299" height="62"></p>
+
+<h2>3. Allocate I2C Transaction Buffers out of the SRAM2 segment.</h2>
+
+<p>The buffers used to tx/rx bytes from the I2C device need to be in the SRAM2 segment. If we look at the linker script we see:<br><code><br>SRAM2  : org = 0x2001E000, len = 0x00002000 /* second half (8kB) of SRAM2 for DMA*/<br></code></p>
+
+<p>The bytes from memory to the I2C controller are DMA'ed so we need to use memory that can be DMA'ed. In the driver you can specify the segment in which the linker will allocate the storage by using the "attribute" pragma.</p>
+
+<p>Example:<br><code><br>static uint8_t rxbuf[32] __attribute__ ((section(".sram2")));<br></code><br>This is more of a requirement than a best practice. If you don't do it the I2C bus transactions won't work.</p>
+
+<h2>4. Device IO operations should be in their own thread.</h2>
+
+<p>Axoloti uses ChibiOS which is a multi-threaded RTOS. The DSP thread calls the krate/srate functions of the patch and computes the audio. The DSP thread needs to run as quickly as possible so it can feed the codec.<br>The DSP thread should not be waiting for external IO to take place. The I2C bus operations should run in their own thread where they can run asynchronously without slowing down the DSP thread.</p>
+
+<p>Example:</p>
+
+<p>In the init function we create the IO thread:<br><code><br>// create the polling thread<br>s-&gt;thd = chThdCreateStatic(s-&gt;thd_wa, sizeof(s-&gt;thd_wa), NORMALPRIO, adxl345_thread, (void *)s);<br></code><br>And in the dispose function we terminate the thread:<br><code><br>// stop thread<br>chThdTerminate(s-&gt;thd);<br>chThdWait(s-&gt;thd);<br></code></p>
+
+<h2>5. Lock/Unlock the I2C bus around bus operations.</h2>
+
+<p>With each device driver running in its own thread we have multiple threads each trying to access the same I2C bus. The drivers will access the bus asynchronously, so we have to make sure access is properly shared. ChibiOS provides functions to lock/unlock the bus: i2cAcquireBus(), i2cReleaseBus() A given thread needs to get the lock before it uses the bus and release the lock after it has finished with the bus.</p>
+
+<p>Example:<br><code><br>i2cAcquireBus(s-&gt;dev);<br>msg_t rc = i2cMasterReceiveTimeout(s-&gt;dev, s-&gt;adr, s-&gt;rx, 2, TTP229_I2C_TIMEOUT);<br>i2cReleaseBus(s-&gt;dev);<br></code><br>It's up to the driver writer to minimize lock time and not hog the bus. Many devices will be periodically polled/updated. Be a good neighbor. Take a look at the device datasheet and work out how slowly you can poll the device.</p>
+
+<h2>6. Lock shared memory access between DSP and IO threads.</h2>
+
+<p>The device driver IO thread and DSP thread need to communicate. This is typically done with memory shared between the threads. When one thread is writing the data, the other thread should not be reading it, and vice versa. Each thread has to get exclusive access to the shared memory before it reads or write it.</p>
+
+<p>Example:</p>
+
+<p>In the IO Thread:<br><code><br>// write to shared variables<br>chSysLock();<br>s-&gt;x = x;<br>s-&gt;y = y;<br>s-&gt;z = z;<br>chSysUnlock();<br></code></p>
+
+<p>In the DSP Thread:<br><code><br>// read from shared variables<br>chSysLock();<br>x = s-&gt;x;<br>y = s-&gt;y;<br>z = s-&gt;z;<br>chSysUnlock();<br></code></p>
+
+<p>In this example if you don't lock the shared variable access, you will potentially have x,y,z values being mixed up between samples.</p>
+
+<p>Note: Using chSysLock/chSysUnlock is an interrupt disable/enable. This gets the job done, but should only be used for very short lock periods because it stops all threads, not just the one that is contending for the variable access. ChibiOS provides other, more sophisticated, methods for inter thread communication (not all of which are enabled in the standard Axoloti firmware...).</p>
+
+<h2>Driver Examples</h2>
+
+<p>Here are some I2C object/drivers that use the aforementioned practices:</p>
+
+<p><a href="https://github.com/axoloti/axoloti-contrib/tree/1.0.12/objects/deadsy/mpr121" rel="nofollow noopener">mpr121 driver</a></p>
+
+<p><a href="https://github.com/axoloti/axoloti-contrib/tree/1.0.12/objects/deadsy/ttp229" rel="nofollow noopener">ttp229 driver</a></p>
+
+<p>Note:<br>I have an aversion to writing C code in XML files, so the bulk of the driver code for these examples is in the *.h include file. This makes the driver code a bit different from the "all in the axo" form but for either form the best practices still apply.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:7'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+            <a href="../spi-i2c-oled-display/638/150.html">SPI/I2C OLED display</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2018-10-20T19:00:11Z' itemprop='datePublished'>
+             2018-10-20 19:00:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>cool stuff, and a great write up!</p>
+
+<hr>
+
+<p>won't the chSysLock() potentially block the DSP (for a very short while) ?!</p>
+
+<p>what id be tempted to do is use a lock free ring buffer, this is what I did for the (firmware) midi implementation. doesn't have to be a complex implementation if you have a good understanding of the timing of the IO on the I2C - the buffer only has to be big enough to allow for 'some latency/jitter'</p>
+
+<aside class="quote" data-post="1" data-topic="5075"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../user_avatar/community.axoloti.com/deadsy/40/5105_1.jpg" class="avatar">deadsy:</div>
+<blockquote><p>I have an aversion to writing C code in XML files, so the bulk of the driver code for these examples is in the *.h include file. </p></blockquote></aside>
+
+<p>yeah, I do the same for anything that's non-trivial</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/deadsy.html'><b itemprop='author'>deadsy</b></a>
+           
+           <time datetime='2018-10-21T15:55:01Z' itemprop='datePublished'>
+             2018-10-21 15:55:01 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../u/thetechnobear.html">@thetechnobear</a> says:</p>
+
+<blockquote><p>won't the chSysLock() potentially block the DSP</p></blockquote>
+
+<p>Yes - it's turns into a global interrupt disable, so the thread can't be preempted until it has called the unlock.</p>
+
+<p>For something like a touch sensor driver you only need a single uint32 as the result of the sensor read so I think a quick lock/unlock around the shared memory reference is probably about as fast as you can manage.</p>
+
+<p>Someone might say: "You should be using a mutex!"</p>
+
+<p>Check it out:</p>
+
+<pre><code>void chMtxLock(Mutex *mp) {
+  chSysLock();
+  chMtxLockS(mp);
+  chSysUnlock();
+}</code></pre>
+
+<p>Still doing a quick global interrupt disable/enable. If you only have to share a single uint32 then the interrupt disable/enable will be faster. It's also worth noting that the DSP thread can't spend its time waiting on any sort of lock. Whatever you do it needs to be quick.</p>
+
+<p>Of course for some drivers (E.g. a keyboard scanner) you may need something more sophisticated like a circular buffer, in which case a the code needs to be more complicated. If you've got the chops to write lock-less code that works properly, more power to you <img src="../../images/emoji/twitter/slight_smileae52.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>BTW - ChibiOS has a nice feature called mailboxes.<br><a href="http://www.chibios.org/dokuwiki/doku.php?id=chibios:book:kernel_mailboxes" rel="nofollow noopener">RT mailboxes</a><br>It would be nice to use in drivers, but the feature is not enabled in the standard firmware build. Could we get it enabled for the next release?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2018-10-21T18:59:21Z' itemprop='datePublished'>
+             2018-10-21 18:59:21 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I didn’t say use a mutex, i said use a lock free strategy.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2018-10-21T20:44:58Z' itemprop='datePublished'>
+             2018-10-21 20:44:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Would this kind of strategy lead to use of double or triple buffering ?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/deadsy.html'><b itemprop='author'>deadsy</b></a>
+           
+           <time datetime='2018-10-23T17:07:55Z' itemprop='datePublished'>
+             2018-10-23 17:07:55 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../u/thetechnobear.html">@thetechnobear</a> </p>
+
+<blockquote><p>use a lock free ring buffer, this is what I did for the (firmware) midi implementation. </p></blockquote>
+
+<p>Can you point me to a code reference?<br>I've been looking for telltale strex/ldrex instructions, but I don't see anything in either master or experimental...</p>
+
+<p>Thanks.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/SmashedTransistors.html'><b itemprop='author'>SmashedTransistors</b></a>
+           
+           <time datetime='2018-10-25T00:16:30Z' itemprop='datePublished'>
+             2018-10-25 00:16:30 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Is this related to <a href="https://en.wikipedia.org/wiki/Load-link/store-conditional" rel="nofollow noopener">lock-free atomic read-modify-write operation</a> ? Is it useful in a single core processor ?<br>As I did not had to care about multi-threading on the Axoloti yet, I'm not aware of all the mechanisms available. <br>That's very interesting.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/deadsy.html'><b itemprop='author'>deadsy</b></a>
+           
+           <time datetime='2018-10-25T01:15:43Z' itemprop='datePublished'>
+             2018-10-25 01:15:43 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../u/smashedtransistors-2.html">@SmashedTransistors</a></p>
+
+<p>Yes - lock free techniques are generally useful on both single core and multi-core devices. ChibiOS has the usual set of semaphores, mutexes, mailboxes, etc. used for data sharing between threads. All of them disable interrupts to lock out other threads and enforce the atomic sharing of data. Lock-less techniques don't lock out other threads, they can still run. The Cortex-M4 ISA provides load exclusive and store exclusive instructions used to implement lock-less data sharing.</p>
+
+<p>Now: I wouldn't consider myself and expert at concurrent programming, and certainly not at lock-less sharing, but from what I understand getting lock-less right is tough. The conservative approach is probably to use the conventional locking primitives and see if that performs well enough. If yes - declare success. If no- then <em>maybe</em> consider lock-less as an optimization.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2018-10-25T09:22:33Z' itemprop='datePublished'>
+             2018-10-25 09:22:33 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>yeah doing a proper lock free implementation is complex - but there are lots of freely available versions to use, usually in the form of a ring buffer. (as they also need to not allocate memory) </p>
+
+<p>Ive used them on other limited platforms (rPI/Organelle) to good effect, though ive not reviewed how much 'extra' memory they take , which may or may not be an issue with axoloti.</p>
+
+<hr>
+
+<p>what I did for the midi ring buffer was simply to do it without locks (*), with detection for the read/write pointers crossing. but I was quite careful how I did the implementation, to ensure any theoretical thread contentions are minimised e.g. only writing in one thread - and making sure comparisons were very limited.<br>(so your implementation has to be a bit more considered, than just taking out the locks - I know exactly where the possible thread contention are, how likely (minimal) , and the consequences  ) </p>
+
+<p>theoretically I could have used 'test and set' atomic operations,  but I didn't because it doesn't really matter that much in this use case.<br> if the ring-buffer is overflowing theres little you can do about it... its more than likely that the producer is still going to keep producing at a higher rate than consumer, so known 1 byte before or after doesn't really change the outcome <img src="../../images/emoji/twitter/winkae52.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>basically its an optimistic strategy, where due to the ring buffer size, really it should not fail, and if it does its not the end of the world. ideally we would allow the user to optionally configure the ring buffer size, based on their needs.</p>
+
+<hr>
+
+<p>in this example id suspect its similar, you can have a ring buffer which should never overrun  because you know the timing involved on the i2c and you know the timing of the event loop (k-rate).<br>so under normal circumstances you know the max number of i2c events you expect in a k-rate cycle - and a bit more space for headroom and your done.</p>
+
+<p>in someways I guess its a bit like setting the sample rate buffer size on a computer - you set it as low as you can go without experiencing issues</p>
+
+<p>anyway, its just an idea - my personal preference is to avoid locks in the audio thread at all costs, as they invariable lead to little glitches when load increases,  which are really hard to track down later.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Best Practices for I2C Objects/Drivers'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../index.html'>Home</a>
+        <a href="../../categories.html">Categories</a>
+        <a href="../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../tos.html">Terms of Service</a>
+        <a href="../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/best-practices-for-i2c-objects-drivers/5075 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:48 GMT -->
+</html>

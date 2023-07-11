@@ -1,0 +1,101 @@
+<objdefs>
+   <obj.normal id="thru" uuid="6debd292b7854e49d6084473f33e67d4cb1ed4cf" sha="acbce5499c4f12a1846c1528b55f6728823a9f6f">
+      <upgradeSha>b8deb97637e54be31fcb62e849e4fa406e388583</upgradeSha>
+      <sDescription>Polyphonic configurable MIDI thru</sDescription>
+      <author>Ricard Wanderlof</author>
+      <license>BSD</license>
+      <helpPatch>midi_in.axh</helpPatch>
+      <inlets/>
+      <outlets/>
+      <displays/>
+      <params>
+          <bool32.tgl name="note"/>
+          <bool32.tgl name="cc"/>
+          <bool32.tgl name="pgm"/>
+          <bool32.tgl name="bend"/>
+          <bool32.tgl name="press"/>
+          <bool32.tgl name="ppress"/>
+          <bool32.tgl name="realt"/>
+      </params>
+      <attribs>
+         <combo name="device">
+            <MenuEntries>
+               <string>din</string>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <combo name="omni">
+            <MenuEntries>
+               <string>on</string>
+               <string>off</string>
+            </MenuEntries>
+            <CEntries>
+               <string>1</string>
+               <string>0</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <code.declaration><![CDATA[uint8_t _status;
+uint8_t _channel;
+bool _note_enb, _ppress_enb, _cc_enb, _pgm_enb, _press_enb, _bend_enb, _realt_enb;
+]]></code.declaration>
+      <code.init/>
+      <code.krate><![CDATA[_note_enb = param_note;
+_note_enb = param_note;
+_ppress_enb = param_ppress;
+_cc_enb = param_cc;
+_pgm_enb = param_pgm;
+_press_enb = param_press;
+_bend_enb = param_bend;
+_realt_enb = param_realt;
+]]></code.krate>
+      <code.midihandler><![CDATA[if (status == MIDI_TIMING_CLOCK ||
+status == MIDI_START || status == MIDI_STOP || status == MIDI_CONTINUE) {
+    if (_realt_enb)
+        MidiSend1((midi_device_t) attr_device, status);
+}
+_status = status & 0xf0;
+_channel = status & 0x0f;
+if (!attr_omni && _channel != attr_midichannel)
+    return;
+if (_status == MIDI_NOTE_ON || _status == MIDI_NOTE_OFF) {
+   if (_note_enb)
+       MidiSend3((midi_device_t) attr_device, status, data1, data2);
+} else if (_status == MIDI_PROGRAM_CHANGE) {
+   if (_pgm_enb)
+       MidiSend2((midi_device_t) attr_device, status, data1);
+} else if (_status == MIDI_POLY_PRESSURE) {
+   if (_ppress_enb)
+       MidiSend3((midi_device_t) attr_device, status, data1, data2);
+} else if (_status == MIDI_CONTROL_CHANGE) {
+   if (_cc_enb)
+       MidiSend3((midi_device_t) attr_device, status, data1, data2);
+} else if (_status == MIDI_PROGRAM_CHANGE) {
+   if (_pgm_enb)
+       MidiSend2((midi_device_t) attr_device, status, data1);
+} else if (_status == MIDI_CHANNEL_PRESSURE) {
+   if (_press_enb)
+       MidiSend2((midi_device_t) attr_device, status, data1);
+} else if (_status == MIDI_PITCH_BEND) {
+   if (_bend_enb)
+       MidiSend3((midi_device_t) attr_device, status, data1, data2);
+}
+]]></code.midihandler>
+   </obj.normal>
+</objdefs>

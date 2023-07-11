@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>SRAM amount single object</title>
+    <link>http://community.axoloti.com/t/sram-amount-single-object/3622</link>
+    <description>Is there a way to know how much SRAM a single object uses?</description>
+    
+    <lastBuildDate>Mon, 21 Aug 2017 19:23:12 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/sram-amount-single-object/3622.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>SRAM amount single object</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="3622"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/akirasrebirth/40/2529_1.png" class="avatar">akirasrebirth:</div>
+<blockquote><p><a class="mention" href="/u/thetechnobear">@thetechnobear</a> ... no simpler way?</p></blockquote></aside>
+
+<p>no, otherwise,  i would have given it to you <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>sdram, is different again btw.</p>
+
+<p>generally, objects only take up a bit of sram, its only things like delay/tables etc that use significant memory, and then you specify it... so you kind of know the overall footprint.... and generally the solution is to move to sdram variants, so you need to then find these objects anyway.</p>
+
+<p>dont get me wrong, I know it would be nice, and perhaps when we 'go live' we could report the current patch sram usage, so at least as you can build it, you can see it going up.</p>
+
+<p>... also I think there is a change in the new release which might help, but Ive not looked close enough to see exactly what its reporting to say it will solve your issue.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sram-amount-single-object/3622/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sram-amount-single-object/3622/5</link>
+        <pubDate>Mon, 21 Aug 2017 19:23:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3622-5</guid>
+        <source url="http://community.axoloti.com/t/sram-amount-single-object/3622.rss">SRAM amount single object</source>
+      </item>
+      <item>
+        <title>SRAM amount single object</title>
+        <dc:creator><![CDATA[@akirasrebirth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/akirasrebirth">@akirasrebirth</a> wrote:</p>
+          <blockquote>
+              <p>thx guys <br><a class="mention" href="/u/theslowgrowth">@TheSlowGrowth</a> this is what I do now ... looking for a simpler technique <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"><br><a class="mention" href="/u/thetechnobear">@thetechnobear</a> ... no simpler way? <br>It would be nice to have the sdram size in the description of every object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sram-amount-single-object/3622/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sram-amount-single-object/3622/4</link>
+        <pubDate>Mon, 21 Aug 2017 17:39:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3622-4</guid>
+        <source url="http://community.axoloti.com/t/sram-amount-single-object/3622.rss">SRAM amount single object</source>
+      </item>
+      <item>
+        <title>SRAM amount single object</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="3622" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/akirasrebirth/40/2529_1.png" class="avatar">akirasrebirth:</div>
+<blockquote><p>Is there a way to know how much SRAM a single object uses?</p></blockquote></aside>
+
+<p>a 'tech' answer... if you know what the following means you can use it <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>unfortunately this is not trivial, as Axoloti inlines the code for performance - so when it comes to loading the binaries, all that is left is one large 'root' object (*)... i.e. your object does not exist as its own entity/size.</p>
+
+<h2>option 1 - objdump</h2>
+
+<p>we can inspect a patch .bss  size using objdump, so size with and without the object in question</p>
+
+<p>i.e. </p>
+
+<ul>
+<li>remove object in question</li>
+<li>compile Axoloti</li>
+<li>use objdump to get size of root object</li>
+</ul>
+
+<p></p><pre><code class="lang-auto">$ objdump -x build/xpatch.o | grep  _ZL4root
+00000104 l     O .bss   00000838 _ZL4root</code></pre>
+
+<p>second number is the size (in hex, 0x00838 here) of the patch</p>
+
+<ul><li>now add your object back, and run  objdump again , and note new size, and difference<br>e.g. here, I increased the size of the delay line by 1024 </li></ul>
+
+<p></p><pre><code class="lang-auto">$ objdump -x build/xpatch.o | grep  _ZL4root
+00000104 l     O .bss   00001038 _ZL4root</code></pre>
+
+<p>so 0x1038- 0x838 = 0x800 = 2048 , (16 bit , so 2x1024 = 2048)</p>
+
+<p>remember this is only the sram usage, sdram usage would be included in a different segment.</p>
+
+<p>(*) theoretically, we can un-inline code segments but I don't think anyone else is doing this other than me ... if they do then you can look for that symbol.</p>
+
+<h2>option 2: read the code </h2>
+
+<p>just look at the code this will give you a pretty good idea... realistically, your only interested in large objects like buffers...</p>
+
+<p>(note: Ive not reviewed the code in the upcoming release, this may or may not be changing)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sram-amount-single-object/3622/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sram-amount-single-object/3622/3</link>
+        <pubDate>Mon, 21 Aug 2017 09:37:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3622-3</guid>
+        <source url="http://community.axoloti.com/t/sram-amount-single-object/3622.rss">SRAM amount single object</source>
+      </item>
+      <item>
+        <title>SRAM amount single object</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>Overflow your SRAM, write down the size. Add the object in question and recompile. Write down the new size. The difference is how much that object consumed.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sram-amount-single-object/3622/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sram-amount-single-object/3622/2</link>
+        <pubDate>Mon, 21 Aug 2017 08:41:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3622-2</guid>
+        <source url="http://community.axoloti.com/t/sram-amount-single-object/3622.rss">SRAM amount single object</source>
+      </item>
+      <item>
+        <title>SRAM amount single object</title>
+        <dc:creator><![CDATA[@akirasrebirth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/akirasrebirth">@akirasrebirth</a> wrote:</p>
+          <blockquote>
+              <p>Is there a way to know how much SRAM a single object uses?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sram-amount-single-object/3622/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sram-amount-single-object/3622/1</link>
+        <pubDate>Sun, 20 Aug 2017 20:30:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3622-1</guid>
+        <source url="http://community.axoloti.com/t/sram-amount-single-object/3622.rss">SRAM amount single object</source>
+      </item>
+  </channel>
+</rss>

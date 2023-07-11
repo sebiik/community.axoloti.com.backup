@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Problem with 1.0.11, specifically commit a95546</title>
+    <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281</link>
+    <description>Have been away from the Axoloti for a while, but now getting back. I&#39;ve updated my git tree to 1.0.11, and building from source via platform_linux/build.sh on Debian Jessie, and I&#39;m having a weird problem which seems to be related to commit a955462936ace48f37cc5fe5302ecfbd180fccc2 .
+
+When I start the Axoloti UI, I get the following java exception:
+
+&gt; java.lang.NullPointerException
+&gt; 	at axoloti.MainFrame$2.run(MainFrame.java:276)
+
+(and a whole bunch of traceback printouts). 
+
+The line in question contains the following statement:
+
+&gt; String cb = ulib.getCurrentBranch();
+
+and ulib being an AxolotiLibrary, getCurrentBranch() in AxolotiLibrary.java looks like this:
+
+&gt;     public String getCurrentBranch() {
+&gt;         return getBranch();
+&gt;     }
+
+Now, I&#39;m not at all fluent in Java, but it looks like getCurrentBranch() and getBranch() would return the same thing, but in MainFrame.java, the two are compared for equality and then acted on - perhaps this is intended as a future feature, as currently both methods seem to return the same value.
+
+However, the weird thing is that getCurrentBranch() never seems to run at all when called. The resulting String is assigned to null, and adding a printout to getCurrentBranch() shows that the method is never run. I can&#39;t understand how this can be, perhaps it&#39;s a Java feature somehow? I could imagine some form of overloading, but the only overloading I can find is in the AxoGitLibrary class, but it&#39;s not that type of object.
+
+I can&#39;t see anyone else having reported this, so I&#39;m thinking it&#39;s something in my setup, but I can&#39;t really fathom what at this point.
+
+Does Java cache any internal references away between compilations, other than in build/classes?
+
+UPDATE: I checked out a fresh tree, built it and it runs fine, so it must be something that&#39;s left over from the previous build. I wish I knew what though, it is impractical not just to be able to do a git pull to update an existing tree.</description>
+    
+    <lastBuildDate>Sun, 25 Sep 2016 11:44:51 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="7" data-topic="2281"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>(It's just that Java is very verbose with a full stack trace for each exception, so it tends to result in a lot of text, most of which is not terribly interesting which is why I'm hesitant to post it all).</p></blockquote></aside>
+
+<p>its not the stack trace I'm after, its the console showing things leading up to the event.<br>most bugs (like this one)  are due to 'unusual/unexpected/un-handled' things happening before it goes bang, the 'bang' at the end is often a consequence not the cause.<br>(its way too easy for java developers to fix these 'null pointers' with a check, whilst not solving the underlying cause... this has driven me crazy on some of my dev teams, as it can introduce really subtle bugs! )</p>
+
+<aside class="quote" data-post="7" data-topic="2281"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>Also, given that it is, at least from my perspective, very easy to build the complete Axoloti system from scratch, there will as you say be a lot of people who just want to build it in order to get the latest version.</p></blockquote></aside>
+
+<p>yeah, this is not necessarily/always a good thing... <br>its ok where they are developers so understand that dev branches are. rather someone who might tthink its a way to 'the latest and greatest', dev branches are not early access programs <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>there are often good reasons for things not having been releases yet... e.g. migration/upgrade paths have not been developed, so you may trash your setup/patches/objects.<br>... also as I pointed out on other threads, its easy for users to release objects/patches into a library, that are not compatible with the released version - and that will cause confusion, and likely require my manual intervention in the relevant libraries.(i.e. extra support load) </p>
+
+<p>on the flip side, I think we need to organise ourselves a bit better, so that those wanting to use the repo, can have clear idea of what to use. (e.g. using release tags, and feature branches) </p>
+
+<p>anyway, its not been a big problem (= high support load) as of now, only really affecting linux users, so hopefully the improvements we've been making will resolve the issues before they become a problem</p>
+
+<aside class="quote" data-post="7" data-topic="2281"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>I wanted to start getting the vanilla upstream version working properly, before applying my own patches.</p></blockquote></aside>
+
+<p>in line with my comments above, at the moment use master (due to my 'fix' after the 1.0.11 release) but generally for this purpose you should be using the released version/tag for this purpose... not the dev/master branch.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/8</link>
+        <pubDate>Sun, 25 Sep 2016 11:44:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-8</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Well, I did actually post the initial error I got:</p>
+
+<blockquote><p>java.lang.NullPointerException<br>at axoloti.MainFrame$2.run(MainFrame.java:276)</p></blockquote>
+
+<p>but of course you're absolutely right regarding reading the available forums and documentation. And also, point taken about posting full dumps. (It's just that Java is very verbose with a full stack trace for each exception, so it tends to result in a lot of text, most of which is not terribly interesting which is why I'm hesitant to post it all).</p>
+
+<p>In the end, I will actually be using the checked-out tree for development, but since I've been away from it for a while, I wanted to start getting the vanilla upstream version working properly, before applying my own patches.</p>
+
+<p>Also, given that it is, at least from my perspective, very easy to build the complete Axoloti system from scratch, there will as you say be a lot of people who just want to build it in order to get the latest version.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/7</link>
+        <pubDate>Sun, 25 Sep 2016 11:14:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-7</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ah, if you had told me about the console error, I would have known immediately what the issue was <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"><br>(it would be very useful , if users always posted full console dumps, regardless if they think its important)</p>
+
+<p>I do make posts in the dev section which I have to assume people who are building axoloti are reading... there is no other way to communicate such information. <br>Its important that people read these... (its why I go to the effort of writing them)</p>
+
+<p>I do think we need to review this 'developer mode', as clearly there are many builders (mainly linux users) that are not using this for development purposes, but merely to have a running system (as a 'user'), and in this case we want axoloti running like the 'released build'.<br>(this was partly the reason for the recent library changes) </p>
+
+<p>I'll review the code to see if there are some changes I can make to make it handle these situations gracefully.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/6</link>
+        <pubDate>Sun, 25 Sep 2016 09:27:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-6</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>I think there were a number of issues here, all to do with my local tree. First of all, my axoloti-contrib was apparently empty after doing a git pull, but that is because there apparently is no master branch in this repository, which there was at the time of 1.0.9, so that was what my local axoloti-contrib clone was set to. Manually checking out 1.0.11 brought the library back, but I was thrown off guard by the popup 'User Library version mismatch, do you want to upgrade' when the UI starts. When I click 'Yes' I get a Java traceback in the console starting with:</p>
+
+<blockquote><p>org.eclipse.jgit.api.errors.RefNotFoundException: Ref origin/master can not be resolved</p></blockquote>
+
+<p>but clicking 'No' allows it to continue without errors.</p>
+
+<p>So it appears my original error was caused by the fact that the axoloti-contrib clone was set to master, when there is in fact no master branch any more, which in turn causes cb to become null around line 275 in MainFrame.java, which in turn causes a null pointer exception when cb.equalsIgnoreCase(ulib.getBranch()) is invoked on the line after. So I suppose there should at least be a test for cb == null somewhere, potentially throwing up a popup that the contrib repository is missing, or at least acting as if the user doesn't have or want one. Throwing an exception because a repository is missing seems a bit too severe; even though the program itself doesn't crash, it does cause the factory library not to be loaded either as that code is after the user library load.</p>
+
+<p>BTW, another thing I've noticed is that the axoloti-contrib and axoloti-factory repositories no longer seem to be set up as submodules, at least that's what the top-level .git/config says.</p>
+
+<p>UPDATE: And that is the other part of the problem, when going into for instance axoloti-contrib and doing 'git branch', the current branch name is returned, however the Git class used in the UI seems to return null in this case (there seems to be code to handle this in AxoGitLibrary:getGit(), but it is dependent on usingSubmodule() which is always false currently). Since the axoloti-contrib and axoloti-factory repositories in my tree are submodules, they don't have their own .git directory, and instead refer to the parent directory. I solved this by simply erasing the directories and cloning the upstream repositories, which finally got my 1.0.11 UI to run smoothly when starting up.</p>
+
+<p>So the net result is that <span class="bbcode-b">when upgrading an Axoloti repository from one where axoloti-contrib and axoloti-factory were submodules, these directories need to be properly cloned from the upstream repositories</span>.</p>
+
+<p>I'm sorry to admit I haven't followed the latest developments on how the libraries are maintained, which might have caused me to look in that area sooner. Hopefully this thread will help someone else who is in the same predicament and can't figure out what's gone wrong...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/5</link>
+        <pubDate>Sat, 24 Sep 2016 21:55:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-5</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Are there no errors in the console?</p>
+
+<p>User library would be in an instance of AxoGitLibrary...<br>looking at that code, the only thing that looks possible is the git call is returning null, but that should not be the case , as far as i have seen....</p>
+
+<p>also, how did you get the 1.0.11 code, did you do ?</p>
+
+<pre><code> git checkout 1.0.11</code></pre>
+
+<p>my suspicion is this is not a code problem, more a setup problem, linked to not finding the user library branch... either to do with tag and so app versioning, or the tag on the user library</p>
+
+<p>can you try doing...</p>
+
+<pre><code> git fetch --tags</code></pre>
+
+<p>also, if you are planning on using this as a 'user' then you either need to set the revision for the user library or you need my lastest fix, to ensure you use the 1.0.11 branch of the user library,<br>i.e. you need to checkout master (for now) </p>
+
+<p>this all stems from <a href="//community.axoloti.com/t/what-should-sync-libraries-do/2254/6">this post</a><br>basically, we its about getting the 'build tree' into a state where users can use without thinking about which revisions they need to use for the factory and user library.<br>sorry for the confusion, if this is the issue.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/4</link>
+        <pubDate>Sat, 24 Sep 2016 21:00:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-4</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Thanks <a class="mention" href="/users/thetechnobear">@thetechnobear</a>! I didn't know about that. However, I tried it now, and the problem persists. (I've also tried 'rm -r build dist' to clear out what I believed were all the generated files from the Java compilation, with no improvement. As with 'ant clear' it does say 'Compiling 403 source files' during the subsequent build, which indicates it's actually rebuilding everything).</p>
+
+<p>The weird thing is that if I add a method called getMyBranch() which does the same thing as getCurrentBranch(), and use that method instead, it works fine. Of course, getMyBranch() is not overridden in AxoGitLibrary, but that should no be an issue as the object in question is not of that type anyway.</p>
+
+<p>UPDATE: Actually, I'm probably wrong about the type. Adding a printout to AxoGitLibrary:getCurrentBranch() shows that it is in fact the library in fact is of this class, so I need to take another hard look at the code. I'm wondering if something has gone wrong when updating axoloti-factory and axoloti-contrib.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/3</link>
+        <pubDate>Sat, 24 Sep 2016 20:08:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-3</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>you should do an 'ant clean' ... its possible for some reason that ant/java has not detected a class that needs to be recompiled.  (basically the same as a make clean for C)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/2</link>
+        <pubDate>Sat, 24 Sep 2016 11:12:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-2</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+      <item>
+        <title>Problem with 1.0.11, specifically commit a95546</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Have been away from the Axoloti for a while, but now getting back. I've updated my git tree to 1.0.11, and building from source via platform_linux/build.sh on Debian Jessie, and I'm having a weird problem which seems to be related to commit a955462936ace48f37cc5fe5302ecfbd180fccc2 .</p>
+
+<p>When I start the Axoloti UI, I get the following java exception:</p>
+
+<blockquote><p>java.lang.NullPointerException<br>	at axoloti.MainFrame$2.run(MainFrame.java:276)</p></blockquote>
+
+<p>(and a whole bunch of traceback printouts). </p>
+
+<p>The line in question contains the following statement:</p>
+
+<blockquote><p>String cb = ulib.getCurrentBranch();</p></blockquote>
+
+<p>and ulib being an AxolotiLibrary, getCurrentBranch() in AxolotiLibrary.java looks like this:</p>
+
+<blockquote><pre><code>public String getCurrentBranch() {
+    return getBranch();
+}</code></pre></blockquote>
+
+<p>Now, I'm not at all fluent in Java, but it looks like getCurrentBranch() and getBranch() would return the same thing, but in MainFrame.java, the two are compared for equality and then acted on - perhaps this is intended as a future feature, as currently both methods seem to return the same value.</p>
+
+<p>However, the weird thing is that getCurrentBranch() never seems to run at all when called. The resulting String is assigned to null, and adding a printout to getCurrentBranch() shows that the method is never run. I can't understand how this can be, perhaps it's a Java feature somehow? I could imagine some form of overloading, but the only overloading I can find is in the AxoGitLibrary class, but it's not that type of object.</p>
+
+<p>I can't see anyone else having reported this, so I'm thinking it's something in my setup, but I can't really fathom what at this point.</p>
+
+<p>Does Java cache any internal references away between compilations, other than in build/classes?</p>
+
+<p>UPDATE: I checked out a fresh tree, built it and it runs fine, so it must be something that's left over from the previous build. I wish I knew what though, it is impractical not just to be able to do a git pull to update an existing tree.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281/1</link>
+        <pubDate>Fri, 23 Sep 2016 21:00:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2281-1</guid>
+        <source url="http://community.axoloti.com/t/problem-with-1-0-11-specifically-commit-a95546/2281.rss">Problem with 1.0.11, specifically commit a95546</source>
+      </item>
+  </channel>
+</rss>

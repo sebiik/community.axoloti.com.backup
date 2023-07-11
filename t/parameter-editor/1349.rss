@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Parameter editor</title>
+    <link>http://community.axoloti.com/t/parameter-editor/1349</link>
+    <description>When using the Axoloti tethered to a computer, there&#39;s of course the beautiful UI where we can see parameters and twiddle virtual knobs to change them. And of course it is possible to control any parameter externally using CC. All of this is great, but what I would like is the option of a classic synthesizer interface, i.e. being able to call up a set of parameters on an LCD, and then having a row of knobs (pots or encoders) to change the values. I like machines which have a built in tactile interface, and just hooking up a external MIDI controller doesn&#39;t offer the feedback of the current values of the parameters.
+
+Even if one had a full front panel of controls, some mechanism would be needed to detect when a knob had been turned and not change the corresponding parameter&#39;s value if a knob is just left in its current position.
+
+I know that thoughts to this end are intended to be addressed by the Axoloti Control if and when it materializes, but it seems to me that a simple parameter interface would be possible to implement on the Axoloti Core itself. What I&#39;m thinking of is something centered around a simple character based LCD.
+
+Some thoughts on connecting an LCD have been given in
+[this thread](http://community.axoloti.com/t/connecting-lcd-to-axoloti/545), and there are also some thoughts in [this thread](http://community.axoloti.com/t/using-just-a-few-rotary-encoders-to-control-almost-every-parameter-of-axoloti/557/3).
+
+Ok, so there&#39;s a lot that needs to come together for this to happen, not to mention an LCD interface. Actually, a character LCD is fairly easy to drive, you need 5 or 6 or so interface lines, plus a driver that will do initialization, and apart from being able to write characters you need to be able to position the cursor. I think that wouldn&#39;t be too difficult; it could be implemented as a standard Axoloti object. And the Axoloti already supports a string data type which would be handy for writing stuff to the LCD.
+
+The thing I&#39;m trying to understand how to approach is some form of API to extract a list of existing externally controlled parameters and their values, and somehow to send back updated parameter values to the Axoloti framework. Something like this may already partly be in place, and of course I can check the code, but I thought it a good idea to see what any thoughts, perhaps some or most of the required API is already in place.
+
+What I&#39;m thinking about is some form of object where you can define the names of  parameters, and some referece to them, and group them into pages which would fit on the LCD in question. When a given page is addressed, the relevant parameters are fetched and displayed on the LCD. When the corresponding knob is turned, the value of the corresponding parameter is then sent to the Axoloti framework which then updates the parameter just as if it were input from the GUI, or recieved via CC. The thing that seems &#39;new&#39; about this is being able to extract the current parameter values, not just set them. And not just the values, it needs to get mix/max values etc so that the proper value range can be displayed and enforced.
+
+Some mechanism would have to be devised to select the currently used parameter page, but that could be up to the patch itself, e.g. using push buttons, or a global parameter which selects the currently displayed parameter page.
+
+The core of all this would be some form of parameter management object so I think that&#39;s where one would have to start. The rest can be done with existing tools.</description>
+    
+    <lastBuildDate>Tue, 22 Mar 2016 23:33:51 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/parameter-editor/1349.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Parameter editor</title>
+        <dc:creator><![CDATA[@mongrol]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mongrol">@mongrol</a> wrote:</p>
+          <blockquote>
+              <p>My hardware synth-in-progress is using a Teensy board to hold state and pushes the settings over MIDI-CC (via a header at the back of the DIN socket). This gets around the need to view parameters (haven't found a reason to yet) as only the settings that matter are held on the Teensy. Kind of like MVC pattern. Basically though, this is just a midi-controller with more intelligence.</p>
+
+<p>Also connected are 10 knobs for immediate access. An Adafruit Trellis for a mod-matrix and an encoder+OLED screen for other parameters (also includes an oscilloscope!)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/parameter-editor/1349/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/parameter-editor/1349/6</link>
+        <pubDate>Tue, 22 Mar 2016 23:33:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1349-6</guid>
+        <source url="http://community.axoloti.com/t/parameter-editor/1349.rss">Parameter editor</source>
+      </item>
+      <item>
+        <title>Parameter editor</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="1349"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>mapping of the parameter names to shorter ones</p></blockquote></aside>
+
+<p>from memory, there is no short name ( I may be wrong, been a while) , but often code uses algorithms to derive short names... strip vowels etc.<br>I will point out 'parameters' are a bit 'work in progress' when it comes to external controls, since much of the work stems from axoloti remote/control, which took a back burner to get axoloti core released. this means something things are missing from the parameter map, and the structure is not complete. </p>
+
+<p>basically its ok for the basic controls but of limited use for things like selectors... and there is not a proper mapping of the hierarchy when you have sub patches... this means its fine for 'basic' patches, but I found it a little lacking for more complex patches. </p>
+
+<p>Ive raised this with <a class="mention" href="/users/johannes">@johannes</a> (when I was doing the Push stuff), but as you can imagine there are a lot of things to do, so this will have to wait till it 'bubbles to the top' of the priority stack, on my side Im a bit busy with other projects at the moment, but it is something Id like to look at in the future, time permitting.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/parameter-editor/1349/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/parameter-editor/1349/5</link>
+        <pubDate>Tue, 22 Mar 2016 23:32:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1349-5</guid>
+        <source url="http://community.axoloti.com/t/parameter-editor/1349.rss">Parameter editor</source>
+      </item>
+      <item>
+        <title>Parameter editor</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>Thanks, I just checked out your short <a href="https://www.youtube.com/watch?v=aiwNTPzcKF0" rel="nofollow">video demo</a> too, yes it's something like that I'm after, perhaps with some form of mapping of the parameter names to shorter ones in order to fit in a smaller display but yes, I'll have a closer look at that code.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/parameter-editor/1349/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/parameter-editor/1349/4</link>
+        <pubDate>Tue, 22 Mar 2016 23:19:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1349-4</guid>
+        <source url="http://community.axoloti.com/t/parameter-editor/1349.rss">Parameter editor</source>
+      </item>
+      <item>
+        <title>Parameter editor</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>have a look at my push object (in community library) , it does something similar to what your trying to do.<br>(i.e. view and update parameters)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/parameter-editor/1349/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/parameter-editor/1349/3</link>
+        <pubDate>Tue, 22 Mar 2016 21:41:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1349-3</guid>
+        <source url="http://community.axoloti.com/t/parameter-editor/1349.rss">Parameter editor</source>
+      </item>
+      <item>
+        <title>Parameter editor</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>There does seem to be some form of UI code in firmware/ui.c, but its top level thread function (AxolotiControlUpdate() or pControlUpdate which points to it) doesn't seem to be called from anywhere, so ... mostly an idea so far?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/parameter-editor/1349/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/parameter-editor/1349/2</link>
+        <pubDate>Tue, 22 Mar 2016 20:48:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1349-2</guid>
+        <source url="http://community.axoloti.com/t/parameter-editor/1349.rss">Parameter editor</source>
+      </item>
+      <item>
+        <title>Parameter editor</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>When using the Axoloti tethered to a computer, there's of course the beautiful UI where we can see parameters and twiddle virtual knobs to change them. And of course it is possible to control any parameter externally using CC. All of this is great, but what I would like is the option of a classic synthesizer interface, i.e. being able to call up a set of parameters on an LCD, and then having a row of knobs (pots or encoders) to change the values. I like machines which have a built in tactile interface, and just hooking up a external MIDI controller doesn't offer the feedback of the current values of the parameters.</p>
+
+<p>Even if one had a full front panel of controls, some mechanism would be needed to detect when a knob had been turned and not change the corresponding parameter's value if a knob is just left in its current position.</p>
+
+<p>I know that thoughts to this end are intended to be addressed by the Axoloti Control if and when it materializes, but it seems to me that a simple parameter interface would be possible to implement on the Axoloti Core itself. What I'm thinking of is something centered around a simple character based LCD.</p>
+
+<p>Some thoughts on connecting an LCD have been given in<br><a href="//community.axoloti.com/t/connecting-lcd-to-axoloti/545">this thread</a>, and there are also some thoughts in <a href="//community.axoloti.com/t/using-just-a-few-rotary-encoders-to-control-almost-every-parameter-of-axoloti/557/3">this thread</a>.</p>
+
+<p>Ok, so there's a lot that needs to come together for this to happen, not to mention an LCD interface. Actually, a character LCD is fairly easy to drive, you need 5 or 6 or so interface lines, plus a driver that will do initialization, and apart from being able to write characters you need to be able to position the cursor. I think that wouldn't be too difficult; it could be implemented as a standard Axoloti object. And the Axoloti already supports a string data type which would be handy for writing stuff to the LCD.</p>
+
+<p>The thing I'm trying to understand how to approach is some form of API to extract a list of existing externally controlled parameters and their values, and somehow to send back updated parameter values to the Axoloti framework. Something like this may already partly be in place, and of course I can check the code, but I thought it a good idea to see what any thoughts, perhaps some or most of the required API is already in place.</p>
+
+<p>What I'm thinking about is some form of object where you can define the names of  parameters, and some referece to them, and group them into pages which would fit on the LCD in question. When a given page is addressed, the relevant parameters are fetched and displayed on the LCD. When the corresponding knob is turned, the value of the corresponding parameter is then sent to the Axoloti framework which then updates the parameter just as if it were input from the GUI, or recieved via CC. The thing that seems 'new' about this is being able to extract the current parameter values, not just set them. And not just the values, it needs to get mix/max values etc so that the proper value range can be displayed and enforced.</p>
+
+<p>Some mechanism would have to be devised to select the currently used parameter page, but that could be up to the patch itself, e.g. using push buttons, or a global parameter which selects the currently displayed parameter page.</p>
+
+<p>The core of all this would be some form of parameter management object so I think that's where one would have to start. The rest can be done with existing tools.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/parameter-editor/1349/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/parameter-editor/1349/1</link>
+        <pubDate>Tue, 22 Mar 2016 19:50:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1349-1</guid>
+        <source url="http://community.axoloti.com/t/parameter-editor/1349.rss">Parameter editor</source>
+      </item>
+  </channel>
+</rss>

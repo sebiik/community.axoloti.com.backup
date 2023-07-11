@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+    <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140</link>
+    <description>This is my first attempt at emulating a real synth using the axoloti.  The synth is the Moog Minitaur.  I don&#39;t actually own one of these so I&#39;m trying to replicate functionality and settings using only the schematic, pictures of the unit and youtube videos of the sound and function.
+
+&lt;img src=&quot;/uploads/default/original/2X/f/ff5cc84b18a564b076e5786b5c931df7ec83ec60.png&quot; width=&quot;690&quot; height=&quot;411&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/2/28722b35ba73c85598137f891e6c979be1aedc1c.jpg&quot; width=&quot;690&quot; height=&quot;428&quot;&gt;
+
+And here is my first cut at the incomplete patch:
+
+&lt;img src=&quot;/uploads/default/original/2X/0/042b4f020363fc11f29ccc01a806a1343a9ce2fc.png&quot; width=&quot;690&quot; height=&quot;439&quot;&gt;
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/d/d8e351c08f604ba3d6516656a4922b9038717869.axp&quot;&gt;minataur.axp&lt;/a&gt; (8.0 KB)
+
+A have a few questions that I think will help me:
+- VCAs:  I used the multiwave to be able to select between waveforms like on the Miniataur.  Are these the right type of objects?  The schematic shows the LFO modulating each of the oscillators, what parameter would it be modulating?
+
+- VCF:  It also shows the LFO modulating the VCF, same question what parameter?
+- Modulation:  it has dials for the LFO and amounts for the paths to the VCOs and VCF is that just a VCA controlling the amount?
+- VCF:  It shows the filter with the cutoff and resonance, but what is EG?
+- VCF:  I don&#39;t think I have the ADSR connected to the filter properly, any tips?
+
+Thanks!</description>
+    
+    <lastBuildDate>Wed, 17 Mar 2021 17:57:33 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@KelvinT KelvinT]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kelvint">@KelvinT</a> wrote:</p>
+          <blockquote>
+              <blockquote><p>First things first, I'm struggling with how to control the filter. The easy way which is in the patch is to simply control the cut-off with one of the pots, which sounds great. The harder way is somehow figuring out how to combine the ADSR with the EG amount. </p></blockquote>
+
+<p>Basically you need one pot for filter frequency, and another pot for the envelope amount. <br>Let's say Pot#10 is filter frequency, Pot#11 is envelope amount.<br>You can <br>1. patch the ADSR envelope and Pot#11 to the multiply object's inlets (math/*)<br>2. patch Pot#10 and the output of the multiply object to the add object inlets (math/+)<br>3. patch the output of the add object to the filter frequency<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/d64b088b6a54f744c67fabc97c47547949bb7e36" href="//community.axoloti.com/uploads/default/original/2X/d/d64b088b6a54f744c67fabc97c47547949bb7e36.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/d/d64b088b6a54f744c67fabc97c47547949bb7e36_1_690x452.png" width="690" height="452"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1146x752 58.9 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<blockquote><p>The other thing is that the pots that I bought are 0-64 range and for most things I need -64-+64 range, I solved this with the TSG/math/map b and setting the two points. Is there an easier way to do this?</p></blockquote>
+
+<p>Use the <em>conv/unipolar2bipolar</em> object</p>
+
+<blockquote><p>Another idea which I'm not sure how to do is to take one of the pots and have it do the mixing between the two OSCs, -64=100% OSC1, 0=50/50 mix of both +64=100% OSC2. I was thinking there should be an object that does this already but I couldn't find one. This would move the mix to one of the potentiometer instead of two.</p></blockquote>
+
+<p>Try searching 'fade' or 'xfade' when you're searching for an object. It will definitely blend between two inputs, but there's a chance you might need to adjust the volume when you turn the potentiometer to the middle position.</p>
+
+<blockquote><p>The other problem I'd like to solve is that I have four buttons on the axoctrl and I'd like to use one as a "shift" function and be able to hold it and change a value of a pot to affect a different parameter, are there any good examples of this out there?</p></blockquote>
+
+<p>What I'd suggest you use is the MultiPot object. (TSG/ctrl/MultiPot 3) This object allows you to change parameter by switching the layer. <br>Let's say you want to use Button#6 as the shift function, and you want to switch to a different parameter by holding down the button.<br>It'd look a little something like this <br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/2ade8928cafacd7e17ec6efdac43003f08b01903" href="//community.axoloti.com/uploads/default/original/2X/2/2ade8928cafacd7e17ec6efdac43003f08b01903.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/2ade8928cafacd7e17ec6efdac43003f08b01903_1_690x390.png" width="690" height="390"><div class="meta">
+<span class="filename">image.png</span><span class="informations">912x516 40.9 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>I'm excited to see your finished patch!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/32">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/32</link>
+        <pubDate>Wed, 17 Mar 2021 17:57:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-32</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>That's a good one <a class="mention" href="/u/janvantomme">@janvantomme</a>! thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/31">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/31</link>
+        <pubDate>Mon, 07 Dec 2020 21:06:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-31</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Or use <strong>conv/unipolar2bipolar</strong> with pots if you don't need to set the upper &amp; lower value.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/30">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/30</link>
+        <pubDate>Mon, 07 Dec 2020 15:07:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-30</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="28" data-topic="6140"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/m/e0b2c6/40.png" class="avatar">mlinton:</div>
+<blockquote><p>The other thing is that the pots that I bought are 0-64 range and for most things I need -64-+64 range, I solved this with the TSG/math/map b and setting the two points.  Is there an easier way to do this?</p></blockquote></aside>
+
+<p>Pots themselves don't have range. "TSG/math/map b" looks like a simple solution to me.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/29">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/29</link>
+        <pubDate>Mon, 07 Dec 2020 13:55:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-29</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>Part 4 - Axoctrl</p>
+
+<p>Ok, problems solved.  I got the soldering issues figured out and while I'm waiting for the OLED 3306 screen to arrive (didn't know they made ones with the VCC and ground pins swapped?!?), I put the unit together and did some basic coding on the patch.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/eed30019a9778fcb5b1f0666a27fed4ec5ce8c3d" href="//community.axoloti.com/uploads/default/original/2X/e/eed30019a9778fcb5b1f0666a27fed4ec5ce8c3d.jpg" class="lightbox" title="image.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/e/eed30019a9778fcb5b1f0666a27fed4ec5ce8c3d_1_681x500.jpg" width="681" height="500"><div class="meta">
+<span class="filename">image.jpg</span><span class="informations">799x586 72.6 KB</span><span class="expand"></span>
+</div></a></div><br>Replacing the inputs with those from the Axoctrl is pretty straightforward, but I have a couple of questions below that maybe someone can help me figure out what the best approach is.</p>
+
+<p>First things first, I'm struggling with how to control the filter.  The easy way which is in the patch is to simply control the cut-off with one of the pots, which sounds great.  The harder way is somehow figuring out how to combine the ADSR with the EG amount.  I think what I'm trying to do is to set the cut-off frequency and then use the ADSR to modulate the amount of filter applied based on the gate?  Does this sound right?</p>
+
+<p>The other thing is that the pots that I bought are 0-64 range and for most things I need -64-+64 range, I solved this with the TSG/math/map b and setting the two points.  Is there an easier way to do this?</p>
+
+<p>Another idea which I'm not sure how to do is to take one of the pots and have it do the mixing between the two OSCs, -64=100% OSC1, 0=50/50 mix of both +64=100% OSC2.  I was thinking there should be an object that does this already but I couldn't find one.  This would move the mix to one of the potentiometer instead of two.</p>
+
+<p>The other problem I'd like to solve is that I have four buttons on the axoctrl and I'd like to use one as a "shift" function and be able to hold it and change a value of a pot to affect a different parameter, are there any good examples of this out there?<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/06b5d8b9d6fac736e82ec8c4002f156c80c2b177" href="//community.axoloti.com/uploads/default/original/2X/0/06b5d8b9d6fac736e82ec8c4002f156c80c2b177.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/0/06b5d8b9d6fac736e82ec8c4002f156c80c2b177_1_690x467.png" width="690" height="467"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1678x1137 174 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Thanks again, I'm hoping that I'll have the screen and the modulation inputs to test out as part of the next couple of updates.</p>
+
+<p>Cheers.<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/9/9375eec3ce0a8fba125eea6d468face8f7443ca7.axp">minataur-step4-axoctrl.axp</a> (13.5 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/28">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/28</link>
+        <pubDate>Mon, 07 Dec 2020 04:21:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-28</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>Well a bit of a set-back, I decided that late-night soldering is a good idea and soldered the row of 40 headers to the wrong side of the axoctrl, doh!  I managed to get it off, but I need to now try to clean the holes to get a new header attached.  Glad you guys are liking it.  <a class="mention" href="/u/hitachii">@hitachii</a> maybe share the subpatch you got, I'd like to try it out.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/27">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/27</link>
+        <pubDate>Mon, 30 Nov 2020 22:03:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-27</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for making this patch. I made a polyphonic subpatch that I use routinely. It sounds sooo good.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/26">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/26</link>
+        <pubDate>Thu, 19 Nov 2020 21:49:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-26</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@void]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/void">@void</a> wrote:</p>
+          <blockquote>
+              <p>I really like this patch!<br>...actually added (soldered) some pods to my axo to play along!<br>Yeah I am waiting <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/25">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/25</link>
+        <pubDate>Thu, 19 Nov 2020 17:05:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-25</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>I'm hoping to have the next part up soon, I have been messing with my axoloti hardware to get one of the axoctrl from hohum working so that I have additional hardware inputs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/24</link>
+        <pubDate>Thu, 19 Nov 2020 16:49:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-24</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p><strong>Part 3 - Filters, Glide, ADSR, tweaks</strong></p>
+
+<p>Thanks for the feedback, I've rerouted the cables and connected the toggles to properly switch the oscillators.</p>
+
+<p>Now it's time to add the filter.  The classic Moog filter can be a hard thing to try to emulate especially digitally, in this case I have added the jaffa/filt/mm24db filter, this is connected to the main mixer combining the two oscillators and the input.  The output of the filter is connected directly to the outputs.  I have added an ADSR for the filter which is connected through a gain control to adjust the amount of envelope applied to the filter.  This is controlled using ADS/R using knobs 1-3 on the axocontrol.</p>
+
+<p>Next up is a bit of a tweak, the tuning control of OSC1 on the Minitaur provides full +1/-1 octave control, so I needed to set the mix gain to 24.00 on the dial and set the midpoint tuning of the knob to 164.8 or C4.  This now give a full octave range up and down on the Oscillator - cool!</p>
+
+<p>The glide control is easy, the sss/math/glideMultiExt provides for glide, with the on/off connected to a click of the axocontrol's joystick running through a logic/toggle to track the change (I'm quickly running out of physical controls). </p>
+
+<p>I also added some midi/in/cc in advance of needing to control additional values using a midi controller or software.  For now I'll likely just move the axo control's hardware around to test different functions.</p>
+
+<p>I also added another Amp envelope which is connected to the master output VCA.  No controls yet for the AMP VCA.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4f7f5eb215f4793c69177ad86faf6cf36de3ed5d" href="//community.axoloti.com/uploads/default/original/2X/4/4f7f5eb215f4793c69177ad86faf6cf36de3ed5d.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/4f7f5eb215f4793c69177ad86faf6cf36de3ed5d_1_690x449.png" width="690" height="449"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1781x1161 238 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/2/2dabb50f8ea48dfa673c481040866977101286ee.axp">minataur-step3-VCF.axp</a> (11.6 KB)</p>
+
+<p>Next part will be the LFO and modulations for the filter and the VCOs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/23</link>
+        <pubDate>Mon, 02 Nov 2020 22:10:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-23</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@chico]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/chico">@chico</a> wrote:</p>
+          <blockquote>
+              <p>Ah, I see. thank you!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/22</link>
+        <pubDate>Mon, 02 Nov 2020 08:22:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-22</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Those are inputs which control the 4 LEDs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/21</link>
+        <pubDate>Mon, 02 Nov 2020 01:19:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-21</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@chico]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/chico">@chico</a> wrote:</p>
+          <blockquote>
+              <p>Hey all,</p>
+
+<p>Also new to this...!</p>
+
+<p>What are the PB0, PB1, etc. for (yellow round ports on the axocontrol object)?</p>
+
+<p>Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/20</link>
+        <pubDate>Mon, 02 Nov 2020 00:26:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-20</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>I noticed, your connections from the axocontrol to the LEDs are crossed.</p>
+
+<p> I think this is what you're trying to do with toggles, simplified, to verify par_swap_1 operation.  I'm using two sine oscillators, tuned to different frequencies. The pushbutton switches them, as expected.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/9eda5dbec3cd9f05b1fef02ce30366a2891397d3" href="//community.axoloti.com/uploads/default/original/2X/9/9eda5dbec3cd9f05b1fef02ce30366a2891397d3.png" class="lightbox" title="Screen Shot 2020-10-30 at 5.10.19 PM.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/9/9eda5dbec3cd9f05b1fef02ce30366a2891397d3_1_590x500.png" width="590" height="500"><div class="meta">
+<span class="filename">Screen Shot 2020-10-30 at 5.10.19 PM.png</span><span class="informations">1770x1500 246 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/19</link>
+        <pubDate>Sat, 31 Oct 2020 00:01:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-19</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p><strong>Part 2 - Sound Generation</strong></p>
+
+<p>With the basics of input and output setup, I've added four oscillators, a saw and a square wave for both OSC1 and 2.<br>I also connected the midi note to both oscillators, but I added a tuning mixer (mix/mix 1) to use knob 6 to effectively detune the second oscillator.</p>
+
+<p>I then provided a dual VCA to allow for control of each oscillator which then gets fed into another mixer.  This could probably be simplified with a 3 input mixer to include the external input.  I then routed the signal to the left and right out to test the functions.</p>
+
+<p>The main issue I haven't solved yet is to find away to use the toggle buttons (momentary switches) to switch between the saw and square oscillators.  The drj/switch/par_swap_1 controls don't seem to work that way.  Looking for someone with the suggestion for this.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/b02535645220beeeeb5e80ad325573dc42febcde" href="//community.axoloti.com/uploads/default/original/2X/b/b02535645220beeeeb5e80ad325573dc42febcde.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/original/2X/b/b02535645220beeeeb5e80ad325573dc42febcde.png" width="690" height="448"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1768x1149 190 KB</span><span class="expand"></span>
+</div></a></div><br>Next up, hopefully fixes to the toggles, addition of the VCF and glide control for the notes.<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/b/b7fa6911990b714e759b10cd59806053162f4e84.axp">minataur-step2-sound.axp</a> (9.1 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/18</link>
+        <pubDate>Fri, 30 Oct 2020 22:22:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-18</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Im confused by some of your use of ‘mini’. I think you mean MIDI?</p>
+
+<p>The MIDI out/through port cannot be used for input.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/17</link>
+        <pubDate>Fri, 30 Oct 2020 17:42:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-17</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>Ok so I have been learning a LOT about synthesis and actually modelling real synths and while my first patch was a valiant attempt at learning the axoloti platform, it wasn't very good at all.  I'm going to try to remodel it starting with the basics, and I hope some help from others way more experienced than me along the way.</p>
+
+<p>I'm hoping that this might help others with similar ambitions along the way.  What follows is going to be a step by step of my exploration with the modelling effort using the same Moog Minataur synth.</p>
+
+<p><strong>Part 1 - Inputs and Outputs.</strong></p>
+
+<p>Hardware wise, I'm a bit more limited in what I can do with the axoloti hardware, and make it generic enough to be useful for others as well.  Thankfully we do have some of the basics that the minataur has:</p>
+
+<ul>
+<li>Input, we have a stereo input pair, which is one better than the minataur (mono input only)</li>
+<li>Output, we have a stereo output pair, again one better than the minataur (mono output only), and the same 1/8" headphone output.</li>
+<li>In addition the minataur has 4 control inputs which are used for pitch, filter and volume CV and a gate.</li>
+<li>The minataur only has a midi-in while we have a midi-out/thru port as well, but really usable for inputs.</li>
+<li>The biggest difference is on the front panel where the minataur has a mixture of 4 buttons, and 17 potentiometers for controlling all of the parameters, and we have none.  So we can use midi CC's to control these, and some combination of hardware / software to trigger the midi CC's.  I'm going to be using the Axocontrol, and a 16n fader that I recently built (with a non-functioning 9th fader due to very poor soldering skills).</li>
+</ul>
+
+<p>For the patch I'm going to initially build this as a mono in/out synth, but using both channels in and out</p>
+
+<p>In the patch attached I have mapped the controls using object I thing will be best suited for the job, if anyone has input on them please let me know.</p>
+
+<ul>
+<li>audio/in stereo for the input</li>
+<li>midi/in/keyb for the mini input</li>
+<li>midi/in/cc for the midi cc inputs (probably need 17 of these eventually to match the hardware inputs)</li>
+<li>audio/out stereo for the output</li>
+<li>disp/scope (x2) as a utility for the patch</li>
+</ul>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/dc33c9cfb5d44eb563aaf5c9ffd39b29a018ce09" href="//community.axoloti.com/uploads/default/original/2X/d/dc33c9cfb5d44eb563aaf5c9ffd39b29a018ce09.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/d/dc33c9cfb5d44eb563aaf5c9ffd39b29a018ce09_1_690x458.png" width="690" height="458"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1777x1180 80.8 KB</span><span class="expand"></span>
+</div></a></div><br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/0/08a0b1bef49cc29395c2c2fbc1b1beeb321c2617.axp">minataur-step1-hardware.axp</a> (2.8 KB)</p>
+
+<p>Part 2 will be focused on sound generation.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/16</link>
+        <pubDate>Fri, 30 Oct 2020 16:42:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-16</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@ibisum Jay Vaughan]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ibisum">@ibisum</a> wrote:</p>
+          <blockquote>
+              <p>Very nice patch, this .. destined for the jam selection ..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/15</link>
+        <pubDate>Tue, 10 Dec 2019 15:40:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-15</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@gagarin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gagarin">@gagarin</a> wrote:</p>
+          <blockquote>
+              <p>Thank you nive patch:)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/14</link>
+        <pubDate>Tue, 12 Nov 2019 15:45:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-14</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>Yep, the patch is already included in the above posts, but I'll attach the latest copy here.  I guess I should figure out how to share it through the official community patches as well.</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/4/4522ea081d40d4d2bfe8cb5ad83d4eff7ad7b59e.axp">minataur.axp</a> (7.7 KB)</p>
+
+<p>Other quick update to this, it looks like the Moog Sirin synth is actually very similar to the Minitaur but also provides for some additional features, I'm going to take a look through that schematic and manual too and see if there's anything else missing.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/13</link>
+        <pubDate>Tue, 12 Nov 2019 14:21:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-13</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@gagarin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gagarin">@gagarin</a> wrote:</p>
+          <blockquote>
+              <p>Do you plan to share the patch? <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/12</link>
+        <pubDate>Tue, 05 Nov 2019 07:29:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-12</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="10" data-topic="6140"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/m/e0b2c6/40.png" class="avatar">mlinton:</div>
+<blockquote><p>Thanks again for the filter - it sounds way better.</p></blockquote></aside>
+
+<p>No problem. After resting it for a few days and testing it again, I am pretty happy with it, it has a nice twang. But could be more efficient, it does take a lot of cycles to process around 1000. But it sounds decent <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/11</link>
+        <pubDate>Sat, 02 Nov 2019 14:59:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-11</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>So cool.  Honestly the more I get into this the better the axoloti becomes.  Thanks again for the filter - it sounds way better. Here is an updated patch with the new filter, the sync/detune for osc1 and osc2.  Glide is working but probably needs some tweaking.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/bde75a08f5cac67258315eaaaba386551ba077a0" href="//community.axoloti.com/uploads/default/original/2X/b/bde75a08f5cac67258315eaaaba386551ba077a0.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/b/bde75a08f5cac67258315eaaaba386551ba077a0_1_577x500.png" width="577" height="500"><div class="meta">
+<span class="filename">image.png</span><span class="informations">2474x2142 571 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Things left to do:<br>- Route the LFO to the oscilators and to the ladder filter through some type of gain control.<br>- Add some inputs to objects so that they can be adjusted.<br>- Add midi velocity controls for the VCA (50%)<br>- probably 100 other things I haven't got on the list yet.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/10</link>
+        <pubDate>Fri, 01 Nov 2019 17:53:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-10</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@urklang Nicolas Steven Miller]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/urklang">@urklang</a> wrote:</p>
+          <blockquote>
+              <aside class="onebox pdf">
+  <header class="source">
+    <a href="https://www.timstinchcombe.co.uk/synth/Moog_ladder_tf.pdf" target="_blank" rel="nofollow noopener">timstinchcombe.co.uk</a>
+  </header>
+  <article class="onebox-body">
+    <a href="https://www.timstinchcombe.co.uk/synth/Moog_ladder_tf.pdf" target="_blank" rel="nofollow noopener"><span class="pdf-onebox-logo"></span></a>
+<h3><a href="https://www.timstinchcombe.co.uk/synth/Moog_ladder_tf.pdf" target="_blank" rel="nofollow noopener">Moog_ladder_tf.pdf</a></h3>
+
+<p class="filesize">2.08 MB</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+
+<p>There's a bunch of great material out there that goes in depth on the ladder filter.</p>
+
+<p>SuperCollider has a couple of nice digital implementations.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/9</link>
+        <pubDate>Fri, 01 Nov 2019 12:35:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-9</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+      <item>
+        <title>First attempt at patching a useful instrument - Moog Minitaur</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>have you tried jt/filter/vcf4pole2x ? pretty cpu expensive, but sounds nice...and should go up to 18.8khz</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140/8</link>
+        <pubDate>Fri, 01 Nov 2019 05:52:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6140-8</guid>
+        <source url="http://community.axoloti.com/t/first-attempt-at-patching-a-useful-instrument-moog-minitaur/6140.rss">First attempt at patching a useful instrument - Moog Minitaur</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,278 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="audio/inconfig l" uuid="7007d026acb7c3586f60a7f0898718d1ca7e0607" name="inconfig_1" x="980" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="gain" selection="9dB"/>
+         <combo attributeName="boost" selection="20dB"/>
+      </attribs>
+   </obj>
+   <obj type="audio/outconfig" uuid="eace67e3304afaa1bb695b444e9345f2d8adaf00" name="outconfig_1" x="1092" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="headphones" selection="-24dB"/>
+         <combo attributeName="mode" selection="Stereo"/>
+      </attribs>
+   </obj>
+   <obj type="audio/in left" uuid="d40e60b7641fe75af4d7c91b45bb038aacafc52e" name="in_1" x="0" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/muls 2" uuid="c3083089dc169cd87133000659a02789dec5a151" name="muls_2" x="98" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="filter/lp" uuid="1427779cf086ab83c8b03eeeac69c2a97759c651" name="lp_1" x="182" y="84">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.u.map name="reso" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="filter/lp m" uuid="1aa1bc51da479ed92429af700591f9d7b9f45f22" name="lp_2" x="280" y="154">
+      <params>
+         <frac32.s.map name="pitch" value="-5.0"/>
+         <frac32.u.map name="reso" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 1" uuid="e8f482af5b1ec4a2e9cf8ac7ce09e7c0e43cea08" name="mix_1" x="434" y="182">
+      <params>
+         <frac32.u.map name="gain1" value="31.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/follower" uuid="356ce1d18ac6b51704833f94dac5dea823fb8223" name="follower_2" x="994" y="182">
+      <params/>
+      <attribs>
+         <combo attributeName="time" selection="2.7ms"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="6c51cdb6-382e-441e-8716-326c0e7e397d" name="p to v_" x="532" y="224">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="6c51cdb6-382e-441e-8716-326c0e7e397d">
+         <inlets>
+            <frac32buffer.bipolar name="i1"/>
+         </inlets>
+         <outlets>
+            <frac32 name="o1"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int current_sample;
+int last_sample;
+int zero_cross;
+int phase_counter = 0;
+int phase_counter2 = 0;
+float sh_value;
+float sh_value2;
+float freq;
+float midi;
+float subsample_up;
+float subsample_down;
+float last_subsample_up;
+float last_subsample_down;]]></code.declaration>
+         <code.krate><![CDATA[freq = 96000.0f/float(sh_value+sh_value2 + 2.09f); //2.1 is a correction value i found by experimenting.
+outlet_o1 = freq*5600;]]></code.krate>
+         <code.srate><![CDATA[if ((last_sample < 0) && (inlet_i1 > 0)) {
+	
+	subsample_up = float((inlet_i1)/(abs(last_sample) + inlet_i1));
+	
+	
+	zero_cross = 1;
+}
+
+else if ((last_sample > 0) && (inlet_i1 < 0)) {
+	
+	subsample_down = float((inlet_i1)/(abs(inlet_i1) + last_sample));
+	
+	zero_cross = -1;
+} else zero_cross = 0;
+
+last_sample = inlet_i1;
+
+
+if (zero_cross == 1) {
+	sh_value = phase_counter - subsample_up - last_subsample_up;
+	last_subsample_up = subsample_up;
+	phase_counter = 0;
+}
+else phase_counter = phase_counter + 1;
+
+if (zero_cross == -1) {
+	sh_value2 = phase_counter2 + subsample_down + last_subsample_down;
+	last_subsample_down = subsample_down;
+	phase_counter2 = 0;
+}
+else phase_counter2 = phase_counter2 + 1;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="env/follower" uuid="356ce1d18ac6b51704833f94dac5dea823fb8223" name="follower_3" x="658" y="252">
+      <params/>
+      <attribs>
+         <combo attributeName="time" selection="10.6ms"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="582ea742-e62a-44a0-951a-ec00db88d572" name="&gt;c_1" x="1120" y="252">
+      <params>
+         <frac32.u.map name="c" onParent="true" value="1.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="582ea742-e62a-44a0-951a-ec00db88d572">
+         <sDescription>greater than constant</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in" description="in"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="c" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[if (inlet_in > param_c) outlet_out = inlet_in;
+else outlet_out = 0;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="math/muls 2" uuid="e6a3d49dd255fdecb3dca9c7fa75b9a95ecfd7fd" name="muls_3" x="742" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/muls 8" uuid="7f2a47c7405168a6d330c0ec6091b1ec1e7c7840" name="muls_1" x="1218" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sptnk/conv/ftom" uuid="ec4fa8e5-59bf-4558-ba97-b9186be9aad1" name="ftom_1" x="630" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/smooth" uuid="6c5d08c282bb08bff24af85b4891447f99bcbc97" name="smooth_1" x="854" y="336">
+      <params>
+         <frac32.u.map name="time" value="20.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/square" uuid="aa9592566d3673fe64dcaede132e9ebd45d2202f" name="square_1" x="1120" y="378">
+      <params>
+         <frac32.s.map name="pitch" value="-12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="tiar/osc/PM/SelfPM" uuid="4c69df16-7b2a-40bd-9058-ec85890055db" name="SelfPM_1" x="994" y="406">
+      <params>
+         <frac32.s.map name="pitch" value="12.0"/>
+         <frac32.s.map name="fb1" value="-64.0"/>
+         <frac32.s.map name="fb0" value="-16.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 3" uuid="8be16f2156012a4a8974804178cece51555f272b" name="mix_2" x="1274" y="434">
+      <params>
+         <frac32.u.map name="gain1" value="64.0"/>
+         <frac32.u.map name="gain2" value="42.5"/>
+         <frac32.u.map name="gain3" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="1400" y="462">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1512" y="490">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="in_1" outlet="wave"/>
+         <dest obj="follower_3" inlet="in"/>
+         <dest obj="muls_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="p to v_" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mix_2" outlet="out"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="lp_1" outlet="out"/>
+         <dest obj="lp_2" inlet="in"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="lp_2" outlet="out"/>
+         <dest obj="mix_1" inlet="bus_in"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="right"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="&gt;c_1" outlet="out"/>
+         <dest obj="muls_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="muls_1" outlet="out"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="mix_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="follower_3" outlet="amp"/>
+         <dest obj="muls_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="muls_3" outlet="out"/>
+         <dest obj="smooth_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="smooth_1" outlet="out"/>
+         <dest obj="SelfPM_1" inlet="fbMod"/>
+      </net>
+      <net>
+         <source obj="p to v_" outlet="o1"/>
+         <dest obj="ftom_1" inlet="f"/>
+      </net>
+      <net>
+         <source obj="ftom_1" outlet="m"/>
+         <dest obj="SelfPM_1" inlet="pitch"/>
+         <dest obj="lp_2" inlet="pitch"/>
+         <dest obj="square_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="follower_2" outlet="amp"/>
+         <dest obj="&gt;c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="muls_2" outlet="out"/>
+         <dest obj="lp_1" inlet="in"/>
+         <dest obj="follower_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="SelfPM_1" outlet="wave"/>
+         <dest obj="mix_2" inlet="in1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>27</x>
+      <y>0</y>
+      <width>1305</width>
+      <height>727</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Why are the net variables not static?</title>
+    <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759</link>
+    <description>This question came up as I was working on an object, and I was thinking that just like the local data, the outlet_foo variables were retained unless changed, with confusing results - I would set the outlet to a value when a specific set of conditions occurred, but not otherwise. It was being set alright but next krate period it had changed even though my code didn&#39;t touch it.
+
+Looking at the generated xpatch.cpp, all signals between objects take place using variables called net&lt;number&gt;, e.g. net45. The net variables are declared as ordinary stack variables
+
+For patches where the first object to use a net uses it as an output, this works fine, if not, additional instance variables (i.e. static) called net&lt;number&gt;Latch are used. In this case, at the end of the dsp() method, net45Latch would be set to the value of net45, so that an object that needed it as an input in the next iteration would use net45Latch instead of net45 which would not have been initialized yet. The patcher code obviously keeps track of the order of the objects relative to the nets in order to use the appropriate variable.
+
+I&#39;m feeling I&#39;m missing something obvious here, because couldn&#39;t all net variables be static so that they retained their value across dsp() calls? That way it would not be necessary to have the Latch variables at all. After all, it seems the current implementation mimics this behavior in a convoluted way.</description>
+    
+    <lastBuildDate>Wed, 01 Jun 2016 04:41:37 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="1759" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>I think the compiler can unroll and inline the buffersize loops and then re-order operations and optimize out stack variables as much as long as it does not modify any behavior that can be functionally observed. Adding functionality to observe more will also prevent the compiler to optimize more. </p></blockquote></aside>
+
+<p>This has been bugging me a bit (no pun intended <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"> ) and I took it up with our resident compiler expert at work. The fact is that even if the variables are declared static, they can be optimized away, if the compiler detects that the value written will never be used other than on the current iteration. (I.e. 'static' is not 'volatile', which would mean that the value needs to be written to memory no matter what the compiler thinks). He couldn't say for certain that gcc actually does that though. But at least it makes it all worth experimenting with at some point to see which would be the most optimal.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/9</link>
+        <pubDate>Wed, 01 Jun 2016 04:41:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-9</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="1759" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/b9e5f3/40.png" class="avatar">toneburst:</div>
+<blockquote>
+<aside class="quote" data-post="4" data-topic="1759"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>I believe in real time dsp, it is often better to optimize the worst case than increasing the difference between worst case and best case, by optimizing the best case. </p></blockquote></aside><p>Is it not generally a good idea to only run code when required, then?</p>
+<p>For example, I have a relatively expensive map/range function in one of my objects, and my instinct says I should only run the function when required- ie when a parameter value changes.</p>
+<p>Would I in fact be better trying to optimise the function, and just have it run all the time?</p>
+</blockquote></aside>
+
+<p>The thing is that at the particular time when you do run your function, if you do go over the available time for DSP processing, you can loose a whole buffer (16 samples) of audio, causing a glitch in the audio output. In 'normal' programming, if a function is expensive (in terms of execution time), it makes sense to run it as little as possible, and take the penalty the few times it does run. But in real time programming, you have an alotted time which you may never transgress, even in the worst case. I think that is what <a class="mention" href="/users/johannes">@johannes</a> is getting at.</p>
+
+<p>One thing you can do perhaps is if there is a loop inside your function to convert into a state machine so that it takes a number of DSP cycles to complete its task. In total, it will consume more CPU time because of the added overhead for the state machine code, but you'll decrease the worst case execution time.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/8</link>
+        <pubDate>Mon, 30 May 2016 04:40:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-8</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@hellcore]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hellcore">@hellcore</a> wrote:</p>
+          <blockquote>
+              <p>What happens if the end user is running your function constantly? <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/7</link>
+        <pubDate>Fri, 27 May 2016 19:18:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-7</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@toneburst alx]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/toneburst">@toneburst</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="1759"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>I believe in real time dsp, it is often better to optimize the worst case than increasing the difference between worst case and best case, by optimizing the best case. </p></blockquote></aside>
+
+<p>Is it not generally a good idea to only run code when required, then?</p>
+
+<p>For example, I have a relatively expensive map/range function in one of my objects, and my instinct says I should only run the function when required- ie when a parameter value changes.</p>
+
+<p>Would I in fact be better trying to optimise the function, and just have it run all the time?</p>
+
+<p>a|x</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/6</link>
+        <pubDate>Fri, 27 May 2016 18:15:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-6</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="1759" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote>
+<aside class="quote" data-post="3" data-topic="1759"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>(One improvement though would be that objects could consider the outlet variables as being static, thus avoiding the need to have a local variable to mimic them. This would only be an improvement though for objects which don't update their outlets during each krate period.)</p></blockquote></aside><p>I believe in real time dsp, it is often better to optimize the worst case than increasing the difference between worst case and best case, by optimizing the best case. </p>
+</blockquote></aside>
+
+<p>Yes that makes sense. It's the worst case that will cause the DSP load to peak.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/5</link>
+        <pubDate>Fri, 27 May 2016 17:56:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-5</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>I think the compiler can unroll and inline the buffersize loops and then re-order operations and optimize out stack variables as much as long as it does not modify any behavior that can be functionally observed. Adding functionality to observe more will also prevent the compiler to optimize more. </p>
+
+<aside class="quote" data-post="3" data-topic="1759"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>(One improvement though would be that objects could consider the outlet variables as being static, thus avoiding the need to have a local variable to mimic them. This would only be an improvement though for objects which don't update their outlets during each krate period.)</p></blockquote></aside>
+
+<p>I believe in real time dsp, it is often better to optimize the worst case than increasing the difference between worst case and best case, by optimizing the best case. </p>
+
+<aside class="quote" data-post="3" data-topic="1759"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>It's not really my main focus now though, but still .. which files in the Java code handle the generation of variables where this could be experimented with?</p></blockquote></aside>
+
+<p>That's mainly Patch.java.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/4</link>
+        <pubDate>Fri, 27 May 2016 13:22:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-4</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="1759" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>If all nets 'd be declared as static, the compiler would be forced to actually write them all to memory in the dsp() call, while if they're on the stack they can be completely optimized out.<br>Does that make sense? I mean, I can be mistaken, and 'd be happy to learn and improve.</p></blockquote></aside>
+
+<p>I think I you are probably right in principle; with the current solution, any nets who do not need to be saved across dsp() calls could be held in registers and thus never written to memory. I would think though that given the complexity of the dsp() function, most if not all net variables would be held on the stack anyway (which of course  also is in memory). I would think it unlikely that the compiler could optimize them away completely, after all they do carry data. Perhaps the inlining of the individual dsp() functions can result in enough optimization to actually remove variables though.</p>
+
+<p>And I guess due to optimization, for those nets that have Latch variables, the corresponding stack variable can be optimized away, thus avoiding the copying of auto to static variables that occurs in the block at the end of the dsp() function.</p>
+
+<p><aside class="quote"><blockquote><p>I haven't spent as much time as I'd like to inspect/verify compiler optimizations. The problem with optimizing compilers is that it gets more complex to understand their behavior. The general idea is to feed the compiler in a way that enables the compiler to optimize the code <em>across</em> objects, but I feel there are improvements left that can be made in this area.</p></blockquote></aside></p>
+
+<p>I agree it's often hard to predict how effective a compiler can be at optimization. In this case I think it might be worth while experimenting with both pradigms, and see when one actually results in lower dsp usage. But I agree with your reasons now that I think about it, and I can't say I'm convinced having them all static would be an improvement.</p>
+
+<p>(One improvement though would be that objects could consider the outlet variables as being static, thus avoiding the need to have a local variable to mimic them. This would only be an improvement though for objects which don't update their outlets during each krate period.)</p>
+
+<p>It's not really my main focus now though, but still .. which files in the Java code handle the generation of variables where this could be experimented with?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/3</link>
+        <pubDate>Fri, 27 May 2016 04:49:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-3</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>If all nets 'd be declared as static, the compiler would be forced to actually write them all to memory in the dsp() call, while if they're on the stack they can be completely optimized out.<br>Does that make sense? I mean, I can be mistaken, and 'd be happy to learn and improve.<br>I haven't spent as much time as I'd like to inspect/verify compiler optimizations. The problem with optimizing compilers is that it gets more complex to understand their behavior. The general idea is to feed the compiler in a way that enables the compiler to optimize the code <em>across</em> objects, but I feel there are improvements left that can be made in this area.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/2</link>
+        <pubDate>Thu, 26 May 2016 23:41:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-2</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+      <item>
+        <title>Why are the net variables not static?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>This question came up as I was working on an object, and I was thinking that just like the local data, the outlet_foo variables were retained unless changed, with confusing results - I would set the outlet to a value when a specific set of conditions occurred, but not otherwise. It was being set alright but next krate period it had changed even though my code didn't touch it.</p>
+
+<p>Looking at the generated xpatch.cpp, all signals between objects take place using variables called net, e.g. net45. The net variables are declared as ordinary stack variables</p>
+
+<p>For patches where the first object to use a net uses it as an output, this works fine, if not, additional instance variables (i.e. static) called netLatch are used. In this case, at the end of the dsp() method, net45Latch would be set to the value of net45, so that an object that needed it as an input in the next iteration would use net45Latch instead of net45 which would not have been initialized yet. The patcher code obviously keeps track of the order of the objects relative to the nets in order to use the appropriate variable.</p>
+
+<p>I'm feeling I'm missing something obvious here, because couldn't all net variables be static so that they retained their value across dsp() calls? That way it would not be necessary to have the Latch variables at all. After all, it seems the current implementation mimics this behavior in a convoluted way.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759/1</link>
+        <pubDate>Thu, 26 May 2016 21:55:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1759-1</guid>
+        <source url="http://community.axoloti.com/t/why-are-the-net-variables-not-static/1759.rss">Why are the net variables not static?</source>
+      </item>
+  </channel>
+</rss>

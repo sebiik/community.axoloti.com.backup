@@ -1,0 +1,192 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="140" y="56" text="cc"/>
+   <patchobj type="patch/object" uuid="c83f8a56-3c47-4b7a-b971-193d855401c8" name="cc_1" x="140" y="70">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="cc" value="0"/>
+      </attribs>
+      <object id="patch/object" uuid="c83f8a56-3c47-4b7a-b971-193d855401c8">
+         <sDescription>Midi controller output, automatic thinning, outputs midi to Pin PA2. Mod of factory midi/out/cc thin object</sDescription>
+         <author>Johannes Taelman / Simon Schmidt</author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="v" description="value"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <spinner name="cc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <depends>
+            <depend>SD2</depend>
+         </depends>
+         <code.declaration><![CDATA[int32_t lsend;
+int timer;
+
+void SendMidi3(uint8_t b0,uint8_t b1,uint8_t b2){
+  sdPut(&SD2,b0);
+  sdPut(&SD2,b1);
+  sdPut(&SD2,b2);
+}]]></code.declaration>
+         <code.init><![CDATA[timer = 0;
+]]></code.init>
+         <code.krate><![CDATA[if (((lsend>inlet_v+(1<<19))||(inlet_v>lsend+(1<<19))) && (timer>30)) {
+   lsend = inlet_v;
+   SendMidi3(MIDI_CONTROL_CHANGE + (attr_channel-1),attr_cc,__USAT(inlet_v>>20,7));
+   timer = 0;
+} else timer++;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="336" y="70" text="check the code here"/>
+   <obj type="midi/out/cc thin" uuid="5255b30d60e50223ed41179d8ce935ba9464de75" name="cc_2" x="616" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="cc" value="0"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="336" y="84" text="its a modified version of the regular cc send object"/>
+   <comment type="patch/comment" x="336" y="98" text="you define the sendmidi sd put stuff "/>
+   <comment type="patch/comment" x="336" y="112" text="and then you call it in the k-rate section"/>
+   <comment type="patch/comment" x="196" y="182" text="so just try to combine these 2 objects"/>
+   <comment type="patch/comment" x="140" y="196" text="clock"/>
+   <patchobj type="patch/object" uuid="c96c568d-c047-46a2-a578-af932da5ae1d" name="clock_tx_1" x="140" y="210">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+      </attribs>
+      <object id="patch/object" uuid="c96c568d-c047-46a2-a578-af932da5ae1d">
+         <sDescription>MIDI clock transmitter</sDescription>
+         <author>Are Leistad</author>
+         <license>BSD</license>
+         <inlets>
+            <bool32.rising name="24ppq" description="Send 24 PPQ clock"/>
+            <bool32.rising name="start" description="Send start"/>
+            <bool32.rising name="stop" description="Send stop"/>
+            <bool32.rising name="continue" description="Send continue"/>
+            <bool32.rising name="songsel" description="Send song select"/>
+            <int32 name="selected" description="Song selection"/>
+            <bool32.rising name="songpos" description="Send song position"/>
+            <int32 name="position" description="Song position"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[
+
+      //#define DEBUGF LogTextMessage
+      #define DEBUGF(...) {}
+
+      uint32_t old_24ppq;
+      uint32_t old_start;
+      uint32_t old_stop;
+      uint32_t old_continue;
+      //uint32_t old_reset;
+      uint32_t old_songsel;
+      uint32_t old_songpos;
+
+    ]]></code.declaration>
+         <code.init><![CDATA[
+
+      old_24ppq      = 0;
+      old_start      = 0;
+      old_stop       = 0;
+      old_continue   = 0;
+      //old_reset      = 0;
+      old_songsel    = 0;
+      old_songpos    = 0;
+
+    ]]></code.init>
+         <code.krate><![CDATA[
+
+      if( inlet_24ppq && !old_24ppq )
+        {
+          MidiSend1( (midi_device_t) attr_device, MIDI_TIMING_CLOCK ) ;
+        }
+
+      if( inlet_start && !old_start )
+        {
+          MidiSend1( (midi_device_t) attr_device, MIDI_START );
+        }
+
+      if( inlet_stop  && !old_stop    )
+        {
+          MidiSend1( (midi_device_t) attr_device, MIDI_STOP );
+        }
+
+      if( inlet_continue && !old_continue    )
+        {
+          MidiSend1( (midi_device_t) attr_device, MIDI_CONTINUE );
+        }
+
+      //if( inlet_reset && !old_reset    )
+      //  {
+      //    MidiSend1( (midi_device_t) attr_device, MIDI_RESET );
+      //  }
+
+      if( inlet_songsel && !old_songsel )
+        {
+          MidiSend2( (midi_device_t) attr_device, MIDI_SONG_SELECT, (uint8_t) inlet_selected );
+        }
+
+      if( inlet_songpos && !old_songpos )
+        {
+          MidiSend3( (midi_device_t) attr_device, MIDI_SONG_POSITION, (uint8_t) inlet_position & 0x7F, (uint8_t) (inlet_position<<7) & 0x7F );
+        }
+
+      old_24ppq    = inlet_24ppq;
+      old_start    = inlet_start;
+      old_stop     = inlet_stop;
+      old_continue = inlet_continue;
+      //old_reset    = inlet_reset;
+      old_songsel  = inlet_songsel;
+      old_songpos  = inlet_songpos;
+
+    ]]></code.krate>
+         <code.midihandler><![CDATA[
+    ]]></code.midihandler>
+      </object>
+   </patchobj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>945</width>
+      <height>532</height>
+   </windowPos>
+</patch-1.0>

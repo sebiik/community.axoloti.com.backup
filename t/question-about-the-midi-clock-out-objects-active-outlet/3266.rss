@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Question about the midi clock out objects active outlet</title>
+    <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266</link>
+    <description>Hey!
+
+Was just looking through the midi/clock/out object to see how it was working. And I noticed that the outlet_act, is not fed with anything. Doesnt that mean that it doesnt do anything? I see there is an bool called _active, but it isnt send to the output.. Here is the code;
+
+if (inlet_rst &amp; !rstp){
+   rstp = 1;
+   _posfrac = 0;
+   _pos24ppq = 0;
+} else if (!inlet_rst){
+   rstp = 0;
+}
+if (inlet_run &amp;&amp; !_active) {
+  _active = 1;
+  if (_pos24ppq)     MidiSend1((midi_device_t) attr_device, MIDI_CONTINUE);
+  else     MidiSend1((midi_device_t) attr_device, MIDI_START);
+} else if (!inlet_run &amp;&amp; _active){
+  _active = 0;
+  MidiSend1((midi_device_t) attr_device, MIDI_STOP);
+}if (_active) {
+  _posfrac += param_bpm;
+  if (_posfrac &amp; 1&lt;&lt;31) {
+    _posfrac &amp;= (1&lt;&lt;31)-1;
+    _pos24ppq++;
+    MidiSend1((midi_device_t) attr_device,MIDI_TIMING_CLOCK);
+  }
+}
+outlet_pos4ppq = _pos24ppq/6;
+outlet_pos24ppq = _pos24ppq;
+
+
+**Could I fix it by adding this:**
+outlet_act = _active;
+
+And how would I test if it is working?
+
+Thanks</description>
+    
+    <lastBuildDate>Thu, 04 May 2017 06:30:38 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Question about the midi clock out objects active outlet</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="3266"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/b/2acd7d/40.png" class="avatar">Blindsmyth:</div>
+<blockquote><p>drjustice clock out object.</p></blockquote></aside>
+
+<p>Ahhh. Definatly going to try that. Thanks <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/7</link>
+        <pubDate>Wed, 03 May 2017 18:19:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3266-7</guid>
+        <source url="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss">Question about the midi clock out objects active outlet</source>
+      </item>
+      <item>
+        <title>Question about the midi clock out objects active outlet</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>You could just use two lfo's as clock, on for your internal stuff, and the second one for the external and hook that up to drjustice clock out object. Then you could easily reset only the clock for the external stuff.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/6</link>
+        <pubDate>Wed, 03 May 2017 17:25:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3266-6</guid>
+        <source url="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss">Question about the midi clock out objects active outlet</source>
+      </item>
+      <item>
+        <title>Question about the midi clock out objects active outlet</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="3266"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/b/2acd7d/40.png" class="avatar">Blindsmyth:</div>
+<blockquote><p>Now you always have to turn off and on the external clocksource in order to get it to work.</p></blockquote></aside>
+
+<p>Yeah, I also have an idea where I would like to be able to reset only the clock send OUT of Axoloti, the external clock, without resetting the internal clock. </p>
+
+<p>I use Axoloti as master clock and also to sequence synths. So sequences played from Axoloti itself. Works really great.</p>
+
+<p>But the clock.....I use the clock for syncing LFO's on my synths and it would be super nice to be able to ONLY reset the midi clock send out of Axoloti, the external send clock. Then I can reset the external clock/sync for the LFO's, while the sequencers are still playing from Axoloti inertanlly, without stopping. If I reset in always on the beat it should work as I hope.</p>
+
+<p>As for now, pushing reset, just resets everything. internally as well as externally.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/5</link>
+        <pubDate>Wed, 03 May 2017 14:44:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3266-5</guid>
+        <source url="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss">Question about the midi clock out objects active outlet</source>
+      </item>
+      <item>
+        <title>Question about the midi clock out objects active outlet</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>actually I find the active outlet of the midi clock in object not to be working as well. </p>
+
+<p>When the clock is already running and you start the patch, the outlet will show off wich is really annoying because I want to use it for automatically switching my patch to external clock when there is a clock coming in.</p>
+
+<p>Now you always have to turn off and on the external clocksource in order to get it to work.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/4</link>
+        <pubDate>Wed, 03 May 2017 00:53:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3266-4</guid>
+        <source url="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss">Question about the midi clock out objects active outlet</source>
+      </item>
+      <item>
+        <title>Question about the midi clock out objects active outlet</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Super <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> Thanks for fixing it</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/3</link>
+        <pubDate>Mon, 01 May 2017 05:19:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3266-3</guid>
+        <source url="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss">Question about the midi clock out objects active outlet</source>
+      </item>
+      <item>
+        <title>Question about the midi clock out objects active outlet</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>its better to fix things in factory rather than others working around them - so everyone benefits.<br>ive fixed it, sync libraries.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/2</link>
+        <pubDate>Sat, 29 Apr 2017 19:22:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3266-2</guid>
+        <source url="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss">Question about the midi clock out objects active outlet</source>
+      </item>
+      <item>
+        <title>Question about the midi clock out objects active outlet</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Hey!</p>
+
+<p>Was just looking through the midi/clock/out object to see how it was working. And I noticed that the outlet_act, is not fed with anything. Doesnt that mean that it doesnt do anything? I see there is an bool called _active, but it isnt send to the output.. Here is the code;</p>
+
+<p>if (inlet_rst &amp; !rstp){<br>   rstp = 1;<br>   _posfrac = 0;<br>   _pos24ppq = 0;<br>} else if (!inlet_rst){<br>   rstp = 0;<br>}<br>if (inlet_run &amp;&amp; !_active) {<br>  _active = 1;<br>  if (<em>pos24ppq)     MidiSend1((midi</em>device_t) attr_device, MIDI_CONTINUE);<br>  else     MidiSend1((midi_device_t) attr_device, MIDI_START);<br>} else if (!inlet_run &amp;&amp; _active){<br>  _active = 0;<br>  MidiSend1((midi_device_t) attr_device, MIDI_STOP);<br>}if (_active) {<br>  <em>posfrac += param</em>bpm;<br>  if (_posfrac &amp; 1&lt;&lt;31) {<br>    _posfrac &amp;= (1&lt;&lt;31)-1;<br>    _pos24ppq++;<br>    MidiSend1((midi_device_t) attr_device,MIDI_TIMING_CLOCK);<br>  }<br>}<br>outlet_pos4ppq = _pos24ppq/6;<br>outlet_pos24ppq = _pos24ppq;</p>
+
+<p><strong>Could I fix it by adding this:</strong><br>outlet_act = _active;</p>
+
+<p>And how would I test if it is working?</p>
+
+<p>Thanks</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266/1</link>
+        <pubDate>Sat, 29 Apr 2017 15:02:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3266-1</guid>
+        <source url="http://community.axoloti.com/t/question-about-the-midi-clock-out-objects-active-outlet/3266.rss">Question about the midi clock out objects active outlet</source>
+      </item>
+  </channel>
+</rss>

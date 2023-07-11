@@ -1,0 +1,718 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:discourse="http://www.discourse.org/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Software - Axoloti Community</title>
+    <link>http://community.axoloti.com/c/software</link>
+    <description>Topics in the &#39;Software&#39; category This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. </description>
+    
+      <lastBuildDate>Fri, 19 May 2023 05:03:53 +0000</lastBuildDate>
+      <atom:link href="http://community.axoloti.com/c/software.rss" rel="self" type="application/rss+xml" />
+        <item>
+          <title>[obsolete] Axoloti PDM microphone</title>
+          <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+            <blockquote>
+              <p>I have made a first attempt to include the PDM microphone on the Noloti into the firmware.</p>
+
+<p>In short, we are receiving the microphone's bitstream at 3.072 MHz from I2S3 (which is basically SPI3) via DMA into a buffer of 32 uint32_t, called "pdm_inbuf[32]". 3.072MHz divided by 64 equals 48kHz. This buffer is made directly available in any custom object.</p>
+
+<p>Some registers have to be written in the Init Code to enable the clock and DMA and such, since I only want these to be on if an object actually uses the PDM microphone. (and ideally the registers should be turned back off in the Dispose Code)</p>
+
+<p>Since I am not good at writing filters I get sound but very faint and with a high noise floor. </p>
+
+<p>I even tried linking and using ST's dedicated static library for PDM (pdm2pcm) but it seems too much of a hassle to adjust everything to the overall Axoloti way of running processes. </p>
+
+<p>Right now I am going through 32 samples and reading each 32bit sample bit by bit, and for each bit that is set a fixed amount will be added to the decimated "temp_sum". Then two temp_sums will be added together and that will become one of the 16-buffer 48kHz audio samples Axoloti expects.</p>
+
+<p>The repetitive bit compare part of the code (if sample &amp; 0x00000001 etc.) is taken from some "ZeroPDM" or so library code I found online. It looks weird not to do a for loop but you indeed save a lot of CPU by doing it this way.</p>
+
+<p>I am assuming I need a running average that repeatedly reads chunks of 16 or 32 bits, then advances a few bits, then samples the shifted signal again, so that each bit is read multiple times, effectively low-pass filtering the stream.</p>
+
+<p>I did try a version employing a sincfilter lookup table but it didn't sound very good either. I am guessing this is where the multiple count of each sample would come into play?</p>
+
+<p>I am almost embarrased because all I do is 4-pole low pass filter the raw decimated signal with  code I took out of the "lp1" factory object.</p>
+
+<p><strong>Does anyone here have experience in properly filtering a PDM bitstream?</strong></p>
+
+<p>Here is what I have so far:</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/a/a1b4880415044b4b350ae9e8d7c2994928cf49da.png" width="104" height="103"></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/0/04ad540a80f179e9adb19217b433ed1a9ccbaca7.png" width="658" height="488"></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/2/2fd22908baf58adb4f0b18d88a36c3ec76146a44.png" width="662" height="486"></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/b8d49b7629664ba7fcab2e4f4a658078fc878c0e" href="//community.axoloti.com/uploads/default/original/2X/b/b8d49b7629664ba7fcab2e4f4a658078fc878c0e.png" class="lightbox" title="2023-05-19 12_40_53-embedded.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/b/b8d49b7629664ba7fcab2e4f4a658078fc878c0e_1_351x500.png" width="351" height="500"><div class="meta">
+<span class="filename">2023-05-19 12_40_53-embedded.png</span><span class="informations">573x816 156 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/2fa80eb22276af5fc9fd9a72e30927a009503d55" href="//community.axoloti.com/uploads/default/original/2X/2/2fa80eb22276af5fc9fd9a72e30927a009503d55.png" class="lightbox" title="2023-05-19 12_41_19-.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/2fa80eb22276af5fc9fd9a72e30927a009503d55_1_455x500.png" width="455" height="500"><div class="meta">
+<span class="filename">2023-05-19 12_41_19-.png</span><span class="informations">790x867 158 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/7/7006b22b5ca1dc7ec972b3239a342515a27e9b51.png" width="658" height="489"></p>
+            </blockquote>
+            <p>Posts: 7</p>
+            <p>Participants: 3</p>
+            <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998</link>
+          <pubDate>Fri, 19 May 2023 05:03:53 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7998</guid>
+          <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+        </item>
+        <item>
+          <title>Axoloti Core S/H</title>
+          <dc:creator><![CDATA[@Mizu Matteo]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/mizu">@Mizu</a> wrote:</p>
+            <blockquote>
+              <p>looking for Axoloti Core synth and hardwere . ship Italy <br> thank you ! )</p>
+            </blockquote>
+            <p>Posts: 1</p>
+            <p>Participants: 1</p>
+            <p><a href="http://community.axoloti.com/t/axoloti-core-s-h/7935">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/axoloti-core-s-h/7935</link>
+          <pubDate>Fri, 10 Mar 2023 15:07:30 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7935</guid>
+          <source url="http://community.axoloti.com/t/axoloti-core-s-h/7935.rss">Axoloti Core S/H</source>
+        </item>
+        <item>
+          <title>Missing math.h?</title>
+          <dc:creator><![CDATA[@LoopUdu Wolfgang Steuerle]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/loopudu">@LoopUdu</a> wrote:</p>
+            <blockquote>
+              <p>After replacing Ubuntu Studio with AV Linux (MX 21.2.1) and an easy looking installation of the software I got error messages leading to failure. So I decided to give Patcher 2.0.0  a try. Again:</p>
+
+<p>Generate code complete<br>compiling /home/loopudu/axoloti-2.0.0/build/xpatch.cpp<br>In file included from :<br>/opt/Axoloti/app/api/xpatch.h:9:10: fatal error: math.h: No such file or directory<br> <span class="hashtag">#include</span> <br>          ^~~~~~~~<br>compilation terminated.<br>make: *** [/opt/Axoloti/app/env/patch.mk:111: /home/loopudu/axoloti-2.0.0/build/xpatch.o] Error 1<br>Compiling patch failed</p>
+
+<p>Is there anything I can do about it? Any help will be highly appreciated: Happy New Year!</p>
+            </blockquote>
+            <p>Posts: 4</p>
+            <p>Participants: 2</p>
+            <p><a href="http://community.axoloti.com/t/missing-math-h/7879">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/missing-math-h/7879</link>
+          <pubDate>Fri, 30 Dec 2022 13:19:10 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7879</guid>
+          <source url="http://community.axoloti.com/t/missing-math-h/7879.rss">Missing math.h?</source>
+        </item>
+        <item>
+          <title>Installöing Axoloti software on 64-bit linux system</title>
+          <dc:creator><![CDATA[@jaskah]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/jaskah">@jaskah</a> wrote:</p>
+            <blockquote>
+              <p>hello</p>
+
+<p>i want to install axoloti on my 64 linux (debian) system (amd64).</p>
+
+<p>i'm a bit confused about the dependencies which need to be installed, as these seem to be specified for a 32-bit system:<br>lib32z1 lib32ncurses5 lib32bz2-1.0</p>
+
+<p>for example: lib32z1 is for a 32-bit system, but is also available as lib64z1 for a 64-bit system.<br>or lib32ncurses5 which is also available as lib64ncurses5 but only for i386 architecture and not for amd64.<br>and finally lib32bz2-1.0 seems not be available anymore, though lib64bz2-1.0 is, though so far i've not been able to find it.</p>
+
+<p>in short, has anyone managed to get the axoloti software running on a 64-bit linux system?</p>
+
+<p>many thanks for any help.</p>
+            </blockquote>
+            <p>Posts: 5</p>
+            <p>Participants: 4</p>
+            <p><a href="http://community.axoloti.com/t/installoing-axoloti-software-on-64-bit-linux-system/7765">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/installoing-axoloti-software-on-64-bit-linux-system/7765</link>
+          <pubDate>Sat, 13 Aug 2022 17:45:52 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7765</guid>
+          <source url="http://community.axoloti.com/t/installoing-axoloti-software-on-64-bit-linux-system/7765.rss">Installöing Axoloti software on 64-bit linux system</source>
+        </item>
+        <item>
+          <title>No Compile (OSX 11.6) [Fixed]</title>
+          <dc:creator><![CDATA[@FloSan]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/flosan">@FloSan</a> wrote:</p>
+            <blockquote>
+              <p>Hi Axo's</p>
+
+<p>I want to compile my patch but my computer won't execute the command "make" in the code.<br>Can Someone help me ?<br>THX </p>
+
+<p>Start compiling patch<br>Compiling patch... with /Applications/Axoloti.app/Contents/Java/firmware<br>./compile_patch_osx.sh: line 5:  4409 Killed: 9               make -f Makefile.patch<br>shell task failed, exit value: 137<br>Compiling patch failed ( /Users/.../Documents/axoloti/Flo/Kobol.axp )</p>
+            </blockquote>
+            <p>Posts: 5</p>
+            <p>Participants: 3</p>
+            <p><a href="http://community.axoloti.com/t/no-compile-osx-11-6-fixed/7595">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/no-compile-osx-11-6-fixed/7595</link>
+          <pubDate>Sun, 02 Jan 2022 11:47:18 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7595</guid>
+          <source url="http://community.axoloti.com/t/no-compile-osx-11-6-fixed/7595.rss">No Compile (OSX 11.6) [Fixed]</source>
+        </item>
+        <item>
+          <title>Patcher on linux - Debian 11 not supported anymore?</title>
+          <dc:creator><![CDATA[@yannk]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/yannk">@yannk</a> wrote:</p>
+            <blockquote>
+              <p>today after some weeks pause the patcher with verison 1 didn't compile anything anymore. i tried many many things until i found out the reason was the linux os. it has overtaken the patcher. it did run but now not anymore. it does though on old linux 10. maybe update the software?</p>
+            </blockquote>
+            <p>Posts: 18</p>
+            <p>Participants: 4</p>
+            <p><a href="http://community.axoloti.com/t/patcher-on-linux-debian-11-not-supported-anymore/7576">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/patcher-on-linux-debian-11-not-supported-anymore/7576</link>
+          <pubDate>Thu, 09 Dec 2021 00:08:58 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7576</guid>
+          <source url="http://community.axoloti.com/t/patcher-on-linux-debian-11-not-supported-anymore/7576.rss">Patcher on linux - Debian 11 not supported anymore?</source>
+        </item>
+        <item>
+          <title>Help with comiling error on mac</title>
+          <dc:creator><![CDATA[@Moutcast Moutcast]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/moutcast">@Moutcast</a> wrote:</p>
+            <blockquote>
+              <p>hi i am normaly doing every thing on windows. can anyone help to set this up on mac.<br>i must have done something wrong. it does not compile the patch. this is the error message with a empty patch:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/c0048b9846113973c849c17d6c61bba196c9b8fc" href="//community.axoloti.com/uploads/default/original/2X/c/c0048b9846113973c849c17d6c61bba196c9b8fc.jpg" class="lightbox" title="IMG_20211203_194638.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/c/c0048b9846113973c849c17d6c61bba196c9b8fc_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">IMG_20211203_194638.jpg</span><span class="informations">2828x2121 2.27 MB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>thanks a lot</p>
+            </blockquote>
+            <p>Posts: 3</p>
+            <p>Participants: 2</p>
+            <p><a href="http://community.axoloti.com/t/help-with-comiling-error-on-mac/7573">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/help-with-comiling-error-on-mac/7573</link>
+          <pubDate>Sun, 05 Dec 2021 13:44:10 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7573</guid>
+          <source url="http://community.axoloti.com/t/help-with-comiling-error-on-mac/7573.rss">Help with comiling error on mac</source>
+        </item>
+        <item>
+          <title>Embedding Faust DSPs on the Axoloti</title>
+          <dc:creator><![CDATA[@ywen Ywen]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/ywen">@ywen</a> wrote:</p>
+            <blockquote>
+              <p>Hello <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> I saw in an old post that there was a will to support Faust inside the Axoloti ecosystem. <a href="//community.axoloti.com/t/converting-a-fuzz-model-from-spice/2164/4">http://community.axoloti.com/t/converting-a-fuzz-model-from-spice/2164/4</a></p>
+
+<p>Has there been some progress on that? Is there a convenient toolkit to build arbitrary faust DSPs into Axoloti objects, which would get their UI from the Faust code?</p>
+            </blockquote>
+            <p>Posts: 1</p>
+            <p>Participants: 1</p>
+            <p><a href="http://community.axoloti.com/t/embedding-faust-dsps-on-the-axoloti/7545">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/embedding-faust-dsps-on-the-axoloti/7545</link>
+          <pubDate>Fri, 19 Nov 2021 21:58:16 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7545</guid>
+          <source url="http://community.axoloti.com/t/embedding-faust-dsps-on-the-axoloti/7545.rss">Embedding Faust DSPs on the Axoloti</source>
+        </item>
+        <item>
+          <title>Anyone running Axoloti on Macbook M1?</title>
+          <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+            <blockquote>
+              <p>Hey <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>Just got a new Macbook Pro M1.</p>
+
+<p>Wondering if anyone have tried it yet? </p>
+
+<p>is everything running okay via Rosetta2?</p>
+
+<p>Thanks in advance!</p>
+            </blockquote>
+            <p>Posts: 10</p>
+            <p>Participants: 6</p>
+            <p><a href="http://community.axoloti.com/t/anyone-running-axoloti-on-macbook-m1/7539">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/anyone-running-axoloti-on-macbook-m1/7539</link>
+          <pubDate>Tue, 16 Nov 2021 17:17:32 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7539</guid>
+          <source url="http://community.axoloti.com/t/anyone-running-axoloti-on-macbook-m1/7539.rss">Anyone running Axoloti on Macbook M1?</source>
+        </item>
+        <item>
+          <title>Ifft-calculation changed?</title>
+          <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+            <blockquote>
+              <p>I'm using the inversed fft function (using the code from the spectral fft module, but setting the 0 to 1).<br>Even though it worked before, now it suddenly seems to fully rectify the sine/cosine amplitudes within the calculation, so no inversed sines are possible. So, I'm trying to create a saw-wave using:</p>
+
+<p>int32_t gain=-(1&lt;&lt;31)-1;<br>for(i=1;i&lt;LENGTH;i++)<br>{<br>	gain= - gain;<br>	int k=i&lt;&lt;1;<br>	fftbuf[k]=gain/i;<br>	fftbuf[k+1]=0;<br>}</p>
+
+<p>this shóuld create a saw-wave, but it creates the waveform with only positive amplitudes for the partials.<br>Even if I remove the "gain= - gain;" part, it just shows the same waveform again, so there's no difference between positive and negative values.<br>When reading the fftbuf-table out with displays, it shows me it did create both positive and negative amplitudes for the fft-table, but somehow this isn't recognised within the ifft-calculation, creating a waveform with only positive amplitudes for all partials, while I'm 100% sure the calculation was right before...</p>
+            </blockquote>
+            <p>Posts: 2</p>
+            <p>Participants: 1</p>
+            <p><a href="http://community.axoloti.com/t/ifft-calculation-changed/7418">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/ifft-calculation-changed/7418</link>
+          <pubDate>Wed, 28 Jul 2021 10:20:06 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7418</guid>
+          <source url="http://community.axoloti.com/t/ifft-calculation-changed/7418.rss">Ifft-calculation changed?</source>
+        </item>
+        <item>
+          <title>How to delete a sample that is recorded in to a table?</title>
+          <dc:creator><![CDATA[@kryshe Christian Grothe]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/kryshe">@kryshe</a> wrote:</p>
+            <blockquote>
+              <p>Hey! Is there a way how I can delete a sample that is recorded in to a table? I am using the table/record, table/play and the table/alloc 16b sdram objects.</p>
+            </blockquote>
+            <p>Posts: 5</p>
+            <p>Participants: 3</p>
+            <p><a href="http://community.axoloti.com/t/how-to-delete-a-sample-that-is-recorded-in-to-a-table/7358">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/how-to-delete-a-sample-that-is-recorded-in-to-a-table/7358</link>
+          <pubDate>Tue, 29 Jun 2021 14:05:52 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7358</guid>
+          <source url="http://community.axoloti.com/t/how-to-delete-a-sample-that-is-recorded-in-to-a-table/7358.rss">How to delete a sample that is recorded in to a table?</source>
+        </item>
+        <item>
+          <title>Faster reading of adcvalues</title>
+          <dc:creator><![CDATA[@simonmogli]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/simonmogli">@simonmogli</a> wrote:</p>
+            <blockquote>
+              <p>Hello community,</p>
+
+<p>I have an issue programming an array of sensors using axoloti. I have 15x15 pressure-sensitive sensors, which I would like to use. They are connected using two HC4067-multiplexers (One for the 15 rows, one for the 15 columns). They are connected to the 8 GPIOA-pins. GPIOC4 is used to read out the sensors.</p>
+
+<p>Below, see a snippet of my code, I am using a script2-object here. The problem is, it is far too slow to use as an instrument. There is a quite significant delay between pressing down on the pressure sensitive mat and the sound played by axoloti. As you can also see, I had to use a <em>chThdSleep(1);</em> in my code. Without it, the readings from the sensors are simply wrong (it gives me 15x15 exactly same values for example)</p>
+
+<p>Is there a way to make this code any faster? A way to "force" the correct value into the adcvalues-Array without the sleep-function? Or a way to actively read the value? Where is the adcvalues even written? </p>
+
+<blockquote><pre><code>void loop()
+{
+  for(int j = 0; j &lt; 15; j++)
+  { 
+    for(int i = 0; i &lt; 15; i++)
+    {
+      val = readMux(j+(i&lt;&lt;4));
+      //Do stuff with the data here and store it into an array
+    }
+  }
+  //Write the processed data to the outputs here
+}
+int readMux(int portmask){
+  palWritePort(GPIOA,portmask);
+  chThdSleep(1);
+  int val = adcvalues[14];
+  return val;
+}</code></pre></blockquote>
+            </blockquote>
+            <p>Posts: 10</p>
+            <p>Participants: 4</p>
+            <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323</link>
+          <pubDate>Mon, 31 May 2021 10:16:46 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7323</guid>
+          <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+        </item>
+        <item>
+          <title>Mac OS Compatibility</title>
+          <dc:creator><![CDATA[@bacha]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/bacha">@bacha</a> wrote:</p>
+            <blockquote>
+              <p>Hey folks, haven't been here in ages so I'm sorry if this is a known thing, however, I tried looking it up to no avail.</p>
+
+<p>I'm having trouble recognizing any of my 2 boards (v1.0 and 1.1) on Big Sur, Axoloti v1.0.12. I'm getting a "No available USB device found with matching PID/VID" error. So I'm wondering if Axoloti is even compatible with Mac past Mojave. Few threads regarding MacOS compatibility I found are from before 2019 and search yields nothing about Big Sur in particular.</p>
+
+<p>Would it be an option for me to try running Axo in a VM? If yes, what MacOS/Linux version would be the best for my case? (FWIW I'm on a 2018 15" MBP.) </p>
+
+<p>Thanks a lot in advance!</p>
+            </blockquote>
+            <p>Posts: 2</p>
+            <p>Participants: 1</p>
+            <p><a href="http://community.axoloti.com/t/mac-os-compatibility/7242">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/mac-os-compatibility/7242</link>
+          <pubDate>Mon, 12 Apr 2021 18:20:48 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7242</guid>
+          <source url="http://community.axoloti.com/t/mac-os-compatibility/7242.rss">Mac OS Compatibility</source>
+        </item>
+        <item>
+          <title>Convert axoloti sketch to arduino sketch?</title>
+          <dc:creator><![CDATA[@gutterne1983 -]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/gutterne1983">@gutterne1983</a> wrote:</p>
+            <blockquote>
+              <p>Would anyone here be able to "translate" a very simple axoloti midi sketch into an arduino sketch? The goal is to translate my axoloti sketch so I can use it in a Retrokits RK002 as a midi processor on my digitakt.</p>
+
+<p>Would anyone be able to help?</p>
+            </blockquote>
+            <p>Posts: 3</p>
+            <p>Participants: 3</p>
+            <p><a href="http://community.axoloti.com/t/convert-axoloti-sketch-to-arduino-sketch/7202">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/convert-axoloti-sketch-to-arduino-sketch/7202</link>
+          <pubDate>Tue, 09 Mar 2021 09:05:00 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7202</guid>
+          <source url="http://community.axoloti.com/t/convert-axoloti-sketch-to-arduino-sketch/7202.rss">Convert axoloti sketch to arduino sketch?</source>
+        </item>
+        <item>
+          <title>No axoloti app on linux</title>
+          <dc:creator><![CDATA[@andrewdovn Andrew Dovn]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/andrewdovn">@andrewdovn</a> wrote:</p>
+            <blockquote>
+              <p>When running the following installation command to install debian package, using dpkg, e.g. sudo dpkg -i axoloti_linux_1.012.deb I get the error cannot access file or archive. Is it on another repository ? Or no longer supported ? Thanks</p>
+            </blockquote>
+            <p>Posts: 5</p>
+            <p>Participants: 2</p>
+            <p><a href="http://community.axoloti.com/t/no-axoloti-app-on-linux/7113">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/no-axoloti-app-on-linux/7113</link>
+          <pubDate>Tue, 02 Feb 2021 12:02:38 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7113</guid>
+          <source url="http://community.axoloti.com/t/no-axoloti-app-on-linux/7113.rss">No axoloti app on linux</source>
+        </item>
+        <item>
+          <title>Object crashing the axo</title>
+          <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+            <blockquote>
+              <p>Hi,</p>
+
+<p>I'm making a custom object to send text to <strong>tiar/HW/OLED128x64nice</strong><br>I took look at the <strong>tiar/HW/strbar</strong> object to know what output my object should give to have the same behaviour, but something weird happens. When I send it to line 2 of the display, it is more or less correctly displayed. But whenever I send the same output to either line 1,3 or 4 the axo crashes.</p>
+
+<p>The object that works has a float connector and a string attribute and then creates a string with some bits set so the tiar object knows what to do with it. I tried recreating this, but must be making a mistake somewhere.</p>
+
+<p>original object code:<br>"Local Data"</p>
+
+<blockquote><p><code>char c[2 + strlen("attr_prefix")];</code></p></blockquote>
+
+<p>"init code"</p>
+
+<blockquote><p><code>strcpy(&amp;c[2], "attr_prefix");<br>c[0] = 1;                         //string bar mode</code></p></blockquote>
+
+<p>"k-rate code"</p>
+
+<blockquote><pre><code>int32_t v = __SSAT(inlet_in,28)&gt;&gt;21;
+if(v &gt;= 0)
+  c[1] = (uint8_t)(v + 1); // must not be zero !
+else 
+  c[1] = (uint8_t)(256 + v); 
+outlet_out = c;</code></pre></blockquote>
+
+<p>my object code:</p>
+
+<pre><code>    //append int tot str
+   char* addItoS(int i, char* s){
+	int32_t v = __SSAT(i,28)&gt;&gt;21;
+    	char c[2]; /// this shows "amamp" but I want it to display "amp" 
+    //	char c[2 + strlen(s)]; /// for some reason this shows "UUUUU" instead of "amamp"
+    	c[0] = 1; /// this is needed so the tiar object shows the value v as a bar in the display
+    	if(v &gt;= 0)
+      		c[1] = (uint8_t)(v + 1); // must not be zero !
+    	else 
+      		c[1] = (uint8_t)(256 + v); 
+    	strcat(&amp;c[2],s);
+    	return c;
+    }</code></pre>
+
+<p>I call this from K-rate code and a potentiometer is assigned to changing the value, it changes the bar correspondingly in size.</p>
+
+<blockquote><p><code>outlet_S1L2 = addItoS(rev_dec_hold,"amp");</code></p></blockquote>
+
+<p>this is what happens:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/f744132fd084e864c2d80aa06a61667bee1063fa" href="//community.axoloti.com/uploads/default/original/2X/f/f744132fd084e864c2d80aa06a61667bee1063fa.jpg" class="lightbox" title="displayproblem.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/f744132fd084e864c2d80aa06a61667bee1063fa_1_690x500.jpg" width="690" height="500"><div class="meta">
+<span class="filename">displayproblem.jpg</span><span class="informations">701x1567 432 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Whenever I use a different screen line the display line becomes garbage and the axo crashes...</p>
+            </blockquote>
+            <p>Posts: 9</p>
+            <p>Participants: 3</p>
+            <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/object-crashing-the-axo/7112</link>
+          <pubDate>Tue, 02 Feb 2021 11:13:51 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7112</guid>
+          <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+        </item>
+        <item>
+          <title>Unable to make patch on windows 10</title>
+          <dc:creator><![CDATA[@andrewdovn Andrew Dovn]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/andrewdovn">@andrewdovn</a> wrote:</p>
+            <blockquote>
+              <p>Seen this posted a few times, but have not been able to resolve. Installation looks fine, there is an Axoloti app and runtime. The patcher connects to the core , but I cannot build any patch due to this error: <br>'make' is not recognized as an internal or external command,<br>operable program or batch file.<br>shell task failed, exit value: 1<br>I've installed the jdk for java 8, but this does not make any difference. I've downloaded the runtime a couple of times, but the error's the same. Are there any other causes for this error ? Path issues ?!<br>WIndows Defender ?!  Thanks.</p>
+            </blockquote>
+            <p>Posts: 10</p>
+            <p>Participants: 4</p>
+            <p><a href="http://community.axoloti.com/t/unable-to-make-patch-on-windows-10/7104">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/unable-to-make-patch-on-windows-10/7104</link>
+          <pubDate>Sat, 30 Jan 2021 23:54:07 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7104</guid>
+          <source url="http://community.axoloti.com/t/unable-to-make-patch-on-windows-10/7104.rss">Unable to make patch on windows 10</source>
+        </item>
+        <item>
+          <title>Error &quot;&#39;make&#39; is not recognized as an internal or external command,&quot;</title>
+          <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+            <blockquote>
+              <p>Hey <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>One my friends borrowed an Axoloti which he wants to run on Windows. I suggested that I could post it here, as he does not have a profile atm. He says he followed technobears install instructions, but he get this error:</p>
+
+<p>Generate code complete<br>Start compiling patch<br>'make' is not recognized as an internal or external command,<br>operable program or batch file.<br>shell task failed, exit value: 1<br>Compiling patch failed ( D:\axoloti patches\simple voice.axp )</p>
+
+<p>Seems like it has to do with make?</p>
+
+<p>What does he has to do to make this work?</p>
+
+<p>Thanks on behalf of my friend Ole <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+            </blockquote>
+            <p>Posts: 3</p>
+            <p>Participants: 2</p>
+            <p><a href="http://community.axoloti.com/t/error-make-is-not-recognized-as-an-internal-or-external-command/7077">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/error-make-is-not-recognized-as-an-internal-or-external-command/7077</link>
+          <pubDate>Thu, 21 Jan 2021 16:20:40 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7077</guid>
+          <source url="http://community.axoloti.com/t/error-make-is-not-recognized-as-an-internal-or-external-command/7077.rss">Error &quot;&#39;make&#39; is not recognized as an internal or external command,&quot;</source>
+        </item>
+        <item>
+          <title>Correction to a773/quantizer.axh</title>
+          <dc:creator><![CDATA[@DiegoLiedo]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/diegoliedo">@DiegoLiedo</a> wrote:</p>
+            <blockquote>
+              <p>I'm running Axoloti patcher 1.0.12-2 under Fedora.<br>The object a773/quantizer.axh skipped the note "b" when mapping a potentiometer value. I made a correction to the object on line 5, changing the 12 for an 11 corrects the issue of the missing b, and all notes are accesible now. <br>for(int i=0; i&lt;11; i++){<br>Hope it Helps.<br>D.</p>
+            </blockquote>
+            <p>Posts: 1</p>
+            <p>Participants: 1</p>
+            <p><a href="http://community.axoloti.com/t/correction-to-a773-quantizer-axh/7043">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/correction-to-a773-quantizer-axh/7043</link>
+          <pubDate>Sun, 03 Jan 2021 17:05:47 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7043</guid>
+          <source url="http://community.axoloti.com/t/correction-to-a773-quantizer-axh/7043.rss">Correction to a773/quantizer.axh</source>
+        </item>
+        <item>
+          <title>Axoloti docker image</title>
+          <dc:creator><![CDATA[@oozora Ōzora]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/oozora">@oozora</a> wrote:</p>
+            <blockquote>
+              <p>Hi all,</p>
+
+<p>I used to run axoloti patcher in linux, but since the last update of my debian I had problems to get the Patcher working again.</p>
+
+<p>To solve the problem, my first approach has been to setup a docker container running the patcher in Ubuntu 14.04.</p>
+
+<p>Now that the container is working, I am thinking on making this container image available for the community to make it very simple to install.<br>I am not sure that this approach is worth since the image is ~450MB but it would work on any system supporting docker containers.</p>
+
+<p>So I would like to ask you your opinion about this approach and if you are interested on it.</p>
+
+<p>I have also register axoloti in the docker hub, in case this approach would be useful.</p>
+
+<p>Let me know your thoughts.<br>Cheers!</p>
+            </blockquote>
+            <p>Posts: 3</p>
+            <p>Participants: 2</p>
+            <p><a href="http://community.axoloti.com/t/axoloti-docker-image/7021">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/axoloti-docker-image/7021</link>
+          <pubDate>Sun, 20 Dec 2020 19:42:31 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-7021</guid>
+          <source url="http://community.axoloti.com/t/axoloti-docker-image/7021.rss">Axoloti docker image</source>
+        </item>
+        <item>
+          <title>Communication from axoloti to computer</title>
+          <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+            <blockquote>
+              <p>As we can use displays in patches that show up on the computer, this data is shared over usb. But how? Is it in any way possible to share this data with other programs, eg. if it uses (pretty please) OSC, with OSC/PILOT?</p>
+
+<p>I've just started using OSC/PILOT to incorporate my touchscreen with the axoloti as it's also able to send midi, but for return values it can only use OSC. So if it would be in any way possible to get this display data (perhaps I could then find a way to get it send using OSC inside my computer), it would be great!</p>
+            </blockquote>
+            <p>Posts: 6</p>
+            <p>Participants: 4</p>
+            <p><a href="http://community.axoloti.com/t/communication-from-axoloti-to-computer/6937">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/communication-from-axoloti-to-computer/6937</link>
+          <pubDate>Thu, 12 Nov 2020 12:40:10 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-6937</guid>
+          <source url="http://community.axoloti.com/t/communication-from-axoloti-to-computer/6937.rss">Communication from axoloti to computer</source>
+        </item>
+        <item>
+          <title>Problems with the library</title>
+          <dc:creator><![CDATA[@vita vitaliano]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/vita">@vita</a> wrote:</p>
+            <blockquote>
+              <p>I just did a fresh install on my new laptop and the library is only partially there - e.g. no community patches at all.<br>when I try to sync sometimes I get this message:<br>Modifications detected : factory (1.0.12,anon)<br>unauthorised changes, resetting : factory (1.0.12,anon) </p>
+
+<p>anyone having the same issue?<br>cheers<br>v</p>
+            </blockquote>
+            <p>Posts: 8</p>
+            <p>Participants: 3</p>
+            <p><a href="http://community.axoloti.com/t/problems-with-the-library/6773">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/problems-with-the-library/6773</link>
+          <pubDate>Tue, 04 Aug 2020 16:11:19 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-6773</guid>
+          <source url="http://community.axoloti.com/t/problems-with-the-library/6773.rss">Problems with the library</source>
+        </item>
+        <item>
+          <title>Get source, before compiled, to use in another MCU</title>
+          <dc:creator><![CDATA[@nicokaniak Nicolas]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/nicokaniak">@nicokaniak</a> wrote:</p>
+            <blockquote>
+              <p>Hi, im a bit of a noob here, but I was wondering if there is a way to get the source code ( all the C++ code generated)  before it gets compiled and use it to run patches on another MCU (let's say one with more power)?<br>What I mean is, it would be great to use Axoloti patcher as a great prototype code generator to later use in a different board.<br>Possible?</p>
+            </blockquote>
+            <p>Posts: 12</p>
+            <p>Participants: 5</p>
+            <p><a href="http://community.axoloti.com/t/get-source-before-compiled-to-use-in-another-mcu/6686">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/get-source-before-compiled-to-use-in-another-mcu/6686</link>
+          <pubDate>Sun, 14 Jun 2020 13:27:47 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-6686</guid>
+          <source url="http://community.axoloti.com/t/get-source-before-compiled-to-use-in-another-mcu/6686.rss">Get source, before compiled, to use in another MCU</source>
+        </item>
+        <item>
+          <title>Storing int or float value</title>
+          <dc:creator><![CDATA[@ma09]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/ma09">@ma09</a> wrote:</p>
+            <blockquote>
+              <p>Hi - new to Axoloti - worked through the tutorials -  can´t figure out how to temporary store single values. <br>Easiest for me is to explain in max/msp:  I would use the <em>int</em> or <em>float</em> object. First send the number to the right input which initializes the value - only a bang in the left input sends the number out (at choosen time).</p>
+
+<p>This seems so basic, I´m sorry if I´m overlooking the obvious, but how do I approach this with axolotl - what object(s) do I use?</p>
+            </blockquote>
+            <p>Posts: 6</p>
+            <p>Participants: 3</p>
+            <p><a href="http://community.axoloti.com/t/storing-int-or-float-value/6624">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/storing-int-or-float-value/6624</link>
+          <pubDate>Thu, 14 May 2020 16:56:28 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-6624</guid>
+          <source url="http://community.axoloti.com/t/storing-int-or-float-value/6624.rss">Storing int or float value</source>
+        </item>
+        <item>
+          <title>Help neede to get started</title>
+          <dc:creator><![CDATA[@HolgerM]]></dc:creator>
+          <category>Software</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/holgerm">@HolgerM</a> wrote:</p>
+            <blockquote>
+              <p>Hello, I'm new here in the forum. I recently started with the axoloti software and want to hear my first examples via headphone but get no tone from it. I click onto the live box and get a compile error after regarding "make not found".<br>What's wrong?</p>
+            </blockquote>
+            <p>Posts: 3</p>
+            <p>Participants: 2</p>
+            <p><a href="http://community.axoloti.com/t/help-neede-to-get-started/6580">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/help-neede-to-get-started/6580</link>
+          <pubDate>Wed, 22 Apr 2020 13:43:48 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-6580</guid>
+          <source url="http://community.axoloti.com/t/help-neede-to-get-started/6580.rss">Help neede to get started</source>
+        </item>
+  </channel>
+</rss>

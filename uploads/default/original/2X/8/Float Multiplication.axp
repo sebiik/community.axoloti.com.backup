@@ -1,0 +1,81 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="14" y="84">
+      <params>
+         <frac32.u.map name="value" value="3.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_2" x="98" y="84">
+      <params>
+         <frac32.u.map name="value" value="3.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="2c56a601-d74b-4300-a0e9-17c117635ee3" name="Multiplication" x="182" y="84">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="2c56a601-d74b-4300-a0e9-17c117635ee3">
+         <sDescription>Does k-rate division using a floats. Very precise.</sDescription>
+         <author>Jaffasplaffa</author>
+         <license>BSD</license>
+         <helpPatch>reciprocal.axh</helpPatch>
+         <inlets>
+            <frac32 name="a"/>
+            <frac32 name="b"/>
+         </inlets>
+         <outlets>
+            <frac32 name="o"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[// Build a simple function, 
+int32_t Division(int32_t a , int32_t b){
+
+// Convert int32_t to float
+float inputa = arm::q_to_float((   (a >> 5)) , 21);
+float inputb = arm::q_to_float((   (b >> 5)) , 21);
+
+// Do the math
+// float math = inputa / inputb;
+float math = inputa * inputb;
+
+// Convert from float to int32_t
+int32_t FloatToInt32 = ((int32_t)(math * (1<<21)));
+
+
+return FloatToInt32; // Return is the output of the function
+}]]></code.declaration>
+         <code.krate><![CDATA[outlet_o = Division( inlet_a ,inlet_b );]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_3" x="266" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="Multiplication" inlet="a"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="Multiplication" inlet="b"/>
+      </net>
+      <net>
+         <source obj="Multiplication" outlet="o"/>
+         <dest obj="dial_3" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>15</x>
+      <y>46</y>
+      <width>400</width>
+      <height>400</height>
+   </windowPos>
+</patch-1.0>

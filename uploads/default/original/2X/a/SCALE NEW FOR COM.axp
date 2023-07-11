@@ -1,0 +1,190 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="756" y="70" text="harmony/note scale                "/>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="SCALE" x="56" y="84">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="32"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="LOAD/SAVE__" x="252" y="84">
+      <params>
+         <int32 name="value" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="SAVE__" x="336" y="84">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="jaffa/table/saveload" uuid="9c1d0871-3205-46cf-bd2e-34450fe8ab27" name="saveload_1" x="434" y="84">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="SCALE"/>
+         <table attributeName="prefix" table="/Tab/Seq3/SCALE"/>
+         <table attributeName="suffix" table=".seq"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="ddda2e5e-88d0-4744-983f-cdd4125899f8" name="PRESET" x="672" y="84">
+      <params>
+         <int32 name="value" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="ddda2e5e-88d0-4744-983f-cdd4125899f8">
+         <sDescription>positive integer control</sDescription>
+         <author>Johannes Taelman Edited by Jaffasplaffa</author>
+         <license>BSD</license>
+         <helpPatch>ctrl.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <int32.positive name="out6" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="value" noLabel="true">
+               <MinValue i="1"/>
+               <MaxValue i="32"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out6= param_value;
+]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="daa85583-59cb-47f3-bbe6-bb0719355afc" name="note_1____tmp" x="756" y="84">
+      <params>
+         <bin12 name="b12" value="4097"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="SCALE"/>
+      </attribs>
+      <object id="patch/object" uuid="daa85583-59cb-47f3-bbe6-bb0719355afc">
+         <sDescription>note to a scale</sDescription>
+         <author>Mark Harris</author>
+         <license>BSD</license>
+         <helpPatch>note scale.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="note" description="note number (-64..63)"/>
+            <int32 name="tonic" description="tonic note number (0-11)"/>
+            <int32 name="offset" description="note input offset (0-128)"/>
+            <bool32 name="latch" description="latch to record scale notes"/>
+            <int32.positive name="preset"/>
+         </inlets>
+         <outlets>
+            <frac32.bipolar name="note" description="note number (-64..63)"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin12 name="b12" noLabel="true"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t _scaleVal;
+    int8_t  _scale[12];
+    int8_t  _nscale;
+    int32_t  _note;
+    int32_t  _tonic;
+    int32_t  _offset;
+    int32_t  _out;
+    int32_t  _latch;
+
+
+
+int prev;]]></code.declaration>
+         <code.init><![CDATA[    _note = 0;
+    _scaleVal = 0;
+    _nscale = 0;
+    _tonic = 0;
+    _offset = 0;
+    for(int i=0;i<12;i++) {
+        _scale[i] = 0;
+    }]]></code.init>
+         <code.krate><![CDATA[int32_t PRESET = (inlet_preset-1)*1;
+
+
+if(!(PRESET==prev)){
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_b12],attr_table.array[0+PRESET],0xFFFD);
+
+}
+prev=PRESET;
+
+attr_table.array[0+PRESET]=param_b12;
+
+ 
+    
+    _latch = inlet_latch;
+    if (_scaleVal != param_b12) {
+        // calculate new scale parameters as they changed
+        // optimize for evaluation
+        int x=0;
+        for(int i=0;i<12;i++) {
+            if(param_b12 & (1 << i)) {
+                _scale[x++] = i;
+            }
+        }
+        _nscale = x;
+    }
+    if (_note != inlet_note || _offset != inlet_offset || _scaleVal != param_b12
+        || _tonic != inlet_tonic) {
+        _note = inlet_note;
+        _tonic = inlet_tonic;
+        _offset = inlet_offset;
+        _scaleVal = param_b12;
+        int mn = (inlet_note  >> 21) + 64 - _offset;
+        int8_t oct = mn / _nscale;
+        int8_t n = mn  % _nscale;
+        _out = ((oct * 12 + _scale[n] + _tonic )  - 64 ) << 21;
+    }
+    outlet_note = _out;]]></code.krate>
+         <code.midihandler><![CDATA[if (_latch && (status == MIDI_NOTE_ON + attr_midichannel ) && (data2)) {
+  int16_t note = data1 % 12;
+  int16_t mask = 1 << note;
+  int16_t nval = _scaleVal ^ mask;
+  PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_b12],nval,0xFFFD);
+}
+]]></code.midihandler>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="252" y="154" text="1. HERE YOU LOAD &amp; SAVE"/>
+   <comment type="patch/comment" x="56" y="168" text="2. WHEN THE TABLE IS SET TO"/>
+   <comment type="patch/comment" x="252" y="168" text="A &quot;BANK&quot; OF PRESETS"/>
+   <comment type="patch/comment" x="56" y="182" text="32 YOU CAN SAVE 32 PRESETS"/>
+   <comment type="patch/comment" x="56" y="196" text="IF YOU WANT MORE, JUST"/>
+   <comment type="patch/comment" x="56" y="210" text="SET THE TABLE FOR 64"/>
+   <comment type="patch/comment" x="56" y="224" text="AND YOU HAVE 64 PRESETS AND SO ON....."/>
+   <comment type="patch/comment" x="56" y="252" text="SO SIZE IS AMOUNT OF PRESETS"/>
+   <comment type="patch/comment" x="672" y="252" text="^ HERE YOU SELECT PRESET WITHIN THE BANK"/>
+   <comment type="patch/comment" x="56" y="266" text="WITHIN AN BANK!!!"/>
+   <comment type="patch/comment" x="672" y="277" text="THIS IS THE PARMAETER YOU USE TO CHANGE PRESETS"/>
+   <nets>
+      <net>
+         <source obj="LOAD/SAVE__" outlet="out"/>
+         <dest obj="saveload_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="SAVE__" outlet="o"/>
+         <dest obj="saveload_1" inlet="save"/>
+      </net>
+      <net>
+         <source obj="PRESET" outlet="out6"/>
+         <dest obj="note_1____tmp" inlet="preset"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>227</x>
+      <y>109</y>
+      <width>1034</width>
+      <height>637</height>
+   </windowPos>
+</patch-1.0>

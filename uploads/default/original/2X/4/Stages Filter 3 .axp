@@ -1,0 +1,149 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="252" y="14" text="filter/bp svf m"/>
+   <obj type="noise/pink oct" uuid="972351c4c2b2b4e358c64a64d119b5ddfa074f8e" name="pink_1" x="42" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="octaves" selection="1"/>
+      </attribs>
+   </obj>
+   <obj type="math/gain" uuid="62b1c1a6337c7c8f6aec96408a432477b113cfa0" name="gain_1" x="140" y="28">
+      <params>
+         <frac32.u.map name="amp" value="0.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="0c299e37-92da-4bfe-80ab-7eb984414a7a" name="bp_1" x="252" y="28">
+      <params>
+         <frac32.s.map name="pitch1" value="18.0"/>
+         <frac32.u.map name="reso1" value="49.5"/>
+         <frac32.s.map name="pitch2" value="0.0"/>
+         <frac32.u.map name="reso2" value="0.0"/>
+         <frac32.s.map name="pitch3" value="0.0"/>
+         <frac32.s.map name="pitch4" value="0.0"/>
+         <frac32.s.map name="pitch5" value="0.0"/>
+         <frac32.s.map name="pitch6" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="0c299e37-92da-4bfe-80ab-7eb984414a7a">
+         <sDescription>Bandpass filter, state-variable type, modulation inputs</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>filter.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="filter input"/>
+            <frac32 name="pitch" description="pitch"/>
+            <frac32 name="reso" description="resonance"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="1" description="filter output"/>
+            <frac32buffer name="2"/>
+            <frac32buffer name="3"/>
+            <frac32buffer name="4"/>
+            <frac32buffer name="5"/>
+            <frac32buffer name="6"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.pitch name="pitch1"/>
+            <frac32.u.map.filterq name="reso1"/>
+            <frac32.s.map.pitch name="pitch2"/>
+            <frac32.u.map.filterq name="reso2"/>
+            <frac32.s.map.pitch name="pitch3"/>
+            <frac32.s.map.pitch name="pitch4"/>
+            <frac32.s.map.pitch name="pitch5"/>
+            <frac32.s.map.pitch name="pitch6"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int i;
+
+int32_t low[6];
+int32_t band[6];
+
+int32_t freq[6];
+int32_t damp[6];
+
+int32_t IN[6];
+int32_t CutOff[6];
+int32_t alpha[6];
+int32_t high[6];
+int32_t notch[6]; 
+int32_t out[6];]]></code.declaration>
+         <code.init><![CDATA[for(i=0;i<6;i++){
+low[i] = 0;
+band[i] = 0;
+}]]></code.init>
+         <code.krate><![CDATA[CutOff[0] = param_pitch1 ;
+CutOff[1] = param_pitch2 ;
+CutOff[2] = param_pitch3 ;
+CutOff[3] = param_pitch4 ;
+CutOff[4] = param_pitch5 ;
+CutOff[5] = param_pitch6 ;
+
+for(i=0;i< 6 ;i++)
+{
+MTOFEXTENDED(CutOff[i],alpha[i]);
+damp[i] = (0x80<<24) - (__USAT( param_reso1,27)<<4);
+damp[i] = ___SMMUL(damp[i],damp[i]);
+SINE2TINTERP(alpha[i],freq[i]);
+}]]></code.krate>
+         <code.srate><![CDATA[IN[i] = inlet_in;
+notch[i] = inlet_in - (___SMMUL(damp[i],band[i])<<1);
+low[i] = low[i] + (___SMMUL(freq[i],band[i])<<1);
+high[i]  = notch[i] - low[i];
+band[i] = (___SMMUL(freq[i],high[i])<<1) + band[i];// - drive*band*band*band;
+int32_t out[i] = band[i];
+
+outlet_1 = out[0];
+outlet_2 = out[1];
+outlet_3 = out[2];
+outlet_4 = out[3];
+outlet_5 = out[4];
+outlet_6 = out[5];]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="364" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="448" y="28">
+      <params>
+         <frac32.u.map name="volume" value="2.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/kscope 128 b" uuid="e71f3dd9bc5b799ad703079e63fb929dd75def0" name="kscope_1" x="448" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="gain_1" outlet="out"/>
+         <dest obj="bp_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="pink_1" outlet="out"/>
+         <dest obj="gain_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+         <dest obj="kscope_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="bp_1" outlet="2"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>520</x>
+      <y>23</y>
+      <width>744</width>
+      <height>765</height>
+   </windowPos>
+</patch-1.0>

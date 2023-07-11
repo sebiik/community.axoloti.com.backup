@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>[PATCH] custom note layout handler for Launchpad Pro</title>
+    <link>http://community.axoloti.com/t/patch-custom-note-layout-handler-for-launchpad-pro/4893</link>
+    <description>## (using the case of Magic Tone Network layout)
+
+Launchpad Pro with its velocity sensitive pads and polyphonic aftertouch is quite a cool option to use as an input device for playing melodies and/or chromatic percussions. 
+
+LP Pro&#39;s firmware even provides so salled „note mode“ right for that. But I don&#39;t like the implementation, because it tries to mimic piano-style keyboard (which has **linear**) structure using the **rectangular grid** (which is obviously not linear). Piano-style keyboard has some keys between other keys, and this may be implemented well with a hexagonal matrix, which similarly has some cells between other cells (like in AXiS-49 controller), but not in rectangular, which is fretboard-like. So, in case of Launchpad-like devices, fretboard-style layout is better option.
+
+Fortunately, there&#39;s a man named Andreas Samek, who is probably a genius, and invented an excellent note layout system for Launchpad and similar controllers with rectangular matrix. It&#39;s called **Magic Tone Network** and explained here:
+
+[https://www.youtube.com/watch?v=pASFe6W8fU8](https://www.youtube.com/watch?v=pASFe6W8fU8)
+
+This patch implements MTN layout, but the custom object used for it allows to set any custom layout by entering output note values for every pad.
+
+Original MTN solution involves software layer (and even worse, proprietary software not available for Linux natively.) With Axoloti, one could design a solution that behaves as hardware-only. So, I decided to implement this, and to be happy with all my hardware modules and DAW-free setup. 
+
+If you&#39;ve seen the video above, you&#39;ve got the concept how the patch works. But for better understanding, see this table: 
+[https://drive.google.com/file/d/1CObA-XUbgCQ_zSKzLL6TJn4cEdZFnpe6/view?usp=sharing](https://drive.google.com/file/d/1CObA-XUbgCQ_zSKzLL6TJn4cEdZFnpe6/view?usp=sharing)
+
+By default, you&#39;re in the centre of the table (8x8 area with red font). Root notes (C) of every octave are highlighted. 
+
+With LPPro arrow keys, you can shift the playable area around. One pressing of a Left or Right key shifts it 2 columns on the left or right respectively, until the counter reaches its minimum or maximum. Counter values from 1 to 9 are available on the edges of the table for reference. 
+
+Up and Down keys just transpose all notes in the playable area, one octave per pressing, until the counter reaches its minimum or maximum. Vertical counter values are available for reference too. 
+
+The colors of the arrow keys are changing according to the counters, for easier understanding where on the table we are.
+
+The main patch handles playable area shifting, arrow keys and root notes highlighting. The polyphonic subpatch handles note input and visual feedback for it, highlighting not only a pressed pad, but also another appearance of the same note on the playable area. With polyphony set to 12 (for hexadactyls?), the whole thing eats something between 6 and 7% of DSP, which is not so bad, i think. 
+
+There are totally 4 objects with device attribute for MIDI output, 2 in the main patch and 2 in the subpatch. One should pay attention how they are set, since Launchpad Pro can exchange MIDI data either via USB or MIDI DIN (just like Axoloti). Also **the proper target for note output should be set inside the polyphonic subpatch** (since fancy LED blinking is probably not the only thing you want this patch for). This will be improved in the next versions, since 4 is definitely too many and not convenient. 
+
+This version of the patch does not contain any sound generation objects inside, only MIDI input/outpt, because i designed it primarily for use with hardware synths. But you can easily add sound generation stuff to the polyphonic subpatch, if you need.
+
+Finally. Working on this patch, i&#39;ve made a bunch of custom (embedded) objects. The pieces of code written by me may be suboptimal, horribly suboptimal, or even scare you. That&#39;s because at the moment my C knowledge is limited to 4 or 5 lessons for beginners, so i can&#39;t use tables, arrays, bitmasks and other cool stuff. I also can say in my defense that the code works however :stuck_out_tongue_winking_eye: 
+
+And here it is:&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/4/4fcbefc49beb3a57f1250f1b5ff9510742d5f4ca.axo&quot;&gt;launchpadPro_magicToneNetwork_20180821_final_beta.axo&lt;/a&gt; (101.4 KB)</description>
+    
+    <lastBuildDate>Mon, 20 Aug 2018 23:30:39 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/patch-custom-note-layout-handler-for-launchpad-pro/4893.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>[PATCH] custom note layout handler for Launchpad Pro</title>
+        <dc:creator><![CDATA[@chaocrator a.k.a. Vimanastaffel]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/chaocrator">@chaocrator</a> wrote:</p>
+          <blockquote>
+              <h2>(using the case of Magic Tone Network layout)</h2>
+
+<p>Launchpad Pro with its velocity sensitive pads and polyphonic aftertouch is quite a cool option to use as an input device for playing melodies and/or chromatic percussions. </p>
+
+<p>LP Pro's firmware even provides so salled „note mode“ right for that. But I don't like the implementation, because it tries to mimic piano-style keyboard (which has <strong>linear</strong>) structure using the <strong>rectangular grid</strong> (which is obviously not linear). Piano-style keyboard has some keys between other keys, and this may be implemented well with a hexagonal matrix, which similarly has some cells between other cells (like in AXiS-49 controller), but not in rectangular, which is fretboard-like. So, in case of Launchpad-like devices, fretboard-style layout is better option.</p>
+
+<p>Fortunately, there's a man named Andreas Samek, who is probably a genius, and invented an excellent note layout system for Launchpad and similar controllers with rectangular matrix. It's called <strong>Magic Tone Network</strong> and explained here:</p>
+
+<div class="lazyYT" data-youtube-id="pASFe6W8fU8" data-youtube-title="Magic Tone Network Pad Layout Explained On Launchpad #MTN001" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+
+<p>This patch implements MTN layout, but the custom object used for it allows to set any custom layout by entering output note values for every pad.</p>
+
+<p>Original MTN solution involves software layer (and even worse, proprietary software not available for Linux natively.) With Axoloti, one could design a solution that behaves as hardware-only. So, I decided to implement this, and to be happy with all my hardware modules and DAW-free setup. </p>
+
+<p>If you've seen the video above, you've got the concept how the patch works. But for better understanding, see this table: <br><a href="https://drive.google.com/file/d/1CObA-XUbgCQ_zSKzLL6TJn4cEdZFnpe6/view?usp=sharing" class="onebox" target="_blank" rel="nofollow noopener">https://drive.google.com/file/d/1CObA-XUbgCQ_zSKzLL6TJn4cEdZFnpe6/view?usp=sharing</a></p>
+
+<p>By default, you're in the centre of the table (8x8 area with red font). Root notes (C) of every octave are highlighted. </p>
+
+<p>With LPPro arrow keys, you can shift the playable area around. One pressing of a Left or Right key shifts it 2 columns on the left or right respectively, until the counter reaches its minimum or maximum. Counter values from 1 to 9 are available on the edges of the table for reference. </p>
+
+<p>Up and Down keys just transpose all notes in the playable area, one octave per pressing, until the counter reaches its minimum or maximum. Vertical counter values are available for reference too. </p>
+
+<p>The colors of the arrow keys are changing according to the counters, for easier understanding where on the table we are.</p>
+
+<p>The main patch handles playable area shifting, arrow keys and root notes highlighting. The polyphonic subpatch handles note input and visual feedback for it, highlighting not only a pressed pad, but also another appearance of the same note on the playable area. With polyphony set to 12 (for hexadactyls?), the whole thing eats something between 6 and 7% of DSP, which is not so bad, i think. </p>
+
+<p>There are totally 4 objects with device attribute for MIDI output, 2 in the main patch and 2 in the subpatch. One should pay attention how they are set, since Launchpad Pro can exchange MIDI data either via USB or MIDI DIN (just like Axoloti). Also <strong>the proper target for note output should be set inside the polyphonic subpatch</strong> (since fancy LED blinking is probably not the only thing you want this patch for). This will be improved in the next versions, since 4 is definitely too many and not convenient. </p>
+
+<p>This version of the patch does not contain any sound generation objects inside, only MIDI input/outpt, because i designed it primarily for use with hardware synths. But you can easily add sound generation stuff to the polyphonic subpatch, if you need.</p>
+
+<p>Finally. Working on this patch, i've made a bunch of custom (embedded) objects. The pieces of code written by me may be suboptimal, horribly suboptimal, or even scare you. That's because at the moment my C knowledge is limited to 4 or 5 lessons for beginners, so i can't use tables, arrays, bitmasks and other cool stuff. I also can say in my defense that the code works however <img src="//community.axoloti.com/images/emoji/twitter/stuck_out_tongue_winking_eye.png?v=5" title=":stuck_out_tongue_winking_eye:" class="emoji" alt=":stuck_out_tongue_winking_eye:"> </p>
+
+<p>And here it is:<a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/4/4fcbefc49beb3a57f1250f1b5ff9510742d5f4ca.axo">launchpadPro_magicToneNetwork_20180821_final_beta.axo</a> (101.4 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-custom-note-layout-handler-for-launchpad-pro/4893/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-custom-note-layout-handler-for-launchpad-pro/4893/1</link>
+        <pubDate>Mon, 20 Aug 2018 23:30:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4893-1</guid>
+        <source url="http://community.axoloti.com/t/patch-custom-note-layout-handler-for-launchpad-pro/4893.rss">[PATCH] custom note layout handler for Launchpad Pro</source>
+      </item>
+  </channel>
+</rss>

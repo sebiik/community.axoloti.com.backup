@@ -1,0 +1,404 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="182" y="0" text="top buttons - top right is play top left saves sequence to sd card"/>
+   <obj type="rbrt/launchpad/top row" uuid="b6dc9676-87ca-43b1-b3ab-1a230d5c193e" name="top_2" x="182" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1148" y="42" text="this is the table where we are storing all our sequence data"/>
+   <comment type="patch/comment" x="1148" y="56" text="each element of the table is 1 step, and the objects below toggle on/off the data "/>
+   <comment type="patch/comment" x="1148" y="70" text="and others read it for sequence playback and light feedback"/>
+   <comment type="patch/comment" x="1148" y="84" text="it loads data from sdcard if present"/>
+   <comment type="patch/comment" x="392" y="98" text="makes the play button a toggle"/>
+   <obj type="table/alloc 16b sdram load" uuid="e6b85dad3ab43565cda93ea4c43c73b668b1cd43" name="data" x="1162" y="98">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="64"/>
+         <file attributeName="filename" file="/datafile"/>
+      </attribs>
+   </obj>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_1" x="392" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="798" y="112" text="this simply sends the play button toggle "/>
+   <comment type="patch/comment" x="798" y="126" text="back to the launchpad for light feedback"/>
+   <obj type="rbrt/launchpad/top disp" uuid="53640b5e-2345-494e-9be6-6130e20986e2" name="top_1" x="798" y="140">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <spinner attributeName="button" value="7"/>
+         <combo attributeName="on" selection="green S"/>
+         <combo attributeName="off" selection="yellow W"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="210" y="168" text="clock source"/>
+   <comment type="patch/comment" x="336" y="168" text="changes numbers to pulses"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_2" x="98" y="182">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/clock" uuid="7f6f35e92d2c29e950af2b3af5cebb2e9e3b778c" name="clock_2" x="182" y="182">
+      <params>
+         <frac32.u.map name="bpm" value="25.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_1" x="336" y="182">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="490" y="182" text="gate -clock only"/>
+   <comment type="patch/comment" x="476" y="196" text="goes out when play is on"/>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="518" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="630" y="210" text="counts to 16 (16step) "/>
+   <comment type="patch/comment" x="1148" y="211" text="this saves the data table to the sd card"/>
+   <comment type="patch/comment" x="616" y="224" text="and is reset by play button"/>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="1106" y="224">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="/datafile"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="1288" y="224">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="644" y="238">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="896" y="322" text="offset for each drum "/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="896" y="336">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="714" y="378" text="this sends midi to the launchpad"/>
+   <comment type="patch/comment" x="56" y="392" text="this takes the midi from the launchpad buttons"/>
+   <comment type="patch/comment" x="350" y="392" text="this reads the data table and sends back midi "/>
+   <comment type="patch/comment" x="714" y="392" text="for the running step light."/>
+   <comment type="patch/comment" x="56" y="406" text="and stoggles on and off the elements of the data table"/>
+   <comment type="patch/comment" x="350" y="406" text="to the launchpad for step toggle on/off light feedback on the grid"/>
+   <comment type="patch/comment" x="700" y="406" text=" we use a different offset (0-64) to tell it "/>
+   <comment type="patch/comment" x="980" y="406" text="this reads the data table and sends a pulse or a value out"/>
+   <obj type="rbrt/launchpad/matrix toggle" uuid="e4cfb313-6d47-487f-9f28-def89e6d6dc6" name="matrix_1" x="140" y="420">
+      <params>
+         <int32 name="offset" value="0"/>
+         <int32 name="start" value="0"/>
+         <int32 name="length" value="64"/>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="blocksize" selection="1"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/launchpad/matrix disp" uuid="9074be26-db88-4259-9643-756ee5e1e261" name="matrix_2" x="378" y="420">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+         <int32 name="length" value="64"/>
+         <int32 name="start" value="0"/>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="blocksize" selection="1"/>
+         <combo attributeName="coloron" selection="green S"/>
+         <combo attributeName="coloroff" selection="off"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="686" y="420" text="where to display, and what table data to read"/>
+   <comment type="patch/comment" x="980" y="420" text="it reads the table starting from the offset, and then the counter steps through the steps."/>
+   <obj type="rbrt/launchpad/step disp" uuid="b82a72df-ed07-401c-91b0-46590bbed2fb" name="step_5" x="742" y="434">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="color" selection="red S"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/seq/step read" uuid="b1f7ea1e-9c45-44ff-8088-aa839d65d0d2" name="step_1" x="980" y="434">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="1148" y="476" text="this is a factory object that plays back a sample. swap it for whatever you want to sequence"/>
+   <obj type="wave/flashplay" uuid="595422aa-8767-45a8-ae08-bd8ac0247c61" name="flashplay_1" x="1148" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="sample" selection="808bd"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="1274" y="490" text="to send to external stuff and subpatches use midi/out objects"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="882" y="658">
+      <params>
+         <int32 name="value" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="938" y="658" text="************then we repeat for each  voice, each with an offset 16 more than the last***************"/>
+   <obj type="rbrt/launchpad/step disp" uuid="b82a72df-ed07-401c-91b0-46590bbed2fb" name="step_6" x="742" y="700">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="color" selection="red S"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/seq/step read" uuid="b1f7ea1e-9c45-44ff-8088-aa839d65d0d2" name="step_2" x="980" y="700">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="wave/flashplay" uuid="595422aa-8767-45a8-ae08-bd8ac0247c61" name="flashplay_2" x="1148" y="756">
+      <params/>
+      <attribs>
+         <combo attributeName="sample" selection="808snare"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_3" x="882" y="924">
+      <params>
+         <int32 name="value" value="32"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/launchpad/step disp" uuid="b82a72df-ed07-401c-91b0-46590bbed2fb" name="step_7" x="742" y="966">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="color" selection="red S"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/seq/step read" uuid="b1f7ea1e-9c45-44ff-8088-aa839d65d0d2" name="step_3" x="980" y="966">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="wave/flashplay" uuid="595422aa-8767-45a8-ae08-bd8ac0247c61" name="flashplay_3" x="1148" y="966">
+      <params/>
+      <attribs>
+         <combo attributeName="sample" selection="808hatclose"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="1414" y="1092" text="master volume"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="1414" y="1106">
+      <params>
+         <frac32.u.map name="value" value="31.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_4" x="896" y="1190">
+      <params>
+         <int32 name="value" value="48"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1288" y="1218" text="mixer"/>
+   <obj type="rbrt/launchpad/step disp" uuid="b82a72df-ed07-401c-91b0-46590bbed2fb" name="step_8" x="742" y="1232">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="usb host port / LP"/>
+         <combo attributeName="color" selection="red S"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/seq/step read" uuid="b1f7ea1e-9c45-44ff-8088-aa839d65d0d2" name="step_4" x="994" y="1232">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <obj type="wave/flashplay" uuid="595422aa-8767-45a8-ae08-bd8ac0247c61" name="flashplay_4" x="1162" y="1232">
+      <params/>
+      <attribs>
+         <combo attributeName="sample" selection="808hatopen"/>
+      </attribs>
+   </obj>
+   <obj type="mix/mix 4 g" uuid="36f472cd81da2e17bd4b4ee11b53b4c82527220c" name="mix_1" x="1288" y="1232">
+      <params>
+         <frac32.u.map name="gain1" value="32.0"/>
+         <frac32.u.map name="gain2" value="32.0"/>
+         <frac32.u.map name="gain3" value="32.0"/>
+         <frac32.u.map name="gain4" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="1400" y="1232">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1484" y="1232">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="clock_2" outlet="pos4ppq"/>
+         <dest obj="change_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="step_1" inlet="step"/>
+         <dest obj="step_2" inlet="step"/>
+         <dest obj="step_3" inlet="step"/>
+         <dest obj="step_4" inlet="step"/>
+         <dest obj="step_5" inlet="step"/>
+         <dest obj="step_6" inlet="step"/>
+         <dest obj="step_7" inlet="step"/>
+         <dest obj="step_8" inlet="step"/>
+      </net>
+      <net>
+         <source obj="step_1" outlet="trig"/>
+         <dest obj="flashplay_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="flashplay_1" outlet="out"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="step_2" outlet="trig"/>
+         <dest obj="flashplay_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="step_3" outlet="trig"/>
+         <dest obj="flashplay_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="step_4" outlet="trig"/>
+         <dest obj="flashplay_4" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="step_2" inlet="offset"/>
+         <dest obj="step_6" inlet="offset"/>
+         <dest obj="step_6" inlet="start"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="step_1" inlet="offset"/>
+         <dest obj="step_5" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="step_3" inlet="offset"/>
+         <dest obj="step_7" inlet="offset"/>
+         <dest obj="step_7" inlet="start"/>
+      </net>
+      <net>
+         <source obj="i_4" outlet="out"/>
+         <dest obj="step_4" inlet="offset"/>
+         <dest obj="step_8" inlet="offset"/>
+         <dest obj="step_8" inlet="start"/>
+      </net>
+      <net>
+         <source obj="flashplay_2" outlet="out"/>
+         <dest obj="mix_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="flashplay_3" outlet="out"/>
+         <dest obj="mix_1" inlet="in3"/>
+      </net>
+      <net>
+         <source obj="flashplay_4" outlet="out"/>
+         <dest obj="mix_1" inlet="in4"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="top_2" outlet="t7"/>
+         <dest obj="toggle_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="and_1" inlet="i2"/>
+         <dest obj="top_1" inlet="on"/>
+         <dest obj="counter_1" inlet="r"/>
+      </net>
+      <net>
+         <source obj="matrix_2" outlet="coloroff"/>
+         <dest obj="step_5" inlet="coloroff"/>
+         <dest obj="step_6" inlet="coloroff"/>
+         <dest obj="step_7" inlet="coloroff"/>
+         <dest obj="step_8" inlet="coloroff"/>
+      </net>
+      <net>
+         <source obj="matrix_2" outlet="coloron"/>
+         <dest obj="step_5" inlet="coloron"/>
+         <dest obj="step_6" inlet="coloron"/>
+         <dest obj="step_7" inlet="coloron"/>
+         <dest obj="step_8" inlet="coloron"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="clock_2" inlet="run"/>
+      </net>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="top_2" outlet="t0"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

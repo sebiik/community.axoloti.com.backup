@@ -1,0 +1,708 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="61ccc311-11bb-442a-b6f9-8a271539aa1f" name="phasor_1" x="294" y="0">
+      <params>
+         <frac32.s.map name="pitch" value="32.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="61ccc311-11bb-442a-b6f9-8a271539aa1f">
+         <sDescription>FM phasor
+ 0 and 180 degree outputs</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>osc.axh</helpPatch>
+         <inlets>
+            <frac32 name="pitch" description="phase increment"/>
+            <frac32buffer name="freq" description="phase increment"/>
+            <bool32.rising name="reset" description="reset phase"/>
+         </inlets>
+         <outlets>
+            <frac32buffer.positive name="phasor0" description="phasor wave"/>
+            <frac32buffer.positive name="phasor180" description="phasor wave, 180 degrees shifted"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.pitch name="pitch" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t Phase; uint32_t r;]]></code.declaration>
+         <code.init><![CDATA[Phase = 0; r = 1;]]></code.init>
+         <code.krate><![CDATA[   uint32_t freq;
+   MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+]]></code.krate>
+         <code.srate><![CDATA[
+	   {
+      if (inlet_reset && r) {
+         Phase = 0;
+         r = 0;
+      } else { 
+	  if (!inlet_reset) r = 1;
+	  Phase += (freq>>0) + inlet_freq;}
+   outlet_phasor0 = Phase>>5;
+   outlet_phasor180 = (Phase+(1<<31))>>5;
+   }
+]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="Pitch" x="28" y="14">
+      <params>
+         <frac32.s.map name="value" value="-6.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_2" x="504" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Sig 1" x="504" y="42">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="BreakP" x="602" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Breakpoint" x="28" y="112">
+      <params>
+         <frac32.u.map name="value" value="50.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="57f712eb-3045-465f-a164-c856df87d22e" name="DIV RECI_" x="140" y="112">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="57f712eb-3045-465f-a164-c856df87d22e">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="a" description="input"/>
+            <frac32buffer name="b" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[int32_t reciprocalA;
+if (inlet_a) {
+      float inf = inlet_a;
+      reciprocalA = (int)(281474976710656.f/inf);
+    } else
+        reciprocalA = 1<<27;
+
+
+int32_t reciprocalB;
+if (inlet_b) {
+      float inf = inlet_b;
+      reciprocalB = (int)(281474976710656.f/inf);
+    } else
+        reciprocalB = 1<<27;
+
+
+
+outlet_result= ___SMMUL(reciprocalA<<3,reciprocalB<<2);]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="math/-" uuid="832edca3a945aa25ae1875d277bdd12d6709031a" name="-_2" x="504" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/reciprocal" uuid="4be823e668871835d067cbfe42407b06f927f91f" name="reciprocal_3" x="140" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="57f712eb-3045-465f-a164-c856df87d22e" name="DIV RECI" x="336" y="154">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="57f712eb-3045-465f-a164-c856df87d22e">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="a" description="input"/>
+            <frac32buffer name="b" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[int32_t reciprocalA;
+if (inlet_a) {
+      float inf = inlet_a;
+      reciprocalA = (int)(281474976710656.f/inf);
+    } else
+        reciprocalA = 1<<27;
+
+
+int32_t reciprocalB;
+if (inlet_b) {
+      float inf = inlet_b;
+      reciprocalB = (int)(281474976710656.f/inf);
+    } else
+        reciprocalB = 1<<27;
+
+
+
+outlet_result= ___SMMUL(reciprocalA<<3,reciprocalB<<2);]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="math/-" uuid="832edca3a945aa25ae1875d277bdd12d6709031a" name="-_3" x="546" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Rise" x="28" y="210">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="46f546ee-48fa-4aaa-b32f-47dd835d8075" name="X 0.5" x="140" y="210">
+      <params>
+         <bool32.tgl name="on" value="1"/>
+         <frac32.u.map name="am" value="32.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="46f546ee-48fa-4aaa-b32f-47dd835d8075">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="a"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="result"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="on"/>
+            <frac32.u.map name="am"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_result= 0;
+
+// on/off button + amount 
+if(param_on){
+outlet_result= ___SMMUL(inlet_a<<3,param_am<<2);
+}]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="71d1316f-d12b-423f-8777-df9d5b2912c5" name="&lt;" x="378" y="252">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="71d1316f-d12b-423f-8777-df9d5b2912c5">
+         <sDescription>greater than</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in1"/>
+            <frac32buffer name="in2"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out" description="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_out= inlet_in1<inlet_in2 ;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="math/-" uuid="832edca3a945aa25ae1875d277bdd12d6709031a" name="-_4" x="504" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_11" x="28" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="dc7fbdd46e5e6d4b8de62ee63fd6321639b2f167" name="*_4" x="140" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="210" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_5" x="378" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="57f712eb-3045-465f-a164-c856df87d22e" name="DIV RECI s" x="504" y="336">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="57f712eb-3045-465f-a164-c856df87d22e">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="a" description="input"/>
+            <frac32buffer name="b" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[int32_t reciprocalA;
+if (inlet_a) {
+      float inf = inlet_a;
+      reciprocalA = (int)(281474976710656.f/inf);
+    } else
+        reciprocalA = 1<<27;
+
+
+int32_t reciprocalB;
+if (inlet_b) {
+      float inf = inlet_b;
+      reciprocalB = (int)(281474976710656.f/inf);
+    } else
+        reciprocalB = 1<<27;
+
+
+
+outlet_result= ___SMMUL(reciprocalA<<3,reciprocalB<<2);]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Fall" x="28" y="350">
+      <params>
+         <frac32.u.map name="value" value="7.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/reciprocal" uuid="4be823e668871835d067cbfe42407b06f927f91f" name="reciprocal_4" x="504" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="dc7fbdd46e5e6d4b8de62ee63fd6321639b2f167" name="*_1" x="350" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/cos" uuid="a2ba1ca8d10b854e06728c088c43409866624fc1" name="cos_1" x="140" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="71d1316f-d12b-423f-8777-df9d5b2912c5" name="&gt;_1" x="616" y="420">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="71d1316f-d12b-423f-8777-df9d5b2912c5">
+         <sDescription>greater than</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in1"/>
+            <frac32buffer name="in2"/>
+         </inlets>
+         <outlets>
+            <bool32 name="out" description="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_out= inlet_in1>inlet_in2 ;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_10" x="28" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="e2527f30-f543-4c69-a10c-0cb70f3f313b" name="X 0.5  " x="140" y="462">
+      <params>
+         <bool32.tgl name="on" value="1"/>
+         <frac32.u.map name="am" value="32.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e2527f30-f543-4c69-a10c-0cb70f3f313b">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="a"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="result"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="on"/>
+            <frac32.u.map name="am"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_result= 0;
+
+// on/off button + amount 
+if(param_on){
+outlet_result= ___SMMUL(inlet_a<<3,param_am<<2);
+}]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_2" x="350" y="462">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Sine/Tri" x="28" y="490">
+      <params>
+         <frac32.u.map name="value" value="44.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="4661ebfc-b882-4bdb-ba68-62316e68f27b" name="*" x="504" y="490">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="4661ebfc-b882-4bdb-ba68-62316e68f27b">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="a" description="input"/>
+            <frac32buffer name="b" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_result= ___SMMUL(inlet_a<<3,inlet_b<<2);
+]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_3" x="616" y="490">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_8" x="28" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/inv" uuid="7f4c6cf4dcf79f9b0aa81c2eaf540405875714a3" name="inv_1" x="224" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/gain" uuid="62b1c1a6337c7c8f6aec96408a432477b113cfa0" name="gain_1" x="644" y="602">
+      <params>
+         <frac32.u.map name="amp" value="31.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="+ 0.5" x="140" y="616">
+      <params>
+         <frac32.u.map name="value" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="+1" x="224" y="616">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="dc7fbdd46e5e6d4b8de62ee63fd6321639b2f167" name="*_6" x="434" y="644">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="dc7fbdd46e5e6d4b8de62ee63fd6321639b2f167" name="*_7" x="518" y="644">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/kscope 128 b" uuid="e71f3dd9bc5b799ad703079e63fb929dd75def0" name="kscope_2" x="602" y="644">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="dc7fbdd46e5e6d4b8de62ee63fd6321639b2f167" name="*_2" x="336" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_4" x="140" y="700">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_9" x="224" y="700">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_6" x="462" y="700">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_5" x="224" y="742">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_4" x="140" y="756">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="dc7fbdd46e5e6d4b8de62ee63fd6321639b2f167" name="*_5" x="140" y="812">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_3" x="224" y="812">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="cf44378f-13d1-45b3-baf4-37774d5e6c22" name="POW" x="336" y="812">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="cf44378f-13d1-45b3-baf4-37774d5e6c22">
+         <sDescription> pow(2.inlet_in) </sDescription>
+         <license>GPL</license>
+         <inlets>
+            <frac32buffer name="1"/>
+            <frac32buffer name="2"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_out =  pow(inlet_1,inlet_2);]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="602" y="854">
+      <params>
+         <frac32.u.map name="volume" value="9.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="Sig 1" outlet="out"/>
+         <dest obj="interp_2" inlet="i"/>
+      </net>
+      <net>
+         <source obj="interp_2" outlet="o"/>
+         <dest obj="-_2" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="Pitch" outlet="out"/>
+         <dest obj="phasor_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="BreakP" outlet="o"/>
+         <dest obj="-_2" inlet="in2"/>
+         <dest obj="&gt;_1" inlet="in2"/>
+         <dest obj="-_3" inlet="in2"/>
+         <dest obj="&lt;" inlet="in2"/>
+         <dest obj="DIV RECI" inlet="b"/>
+      </net>
+      <net>
+         <source obj="Breakpoint" outlet="out"/>
+         <dest obj="BreakP" inlet="i"/>
+      </net>
+      <net>
+         <source obj="&gt;_1" outlet="out"/>
+         <dest obj="interp_3" inlet="i"/>
+      </net>
+      <net>
+         <source obj="interp_3" outlet="o"/>
+         <dest obj="*" inlet="b"/>
+         <dest obj="*_4" inlet="b"/>
+         <dest obj="*_7" inlet="b"/>
+      </net>
+      <net>
+         <source obj="phasor_1" outlet="phasor0"/>
+         <dest obj="&gt;_1" inlet="in1"/>
+         <dest obj="-_3" inlet="in1"/>
+         <dest obj="&lt;" inlet="in1"/>
+         <dest obj="DIV RECI" inlet="a"/>
+      </net>
+      <net>
+         <source obj="-_3" outlet="out"/>
+         <dest obj="-_4" inlet="in2"/>
+         <dest obj="DIV RECI_" inlet="a"/>
+      </net>
+      <net>
+         <source obj="-_2" outlet="out"/>
+         <dest obj="-_4" inlet="in1"/>
+         <dest obj="DIV RECI s" inlet="b"/>
+         <dest obj="DIV RECI_" inlet="b"/>
+      </net>
+      <net>
+         <source obj="-_4" outlet="out"/>
+         <dest obj="DIV RECI s" inlet="a"/>
+      </net>
+      <net>
+         <source obj="*" outlet="result"/>
+         <dest obj="+_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="&lt;" outlet="out"/>
+         <dest obj="interp_5" inlet="i"/>
+      </net>
+      <net>
+         <source obj="interp_5" outlet="o"/>
+         <dest obj="*_1" inlet="b"/>
+         <dest obj="*_6" inlet="b"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="+_2" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="DIV RECI s" outlet="result"/>
+         <dest obj="reciprocal_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="DIV RECI" outlet="result"/>
+         <dest obj="*_1" inlet="a"/>
+         <dest obj="*_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="+_2" outlet="out"/>
+         <dest obj="*_2" inlet="b"/>
+      </net>
+      <net>
+         <source obj="*_2" outlet="result"/>
+         <dest obj="+_3" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="DIV RECI_" outlet="result"/>
+         <dest obj="reciprocal_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+ 0.5" outlet="out"/>
+         <dest obj="interp_4" inlet="i"/>
+      </net>
+      <net>
+         <source obj="*_4" outlet="result"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="cos_1" outlet="out"/>
+         <dest obj="X 0.5  " inlet="a"/>
+      </net>
+      <net>
+         <source obj="X 0.5  " outlet="result"/>
+         <dest obj="+_4" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="interp_4" outlet="o"/>
+         <dest obj="+_4" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="Sine/Tri" outlet="out"/>
+         <dest obj="interp_8" inlet="i"/>
+      </net>
+      <net>
+         <source obj="interp_8" outlet="o"/>
+         <dest obj="*_2" inlet="a"/>
+         <dest obj="inv_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+1" outlet="out"/>
+         <dest obj="interp_9" inlet="i"/>
+      </net>
+      <net>
+         <source obj="interp_9" outlet="o"/>
+         <dest obj="+_5" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="out"/>
+         <dest obj="+_5" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="+_5" outlet="out"/>
+         <dest obj="*_5" inlet="b"/>
+      </net>
+      <net>
+         <source obj="+_4" outlet="out"/>
+         <dest obj="*_5" inlet="a"/>
+      </net>
+      <net>
+         <source obj="*_5" outlet="result"/>
+         <dest obj="+_3" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="+_3" outlet="out"/>
+         <dest obj="POW" inlet="1"/>
+      </net>
+      <net>
+         <source obj="Rise" outlet="out"/>
+         <dest obj="interp_11" inlet="i"/>
+      </net>
+      <net>
+         <source obj="interp_11" outlet="o"/>
+         <dest obj="*_6" inlet="a"/>
+      </net>
+      <net>
+         <source obj="*_6" outlet="result"/>
+         <dest obj="+_6" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="Fall" outlet="out"/>
+         <dest obj="interp_10" inlet="i"/>
+      </net>
+      <net>
+         <source obj="interp_10" outlet="o"/>
+         <dest obj="*_7" inlet="a"/>
+      </net>
+      <net>
+         <source obj="*_7" outlet="result"/>
+         <dest obj="+_6" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="+_6" outlet="out"/>
+         <dest obj="POW" inlet="2"/>
+      </net>
+      <net>
+         <source obj="POW" outlet="out"/>
+         <dest obj="gain_1" inlet="in"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="gain_1" outlet="out"/>
+         <dest obj="kscope_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="reciprocal_3" outlet="out"/>
+         <dest obj="X 0.5" inlet="a"/>
+      </net>
+      <net>
+         <source obj="reciprocal_4" outlet="out"/>
+         <dest obj="*" inlet="a"/>
+      </net>
+      <net>
+         <source obj="X 0.5" outlet="result"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="cos_1" inlet="phase"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>26</x>
+      <y>23</y>
+      <width>810</width>
+      <height>770</height>
+   </windowPos>
+</patch-1.0>

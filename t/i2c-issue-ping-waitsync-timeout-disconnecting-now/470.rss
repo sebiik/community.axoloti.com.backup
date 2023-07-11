@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</title>
+    <link>http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470</link>
+    <description>Hi,
+
+I&#39;m trying to connect my axoloti to an Arduino Uno. I&#39;m using the chibios i2c library for it and I&#39;m embedding the code into a script2 object (btw. is it possible to do this in a *.axo object without having to care about threading?).
+
+Problem is, my axoloti stops as soon as I fire the first i2c commands to the Arduino (and when they are received, without a connection everything goes fine). 
+This is the error I get, afterwards I have to unplug the USB cable in order to be able to reconnect again:
+
+    Done uploading patch
+    Start starting patch
+    Done starting patch
+    Start locking
+    Done locking
+    Ping: WaitSync Timeout, disconnecting now
+    Disconnect request
+    Control transfer failed: -7
+
+The script I&#39;m using looks like this (I don&#39;t have anything else, except disp/i objects in my patcher).
+
+    #include &lt;hal.h&gt;
+    
+    struct data_pkg_t {
+        uint8_t channel;
+        uint8_t value;
+    };
+    
+    void setup() {
+        palSetPadMode(GPIOB, 8, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SCL
+        palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SDA
+        static const I2CConfig i2cfg = {
+            OPMODE_I2C,
+            100000,
+            STD_DUTY_CYCLE,
+        };
+        i2cStart(&amp;I2CD1, &amp;i2cfg);
+        out2 = _INT(10);
+    }
+    
+    
+    void loop() {
+        chThdSleepSeconds(1);
+        
+        struct data_pkg_t channelValue;
+        msg_t msg = i2cMasterReceive(&amp;I2CD1, 8,(uint8_t *) &amp;channelValue, sizeof(channelValue));
+        if (msg != RDY_OK) {
+            out2 = _INT(i2cGetErrors(&amp;I2CD1));
+            return;
+        }
+        
+        out1 = _INT(channelValue.channel);
+        out2 = _INT(channelValue.value);
+    }
+
+I already tried wrapping my call i2cAcquireBus() and i2cReleaseBus() with no luck. The problem even occurs when in the following cases:
+
+ - Using i2cMasterReceiveTimeout
+ - Not calling any i2cMasterReceive method, but just acquire and release
+ - Using simple types instead of the struct
+
+The arduino code is basically https://www.arduino.cc/en/Tutorial/MasterReader (Code for Slave Sender - Program for Arduino 2)
+
+Any hints? I don&#39;t really know how to debug this further, the next step will be starting gdb... I could switch to UART, but I would really want to know, what the problem is here.</description>
+    
+    <lastBuildDate>Fri, 18 Sep 2015 10:45:01 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</title>
+        <dc:creator><![CDATA[@moja]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/moja">@moja</a> wrote:</p>
+          <blockquote>
+              <p>Brilliant, this did the trick. One more thing occured: When I restarted the patch, the WaitSync Timeout occured again. I figured out that this is a conflict because of the i2c Driver not being freed correctly. Adding </p>
+
+<pre><code>if (chThdShouldTerminate()) {
+       i2cStop(&amp;I2CD1);
+       return;
+ }</code></pre>
+
+<p>Prevented this from happening.  The basic code now looks like this.</p>
+
+<pre><code>#include &lt;hal.h&gt;
+
+// helper for converting frac32 to int
+__attribute__ ( ( always_inline ) ) __STATIC_INLINE int32_t _INT(float op1) {
+    return op1 * (0xffffffff &gt;&gt; 1) / 1024;
+}
+
+struct data_pkg_t {
+    uint8_t channel;
+    uint8_t value;
+}; 
+
+struct data_pkg_t *rxBuffer; // Pointer to the rx Buffer
+
+void setup() {
+    static struct data_pkg_t _rxBuffer __attribute__ ((section (".sram2")));
+    rxBuffer = &amp;_rxBuffer;
+
+    palSetPadMode(GPIOB, 8, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SCL
+    palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SDA
+    static const I2CConfig i2cfg = {
+        OPMODE_I2C,
+        100000,			// 100000 is the value of the Arduino Wire library
+        FAST_DUTY_CYCLE_2,	
+    };
+    i2cStart(&amp;I2CD1, &amp;i2cfg);
+}
+
+void loop() {
+    chThdSleepMilliseconds(20);
+    
+    if (chThdShouldTerminate()) {
+        i2cStop(&amp;I2CD1);
+        return;
+    }
+
+    // receive the current value
+    msg_t msg = i2cMasterReceive(&amp;I2CD1, 8,(uint8_t *) rxBuffer, sizeof(data_pkg_t));
+
+    if (msg != RDY_OK) {
+	out1 = _INT(-1);
+	out2 = _INT(i2cGetErrors(&amp;I2CD1));
+        return;
+    }
+    
+    out1 = _INT(rxBuffer-&gt;channel);
+    out2 = _INT(rxBuffer-&gt;value);
+}</code></pre>
+
+<p>The Arduino code is:</p>
+
+<pre><code>#include &lt;Wire.h&gt;
+
+struct data_pkg_t {
+  uint8_t channel;
+  uint8_t value;
+};
+
+void setup()
+{
+  
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onRequest(requestEvent); // register event
+  Serial.begin(57600);
+  Serial.write("setup done \n");
+}
+
+void loop()
+{
+  delay(100);
+}
+
+// function that executes whenever data is requested by master
+// this function is registered as an event, see setup()
+void requestEvent() {
+  struct data_pkg_t data = {4, 127};
+  Serial.write("Sending \n");
+  Wire.write((uint8_t*) &amp;data, sizeof(data)); // respond with message
+  Serial.write("Sent \n");  
+}</code></pre>
+
+<p>The setup is rather simple, Axoloti PB9 is connected to the Arduino UNO A4, Axoloti PB8 to A3. </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/304db6a938ec1becd12edaa66a17d6e73b8f918d" href="//community.axoloti.com/uploads/default/original/1X/304db6a938ec1becd12edaa66a17d6e73b8f918d.png" class="lightbox" title="Screen Shot 2015-09-18 at 12.40.58.png"><img src="//community.axoloti.com/uploads/default/optimized/1X/304db6a938ec1becd12edaa66a17d6e73b8f918d_1_690x480.png" width="690" height="480"><div class="meta">
+<span class="filename">Screen Shot 2015-09-18 at 12.40.58.png</span><span class="informations">732x510 31.6 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/4</link>
+        <pubDate>Fri, 18 Sep 2015 10:45:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-470-4</guid>
+        <source url="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470.rss">I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</source>
+      </item>
+      <item>
+        <title>I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</title>
+        <dc:creator><![CDATA[@moja]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/moja">@moja</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for the quick reply, that totally makes sense... I'll give feedback when I got it running.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/3</link>
+        <pubDate>Fri, 18 Sep 2015 07:22:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-470-3</guid>
+        <source url="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470.rss">I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</source>
+      </item>
+      <item>
+        <title>I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>The buffers you use for I2C send and receive must be declared in a different section of memory. That is required for DMA. Check archive/tests/io/spi_lkm1638.axh for an example.</p>
+
+<pre><code>static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/2</link>
+        <pubDate>Thu, 17 Sep 2015 22:08:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-470-2</guid>
+        <source url="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470.rss">I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</source>
+      </item>
+      <item>
+        <title>I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</title>
+        <dc:creator><![CDATA[@moja]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/moja">@moja</a> wrote:</p>
+          <blockquote>
+              <p>Hi,</p>
+
+<p>I'm trying to connect my axoloti to an Arduino Uno. I'm using the chibios i2c library for it and I'm embedding the code into a script2 object (btw. is it possible to do this in a *.axo object without having to care about threading?).</p>
+
+<p>Problem is, my axoloti stops as soon as I fire the first i2c commands to the Arduino (and when they are received, without a connection everything goes fine). <br>This is the error I get, afterwards I have to unplug the USB cable in order to be able to reconnect again:</p>
+
+<pre><code>Done uploading patch
+Start starting patch
+Done starting patch
+Start locking
+Done locking
+Ping: WaitSync Timeout, disconnecting now
+Disconnect request
+Control transfer failed: -7</code></pre>
+
+<p>The script I'm using looks like this (I don't have anything else, except disp/i objects in my patcher).</p>
+
+<pre><code>#include &lt;hal.h&gt;
+
+struct data_pkg_t {
+    uint8_t channel;
+    uint8_t value;
+};
+
+void setup() {
+    palSetPadMode(GPIOB, 8, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SCL
+    palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SDA
+    static const I2CConfig i2cfg = {
+        OPMODE_I2C,
+        100000,
+        STD_DUTY_CYCLE,
+    };
+    i2cStart(&amp;I2CD1, &amp;i2cfg);
+    out2 = _INT(10);
+}
+
+
+void loop() {
+    chThdSleepSeconds(1);
+    
+    struct data_pkg_t channelValue;
+    msg_t msg = i2cMasterReceive(&amp;I2CD1, 8,(uint8_t *) &amp;channelValue, sizeof(channelValue));
+    if (msg != RDY_OK) {
+        out2 = _INT(i2cGetErrors(&amp;I2CD1));
+        return;
+    }
+    
+    out1 = _INT(channelValue.channel);
+    out2 = _INT(channelValue.value);
+}</code></pre>
+
+<p>I already tried wrapping my call i2cAcquireBus() and i2cReleaseBus() with no luck. The problem even occurs when in the following cases:</p>
+
+<ul>
+<li>Using i2cMasterReceiveTimeout</li>
+<li>Not calling any i2cMasterReceive method, but just acquire and release</li>
+<li>Using simple types instead of the struct</li>
+</ul>
+
+<p>The arduino code is basically <a href="https://www.arduino.cc/en/Tutorial/MasterReader" rel="nofollow">https://www.arduino.cc/en/Tutorial/MasterReader</a> (Code for Slave Sender - Program for Arduino 2)</p>
+
+<p>Any hints? I don't really know how to debug this further, the next step will be starting gdb... I could switch to UART, but I would really want to know, what the problem is here.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470/1</link>
+        <pubDate>Thu, 17 Sep 2015 21:11:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-470-1</guid>
+        <source url="http://community.axoloti.com/t/i2c-issue-ping-waitsync-timeout-disconnecting-now/470.rss">I2C Issue(?): Ping: WaitSync Timeout, disconnecting now</source>
+      </item>
+  </channel>
+</rss>

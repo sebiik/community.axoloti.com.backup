@@ -1,0 +1,50 @@
+<objdefs appVersion="1.0.11">
+   <obj.normal id="SelfPM" uuid="4c69df16-7b2a-40bd-9058-ec85890055db">
+      <sDescription>Self PM oscillator (Very low cost)
+Generates a band controlled sawtooth like wave form.
+fb0 and fb1 controls the range of the feedback depth.
+fbMod modulates the feedback in the range [fb0 fb1]</sDescription>
+      <author>T. Rochebois</author>
+      <license>LGPL</license>
+      <helpPatch>SelfPM.axh</helpPatch>
+      <inlets>
+         <frac32.bipolar name="pitch" description="pitch"/>
+         <frac32.positive name="fbMod" description="Feed back mod : [0 64] -&gt; [fb0 fb1]"/>
+      </inlets>
+      <outlets>
+         <frac32buffer.bipolar name="wave" description="sine wave"/>
+      </outlets>
+      <displays>
+         <frac32.s.dial name="fb" description="Modulated feedback" noLabel="true"/>
+      </displays>
+      <params>
+         <frac32.s.map name="pitch"/>
+         <frac32.s.map name="fb1" description="Feedback Range [fb0 fb1]"/>
+         <frac32.s.map name="fb0" description="Feedback Range [fb0 fb1]"/>
+      </params>
+      <attribs/>
+      <code.declaration><![CDATA[uint32_t p;  // phase
+int32_t fb;  // feedback coefficient
+int32_t y;   // raw (modulated)sine
+int32_t fy;  // filtered output]]></code.declaration>
+      <code.init><![CDATA[p = 0;
+y = 0;
+fy = 0;]]></code.init>
+      <code.krate><![CDATA[int32_t dp; // delta phase aka freq
+MTOFEXTENDED(param_pitch + inlet_pitch, dp);
+// mapping:
+// fbMod [0 64] -> [fb0 fb1] with scaling for q31
+fb = ___SMMUL(param_fb1<<4,            inlet_fbMod <<4    );
+fb = ___SMMLA(param_fb0<<4, ((1<<27) - inlet_fbMod)<<4, fb);
+fb = fb << 1;
+disp_fb = fb>>4;]]></code.krate>
+      <code.srate><![CDATA[// phase increment
+p += dp;
+// raw sine access with feedback (with low passed output "fy")
+y = sine2t[ ((uint32_t)(p + ___SMMUL(fy, fb) )) >> 20 ];
+// we can tolerate raw access to the sine table thanks to
+// this "anti hunting" low pass filter
+fy = (fy>>1) + (y>>1);
+outlet_wave = fy >> 4;]]></code.srate>
+   </obj.normal>
+</objdefs>

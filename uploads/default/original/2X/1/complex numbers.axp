@@ -1,0 +1,476 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="42" y="56" text="The main object is here"/>
+   <comment type="patch/comment" x="196" y="56" text="See in the local data of this object for the function list"/>
+   <patchobj type="patch/object" uuid="f45e42c9-add8-421d-af4f-276b746bd378" name="Main object" x="42" y="84">
+      <params>
+         <frac32.s.map name="R1" value="64.0"/>
+         <frac32.s.map name="I1" value="0.0"/>
+         <frac32.s.map name="R2" value="3.0"/>
+         <frac32.s.map name="I2" value="0.0"/>
+         <frac32.s.map name="rate" value="0.0"/>
+         <int32 name="exp" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="f45e42c9-add8-421d-af4f-276b746bd378">
+         <inlets/>
+         <outlets/>
+         <displays>
+            <frac32.s.dial name="sumR"/>
+            <frac32.s.dial name="sumI"/>
+            <frac32.s.dial name="mulR"/>
+            <frac32.s.dial name="mulI"/>
+            <frac32.s.dial name="divR"/>
+            <frac32.s.dial name="divI"/>
+            <frac32.s.dial name="powR"/>
+            <frac32.s.dial name="powI"/>
+            <frac32.s.dial name="scaleR"/>
+            <frac32.s.dial name="scaleI"/>
+            <frac32.s.dial name="interpR"/>
+            <frac32.s.dial name="interpI"/>
+            <frac32.s.dial name="copyR"/>
+            <frac32.s.dial name="copyI"/>
+            <frac32.s.dial name="rotR"/>
+            <frac32.s.dial name="rotI"/>
+            <frac32.s.dial name="mod"/>
+            <frac32.s.dial name="phase"/>
+         </displays>
+         <params>
+            <frac32.s.map name="R1"/>
+            <frac32.s.map name="I1"/>
+            <frac32.s.map name="R2"/>
+            <frac32.s.map name="I2"/>
+            <frac32.s.map name="rate"/>
+            <int32 name="exp">
+               <MinValue i="-5"/>
+               <MaxValue i="50000"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[typedef struct {
+	int32_t real;
+	int32_t imaginary;
+} complex_number;
+
+
+static __attribute__ ((noinline)) void cplx_assign(int32_t re,int32_t im, complex_number *out)
+{
+	(out->real) = re;
+	(out->imaginary) = im;	
+}
+
+
+static __attribute__ ((noinline)) int32_t real(complex_number *z)
+{
+	return z -> real;
+}
+
+
+static __attribute__ ((noinline)) int32_t imaginary(complex_number *z)
+{
+	return z -> imaginary;
+}
+
+
+static __attribute__ ((noinline)) void cplx_sum(complex_number *z1,complex_number *z2,complex_number *out)
+{
+	out -> real = (z1 -> real) + (z2 -> real);
+	out -> imaginary = (z1 -> imaginary) + (z2 -> imaginary);
+}
+
+static __attribute__ ((noinline)) void cplx_subtract(complex_number *z1,complex_number *z2,complex_number *out)
+{
+	out -> real = (z1 -> real) - (z2 -> real);
+	out -> imaginary = (z1 -> imaginary) - (z2 -> imaginary);
+}
+
+
+static __attribute__ ((noinline)) void cplx_mul_Q27(complex_number *z1,complex_number *z2,complex_number *out)
+{
+	int32_t a = (z1 -> real);
+	int32_t b = (z1 -> imaginary);
+	int32_t c = (z2 -> real);
+	int32_t d = (z2 -> imaginary);
+	
+	out -> real = ___SMMLS(b<<2,d<<3,___SMMUL(a<<2,c<<3));
+	out -> imaginary = ___SMMLA(a<<2,d<<3,___SMMUL(b<<2,c<<3));
+}
+
+
+static __attribute__ ((noinline)) void cplx_div_Q27(complex_number *z1,complex_number *z2,complex_number *out)
+{
+	int32_t a = (z1 -> real);
+	int32_t b = (z1 -> imaginary);
+	int32_t c = (z2 -> real);
+	int32_t d = (z2 -> imaginary);
+
+	float den = ___SMMLA(c<<2,c<<3,___SMMUL(d<<2,d<<3));
+	int32_t rec = 18014398509481984.f/den;
+	
+	out -> real = ___SMMUL(___SMMLA(b<<2,d<<3,___SMMUL(a<<2,c<<3))<<2,rec<<3);
+	out -> imaginary = ___SMMUL(___SMMLS(a<<2,d<<3,___SMMUL(b<<2,c<<3))<<2,rec<<3);
+}
+
+
+static __attribute__ ((noinline)) void cplx_pow_Q27(complex_number *z,int32_t expo, complex_number *out)
+{
+	int32_t a = (z -> real);
+	int32_t b = (z -> imaginary);
+	int32_t c = 1<<27;
+	int32_t d = 0;
+
+	int32_t count = expo;
+	while (count>0)
+	{
+	int32_t temp = ___SMMLS(b<<2,d<<3,___SMMUL(a<<2,c<<3));
+	d = ___SMMLA(a<<2,d<<3,___SMMUL(b<<2,c<<3));
+	c=temp;
+	count--;
+	}
+	out -> real = c;
+	out -> imaginary = d;
+}
+
+
+static __attribute__ ((noinline)) void cplx_scale_Q27(complex_number *z,int32_t scale, complex_number *out)
+{
+	out -> real = ___SMMUL((z->real)<<3,scale<<2);
+	out -> imaginary = ___SMMUL((z->imaginary)<<3,scale<<2);
+}
+
+
+static __attribute__ ((noinline)) void cplx_interp_Q27(complex_number *z1,complex_number *z2,int32_t rate, complex_number *out)
+{
+	int32_t a = (z1 -> real);
+	int32_t b = (z1 -> imaginary);
+	int32_t c = (z2 -> real);
+	int32_t d = (z2 -> imaginary);
+	
+	(out->real) = ___SMMLA(c-a<<2,rate<<3,a);
+	(out->imaginary) = ___SMMLA(d-b<<2,rate<<3,b);	
+}
+
+
+static __attribute__ ((noinline)) void cplx_rotate(complex_number *z,uint32_t phase, complex_number *out)
+{
+	int32_t a = (z -> real);
+	int32_t b = (z -> imaginary);
+
+	int32_t sintheta31;
+	int32_t costheta31;
+	SINE2TINTERP(phase,sintheta31);
+	SINE2TINTERP(phase+(1<<30),costheta31);
+/*
+	[cos(th)  -sin(th)][a]
+	[sin(th)  cos(th) ][b]
+*/	
+	(out->real) = ___SMMLA(a<<1,costheta31,___SMMUL(b<<1,-sintheta31));
+	(out->imaginary) = ___SMMLA(a<<1,sintheta31,___SMMUL(b<<1,costheta31));	
+}
+
+
+static __attribute__ ((noinline)) void cplx_rotate_cheap(complex_number *z,uint32_t phase, complex_number *out)
+{
+	int32_t a = (z -> real);
+	int32_t b = (z -> imaginary);
+
+	int32_t sintheta31 = sine2t[phase>>20];
+	int32_t costheta31 = sine2t[phase+(1<<30)>>20];
+/*
+	[cos(th)  -sin(th)][a]
+	[sin(th)  cos(th) ][b]
+*/	
+	(out->real) = ___SMMLA(a<<1,costheta31,___SMMUL(b<<1,-sintheta31));
+	(out->imaginary) = ___SMMLA(a<<1,sintheta31,___SMMUL(b<<1,costheta31));	
+}
+
+
+static __attribute__ ((noinline)) void cplx_polar(complex_number *z,int32_t *modulo, uint32_t *phase)
+{	
+	int32_t a = (z -> real);
+	int32_t b = (z -> imaginary);
+	
+	*modulo = (int32_t) _VSQRTF((1<<27)*((float) ___SMMLA(b<<2,b<<3,___SMMUL(a<<2,a<<3))));
+
+	float val;
+	if (b>= 0)
+	{
+    		if (a >= 0) 
+    		val = (b/((float)(a+b)));
+    		else
+    		val = (1+a/((float)(a-b)));
+	} 
+	else 
+	{
+    		if (a < 0) 
+		val = (2+b/((float)(a+b)));
+		else
+    		val = (3+a/((float)(a-b)));
+	}
+	*phase = (uint32_t) 1073741824.0f*val;
+}
+
+
+static __attribute__ ((noinline)) void cplx_cartesian(complex_number *z,int32_t *real_out, int32_t *imaginary_out)
+{
+	*real_out = (z -> real);
+	*imaginary_out = (z -> imaginary);
+}
+
+
+
+
+complex_number z1;
+complex_number z2;
+complex_number z3;
+complex_number z4;
+complex_number z5;
+complex_number z6;
+complex_number z7;
+complex_number z8;
+complex_number z9;
+complex_number z10;]]></code.declaration>
+         <code.init><![CDATA[cplx_assign(0,0,&z1);
+cplx_assign(0,0,&z2);]]></code.init>
+         <code.krate><![CDATA[cplx_assign(param_R1,param_I1,&z1);
+cplx_assign(param_R2,param_I2,&z2);
+
+cplx_sum(&z1,&z2,&z3);
+cplx_mul_Q27(&z1,&z2,&z4);
+cplx_div_Q27(&z1,&z2,&z5);
+cplx_pow_Q27(&z1,param_exp,&z6);
+cplx_scale_Q27(&z1,param_rate,&z7);
+cplx_interp_Q27(&z1,&z2,param_rate,&z8);
+cplx_rotate_cheap(&z1,param_rate<<5,&z10);
+z9 = z1;
+
+
+disp_sumR = real(&z3);
+disp_sumI = imaginary(&z3);
+cplx_cartesian(&z4,&disp_mulR,&disp_mulI);
+cplx_cartesian(&z5,&disp_divR,&disp_divI);
+cplx_cartesian(&z6,&disp_powR,&disp_powI);
+cplx_cartesian(&z7,&disp_scaleR,&disp_scaleI);
+cplx_cartesian(&z8,&disp_interpR,&disp_interpI);
+cplx_cartesian(&z9,&disp_copyR,&disp_copyI);
+cplx_cartesian(&z10,&disp_rotR,&disp_rotI);
+
+uint32_t phase;
+cplx_polar(&z10,&disp_mod,&phase);
+
+disp_phase = phase>>5;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="112" y="115" text="Real part of the complex number z1"/>
+   <comment type="patch/comment" x="114" y="151" text="Imaginary part of the complex number z1"/>
+   <comment type="patch/comment" x="113" y="190" text="Real part of the complex number z2"/>
+   <comment type="patch/comment" x="1064" y="196" text="This is just another variation on mandelbrot object"/>
+   <comment type="patch/comment" x="114" y="223" text="Imaginary part of the complex number z2"/>
+   <patchobj type="patch/object" uuid="805f1e14-5b7c-4a0c-89e2-67142233ef26" name="object_1" x="1148" y="224">
+      <params>
+         <frac32.s.map name="Re" value="-32.139999866485596"/>
+         <frac32.s.map name="Im" value="22.87999963760376"/>
+         <int32 name="pow" value="6"/>
+         <frac32.u.map name="rate" value="55.91499996185303"/>
+         <bool32.mom name="reset" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="805f1e14-5b7c-4a0c-89e2-67142233ef26">
+         <inlets/>
+         <outlets>
+            <frac32 name="R"/>
+            <frac32 name="I"/>
+         </outlets>
+         <displays>
+            <frac32.s.dial name="Re"/>
+            <frac32.s.dial name="Im"/>
+         </displays>
+         <params>
+            <frac32.s.map name="Re"/>
+            <frac32.s.map name="Im"/>
+            <int32 name="pow">
+               <MinValue i="0"/>
+               <MaxValue i="1000"/>
+            </int32>
+            <frac32.u.map name="rate"/>
+            <bool32.mom name="reset"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[typedef struct {
+	int32_t real;
+	int32_t imaginary;
+} complex_number;
+
+static __attribute__ ((noinline)) void cplx_assign(int32_t re,int32_t im, complex_number *out)
+{
+	(out->real) = re;
+	(out->imaginary) = im;	
+}
+
+static __attribute__ ((noinline)) int32_t real(complex_number *z)
+{
+	return z -> real;
+}
+
+static __attribute__ ((noinline)) int32_t imaginary(complex_number *z)
+{
+	return z -> imaginary;
+}
+
+static __attribute__ ((noinline)) void cplx_sum(complex_number *z1,complex_number *z2,complex_number *out)
+{
+	out -> real = (z1 -> real) + (z2 -> real);
+	out -> imaginary = (z1 -> imaginary) + (z2 -> imaginary);
+}
+
+static __attribute__ ((noinline)) void cplx_mul_Q27(complex_number *z1,complex_number *z2,complex_number *out)
+{
+	int32_t a = (z1 -> real);
+	int32_t b = (z1 -> imaginary);
+	int32_t c = (z2 -> real);
+	int32_t d = (z2 -> imaginary);
+	
+	out -> real = ___SMMLS(b<<2,d<<3,___SMMUL(a<<2,c<<3));
+	out -> imaginary = ___SMMLA(a<<2,d<<3,___SMMUL(b<<2,c<<3));
+}
+
+static __attribute__ ((noinline)) void cplx_div_Q27(complex_number *z1,complex_number *z2,complex_number *out)
+{
+	int32_t a = (z1 -> real);
+	int32_t b = (z1 -> imaginary);
+	int32_t c = (z2 -> real);
+	int32_t d = (z2 -> imaginary);
+
+	float den = ___SMMLA(c<<2,c<<3,___SMMUL(d<<2,d<<3));
+	int32_t rec = 18014398509481984.f/den;
+	
+	out -> real = ___SMMUL(___SMMLA(b<<2,d<<3,___SMMUL(a<<2,c<<3))<<2,rec<<3);
+	out -> imaginary = ___SMMUL(___SMMLS(a<<2,d<<3,___SMMUL(b<<2,c<<3))<<2,rec<<3);
+}
+
+static __attribute__ ((noinline)) void cplx_pow_Q27(complex_number *z,int32_t expo, complex_number *out)
+{
+	int32_t a = (z -> real);
+	int32_t b = (z -> imaginary);
+	int32_t c = 1<<27;
+	int32_t d = 0;
+
+	int32_t count = expo;
+	while (count>0)
+	{
+	int32_t temp = ___SMMLS(b<<2,d<<3,___SMMUL(a<<2,c<<3));
+	d = ___SMMLA(a<<2,d<<3,___SMMUL(b<<2,c<<3));
+	c=temp;
+	count--;
+	}
+	out -> real = c;
+	out -> imaginary = d;
+}
+
+static __attribute__ ((noinline)) void cplx_scale_Q27(complex_number *z,int32_t scale, complex_number *out)
+{
+	out -> real = ___SMMUL((z->real)<<3,scale<<2);
+	out -> imaginary = ___SMMUL((z->imaginary)<<3,scale<<2);
+}
+
+static __attribute__ ((noinline)) void cplx_interp_Q27(complex_number *z1,complex_number *z2,int32_t rate, complex_number *out)
+{
+	int32_t a = (z1 -> real);
+	int32_t b = (z1 -> imaginary);
+	int32_t c = (z2 -> real);
+	int32_t d = (z2 -> imaginary);
+	
+	(out->real) = ___SMMLA(c-a<<2,rate<<3,a);
+	(out->imaginary) = ___SMMLA(d-b<<2,rate<<3,b);	
+}
+
+static __attribute__ ((noinline)) void cplx_rotate(complex_number *z,int32_t phase, complex_number *out)
+{
+	int32_t a = (z -> real);
+	int32_t b = (z -> imaginary);
+
+	int32_t sintheta31;
+	int32_t costheta31;
+	SINE2TINTERP(phase,sintheta31);
+	SINE2TINTERP(phase+(1<<30),costheta31);
+/*
+	[cos(th)  -sin(th)][a]
+	[sin(th)  cos(th) ][b]
+*/	
+	(out->real) = ___SMMLA(a<<1,costheta31,___SMMUL(b<<1,-sintheta31));
+	(out->imaginary) = ___SMMLA(a<<1,sintheta31,___SMMUL(b<<1,costheta31));	
+}
+
+static __attribute__ ((noinline)) void cplx_rotate_cheap(complex_number *z,uint32_t phase, complex_number *out)
+{
+	int32_t a = (z -> real);
+	int32_t b = (z -> imaginary);
+
+	int32_t sintheta31 = sine2t[phase>>20];
+	int32_t costheta31 = sine2t[phase+(1<<30)>>20];
+/*
+	[cos(th)  -sin(th)][a]
+	[sin(th)  cos(th) ][b]
+*/	
+	(out->real) = ___SMMLA(a<<1,costheta31,___SMMUL(b<<1,-sintheta31));
+	(out->imaginary) = ___SMMLA(a<<1,sintheta31,___SMMUL(b<<1,costheta31));	
+}
+
+static __attribute__ ((noinline)) void cplx_cartesian(complex_number *z,int32_t *real_out, int32_t *imaginary_out)
+{
+	*real_out = (z -> real);
+	*imaginary_out = (z -> imaginary);
+}
+
+
+complex_number z;
+complex_number z_old;
+complex_number c;
+int32_t rtrig =0;]]></code.declaration>
+         <code.init><![CDATA[cplx_assign(0,0,&z);
+cplx_assign(0,0,&z_old);]]></code.init>
+         <code.krate><![CDATA[if (param_reset && !rtrig)
+{
+	cplx_assign(0,0,&z_old);
+	rtrig = 1;
+}
+else if (!param_reset)
+{
+	rtrig = 0;
+}
+cplx_assign(param_Re,param_Im,&c);
+cplx_pow_Q27(&z_old,param_pow,&z);
+cplx_sum(&z,&c,&z);
+cplx_interp_Q27(&z_old,&z,param_rate,&z_old);
+
+disp_Re = real(&z_old);
+disp_Im = imaginary(&z_old);
+
+outlet_R = disp_Re;
+outlet_I = disp_Im;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="114" y="261" text="This is used in scale, interp and rot operations"/>
+   <comment type="patch/comment" x="114" y="288" text="Exponent for the power function"/>
+   <comment type="patch/comment" x="117" y="329" text="z1+z2"/>
+   <comment type="patch/comment" x="118" y="394" text="z1 * z2"/>
+   <comment type="patch/comment" x="114" y="457" text="z1 / z2"/>
+   <comment type="patch/comment" x="114" y="520" text="z1 ^ exp"/>
+   <comment type="patch/comment" x="115" y="587" text="rate * z1"/>
+   <comment type="patch/comment" x="114" y="651" text="interpolation between z1 and z2"/>
+   <comment type="patch/comment" x="112" y="714" text="z1.. copied into variable z9 (this is just to demonstrate that complex numbers can be assigned normally)"/>
+   <comment type="patch/comment" x="116" y="778" text="z1 is rotated by an angle (rate)"/>
+   <comment type="patch/comment" x="114" y="843" text="The polar expression for the complex number z1"/>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>0</y>
+      <width>1378</width>
+      <height>780</height>
+   </windowPos>
+</patch-1.0>

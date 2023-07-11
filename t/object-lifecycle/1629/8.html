@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/object-lifecycle/1629/8 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 17:12:44 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Object lifecycle - Developer - Axoloti Community</title>
+    <meta name="description" content="So far the object referencing in a patch is robust to name changes, and implementation changes as there is a UUID reference kept. 
+
+Lately a few cases have appeared that challenge library maintenance. Some examples:  * D&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="../1629.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Object lifecycle&#39;" href="../1629.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/200/6_1.png" />
+<meta property="og:image" content="http://community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/200/6_1.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/object-lifecycle/1629/8" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/object-lifecycle/1629/8" />
+<meta property="og:title" content="Object lifecycle" />
+<meta name="twitter:title" content="Object lifecycle" />
+<meta property="og:description" content="this is a handy &#39;use-case&#39; we should be aware of...      so this happen because, 1.0.10 has contain a software change, which means this object will only work in 1.0.10+ i.e. we not only have versions of objects, due to behavioural changes (e.g. filter changes/delay timing) but also due to software versions. (I think whats also kind of interesting... is in this case I wasn&#39;t even aware that Id introduced something specific to 1.0.10, which i suspect is going to be &#39;common&#39; for most users)   admit..." />
+<meta name="twitter:description" content="this is a handy &#39;use-case&#39; we should be aware of...      so this happen because, 1.0.10 has contain a software change, which means this object will only work in 1.0.10+ i.e. we not only have versions of objects, due to behavioural changes (e.g. filter changes/delay timing) but also due to software versions. (I think whats also kind of interesting... is in this case I wasn&#39;t even aware that Id introduced something specific to 1.0.10, which i suspect is going to be &#39;common&#39; for most users)   admit..." />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../../index.html"><img src="../../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="../1629.html">Object lifecycle</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../../c/developer.html" itemprop="url">
+        <span itemprop="title">Developer</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-05-02T23:22:55Z' itemprop='datePublished'>
+             2016-05-02 23:22:55 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>So far the object referencing in a patch is robust to name changes, and implementation changes as there is a UUID reference kept.</p>
+
+<p>Lately a few cases have appeared that challenge library maintenance. Some examples: <br>* DrJustice found improvements to some filter objects like "filter/vcf3", cutoff in the original objects is artificially limited to only 12kHz.<br>* philoop noticed a typo in the "delay/write sdram" attribute list<br>Fixing by altering the existing objects means breaking users' patches, the selected attribute is string matched, in absence of a match the first option is the default. A different filter will cause an existing patch to sound different, and can also be considered broken rather than an improvement.</p>
+
+<p>I believe it is desirable to propagate improvements to objects, but breaking users' patches should be avoided.</p>
+
+<p>Moving the existing (unfixed) object to something like "obsolete/filter/vcf3" and "obsolete/delay/write sdram" would preserve patches and adding a bugfixed objects with the original name to the library would preserve patch functionality.</p>
+
+<p>But that does not really promote migration to fixed objects, we don't want to keep dragging along all obsolete objects forever.</p>
+
+<p>So I'd like to open a discussion on how to "retire" objects.<br>I'd be useful to <br>* provide the user the choice between loading the upgraded or obsolete version of an object<br>* provide the user with an explanation the expected impact of an upgrade<br>* making automatic adjustments to a patch would be beautiful but also opens a can of worms I believe.</p>
+
+<p>By simply moving an object to an "obsolete" directory, a direct (UUID) reference to the new replacement object, and the possibility to explain the user the expected impact are missing. Does that motivate a new "obsolete object" file type? Or extend the existing object file type with a forward UUID reference and expected-impact text field?</p>
+
+<p>So I open this thread and invite comments and discussion of possible approaches...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+            <a href="../../open-discussion-about-the-best-way-to-update-community-library-objects/2508/3">Open discussion about the best way to update community library objects!</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/the19thbear.html'><b itemprop='author'>the19thbear</b></a>
+           
+           <time datetime='2016-05-03T06:34:11Z' itemprop='datePublished'>
+             2016-05-03 06:34:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I think it sounds like a great idea to have the obsolete/<br>I think as soon as any of us see that, we will automatically want to use a newer version. For my sake, you can go ahead and implement it just the way you described:)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-05-03T12:07:58Z' itemprop='datePublished'>
+             2016-05-03 12:07:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I guess we all want it to magically upgrade, with zero dev and user effort <img src="../../../images/emoji/emoji_one/slight_smile5e1f.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>where we are now:</p>
+
+<ul>
+<li>we now version all objects in github, they are tagged with the release... so you can always run an old version of the software to get the original sound</li>
+<li>from 1.0.10 , you will be able to run different versions of Axoloti side by side.</li>
+<li>embedded patches and objects.</li>
+</ul>
+
+<p>note: as stated previously, I'd be open to versioning the community library.... but we need to discuss this.</p>
+
+<p>potential future:</p>
+
+<ul><li>firmware + patch at binary level could be used by newer UIs </li></ul>
+
+<p>this is I believe something bigger that we should be aiming for... a better separation between the UI in Live mode and the patch/firmware... we know we need to do this for controllers, and we have discussed 'presentation' mode etc.<br>this could lead to new versions of the software being able to talk to old patches/firmware  i.e. like a 'read only' mode I suppose.</p>
+
+<p>strawman : the only way to replicate exactly a patch for a performance in a years time, is to run it completely unchanged... <br>(note: we have to assume you will need to always be able to run newer version on the computer, due to OS upgrades etc) </p>
+
+<p>the upgrading side i think is hard... most software I know , usually end up doing this in some kind of scripting (or code, which is kind of script like), as most often the upgrade has very similar tasks. (renaming parameters, rescaling them, applying defaults to new parameters). In axoloti, probably most of the time this could be done at object level, but sometimes if you want to do an 'automatic upgrade' it may have to be at patch level....</p>
+
+<p>obsolete... sounds like 'depreciation' warnings?<br>I can see this working for 'limited time', and with the current object/patch version approach, I guess we could make this clearer. personally not a fan of chaining UUIDs , I think Id prefer the UUID to remain, perhaps with a version # or even timestamp, its a little more user friendly.</p>
+
+<p>an idea, which I wonder if we can some how use, is to 'freeze' changed objects into a patch , using embedding... and then a revert to library, to unfreeze them.  you still need the old object to do this action, but it unhooks it from the obsolete directory.... (has its own issues, but wonder if it might provide an interesting route) </p>
+
+<p>thought 'experiment' : and not a suggestion...how it works 'today'<br>today, if you wanted to do a migration from 1.09 to 1.0.10<br>a) run version 1.0.9 and 1.0.10 in parallel<br>b) run your patch in 1.0.10, hear a difference, use github to review objects that have changed since 1.09 (read change comments)<br>c) run version 1.0.9 and embed the objects, save as new version of patch<br>d) run version 1.0.10...  should be the same, and then you can 'migrate it' at leisure.<br>is it possible we should/could streamline this procedure?<br>e.g do this all within 1.0.10 application, use git to diff objects from 1.0.9 to 1.0.10, pull these changed objects temporarily into a temporary archive git clone, so then can embed them.<br>note: we already know the git tag, as the patch is saved with the version. we only need 2 git versions*, the current and the patch version.</p>
+
+<p>personally, Id really prefer to use a 'proper' version control system, than 'roll our own'... but perhaps our requirements are very different</p>
+
+<p>community library... <br>actually this 'scares' me more... increasingly users will be using more community objects/sub-patches etc, and its a lot harder to put things in places to migrate these... and the factory library is fairly static by comparison.<br>(as raised in other threads, I'm on the fence about versioning the library, due to maintenance)</p>
+
+<p>Its a thorny issue indeed... <br>how do other similar environments deal with this?   Max ? Reaktor ? PD ?</p>
+
+<p>really just a collection of 'ideas' more than a cohesive solution, but perhaps some may be useful and compatible with other ideas raised.</p>
+
+<p>*tech note:<br>we already clone the repo, so have 'theoretically' all versions of the objects available, its simply a matter of checking out an object with the right commit/tag. the only real complication (which is surmountable) is its a bit messy having a checked out branch with a mixture of objects in it... but ideally we'd work off the one local cloned repo (minimise disk and network resources), perhaps checking out old versions into a temporary space.<br>a quick look at stack overflow/jgit, looks like its possible to read a specific version into a file stream... so this might allow us to stream into a temp space or even potentially directly into an embedded object... how cool would that be <img src="../../../images/emoji/emoji_one/wink5e1f.png?v=2" title=":wink:" class="emoji" alt=":wink:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+            <a href="../../sputnki-contributions/1381/32.html">Sputnki contributions</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-05-08T22:02:11Z' itemprop='datePublished'>
+             2016-05-08 22:02:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I don't really have any concrete ideas either. I can say though that one reason I haven't uploaded any objects to the community section as yet (apart from general lazyness <img src="../../../images/emoji/emoji_one/slight_smile5e1f.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:">  )is that I'm not really clear how to go about updating or maintaining objects.</p>
+
+<p>Somehow I'm thinking that some form of version number could be used. That way, old versions can remain in the repository, always accessible, and under the same path as the latest one. Having an 'obselete' section sortof implies that there is only one obsolete version of an object, but there may be a whole history of old versions.</p>
+
+<p>My completely un-thought-through idea is something like this: For every object, there is a version code. It is used to identify the object, and is also present in the patch, just like the UUID. When loading a patch, the corresponding version of all objects is automatically loaded. That way a patch when loaded will always sound identical, regardless of which versions are used in the patch and which versions exist in the repository (assuming none of the versions have gotten lost...). A function in the Patcher (or completely automatically upon loading perhaps) can also check the version numbers, and suggest upgrading those objects which have newer versions.</p>
+
+<p>One consequence of this is that we would never retire old versions - they would always present in the repository. When adding a new object to a patch, only the latest versions should be used by default, so there won't be any additional clutter of obsolete and old objects when creating patches. (I think it should be possible to select any version of an object manually when editing, for instance if a filter implementation has changed and you really want the old version because there is already that version used in a patch, for instace).</p>
+
+<p>Although not retiring old objects will tend to increase the size of the repository, in general objects are not that big compared to other forms of data on a computer, so the actual space used is rather small.</p>
+
+<p>Sure we could use some form of existing version control, but one difference here is that in order to guarantee that old patches load fine, we really need to have all versions in the repository at the same time. Consider for instance, having two patches open which use two different versions of the same objects - both versions of the objects need to be present.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/DrJustice-2.html'><b itemprop='author'>DrJustice</b></a>
+           
+           <time datetime='2016-05-08T23:20:18Z' itemprop='datePublished'>
+             2016-05-08 23:20:18 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>What Ricard suggests for object versions sounds reasonable. Since filenames are out of the equation, it would be up to the object author to deal with that, e.g. multiple versions in one myobj.axo file or myobj_v1,axo, myobj_v2.axo etc.. I suppose there would be a manually maintained version attribute or tag in the XML(?) And that would pretty much be it on the object authors part, with the patcher being responsible for loading the correct version or offering to change to a newer version.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-05-09T06:01:30Z' itemprop='datePublished'>
+             2016-05-09 06:01:30 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Historical Anecdote: The VMS operating system for the Digital Equipement VAX series of computers (we're talking 1970s-1980s here) actually appended a version number to a file every time it was saved. So if you saved a flle called AXOLOTI.TXT it would actually be called AXOLOTI.TXT;1 . Saving a new version created a new file called AXOLOTI.TXT;2 . When referring to a file, the latest version was used by default, so attempting to open AXOLOTI.TXT by default would open the latest version, but you could explicitly ask for any version you wanted by specifiying the complete file name. The OS had a setting for how many old versions it would keep, I believe the default was 5.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-05-09T11:10:46Z' itemprop='datePublished'>
+             2016-05-09 11:10:46 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>The vax system was not intended as a version control system, just a slightly better version of the .bak files which were around at the time.  We still used a proper version control system for coding. </p>
+
+<p>How if you have object versions are you planning to relate these to application/firmware releases. Eg some objects will only work with some software releases? <br>Having this and branching on git as well seems a 'wrong'</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-05-09T12:20:22Z' itemprop='datePublished'>
+             2016-05-09 12:20:22 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>this is a handy 'use-case' we should be aware of...</p>
+
+<aside class="quote" data-post="1" data-topic="1658">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/admiralcrunch/40/2066_1.png" class="avatar">
+    <a href="../../error-after-updading-to-1-0-9/16587e22.html?u=thetechnobear">Error after updading to 1.0.9</a> <a class="badge-wrapper  bullet" href="../../../c/helpdesk.html"><span class="badge-category-bg" style="background-color: #9EB83B;"></span><span style="color: #FFFFFF;" data-drop-close="true" class="badge-category clear-badge" title='This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or "how to?"'>Helpdesk</span></a>
+  </div>
+  <blockquote>Hi, 
+
+I have just updated to the latest Release and now I have this error, which I absolutely don't know what to do with [:confused:] all my prevously saved patches don't work now. Can someone tell me what to do? 
+
+ <a data-download-href="//community.axoloti.com/uploads/default/1922400c02d6a37786314fc147c5dcbc5a96b842" href="../../../uploads/default/original/2X/1/1922400c02d6a37786314fc147c5dcbc5a96b842.jpg" class="lightbox" title="Unbenannt-1.jpg">[image]</a>
+    <div class="topic-info">
+    </div>
+  </blockquote>
+</aside>
+
+
+<p>so this happen because, 1.0.10 has contain a software change, which means this object will only work in 1.0.10+<br>i.e. we not only have versions of objects, due to behavioural changes (e.g. filter changes/delay timing) but also due to software versions.<br>(I think whats also kind of interesting... is in this case I wasn't even aware that Id introduced something specific to 1.0.10, which i suspect is going to be 'common' for most users)</p>
+
+<p>admittedly id already partially addressed this in 1.0.10, by refusing to load 'future versions' i.e. 1.0.10 will not load 1.0.11 objects, but it still demonstrates the fragile nature in this area..</p>
+
+<h1>community library will be versioned from 1.0.10 </h1>
+
+<p>I discussed this briefly with <a class="mention" href="../../../users/johannes.html">@johannes</a> yesterday, as said, it was likely that we were going to have to branch the community library in the same way as we do factory. so I will be doing this from version 1.0.10. <a class="mention" href="../../../users/johannes.html">@johannes</a> I will look into the code changes today. this will mean for the official releases , they will be versioned from day 1.<br>(I will reset the master branch, after all contributors have moved to 1.0.10) <br>of couse, as i outlined in a previous post, this will mean a 'process' when new releases are made.. but I will details this nearer the time.  (there will be a similar process to move away from the 'master branch')</p>
+
+<p>btw: its worth noting we have a 'technical' issue with the way objects generally are loaded, due to the fairly fragile way the xml is dealt with in the persistence framework we use.  there are changes in xml formats that will mean its impossible to load objects... and whilst we take care of this when doing upgrades from version X to version X+1, the idea of keeping this 'dead' workaround code, is not very inviting.</p>
+
+<h1>back on topic : object versioning </h1>
+
+<p>as for obsolete directory, or user versioning... as I kind of indicated, whilst I'm sure we can implement it, and kind of make it work (at least initially), my gut feeling (and it is that) is that it is trivialising the problem... as developers, we know its not a matter of just have different versions of files.... as their is often a relationship between files, version controls system work on a common timeline for everything in the repo.   </p>
+
+<p>you may argue that objects are self contained, but I disagree... they are linked to firmware versions, potentially header/source files (see filters as an example), and the patches also join them together...<br>(there is even interaction between objects e.g. table/alloc table/read table/play etc) </p>
+
+<p>I guess fundamentally, whilst I see the user might want a different view, the underlying problems of version control for graphical programming is no different from normal coding... its all about keeping things aligned, and being able to manage change.</p>
+
+<p>as I say, Ive no doubt, something with folders/versions numbers/uuid chaining <strong>can</strong> be cobbled together, <br>my fear is your just building a version control system by a different name, so what will happen is over time you will keep adding more and more features.</p>
+
+<p>anyway... just my view, perhaps I'm just so used to version in software development thats its tainting my view, of what might be a simpler problem, with a simpler solution.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/ricard.html'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-05-09T20:48:12Z' itemprop='datePublished'>
+             2016-05-09 20:48:12 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>You're right that essentially, what we're after is version control. (My reference to the VAX/VMS above was just to put some perspective on it). I too am used to cvs and git, so I'm asking myself, in what way might managing objects be different to managing ordinary source code? My gut feeling tells me there is a difference, but I can't really put my finger on it. What follows is me thinking aloud, sorry if it's hard to follow.</p>
+
+<p>For one thing, git and cvs tend to manage a bunch of code which has a common state. Before accepting a new commit to the firmware, the firmware is built and to some extent tested. The new commit represents a new state of the firmware. But if an object is updated, there's no build process which verifies that it is compatible with all patches which might run it, or even with other objects. So each object represents its own state. The dependencies to other objects are not as clear as with software. I think this is one of the core issues. An updated object may break patches, which are not part of the commit.</p>
+
+<p>In the Linux kernel there is a golden rule: no change in the kernel may break userspace. API:s may be added and bugs fixed, but an existing API may not be changed in a way that would cause an existing userspace program to stop working. It's a nice idea, but carrying it over to the Axoloti would mean that objects may never be changed if that means breaking patches, which seems rather harsh. Also, who is going police that? The Linux kernel has a stringent review process to avoid code getting in which will cause problems down the line, and we don't really have that option with the Axoloti. But perhaps that is the way to go. If a new version of an object needs a new interface, it must be given a new name. That would clutter up the namespace though with objects which essentially are obsoleted. Hence the idea of having an 'obsolete' area where they can reside. And there's still the issue of updating the implementation of an object (a filter implementation for instance) which will change its behavior but not its interface. As well as how to maintain a chain of object updates, somehow we want to tell the user that there is a newer version of a given object available, and where to find it.</p>
+
+<p>I think the problem is that we're trying to solve several problems at once, and it essientially is a complex problem. So in order to make it manageble I think we need to make some simple rules, some of which might be a pain to object designers when updating objects in different ways, but on the whole will make the user experience better.</p>
+
+<p>Even if we use a version control system to handle the different versions of objects, we've still got the problem of how to refer to given version, and how to manage chains of object updates.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-05-10T08:59:27Z' itemprop='datePublished'>
+             2016-05-10 08:59:27 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="9" data-topic="1629"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/ricard/40/163_1.html" class="avatar">ricard:</div>
+<blockquote><p>Even if we use a version control system to handle the different versions of objects, we've still got the problem of how to refer to given version, and how to manage chains of object updates.</p></blockquote></aside>
+
+<p>the issue is version numbers are only useful IF they are allocated consistently, and that I think will be impossible to achieve in the community library... as you rightly point out, there we cannot enforce any rules.... and we also have to make it easy for all contributors.</p>
+
+<p>first on reflection, my example using app versions, was not a good ideas....<br>I think using a sequential timeline is the better way... it requires no user intervention.</p>
+
+<p>I agree there are a number of different issues..</p>
+
+<p>lets consider the problem in a few parts...<br>a) ensure we can retrieve the correct objects for an old patch<br>b) retrieving/using old objects<br>c) upgrading</p>
+
+<p>(a) a patch uses libraries, we could when we save the patch store the commit id of the head of each library.  this means for any patch you know exactly which libraries (repo) are used, and the point in their history they were at .</p>
+
+<p>(b) retrieving, you can retrieve any object easily if you know the commit id of the head.<br>the next trick is , how do you use that code?<br>my straw man said, retrieve it, and put it in an embedded object, but thats only one solution, theoretically you load/stream directly from the repo to use... or if that turned out to be slow, you could 'cache' the file (its temporary only, not like a obsolete directory which is permeant) </p>
+
+<p>(c) upgrading <br>easy, the commit log tells you exactly what changes have occurred and when....<br>the change log can be used to describe to the user what changed and when, and as we are doing object by object, they can choose to upgrade one or all, or any combo<br>the could even upgrade in steps i.e. not do that last 'big api' change yet, but leave for another day.</p>
+
+<p>so why use vcs, what does it buy you , over a 'roll your own'... to be more precise, what features might you use , that you would also have to add to a roll your own solution?</p>
+
+<p>well the main thing is commit history.... comments on changes, dates and times of those changes, how those changes related to other changes.<br>(I don't agree objects are always isolated, some objects change together...)</p>
+
+<p>also I think you have a misunderstanding in my approach...<br>I know in conventional coding, we checkout a whole commit, i.e. many files in one go... but thats not how I'm suggesting to use vcs here, Im saying use the individual history an object has.</p>
+
+<p>the other advantage is, it has a toolset in place.... <br>sure most users may not need anything advance, but the ability for an inquiring mind, to be able to diff objects over time, or query the changes between two dates is useful.... especially when debugging why your patches behaviour has changed.</p>
+
+<p>finally... the 'freebies' of a vcs...<br>i imagined when I created the libraries, that I might add features  like 'freeze' , this would basically use tags to allow users to have a snapshot in time of the libraries... so they can freely go back and forth e.g. for performances.<br>or perhaps even add 'user level' support for private repos, so such that an end user can backup their own patches too the cloud, and then retrieve old versions.</p>
+
+<p>of course, my basic premise here  is simple, use the power of a vcs, but hide it from the user... wrap it so they don't need to know the complexities.<br>vcs are great for managing change over time, thousands of hours of development has been done on them to do just that, and they are used by 100,000s of users daily so are robust....</p>
+
+<p>for me, id say I think either approach can work? do you agree?<br>(or do you think there is a fundamental flaw using a vcs which means it cannot work?)</p>
+
+<p>I've suggested the advantages of the vcs approach.</p>
+
+<p>the advantage i can see for a roll your own are,  you aren't tied so much to an implementation/external... perhaps on the surface it appears simpler (as it self contained, so no knowledge of git/jgit needed)</p>
+
+<p>dev effort, id say its pretty similar</p>
+
+<p>anyway, thats just my views... I think both could work, really its a choice....</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-05-13T11:16:58Z' itemprop='datePublished'>
+             2016-05-13 11:16:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ive a few questions for object developers, that I think might raise a few lifecycle questions....</p>
+
+<p><strong>Do you want to be able support your users on multiples versions of Axoloti?</strong></p>
+
+<p>Imagine, we have axoloti 1.2.0 , and you have released "FantasticAndPopular(tm).axo" , which is being used by lots of user, it becomes almost de-facto, its that good. (I can already think of a few community objects/patches that might fit this, but I'll save blushes by naming <img src="../../../images/emoji/emoji_one/slight_smile5e1f.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"> ) </p>
+
+<p>Now we release 1.4.0, which is all singing and dancing, but of course some performers, will probably just want to wait and see, let it settle down. (understandable, its pretty much a recommendation in music circles.<br>But you being the cool developer you are, you continue to develop "FantasticAndPopular(tm).axo", its fairly small changes, with only minor and compatible differences... do you want to also release this for 1.2.0 for your massive and loyal fan base.</p>
+
+<p>If so, how do you think this should be handled? what versions of axoloti will you be using? </p>
+
+<p><strong>Will you be running multiple versions of Axoloti to support the above? or stay on the old version... and allow changes to be propagated?</strong></p>
+
+<p>I guess the questions also circles around, how quickly users can be expected to upgrade... and how to deal with this.<br>e.g. I can imagine object developers may be quite quick, to get the new benefits, but perhaps some of 'your' users, will be much slower... as they are happy with Axoloti as is... but still would want updates to your objects.<br>Im kind of hoping this will provide an 'incentive' for them to upgrade (all developers want users on latest versions, eases support etc) , but is this realistic?</p>
+
+<p>thoughts?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/Sputnki.html'><b itemprop='author'>Sputnki</b></a>
+           
+           <time datetime='2016-11-13T19:32:18Z' itemprop='datePublished'>
+             2016-11-13 19:32:18 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I liked the idea of freezing patches. Maybe a macro that selectively embeds all community objects could save a lot of patches (the important ones, at least).</p>
+
+<p>A "beta" tag could be added inside the xml files and in the object editor, again: an user could be able to easily freeze all beta objects. I guess the problem here comes when you want to unfreeze, do patch/object and patch/patcher remember the original uuid?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Object lifecycle'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../../index.html'>Home</a>
+        <a href="../../../categories.html">Categories</a>
+        <a href="../../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../../tos.html">Terms of Service</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/object-lifecycle/1629/8 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 17:12:44 GMT -->
+</html>

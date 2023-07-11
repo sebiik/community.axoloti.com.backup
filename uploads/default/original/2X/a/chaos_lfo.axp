@@ -1,0 +1,210 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="126" y="168">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="gatemodosc" x="238" y="168">
+      <params>
+         <frac32.s.map name="pitch" value="-8.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_2" x="336" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="randrate" x="448" y="168">
+      <params>
+         <frac32.s.map name="pitch" value="10.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="gatemodamount" x="238" y="266">
+      <params>
+         <frac32.u.map name="amp" value="15.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="drj/lfo/lfo_pwm_u" uuid="a194a5eb6271343f97d28f75811f4b3a41306813" name="gatelfo" x="336" y="266">
+      <params>
+         <frac32.s.map name="pitch" value="-18.5"/>
+         <frac32.u.map name="pw" value="10.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_1" x="448" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="ede72a8f-88cf-47e2-addb-d3d2aa750b13" name="gat" x="448" y="308">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="ede72a8f-88cf-47e2-addb-d3d2aa750b13">
+         <sDescription>while gate is true,in is passed to out.
+if gate is false,the last input of in will be held.</sDescription>
+         <author>robert schirmer</author>
+         <license>who cares</license>
+         <inlets>
+            <frac32 name="in"/>
+            <bool32.risingfalling name="gate"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[   int32_t hold;
+   ]]></code.declaration>
+         <code.init><![CDATA[hold = 0;
+
+]]></code.init>
+         <code.krate><![CDATA[if(inlet_gate >0) {
+	hold = inlet_in;
+	outlet_out = inlet_in;
+}else {
+	outlet_out = inlet_in / 8;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="7481875b-95f1-4bb0-ad59-c07b499dc448" name="mov_avg_1" x="518" y="308">
+      <params/>
+      <attribs>
+         <combo attributeName="length" selection="32"/>
+      </attribs>
+      <object id="patch/object" uuid="7481875b-95f1-4bb0-ad59-c07b499dc448">
+         <sDescription>Moving average, fractional, k-rate</sDescription>
+         <author>Are Leistad</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32 name="in" description="Input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out" description="Moving average output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="length">
+               <MenuEntries>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+                  <string>128</string>
+                  <string>256</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[
+
+      #define FIFO_EXP attr_length
+      #define FIFO_LEN (1<<FIFO_EXP)
+      #define FIFO_MASK (FIFO_LEN-1)
+      typedef struct _AveragerContext
+      {
+        int32_t fifo[FIFO_LEN];
+        int32_t fifo_i;
+        int32_t acc;
+      } AveragerContext;
+      AveragerContext avg;
+      __attribute__ ( ( always_inline ) ) __STATIC_INLINE int32_t moving_average( AveragerContext *avg, int32_t new_value )
+      {
+        avg->fifo_i             = (avg->fifo_i + 1) & FIFO_MASK;
+        avg->acc               -= avg->fifo[avg->fifo_i];
+        avg->acc               += new_value;
+        avg->fifo[avg->fifo_i]  = new_value;
+        return avg->acc >> FIFO_EXP;
+      }
+
+    ]]></code.declaration>
+         <code.init><![CDATA[
+
+      for( avg.fifo_i = 0; avg.fifo_i < FIFO_LEN; avg.fifo_i++ )
+        {
+          avg.fifo[avg.fifo_i] = 0;
+        }
+      avg.fifo_i       = 0;
+      avg.acc          = 0;
+
+    ]]></code.init>
+         <code.krate><![CDATA[
+
+      outlet_out = moving_average( &avg, inlet_in>>FIFO_EXP )<<FIFO_EXP;
+
+    ]]></code.krate>
+         <code.srate><![CDATA[
+
+    ]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="sss/disp/BIGscopeK" uuid="7c48260e-333a-48a3-8fc5-071c814aaef0" name="BIGscopeK_1" x="84" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="randrate" outlet="wave"/>
+         <dest obj="uniform_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="uniform_1" outlet="rand"/>
+         <dest obj="gat" inlet="in"/>
+      </net>
+      <net>
+         <source obj="gatelfo" outlet="pwm"/>
+         <dest obj="gat" inlet="gate"/>
+      </net>
+      <net>
+         <source obj="gatemodamount" outlet="out"/>
+         <dest obj="gatelfo" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="gatemodosc" outlet="wave"/>
+         <dest obj="uniform_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="uniform_2" outlet="rand"/>
+         <dest obj="gatemodamount" inlet="in"/>
+         <dest obj="randrate" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="gatemodosc" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="gat" outlet="out"/>
+         <dest obj="mov_avg_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mov_avg_1" outlet="out"/>
+         <dest obj="BIGscopeK_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-2709</x>
+      <y>-102</y>
+      <width>1162</width>
+      <height>767</height>
+   </windowPos>
+</patch-1.0>

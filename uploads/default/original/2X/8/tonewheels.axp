@@ -1,0 +1,250 @@
+<patch-1.0 appVersion="1.0.9">
+   <patchobj type="patch/object" uuid="8b03c296-8c05-4a5c-9658-abcad2174dcf" name="object_1" x="14" y="14">
+      <params>
+         <frac32.u.map name="f1" value="58.5"/>
+         <frac32.u.map name="f2" value="38.5"/>
+         <frac32.u.map name="f3" value="0.0"/>
+         <frac32.u.map name="f4" value="0.0"/>
+         <frac32.u.map name="f5" value="0.0"/>
+         <frac32.u.map name="f6" value="64.0"/>
+         <frac32.u.map name="f7" value="64.0"/>
+         <frac32.u.map name="f8" value="64.0"/>
+         <frac32.u.map name="f9" value="64.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="8b03c296-8c05-4a5c-9658-abcad2174dcf">
+         <sDescription>description</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets/>
+         <outlets>
+            <frac32buffer.bipolar name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="f1"/>
+            <frac32.u.map name="f2"/>
+            <frac32.u.map name="f3"/>
+            <frac32.u.map name="f4"/>
+            <frac32.u.map name="f5"/>
+            <frac32.u.map name="f6"/>
+            <frac32.u.map name="f7"/>
+            <frac32.u.map name="f8"/>
+            <frac32.u.map name="f9"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[static const int ntw = 91;
+uint8_t keys[128];
+uint32_t phasor[ntw];
+uint32_t amp[ntw+48];
+uint32_t twf[ntw]={
+(uint32_t)((1u<<31)*(	32.692	/24000.f)),
+(uint32_t)((1u<<31)*(	34.634	/24000.f)),
+(uint32_t)((1u<<31)*(	36.712	/24000.f)),
+(uint32_t)((1u<<31)*(	38.889	/24000.f)),
+(uint32_t)((1u<<31)*(	41.2	/24000.f)),
+(uint32_t)((1u<<31)*(	43.636	/24000.f)),
+(uint32_t)((1u<<31)*(	46.25	/24000.f)),
+(uint32_t)((1u<<31)*(	49	/24000.f)),
+(uint32_t)((1u<<31)*(	51.892	/24000.f)),
+(uint32_t)((1u<<31)*(	55	/24000.f)),
+(uint32_t)((1u<<31)*(	58.261	/24000.f)),
+(uint32_t)((1u<<31)*(	61.714	/24000.f)),
+(uint32_t)((1u<<31)*(	65.385	/24000.f)),
+(uint32_t)((1u<<31)*(	69.268	/24000.f)),
+(uint32_t)((1u<<31)*(	73.425	/24000.f)),
+(uint32_t)((1u<<31)*(	77.778	/24000.f)),
+(uint32_t)((1u<<31)*(	82.4	/24000.f)),
+(uint32_t)((1u<<31)*(	87.273	/24000.f)),
+(uint32_t)((1u<<31)*(	92.5	/24000.f)),
+(uint32_t)((1u<<31)*(	98	/24000.f)),
+(uint32_t)((1u<<31)*(	103.784	/24000.f)),
+(uint32_t)((1u<<31)*(	110	/24000.f)),
+(uint32_t)((1u<<31)*(	116.522	/24000.f)),
+(uint32_t)((1u<<31)*(	123.429	/24000.f)),
+(uint32_t)((1u<<31)*(	130.769	/24000.f)),
+(uint32_t)((1u<<31)*(	138.537	/24000.f)),
+(uint32_t)((1u<<31)*(	146.849	/24000.f)),
+(uint32_t)((1u<<31)*(	155.556	/24000.f)),
+(uint32_t)((1u<<31)*(	164.8	/24000.f)),
+(uint32_t)((1u<<31)*(	174.545	/24000.f)),
+(uint32_t)((1u<<31)*(	185	/24000.f)),
+(uint32_t)((1u<<31)*(	196	/24000.f)),
+(uint32_t)((1u<<31)*(	207.568	/24000.f)),
+(uint32_t)((1u<<31)*(	220	/24000.f)),
+(uint32_t)((1u<<31)*(	233.043	/24000.f)),
+(uint32_t)((1u<<31)*(	246.857	/24000.f)),
+(uint32_t)((1u<<31)*(	261.538	/24000.f)),
+(uint32_t)((1u<<31)*(	277.073	/24000.f)),
+(uint32_t)((1u<<31)*(	293.699	/24000.f)),
+(uint32_t)((1u<<31)*(	311.111	/24000.f)),
+(uint32_t)((1u<<31)*(	329.6	/24000.f)),
+(uint32_t)((1u<<31)*(	349.091	/24000.f)),
+(uint32_t)((1u<<31)*(	370	/24000.f)),
+(uint32_t)((1u<<31)*(	392	/24000.f)),
+(uint32_t)((1u<<31)*(	415.135	/24000.f)),
+(uint32_t)((1u<<31)*(	440	/24000.f)),
+(uint32_t)((1u<<31)*(	466.087	/24000.f)),
+(uint32_t)((1u<<31)*(	493.714	/24000.f)),
+(uint32_t)((1u<<31)*(	523.077	/24000.f)),
+(uint32_t)((1u<<31)*(	554.146	/24000.f)),
+(uint32_t)((1u<<31)*(	587.397	/24000.f)),
+(uint32_t)((1u<<31)*(	622.222	/24000.f)),
+(uint32_t)((1u<<31)*(	659.2	/24000.f)),
+(uint32_t)((1u<<31)*(	698.182	/24000.f)),
+(uint32_t)((1u<<31)*(	740	/24000.f)),
+(uint32_t)((1u<<31)*(	784	/24000.f)),
+(uint32_t)((1u<<31)*(	830.27	/24000.f)),
+(uint32_t)((1u<<31)*(	880	/24000.f)),
+(uint32_t)((1u<<31)*(	932.174	/24000.f)),
+(uint32_t)((1u<<31)*(	987.429	/24000.f)),
+(uint32_t)((1u<<31)*(	1046.154	/24000.f)),
+(uint32_t)((1u<<31)*(	1108.293	/24000.f)),
+(uint32_t)((1u<<31)*(	1174.795	/24000.f)),
+(uint32_t)((1u<<31)*(	1244.444	/24000.f)),
+(uint32_t)((1u<<31)*(	1318.4	/24000.f)),
+(uint32_t)((1u<<31)*(	1396.364	/24000.f)),
+(uint32_t)((1u<<31)*(	1480	/24000.f)),
+(uint32_t)((1u<<31)*(	1568	/24000.f)),
+(uint32_t)((1u<<31)*(	1660.541	/24000.f)),
+(uint32_t)((1u<<31)*(	1760	/24000.f)),
+(uint32_t)((1u<<31)*(	1864.348	/24000.f)),
+(uint32_t)((1u<<31)*(	1974.857	/24000.f)),
+(uint32_t)((1u<<31)*(	2092.308	/24000.f)),
+(uint32_t)((1u<<31)*(	2216.585	/24000.f)),
+(uint32_t)((1u<<31)*(	2349.589	/24000.f)),
+(uint32_t)((1u<<31)*(	2488.889	/24000.f)),
+(uint32_t)((1u<<31)*(	2636.8	/24000.f)),
+(uint32_t)((1u<<31)*(	2792.727	/24000.f)),
+(uint32_t)((1u<<31)*(	2960	/24000.f)),
+(uint32_t)((1u<<31)*(	3136	/24000.f)),
+(uint32_t)((1u<<31)*(	3321.081	/24000.f)),
+(uint32_t)((1u<<31)*(	3520	/24000.f)),
+(uint32_t)((1u<<31)*(	3728.696	/24000.f)),
+(uint32_t)((1u<<31)*(	3949.714	/24000.f)),
+(uint32_t)((1u<<31)*(	4189.091	/24000.f)),
+(uint32_t)((1u<<31)*(	4440	/24000.f)),
+(uint32_t)((1u<<31)*(	4704	/24000.f)),
+(uint32_t)((1u<<31)*(	4981.622	/24000.f)),
+(uint32_t)((1u<<31)*(	5280	/24000.f)),
+(uint32_t)((1u<<31)*(	5593.043	/24000.f)),
+(uint32_t)((1u<<31)*(	5924.571	/24000.f))
+};
+
+]]></code.declaration>
+         <code.init><![CDATA[int i;
+for(i=0;i<ntw;i++) {
+	phasor[ntw]=0;
+	amp[ntw]=0;
+}
+amp[ntw-1]=1<<28;
+]]></code.init>
+         <code.krate><![CDATA[
+int i;
+for(i=0;i<ntw;i++){
+	amp[i]=0;
+}
+
+int32_t f1 = param_f1>>5;
+int32_t f2 = param_f2>>5;
+int32_t f3 = param_f3>>5;
+int32_t f4 = param_f4>>5;
+int32_t f5 = param_f5>>5;
+int32_t f6 = param_f6>>5;
+int32_t f7 = param_f7>>5;
+int32_t f8 = param_f8>>5;
+int32_t f9 = param_f9>>5;
+
+for(i=0;i<ntw;i++){
+	if (keys[i+24]) {
+		amp[i] += f1;
+		amp[i+19] += f2;
+		amp[i+12] += f3;
+		amp[i+24] += f4;
+		amp[i+31] += f5;
+		amp[i+36] += f6;
+		amp[i+40] += f7;
+		amp[i+43] += f8;
+		amp[i+48] += f9;
+	}
+}
+
+for(i=0;i<BUFSIZE;i++) {
+	outlet_out[i]=0;
+}
+
+int j;
+
+for(i=0;i<ntw;i++) {
+	for(j=0;j<BUFSIZE;j++) {
+		uint32_t p2 = phasor[i];
+		p2 += twf[i];
+		phasor[i] = p2;
+		int32_t r;	
+		SINE2TINTERP(p2,r)
+		outlet_out[j] = __SMMLA(r,amp[i],outlet_out[j]);
+	}
+}
+]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_midichannel) && (data2)) {
+   keys[data1]=1;
+} else if (((status == MIDI_NOTE_ON + attr_midichannel) && (!data2))||(status == MIDI_NOTE_OFF + attr_midichannel)) {
+   keys[data1]=0;
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="math/gain" uuid="62b1c1a6337c7c8f6aec96408a432477b113cfa0" name="gain_1" x="98" y="14">
+      <params>
+         <frac32.u.map name="amp" value="6.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="dist/soft" uuid="e680d76a805e4866027cdf654c7efd8b2e54622" name="soft_1" x="210" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="fx/chorus" uuid="222924b0-d303-45d6-8ae5-45f77ac802e1" name="obj_1" x="280" y="14">
+      <params>
+         <frac32.u.map name="depth" value="1.0"/>
+         <frac32.s.map name="speed" value="1.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="392" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="obj_1" outlet="L"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="obj_1" outlet="R"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="soft_1" outlet="out"/>
+         <dest obj="obj_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="out"/>
+         <dest obj="gain_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="gain_1" outlet="out"/>
+         <dest obj="soft_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>697</x>
+      <y>478</y>
+      <width>713</width>
+      <height>641</height>
+   </windowPos>
+</patch-1.0>

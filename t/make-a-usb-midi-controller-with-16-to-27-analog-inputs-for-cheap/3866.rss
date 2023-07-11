@@ -1,0 +1,750 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+    <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866</link>
+    <description>Hi everyone!
+Here&#39;s how to make a USB midi controller for dirt cheap! 
+This one has has a red breakoutboard that you can attach 16 analog potentiometers to.
+The user @SmashedTransistors reminded me that If you choose to utilize the remaining analog inputs on the Teensy then this project will end up adding up to **27 inputs!!!**
+
+what you&#39;ll need:
+
+* 1 Teensy LC ---&gt; [buy from pjrc]( https://www.pjrc.com/store/teensylc.html ) $11.65
+* 1  CD74HC4067 breakout board ---&gt; [buy from sparkfun]( https://www.sparkfun.com/products/9056) ($4.95)
+* 1 to 16 10k linear B potentiometers. ---&gt; [buy from ebay](http://www.ebay.ca/itm/5pcs-B10K-10Kohm-Linear-Taper-Rotary-Potentiometer-Panel-Pot-/232421935652?hash=item361d6d4a24:g:YGMAAOSw0UNZdVR1) (5pc for $1.25)
+* 1 Breadboard -----&gt; [buy from ebay](http://www.ebay.ca/itm/1PCS-Mini-Prototype-Solderless-Breadboard-400-Contacts-For-arduino-Raspberry-pi-/151909047511?hash=item235e7c1cd7:g:6AMAAOSw7FRWZlbJ) ($1.50)
+* Wire....pennies per ft! buy lots because its always handy to have lots of.
+
+
+**Step 1:**
+Once you have all these items wire them up together like this...for simplicity sake only 3 potentiometers are shown but you can connect 16, just remember to connect any additional pots to +/- and the center pins of the potentiometers go to the &quot;C&quot; pins on the red breakout board. 
+https://i.imgur.com/i63aWzf.png
+
+**Step 2:**
+Install Arduino 1.8.4 (newer versions don&#39;t support teensy LC yet :( )
+Get it here ---&gt;  https://www.arduino.cc/en/Main/OldSoftwareReleases
+
+**Step 3:**
+Install the Teensy loader application 
+Get it here ---&gt; https://www.pjrc.com/teensy/loader.html
+
+**Step 4:**
+Plug your Teensy into your computer via usb...
+
+**Step 5:**
+Open Arduino 1.8.4 and click &quot;tools&quot; and then set the board type to Teensy LC
+https://i.imgur.com/mBqmiNm.png
+
+**Step 6:**
+Click tools and also set the USB type to MIDI
+https://i.imgur.com/qLzFDnu.png
+
+**Step 7:**
+Delete the &quot;void setup&quot; and &quot;loop setup&quot; code so you have a nice blank page in arduino. 
+https://i.imgur.com/ViDcOmL.png
+
+**Step 8:**
+Paste this code into the blank page
+
+    //************LIBRARIES USED**************
+    // include the ResponsiveAnalogRead library for analog smoothing
+    #include &lt;ResponsiveAnalogRead.h&gt;
+    //usbMIDI.h library is added automatically when code is compiled as a MIDI device
+
+    // ******CONSTANT VALUES******** 
+    // customize code behaviour here!
+    const int muxTimeMin = 500; // minimum micro-seconds between MUX reads 
+    const int channel = 1; // MIDI channel
+    const int MUX_PINS = 16; // number of MUX Channnels
+
+    // define the CC ID numbers on which to send them..
+
+    const int CCID[MUX_PINS] = {70,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36};
+
+
+    //******VARIABLES***********
+    // a data array and a lagged copy to tell when MIDI changes are required
+    byte data[MUX_PINS];
+    byte dataLag[MUX_PINS]; // when lag and new are not the same then update MIDI CC value
+    byte i=0; // global index for MUX channel reads
+
+    //mapping of mux to teensy digital pins
+    int pin_Out_S0 = 4;
+    int pin_Out_S1 = 3;
+    int pin_Out_S2 = 2;
+    int pin_Out_S3 = 1;
+    int pin_In_Mux1 = A0;
+
+
+    //****** TIMER VARIABLE *** change scale here!
+    elapsedMicros mux1Updated; // switch to micros to run at speed and tune with muxTimeMin setting above
+    //elapsedMillis mux1Updated; // switch to millis to troubleshoot 
+
+    //************INITIALIZE LIBRARY OBJECTS**************
+    // initialize the ReponsiveAnalogRead objects
+    ResponsiveAnalogRead analog[]{
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true},
+      {pin_In_Mux1 ,true}
+    }; 
+
+
+
+    //************SETUP**************
+    void setup() {
+      //! don&#39;t forget to set for output!
+      pinMode(pin_Out_S0, OUTPUT);
+      pinMode(pin_Out_S1, OUTPUT);
+      pinMode(pin_Out_S2, OUTPUT);
+      pinMode(pin_Out_S3, OUTPUT);
+    }
+
+    //************LOOP**************
+    void loop() {
+      nextMUXpin();
+      while (usbMIDI.read()) {
+         // controllers must call .read() to keep the queue clear even if they are not responding to MIDI
+      }
+    }
+
+
+    //************MUX SECTION**************
+    void nextMUXpin(){  
+      if (mux1Updated&gt;muxTimeMin) {  
+        // update the ResponsiveAnalogRead object every loop
+        analog[i].update(); 
+        // if the repsonsive value has change, print out &#39;changed&#39;
+        if(analog[i].hasChanged()) {
+          data[i] = analog[i].getValue()&gt;&gt;3;
+          if (data[i] != dataLag[i]){
+            dataLag[i] = data[i];
+            usbMIDI.sendControlChange(CCID[i], data[i], channel);
+            serialPringMIDIdata(); // use to troublshoot
+          }
+        }  
+
+        //reset timer
+        mux1Updated = 0; 
+        //increment index
+        i++;
+        if (i&gt;15)   {i=0;}      
+        // set mux control pins for next pass
+        digitalWrite(pin_Out_S0, HIGH &amp;&amp; (i &amp; B00000001));
+        digitalWrite(pin_Out_S1, HIGH &amp;&amp; (i &amp; B00000010));
+        digitalWrite(pin_Out_S2, HIGH &amp;&amp; (i &amp; B00000100));
+        digitalWrite(pin_Out_S3, HIGH &amp;&amp; (i &amp; B00001000));
+      }
+    }
+
+    // **useful for debugging, comment out function call to run full speed
+    void serialPringMIDIdata(){
+      Serial.print(i,DEC);
+      Serial.print(&quot; :&quot;);
+      Serial.print(HIGH &amp;&amp; (i &amp; B00000001),BIN);
+      Serial.print(HIGH &amp;&amp; (i &amp; B00000010),BIN);
+      Serial.print(HIGH &amp;&amp; (i &amp; B00000100),BIN);
+      Serial.print(HIGH &amp;&amp; (i &amp; B00001000),BIN);
+      Serial.print(&quot; MUX_PIN: &quot;);
+      Serial.print(i,DEC); 
+      Serial.print(&quot; CC: &quot;);
+      Serial.print(CCID[i],DEC); 
+      Serial.print(&quot; DATA HEX: &quot;);
+      Serial.println(data[i],HEX); 
+    }
+
+
+ It was made by the user oddson over at the Teensy forum (https://forum.pjrc.com) ... [HERE](https://forum.pjrc.com/threads/46571-Teensy-LC-CD74HC4051-multiplex-Midi-problem/page2) is a link to the full thread if you&#39;re bored and wanna see how he developed it. 
+
+To set the CC values of the C0 pins on the red breakoutboard, change the values in the &quot;const int CCID[MUX_PINS] = {70,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36};&quot;  to whatever you want! left to right (70 to 36) are c0 to c15
+
+**Step 9:**
+Click &quot;verify&quot; 
+https://i.imgur.com/UCf5PQJ.png
+Wait a little while and allow the arduino software to verify and compile the code. 
+
+**Step 10:**
+Once its done compiling, click &quot;upload&quot; 
+https://i.imgur.com/twCl2Hg.png
+
+**Step 11:**
+Plug your fancy new DIY midi controller into the axoloti and enjoy!
+
+Note: this USB midi controller is gunna take up your USB port..not ideal if you want to use a USB keyboard....I&#39;ll make another tutorial on how to hardwire one of these directly to the MIDI in pins once I figure it out...many people have attempted to help me so far but I&#39;m pretty dense and haven&#39;t been able to get it to work yet....:sweat_smile:</description>
+    
+    <lastBuildDate>Tue, 17 Dec 2019 00:36:05 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@milibeauty]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/milibeauty">@milibeauty</a> wrote:</p>
+          <blockquote>
+              <p>I really didn't think of it... I may try this method on the other projects. Thank you.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/20</link>
+        <pubDate>Tue, 17 Dec 2019 00:36:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-20</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@axism]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/axism">@axism</a> wrote:</p>
+          <blockquote>
+              <p>Hello.  It not directly relate but notesandvolts member on youtube have good tutorial for how to do many control with midi using mux method.  It can be handy for lots of controls into few connections.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/19</link>
+        <pubDate>Sat, 14 Dec 2019 15:43:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-19</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>We understand that you need  CC for every knob. <br>But, you can use the same selectors (1,2,3,4) on both mux, and use A8 for knob 0-15, and A9 for knob 16-31. <br>So, you only use 6 Axoloti pins, instead of 10.</p>
+
+<p>If this did not work, then there was an error in your wiring or your code.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/18</link>
+        <pubDate>Thu, 12 Dec 2019 14:32:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-18</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@milibeauty]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/milibeauty">@milibeauty</a> wrote:</p>
+          <blockquote>
+              <p>I need a list of CC number to control every knobs in the patch. Use the same outputs is unstable for the signal</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/17</link>
+        <pubDate>Thu, 12 Dec 2019 07:44:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-17</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Why don't you reuse the same outputs to control both 4067 ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/16</link>
+        <pubDate>Tue, 10 Dec 2019 22:55:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-16</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@mlinton Mark Linton]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mlinton">@mlinton</a> wrote:</p>
+          <blockquote>
+              <p>Can you post the basics of what you've done (parts used), I want to do something very similar.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/15</link>
+        <pubDate>Tue, 10 Dec 2019 21:35:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-15</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@milibeauty]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/milibeauty">@milibeauty</a> wrote:</p>
+          <blockquote>
+              <p>Thank you guys again<br>I just figured it out!!<br>I duplicated the code and set all data into double, and it worked!!<br>I‘ve been tracking this webpage for half a year(A chinese girl who wasn't good at english and was using translation software to understand what I see LOL) and my little instrument has been through 3 versions...  I'll send my project here after the exhibition this weekend!!!!!<br>Thank you so much~~~~~</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/14</link>
+        <pubDate>Mon, 09 Dec 2019 09:17:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-14</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@milibeauty]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/milibeauty">@milibeauty</a> wrote:</p>
+          <blockquote>
+              <p>I'm using 1,2,3,4 and A9 for the first mux, and 5,6,7,8 plus A8 for the second mux.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/13</link>
+        <pubDate>Mon, 09 Dec 2019 06:40:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-13</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>What value pots are you using?<br>How many pots are you using?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/12</link>
+        <pubDate>Mon, 09 Dec 2019 06:34:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-12</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@milibeauty]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/milibeauty">@milibeauty</a> wrote:</p>
+          <blockquote>
+              <p>Thank you</p>
+
+<p>I've tried but the CC numbers are messy with each other and the signal is not stable... Some knobs can control more than 1 signal and I can't fix it. Here's my code, can you help me?</p>
+
+<p>//************LIBRARIES USED**************<br>// include the ResponsiveAnalogRead library for analog smoothing</p>
+
+<h1>include </h1>
+
+<h1>include </h1>
+
+<p>int RUN = 7;<br>//usbMIDI.h library is added automatically when code is compiled as a MIDI device</p>
+
+<p>// ******CONSTANT VALUES******** <br>// customize code behaviour here!<br>const int muxTimeMin = 500; // minimum micro-seconds between MUX reads <br>const int channel = 1; // MIDI channel<br>const int MUX1_PINS = 16; // number of MUX Channnels<br>const int MUX2_PINS = 16;</p>
+
+<p>// define the CC ID numbers on which to send them..</p>
+
+<p>const int CCID1[MUX1_PINS] = {18,17,16,15,14,13,12,11,28,27,26,25,24,23,22,21};<br>const int CCID2[MUX2_PINS] = {0,1,2,10,31,32,33,34,35,36,20,3,4,5,6,30};</p>
+
+<p>//******VARIABLES***********<br>// a data array and a lagged copy to tell when MIDI changes are required<br>byte data1[MUX1_PINS];<br>byte dataLag1[MUX1_PINS]; // when lag and new are not the same then update MIDI CC value<br>byte i=0; // global index for MUX channel reads<br>byte data2[MUX2_PINS];<br>byte dataLag2[MUX2_PINS]; </p>
+
+<p>//mapping of mux to teensy digital pins<br>int pin_Out1_S0 = 1;<br>int pin_Out1_S1 = 2;<br>int pin_Out1_S2 = 3;<br>int pin_Out1_S3 = 4;<br>int pin_In_Mux1 = A9;</p>
+
+<p>int pin_Out2_S0 = 5;<br>int pin_Out2_S1 = 6;<br>int pin_Out2_S2 = 7;<br>int pin_Out2_S3 = 8;<br>int pin_In_Mux2 = A8;</p>
+
+<p>//****** TIMER VARIABLE *** change scale here!<br>elapsedMicros mux1Updated; // switch to micros to run at speed and tune with muxTimeMin setting above<br>//elapsedMillis mux1Updated; // switch to millis to troubleshoot </p>
+
+<p>//************INITIALIZE LIBRARY OBJECTS**************<br>// initialize the ReponsiveAnalogRead objects<br>ResponsiveAnalogRead analog1[]{<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>  {pin_In_Mux1 ,true},<br>};<br>ResponsiveAnalogRead analog2[]{<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true},<br>  {pin_In_Mux2 ,true}<br>}; </p>
+
+<p>//************SETUP**************<br>void setup() {<br>  //! don't forget to set for output!<br>  pinMode(pin_Out1_S0, OUTPUT);<br>  pinMode(pin_Out1_S1, OUTPUT);<br>  pinMode(pin_Out1_S2, OUTPUT);<br>  pinMode(pin_Out1_S3, OUTPUT);<br>  pinMode(pin_Out2_S0, OUTPUT);<br>  pinMode(pin_Out2_S1, OUTPUT);<br>  pinMode(pin_Out2_S2, OUTPUT);<br>  pinMode(pin_Out2_S3, OUTPUT);<br>   Serial.begin(31250);<br>  pinMode(RUN, INPUT);<br>}</p>
+
+<p>//************LOOP**************<br>void loop() {</p>
+
+<p>  int STATE = digitalRead(RUN);<br>  Serial.println(RUN);<br>  delay(1);</p>
+
+<p>  nextMUXpin();<br>  while (usbMIDI.read()) {<br>     // controllers must call .read() to keep the queue clear even if they are not responding to MIDI<br>  }<br>}</p>
+
+<p>//************MUX SECTION**************<br>void nextMUXpin(){<br>  if (mux1Updated&gt;muxTimeMin) {<br>    // update the ResponsiveAnalogRead object every loop<br>    analog1[i].update(); <br>    analog2[i].update(); <br>    // if the repsonsive value has change, print out 'changed'<br>    if(analog1[i].hasChanged()) {<br>      data1[i] = analog1[i].getValue()&gt;&gt;3;<br>      if (data1[i] != dataLag1[i]){<br>        dataLag1[i] = data1[i];<br>        usbMIDI.sendControlChange(CCID1[i], data1[i], channel);<br>        serialPringMIDIdata(); // use to troublshoot<br>      }<br>    }<br>    if(analog2[i].hasChanged()) {<br>      data2[i] = analog2[i].getValue()&gt;&gt;3;<br>      if (data2[i] != dataLag2[i]){<br>        dataLag2[i] = data2[i];<br>        usbMIDI.sendControlChange(CCID2[i], data2[i], channel);<br>        serialPringMIDIdata(); // use to troublshoot<br>      }<br>    }  </p>
+
+<pre><code>//reset timer
+mux1Updated = 0; 
+//increment index
+i++;
+if (i&gt;15)   {i=0;}      
+// set mux control pins for next pass
+digitalWrite(pin_Out1_S0, HIGH &amp;&amp; (i &amp; B00000001));
+digitalWrite(pin_Out1_S1, HIGH &amp;&amp; (i &amp; B00000010));
+digitalWrite(pin_Out1_S2, HIGH &amp;&amp; (i &amp; B00000100));
+digitalWrite(pin_Out1_S3, HIGH &amp;&amp; (i &amp; B00001000));
+
+digitalWrite(pin_Out2_S0, HIGH &amp;&amp; (i &amp; B00000001));
+digitalWrite(pin_Out2_S1, HIGH &amp;&amp; (i &amp; B00000010));
+digitalWrite(pin_Out2_S2, HIGH &amp;&amp; (i &amp; B00000100));
+digitalWrite(pin_Out2_S3, HIGH &amp;&amp; (i &amp; B00001000));</code></pre>
+
+<p>  }<br>}</p>
+
+<p>// **useful for debugging, comment out function call to run full speed<br>void serialPringMIDIdata(){<br>  Serial.print(i,DEC);<br>  Serial.print(" :");<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00000001),BIN);<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00000010),BIN);<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00000100),BIN);<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00001000),BIN);<br>  Serial.print(" MUX_PIN: ");<br>  Serial.print(i,DEC); <br>  Serial.print(" CC: ");<br>  Serial.print(CCID1[i],DEC); <br>  Serial.print(" DATA HEX: ");<br>  Serial.println(data1[i],HEX); </p>
+
+<p>  Serial.print(i,DEC);<br>  Serial.print(" :");<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00000001),BIN);<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00000010),BIN);<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00000100),BIN);<br>  Serial.print(HIGH &amp;&amp; (i &amp; B00001000),BIN);<br>  Serial.print(" MUX_PIN: ");<br>  Serial.print(i,DEC); <br>  Serial.print(" CC: ");<br>  Serial.print(CCID2[i],DEC); <br>  Serial.print(" DATA HEX: ");<br>  Serial.println(data2[i],HEX); <br>}</p>
+
+<p>yes I also wrote a button for the start function but it still not work either...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/11</link>
+        <pubDate>Mon, 09 Dec 2019 03:43:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-11</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@synthy]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/synthy">@synthy</a> wrote:</p>
+          <blockquote>
+              <p>Just make another analog in pin like int pin_In_Mux2 = A1; And add  all code with Mux1, but then Mux2</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/10</link>
+        <pubDate>Sat, 30 Nov 2019 21:21:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-10</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@milibeauty]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/milibeauty">@milibeauty</a> wrote:</p>
+          <blockquote>
+              <p>About one problem you didn't mention, I can't find teensy lc board in the tools list, so I google it, turns out I need to download a file called teensyduino on PJRC.com/ , and now it's solved. </p>
+
+<p>Also I wanna know if I wanna use two 4067 on one LC board, how should I change the code?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/9</link>
+        <pubDate>Fri, 22 Nov 2019 03:49:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-9</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/androoclops">@Androoclops</a>,</p>
+
+<p>My goal is to make the simplest and fastest way to scan a 12 x 5 FSR matrix <img src="//community.axoloti.com/images/emoji/twitter/roll_eyes.png?v=5" title=":roll_eyes:" class="emoji" alt=":roll_eyes:"> </p>
+
+<p>I have a few questions regarding multiplexing and the teensy LC.</p>
+
+<ul>
+<li><p>What is the maximum multiplexing speed it can achieve with the 4067 ?</p></li>
+<li><p>Does the teensy LC digital outputs can be set to open drain ?</p></li>
+<li>
+<p>If so, how much current can they handle ?</p>
+<ul><li>self answer about drive current : <a href="https://forum.pjrc.com/threads/27624-Coming-Soon-Teensy-LC-(low-cost-Teensy)?s=38b93fb5c0ee827d6b1306a84d99a1de&amp;p=62969&amp;viewfull=1#post62969">Teensy LC thread</a> : 5mA on most outputs excepted 4 outputs that are 20mA <img src="//community.axoloti.com/images/emoji/twitter/face_with_raised_eyebrow.png?v=5" title=":face_with_raised_eyebrow:" class="emoji" alt=":face_with_raised_eyebrow:">
+</li></ul>
+</li>
+<li><p>how good are the analog inputs on the teensy. (On the Axoloti, i find them quite jittery and i may say that 8 bits out of 12 are usable, even with shielding).</p></li>
+</ul>
+
+<p>Sorry for this bunch of questions, but i think i am hooked.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/8</link>
+        <pubDate>Sun, 22 Oct 2017 13:05:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-8</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@timeorspace Tim]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/timeorspace">@timeorspace</a> wrote:</p>
+          <blockquote>
+              <p>amazing the money we save DIY... I've watched that vid before... well, ok, a few times. cheers!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/7</link>
+        <pubDate>Sun, 22 Oct 2017 00:22:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-7</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@Androoclops]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/androoclops">@Androoclops</a> wrote:</p>
+          <blockquote>
+              <p>oh yeah, heres a video of how to make one without a breakout board <br></p><div class="lazyYT" data-youtube-id="aVf_el4N0tI" data-youtube-title="How To Build A DIY MIDI Controller (2015 Edition)" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div><br>I've done this tutorial before, its quite simple and fun.
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/6</link>
+        <pubDate>Sat, 21 Oct 2017 21:59:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-6</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@Androoclops]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/androoclops">@Androoclops</a> wrote:</p>
+          <blockquote>
+              <p>cool! Post that project when you're done!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/5</link>
+        <pubDate>Sat, 21 Oct 2017 21:57:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-5</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>12, wow, just what i need.<br>I'm investigating how to make a very compact pressure sensitive (poly aftertouch) 60 key keyboard arranged in a 12 x 5 matrix...<br>At the moment, i plan to implement it on the Axoloti, but the teensy is smaller and best fitted for a midi project without audio.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/4</link>
+        <pubDate>Sat, 21 Oct 2017 21:54:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-4</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@Androoclops]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/androoclops">@Androoclops</a> wrote:</p>
+          <blockquote>
+              <p>12 I believe. <br>Adding this board to it increases the number to 27 .</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/3</link>
+        <pubDate>Sat, 21 Oct 2017 21:51:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-3</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@SmashedTransistors]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/smashedtransistors">@SmashedTransistors</a> wrote:</p>
+          <blockquote>
+              <p>Thanks <a class="mention" href="/u/androoclops">@Androoclops</a> !</p>
+
+<p>How many usable analog inputs does the teensy LC have without the 4067 ?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/2</link>
+        <pubDate>Sat, 21 Oct 2017 21:47:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-2</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+      <item>
+        <title>Make a USB midi controller with 16 (to 27) analog inputs for cheap!</title>
+        <dc:creator><![CDATA[@Androoclops]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/androoclops">@Androoclops</a> wrote:</p>
+          <blockquote>
+              <p>Hi everyone!<br>Here's how to make a USB midi controller for dirt cheap! <br>This one has has a red breakoutboard that you can attach 16 analog potentiometers to.<br>The user <a class="mention" href="/u/smashedtransistors">@SmashedTransistors</a> reminded me that If you choose to utilize the remaining analog inputs on the Teensy then this project will end up adding up to <strong>27 inputs!!!</strong></p>
+
+<p>what you'll need:</p>
+
+<ul>
+<li>1 Teensy LC ---&gt; <a href="https://www.pjrc.com/store/teensylc.html" rel="nofollow noopener">buy from pjrc</a> $11.65</li>
+<li>1  CD74HC4067 breakout board ---&gt; <a href="https://www.sparkfun.com/products/9056" rel="nofollow noopener">buy from sparkfun</a> ($4.95)</li>
+<li>1 to 16 10k linear B potentiometers. ---&gt; <a href="http://www.ebay.ca/itm/5pcs-B10K-10Kohm-Linear-Taper-Rotary-Potentiometer-Panel-Pot-/232421935652?hash=item361d6d4a24:g:YGMAAOSw0UNZdVR1" rel="nofollow noopener">buy from ebay</a> (5pc for $1.25)</li>
+<li>1 Breadboard -----&gt; <a href="http://www.ebay.ca/itm/1PCS-Mini-Prototype-Solderless-Breadboard-400-Contacts-For-arduino-Raspberry-pi-/151909047511?hash=item235e7c1cd7:g:6AMAAOSw7FRWZlbJ" rel="nofollow noopener">buy from ebay</a> ($1.50)</li>
+<li>Wire....pennies per ft! buy lots because its always handy to have lots of.</li>
+</ul>
+
+<p><strong>Step 1:</strong><br>Once you have all these items wire them up together like this...for simplicity sake only 3 potentiometers are shown but you can connect 16, just remember to connect any additional pots to +/- and the center pins of the potentiometers go to the "C" pins on the red breakout board. <br>          <a href="https://i.imgur.com/i63aWzf.png" target="_blank" rel="nofollow noopener">
+            <img src="https://i.imgur.com/i63aWzf.png" width="690" height="446">
+          </a>
+</p>
+
+<p><strong>Step 2:</strong><br>Install Arduino 1.8.4 (newer versions don't support teensy LC yet <img src="//community.axoloti.com/images/emoji/twitter/frowning.png?v=5" title=":frowning:" class="emoji" alt=":frowning:"> )<br>Get it here ---&gt;  <a href="https://www.arduino.cc/en/Main/OldSoftwareReleases" rel="nofollow noopener">https://www.arduino.cc/en/Main/OldSoftwareReleases</a></p>
+
+<p><strong>Step 3:</strong><br>Install the Teensy loader application <br>Get it here ---&gt; <a href="https://www.pjrc.com/teensy/loader.html" rel="nofollow noopener">https://www.pjrc.com/teensy/loader.html</a></p>
+
+<p><strong>Step 4:</strong><br>Plug your Teensy into your computer via usb...</p>
+
+<p><strong>Step 5:</strong><br>Open Arduino 1.8.4 and click "tools" and then set the board type to Teensy LC<br>          <a href="https://i.imgur.com/mBqmiNm.png" target="_blank" rel="nofollow noopener">
+            <img src="https://i.imgur.com/mBqmiNm.png" width="690" height="395">
+          </a>
+</p>
+
+<p><strong>Step 6:</strong><br>Click tools and also set the USB type to MIDI<br>          <a href="https://i.imgur.com/qLzFDnu.png" target="_blank" rel="nofollow noopener">
+            <img src="https://i.imgur.com/qLzFDnu.png" width="690" height="435">
+          </a>
+</p>
+
+<p><strong>Step 7:</strong><br>Delete the "void setup" and "loop setup" code so you have a nice blank page in arduino. <br>          <a href="https://i.imgur.com/ViDcOmL.png" target="_blank" rel="nofollow noopener">
+            <img src="https://i.imgur.com/ViDcOmL.png" width="690" height="426">
+          </a>
+</p>
+
+<p><strong>Step 8:</strong><br>Paste this code into the blank page</p>
+
+<pre><code>//************LIBRARIES USED**************
+// include the ResponsiveAnalogRead library for analog smoothing
+#include &lt;ResponsiveAnalogRead.h&gt;
+//usbMIDI.h library is added automatically when code is compiled as a MIDI device
+
+// ******CONSTANT VALUES******** 
+// customize code behaviour here!
+const int muxTimeMin = 500; // minimum micro-seconds between MUX reads 
+const int channel = 1; // MIDI channel
+const int MUX_PINS = 16; // number of MUX Channnels
+
+// define the CC ID numbers on which to send them..
+
+const int CCID[MUX_PINS] = {70,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36};
+
+
+//******VARIABLES***********
+// a data array and a lagged copy to tell when MIDI changes are required
+byte data[MUX_PINS];
+byte dataLag[MUX_PINS]; // when lag and new are not the same then update MIDI CC value
+byte i=0; // global index for MUX channel reads
+
+//mapping of mux to teensy digital pins
+int pin_Out_S0 = 4;
+int pin_Out_S1 = 3;
+int pin_Out_S2 = 2;
+int pin_Out_S3 = 1;
+int pin_In_Mux1 = A0;
+
+
+//****** TIMER VARIABLE *** change scale here!
+elapsedMicros mux1Updated; // switch to micros to run at speed and tune with muxTimeMin setting above
+//elapsedMillis mux1Updated; // switch to millis to troubleshoot 
+
+//************INITIALIZE LIBRARY OBJECTS**************
+// initialize the ReponsiveAnalogRead objects
+ResponsiveAnalogRead analog[]{
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true},
+  {pin_In_Mux1 ,true}
+}; 
+
+
+
+//************SETUP**************
+void setup() {
+  //! don't forget to set for output!
+  pinMode(pin_Out_S0, OUTPUT);
+  pinMode(pin_Out_S1, OUTPUT);
+  pinMode(pin_Out_S2, OUTPUT);
+  pinMode(pin_Out_S3, OUTPUT);
+}
+
+//************LOOP**************
+void loop() {
+  nextMUXpin();
+  while (usbMIDI.read()) {
+     // controllers must call .read() to keep the queue clear even if they are not responding to MIDI
+  }
+}
+
+
+//************MUX SECTION**************
+void nextMUXpin(){  
+  if (mux1Updated&gt;muxTimeMin) {  
+    // update the ResponsiveAnalogRead object every loop
+    analog[i].update(); 
+    // if the repsonsive value has change, print out 'changed'
+    if(analog[i].hasChanged()) {
+      data[i] = analog[i].getValue()&gt;&gt;3;
+      if (data[i] != dataLag[i]){
+        dataLag[i] = data[i];
+        usbMIDI.sendControlChange(CCID[i], data[i], channel);
+        serialPringMIDIdata(); // use to troublshoot
+      }
+    }  
+
+    //reset timer
+    mux1Updated = 0; 
+    //increment index
+    i++;
+    if (i&gt;15)   {i=0;}      
+    // set mux control pins for next pass
+    digitalWrite(pin_Out_S0, HIGH &amp;&amp; (i &amp; B00000001));
+    digitalWrite(pin_Out_S1, HIGH &amp;&amp; (i &amp; B00000010));
+    digitalWrite(pin_Out_S2, HIGH &amp;&amp; (i &amp; B00000100));
+    digitalWrite(pin_Out_S3, HIGH &amp;&amp; (i &amp; B00001000));
+  }
+}
+
+// **useful for debugging, comment out function call to run full speed
+void serialPringMIDIdata(){
+  Serial.print(i,DEC);
+  Serial.print(" :");
+  Serial.print(HIGH &amp;&amp; (i &amp; B00000001),BIN);
+  Serial.print(HIGH &amp;&amp; (i &amp; B00000010),BIN);
+  Serial.print(HIGH &amp;&amp; (i &amp; B00000100),BIN);
+  Serial.print(HIGH &amp;&amp; (i &amp; B00001000),BIN);
+  Serial.print(" MUX_PIN: ");
+  Serial.print(i,DEC); 
+  Serial.print(" CC: ");
+  Serial.print(CCID[i],DEC); 
+  Serial.print(" DATA HEX: ");
+  Serial.println(data[i],HEX); 
+}</code></pre>
+
+<p> It was made by the user oddson over at the Teensy forum (<a href="https://forum.pjrc.com" rel="nofollow noopener">https://forum.pjrc.com</a>) ... <a href="https://forum.pjrc.com/threads/46571-Teensy-LC-CD74HC4051-multiplex-Midi-problem/page2" rel="nofollow noopener">HERE</a> is a link to the full thread if you're bored and wanna see how he developed it. </p>
+
+<p>To set the CC values of the C0 pins on the red breakoutboard, change the values in the "const int CCID[MUX_PINS] = {70,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36};"  to whatever you want! left to right (70 to 36) are c0 to c15</p>
+
+<p><strong>Step 9:</strong><br>Click "verify" <br>          <a href="https://i.imgur.com/UCf5PQJ.png" target="_blank" rel="nofollow noopener">
+            <img src="https://i.imgur.com/UCf5PQJ.png" width="690" height="480">
+          </a>
+<br>Wait a little while and allow the arduino software to verify and compile the code. </p>
+
+<p><strong>Step 10:</strong><br>Once its done compiling, click "upload" <br>          <a href="https://i.imgur.com/twCl2Hg.png" target="_blank" rel="nofollow noopener">
+            <img src="https://i.imgur.com/twCl2Hg.png" width="652" height="500">
+          </a>
+</p>
+
+<p><strong>Step 11:</strong><br>Plug your fancy new DIY midi controller into the axoloti and enjoy!</p>
+
+<p>Note: this USB midi controller is gunna take up your USB port..not ideal if you want to use a USB keyboard....I'll make another tutorial on how to hardwire one of these directly to the MIDI in pins once I figure it out...many people have attempted to help me so far but I'm pretty dense and haven't been able to get it to work yet....<img src="//community.axoloti.com/images/emoji/twitter/sweat_smile.png?v=5" title=":sweat_smile:" class="emoji" alt=":sweat_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866/1</link>
+        <pubDate>Sat, 21 Oct 2017 20:48:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3866-1</guid>
+        <source url="http://community.axoloti.com/t/make-a-usb-midi-controller-with-16-to-27-analog-inputs-for-cheap/3866.rss">Make a USB midi controller with 16 (to 27) analog inputs for cheap!</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Anyone tried editing/adding custom controls?</title>
+    <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786</link>
+    <description>Has anyone tried adding custom controls?
+Like:
+-other readout modes like a knob showing lfo-rates for even slower rates then is currently possible
+-&quot;live&quot; selectors that could use names as indices like the combo attribute (eg. using the &quot;description&quot; box to set the names of the available indices to show the names of waveforms for example)
+-smaller knobs/sliders (the sliders the same size as current knobs, the knobs the same size as the switches))
+etc etc...
+
+if someone could tell me where to edit these things in the firmware, let me know, as I currently can&#39;t find it while I&#39;m going through all the C++ firmware code..</description>
+    
+    <lastBuildDate>Tue, 27 Sep 2022 05:18:06 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>If by controls you mean the way the knobs, switches etc. are represented graphically, then yes.</p>
+
+<aside class="onebox githubblob">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti/blob/master/doc/compiling%20from%20source%20on%20linux.html#L22" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <h4><a href="https://github.com/axoloti/axoloti/blob/master/doc/compiling%20from%20source%20on%20linux.html#L22" target="_blank" rel="nofollow noopener">axoloti/axoloti/blob/master/doc/compiling%20from%20source%20on%20linux.html#L22</a></h4>
+<pre class="onebox"><code class="lang-html"><ol class="start lines" start="12" style="counter-reset: li-counter 11 ;">
+<li>    Open a terminal and enter:&lt;p&gt;</li>
+<li>        &lt;code&gt;</li>
+<li>            $&gt; &lt;b&gt;git clone https://github.com/axoloti/axoloti.git&lt;/b&gt;&lt;br&gt;</li>
+<li>            $&gt; &lt;b&gt;cd axoloti&lt;/b&gt;&lt;br&gt;</li>
+<li>        &lt;/code&gt;</li>
+<li>
+</li>
+<li>    &lt;h2&gt;Compiling&lt;/h2&gt;</li>
+<li>    open a terminal and enter:&lt;p&gt;</li>
+<li>        &lt;code&gt;</li>
+<li>            $&gt; &lt;b&gt;cd platform_linux&lt;/b&gt;&lt;br&gt;</li>
+<li class="selected">            $&gt; &lt;b&gt;./build.sh&lt;/b&gt;&lt;br&gt;</li>
+<li>            $&gt; &lt;b&gt;cd ..&lt;/b&gt;&lt;br&gt;</li>
+<li>        &lt;/code&gt;&lt;p&gt;</li>
+<li>        Root privileges are required to add a udev rule to grant access to Axoloti Core on USB. The install script will ask you for this.</li>
+<li>
+</li>
+<li>    &lt;h2&gt;Launching&lt;/h2&gt;</li>
+<li>    &lt;code&gt;</li>
+<li>        $&gt; &lt;b&gt;./Axoloti.sh&lt;/b&gt;</li>
+<li>    &lt;/code&gt;</li>
+<li>&lt;/body&gt;</li>
+<li>&lt;/html&gt;</li>
+</ol></code></pre>
+
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+
+<p>Looks like the build.sh (on Linux at least) includes the (re-)build of the java patcher code. I believe If you see any command named 'ant' then that is the Java-based build tool that builds the patcher.</p>
+
+<aside class="onebox githubblob">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti/blob/master/platform_linux/build.sh#L150" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <h4><a href="https://github.com/axoloti/axoloti/blob/master/platform_linux/build.sh#L150" target="_blank" rel="nofollow noopener">axoloti/axoloti/blob/master/platform_linux/build.sh#L150</a></h4>
+<pre class="onebox"><code class="lang-sh"><ol class="start lines" start="140" style="counter-reset: li-counter 139 ;">
+<li>make clean</li>
+<li>ldd "${PLATFORM_ROOT}/bin/dfu-util"</li>
+<li>else</li>
+<li>echo "##### dfu-util already present, skipping... #####"</li>
+<li>fi</li>
+<li>
+</li>
+<li>echo "##### compiling firmware... #####"</li>
+<li>cd "${PLATFORM_ROOT}"</li>
+<li>./compile_firmware.sh</li>
+<li>
+</li>
+<li class="selected">echo "##### building GUI... #####"</li>
+<li>cd "${PLATFORM_ROOT}"/..</li>
+<li>ant</li>
+<li>
+</li>
+<li>echo "DONE"</li>
+</ol></code></pre>
+
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+
+<p>For s***s and giggles I opened the "PLATFORM_ROOT" directory which is just the axoloti directory (it must contain a file named build.xml) and typed <code>ant</code> and voila ... after some cryptic build info it said BUILD SUCCESSFUL. Now I haven't checked if this actually rebuilds the patcher but this would be my bet.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/8</link>
+        <pubDate>Tue, 27 Sep 2022 05:18:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-8</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>ah, "the quarter falls" (dutch saying for finally getting it..)..<br>the axoloti patcher is that java executable, so to alter the controls, I'ld need to alter the build-code for the java executable and rebuild it.<br>uhm, was there any documentation about this somewhere (of how to build the firmware from the source code)?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/7</link>
+        <pubDate>Mon, 12 Sep 2022 17:47:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-7</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>I want to change the firmware itself to do this. I once managed to fix the mouse-response over USB, so I could use a XY-screen, so I was hoping to be able to alter some more things.</p>
+
+<p>If people can point me in the right direction, like which folders/files to check out, that would be great already.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/6</link>
+        <pubDate>Mon, 12 Sep 2022 17:35:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-6</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>If I am not mistaken it utilizes the Java Swing library to create the GUI, in other words you should be able to change some aspects of it looking at the swing classes being created.</p>
+
+<p>However I remember there was discussion about the patcher and for example it apparently is not that easy to change simple aspects like the UI font size.</p>
+
+<p>To tackle this, (I believe) axoloti 2.0 uses a different UI library than Swing, one that promised to be more flexible, e.g. zoomable and color-customizable, this did not work out well and created new bugs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/5</link>
+        <pubDate>Mon, 12 Sep 2022 14:00:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-5</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>The firmware on the axoloti is fixed and expects compiled "machine code" of the patch but carries no information about how the patcher window/C++ code in your objects looked like when you compiled the patch (except taking over the values your controls were representing).</p>
+
+<p>This is also the reason you cannot "disasseble"/re-build a patcher file from the .bin that is saved in your axoloti/sd card.</p>
+
+<p>The patcher source code is probably somewhere here: <a href="https://github.com/axoloti/axoloti/tree/master/src/main/java" rel="nofollow noopener">https://github.com/axoloti/axoloti/tree/master/src/main/java</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/4</link>
+        <pubDate>Mon, 12 Sep 2022 13:54:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-4</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>my apologies, java... anyways, I'ld like to add/change some of the controls, but I can't find where I should do this..<br>It should be defined sómewhere in the firmware I presume..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/3</link>
+        <pubDate>Mon, 12 Sep 2022 13:04:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-3</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Are you talking about the patcher? That one's in Java.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/2</link>
+        <pubDate>Mon, 12 Sep 2022 12:52:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-2</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+      <item>
+        <title>Anyone tried editing/adding custom controls?</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>Has anyone tried adding custom controls?<br>Like:<br>-other readout modes like a knob showing lfo-rates for even slower rates then is currently possible<br>-"live" selectors that could use names as indices like the combo attribute (eg. using the "description" box to set the names of the available indices to show the names of waveforms for example)<br>-smaller knobs/sliders (the sliders the same size as current knobs, the knobs the same size as the switches))<br>etc etc...</p>
+
+<p>if someone could tell me where to edit these things in the firmware, let me know, as I currently can't find it while I'm going through all the C++ firmware code..</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786/1</link>
+        <pubDate>Mon, 12 Sep 2022 12:18:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7786-1</guid>
+        <source url="http://community.axoloti.com/t/anyone-tried-editing-adding-custom-controls/7786.rss">Anyone tried editing/adding custom controls?</source>
+      </item>
+  </channel>
+</rss>

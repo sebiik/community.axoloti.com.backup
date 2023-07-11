@@ -1,0 +1,116 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="938" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="112" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="58f12d86-3df4-4419-af8d-887fbaeba461" name="object_2" x="392" y="126">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="58f12d86-3df4-4419-af8d-887fbaeba461">
+         <inlets>
+            <frac32buffer name="in"/>
+            <frac32 name="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[biquad_state bs_lp;
+biquad_state bs_hp;
+biquad_coefficients bc;
+
+#define FILTERLOW 89478
+#define FILTERHIGH 16000*89478
+
+int32_t freq;
+int32_t true_pitch;
+
+int32_t buffer[BUFSIZE];
+
+float f;
+int32_t q;]]></code.declaration>
+         <code.init><![CDATA[biquad_clearstate(&bs_hp);
+biquad_clearstate(&bs_lp);]]></code.init>
+         <code.krate><![CDATA[if (inlet_pitch >= 0) {
+	// Bypass
+	for (int i=0; i<BUFSIZE; i++) buffer[i] = inlet_in[i];	
+
+	freq = FILTERHIGH;
+	biquad_lp_coefs(&bc,freq,INT_MAX);
+	biquad_dsp(&bs_lp,&bc,inlet_in,outlet_out); // this will be overwritten, just to update the state of the LP filter
+} else {
+	float f = 1 + (inlet_pitch / (float)(1<<27)); // [1..0]
+	f = 11.25*f;
+	f = f*f;
+	f = f*f;
+	freq = (50 + f) * 89478.48533;
+	
+	biquad_lp_coefs(&bc,freq,INT_MAX - (-inlet_pitch<<3));
+	biquad_dsp(&bs_lp,&bc,inlet_in,buffer);
+}	
+
+if (inlet_pitch > 0) {
+	f = inlet_pitch / (float)(1<<27); // [0..1]
+	f = 10*f;
+	f = f*f;
+	f = f*f;
+	freq = (1.6 + f) * 89478.48533;
+	q = (inlet_pitch<<3);
+} else {
+	freq = FILTERLOW;
+	q = 0;
+}
+
+biquad_hp_coefs(&bc,freq,INT_MAX - q);
+biquad_dsp(&bs_hp,&bc,buffer,outlet_out);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="math/smooth" uuid="6c5d08c282bb08bff24af85b4891447f99bcbc97" name="smooth_1" x="280" y="336">
+      <params>
+         <frac32.u.map name="time" value="21.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="154" y="420">
+      <params>
+         <frac32.s.map name="value" value="1.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="object_2" outlet="out"/>
+         <dest obj="out_1" inlet="right"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="smooth_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="object_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="smooth_1" outlet="out"/>
+         <dest obj="object_2" inlet="pitch"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>544</x>
+      <y>75</y>
+      <width>1228</width>
+      <height>1287</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/solved-sysex-questions-answers/5089/18 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:46 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>[SOLVED] SysEx questions &amp; answers - Patching - Axoloti Community</title>
+    <meta name="description" content="current working prototype of SysEx sending object: 2020-03-11.  
+
+sends Roland-style SysEx (with checksum). moar details inside in K-rate code comments.  sending non-Roland style SysEx is even simpler – no checksum.  
+
+c&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="../../../uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="../5089.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','../../../../www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;[SOLVED] SysEx questions &amp; answers&#39;" href="../5089.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/letter_avatar_proxy/v2/letter/b/2acd7d/200.png" />
+<meta property="og:image" content="http://community.axoloti.com/letter_avatar_proxy/v2/letter/b/2acd7d/200.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/solved-sysex-questions-answers/5089/18" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/solved-sysex-questions-answers/5089/18" />
+<meta property="og:title" content="[SOLVED] SysEx questions &amp; answers" />
+<meta name="twitter:title" content="[SOLVED] SysEx questions &amp; answers" />
+<meta property="og:description" content="He there sysex freaks, already posted this in mattroe&#39;s thread, I got sending sysex via din midi working with some lines of code johannes suggested. Here is a patch with my object for sending sysex to a voice live touch.   vlt touch sysex works.axp (2.1 KB)" />
+<meta name="twitter:description" content="He there sysex freaks, already posted this in mattroe&#39;s thread, I got sending sysex via din midi working with some lines of code johannes suggested. Here is a patch with my object for sending sysex to a voice live touch.   vlt touch sysex works.axp (2.1 KB)" />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../../index.html"><img src="../../../uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="../5089.html">[SOLVED] SysEx questions &amp; answers</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../../c/patching.html" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/reubenfinger.html'><b itemprop='author'>reubenfinger</b></a>
+           
+           <time datetime='2020-03-04T09:51:43Z' itemprop='datePublished'>
+             2020-03-04 09:51:43 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hey there <a class="mention" href="../../../u/chaocrator.html">@chaocrator</a> , I've been stuck in the exact same boat as you for ages, until MattilynMattroe uploaded his really easy to follow sysex object matroe/LPadPro/layout</p>
+
+<p>I have just in the last few days had axo sending sysex to my Alpha Juno, the object is very clearly laid out. Two caveats, currently I can only get it to send out of the usb host port, can't seem to get it to go out of the din and the sysex string is in decimal so you will have to convert your hex string, </p>
+
+<p>eg alpha juno filter cutoff of (midi channel 4)  is;</p>
+
+<p> F0 41 36 03 23 20 01 10 i F7 (where i is the data being changed)</p>
+
+<p>and in the object the sysex string appears as 240,65,54,3,35,32,1,16,i,247 </p>
+
+<p>I just used an online hex to decimal convertor</p>
+
+<p>Hope that helps</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+            <a href="../../cc-to-sysex-for-alpha-juno-nanokontrol/7037/2.html">CC to sysex for alpha juno/nanokontrol</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/reubenfinger.html'><b itemprop='author'>reubenfinger</b></a>
+           
+           <time datetime='2020-03-04T09:57:31Z' itemprop='datePublished'>
+             2020-03-04 09:57:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I've only tested it with integer at the minute, green inlet, am about to test just a straight LFO to a standard blue inlet</p>
+
+<p>here's my test patch, hope you find it useful<br><a class="attachment" href="../../../uploads/default/original/2X/3/juno%20noise%20arp.axp">juno noise arp.axp</a> (9.8 KB)</p>
+
+<p>Also just to note this is on 1.0.12, I tried 2.0 but lots of my patches used reverbs etc that weren't working so I haven't gone back to it yet</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-04T10:00:23Z' itemprop='datePublished'>
+             2020-03-04 10:00:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>thanks! i've just found these objects too and had a look at the code. <br>indeed, it should be not very difficult to derive what i want from these. <br>in my case, it's relatively recent Roland gear (HandSonic HPD-15), so i also need Roland checksumming, but i've just read how it's calculated – not a rocket science, so i hope to manage it all to work pretty soon.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/reubenfinger.html'><b itemprop='author'>reubenfinger</b></a>
+           
+           <time datetime='2020-03-04T10:03:28Z' itemprop='datePublished'>
+             2020-03-04 10:03:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I have the juno and a Roland GP-8, niether require the checksum to just live change single units of data, both have responded to Matt's object, so I haven't bothered to use the checksum, I don't know to be honest about sending a whole patch or doing an info/status request</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-04T10:10:23Z' itemprop='datePublished'>
+             2020-03-04 10:10:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>i want to control HPD-15 LFO and MultiFX parameters with Arturia Beatstep (or Squarp Pyramid), using Axoloti in the middle to receive CC messages and put their values to SysEx. it would be the most compact solution for gigs, unlike my venerable SysEx-capable controllers that are significantly bigger and heavier.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/reubenfinger.html'><b itemprop='author'>reubenfinger</b></a>
+           
+           <time datetime='2020-03-04T10:48:55Z' itemprop='datePublished'>
+             2020-03-04 10:48:55 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Just confirmed working with an LFO straight into a blue inlet. I got an error that I don't quite understand as yet but it runs, now to work on din output</p>
+
+<p> /Users/reubenfinger/Documents/axoloti/build/xpatch.h.gch<br>/Users/reubenfinger/Documents/axoloti/build/xpatch.cpp: In member function 'void rootc::instanceLPjuno::dsp(bool, int32_t)':<br>/Users/reubenfinger/Documents/axoloti/build/xpatch.cpp:536:55: warning: narrowing conversion of '((rootc::instanceLPjuno*)this)-&gt;rootc::instanceLPjuno::i' from 'uint32_t {aka long unsigned int}' to 'uint8_t {aka unsigned char}' inside { } [-Wnarrowing]<br> uint8_t sysexArray[10] = {240,65,54,3,35,32,1,16,i,247};</p>
+
+<p>looks like the i in the string is still expecting an integer, will have to find out if there is a better way</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/weasel79.html'><b itemprop='author'>weasel79</b></a>
+           
+           <time datetime='2020-03-04T13:41:27Z' itemprop='datePublished'>
+             2020-03-04 13:41:27 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Very interesting, please report back how the performance is with a continuously changing sysex parameter being sent. I thought about doing that but was scared of the amount of midi data being sent.</p>
+
+<p>I would think its ok on usb midi but might choke din midi?</p>
+
+<p><a class="mention" href="../../../u/reubenfinger.html">@reubenfinger</a> are you using axoloti 2.0 as well?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:3'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/reubenfinger.html'><b itemprop='author'>reubenfinger</b></a>
+           
+           <time datetime='2020-03-04T13:52:16Z' itemprop='datePublished'>
+             2020-03-04 13:52:16 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>No this object works on 1.0.12, I tried 2.0 out for a while for sysex in particular, but migrated back because all my patches contain objects that don't work in 2.0.</p>
+
+<p>Haven't road tested extensively, just grabbed a few minutes this morning, and obviously haven't got Din working but I had three objects running 2 sequencers (integer based) and one lfo with a steady stream of data and did not notice any choking .....but it's very early days.</p>
+
+<p>I guess I would only ever use it to add a couple of LFO's here and there or to translate cc into sysex (for example from my digitakt) and any kind of "sysex programmer" ideas would be dealing in static values, so would be less traffic. I was chasing din sysex for convenience but maybe the extra usb bandwidth is a blessing...will keep you posted</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-04T15:00:05Z' itemprop='datePublished'>
+             2020-03-04 15:00:05 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="14" data-topic="5089"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/weasel79/40/6141_1.html" class="avatar">weasel79:</div>
+<blockquote><p>please report back how the performance is with a continuously changing sysex parameter being sent</p></blockquote></aside>
+
+<p>i can tell you in advance that it's not very good idea to control parameters with SysEx messages when the gear is connected via classic MIDI DIN ports, because they still work at 31250 baud, and SysEx messages are byte hogs even comparing to NRPNs. </p>
+
+<p>so i think some kind of thinning should be applied before converting CC to SysEx. </p>
+
+<p>anyway, should be acceptable for controlling FX parameters. </p>
+
+<p>i'll report back and share my patch(es) when i manage it to work.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-08T12:51:00Z' itemprop='datePublished'>
+             2020-03-08 12:51:00 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="14" data-topic="5089"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="../../../user_avatar/community.axoloti.com/weasel79/40/6141_1.html" class="avatar">weasel79:</div>
+<blockquote><p>Very interesting, please report back</p></blockquote></aside>
+
+<p>just three main words: <strong>got a working prototype</strong>. </p>
+
+<p>will post in details later and share the patch when it's ready.<br>but before it happens, i've got quite a lot of tedious work calculating actual sysex bytes <img src="../../../images/emoji/twitter/robotae52.png?v=5" title=":robot:" class="emoji" alt=":robot:"> </p>
+
+<p><strong>EDIT:</strong> for those who might be interested. <br>TBH, i don't see much sense in implementing full-blown Roland checksum calculation for this particular job (translating certain CC values to certain SysEx values), will use sort of quicker &amp; simpler dirty hack instead. more on that later.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/Blindsmyth.html'><b itemprop='author'>Blindsmyth</b></a>
+           
+           <time datetime='2020-03-09T13:59:45Z' itemprop='datePublished'>
+             2020-03-09 13:59:45 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>He there sysex freaks, already posted this in mattroe's thread, I got sending sysex via din midi working with some lines of code johannes suggested. Here is a patch with my object for sending sysex to a voice live touch.</p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/c/vlt%20touch%20sysex%20works.axp">vlt touch sysex works.axp</a> (2.1 KB)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+            <a href="../../mattilyn-mattroe-contributions/5379/27.html">Mattilyn Mattroe contributions</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-09T14:03:48Z' itemprop='datePublished'>
+             2020-03-09 14:03:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>thanks a lot, i was going to ask you about sharing actual patch, and you already did it/</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/reubenfinger.html'><b itemprop='author'>reubenfinger</b></a>
+           
+           <time datetime='2020-03-09T14:15:23Z' itemprop='datePublished'>
+             2020-03-09 14:15:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>hey <a class="mention" href="../../../u/weasel79.html">@weasel79</a>, just to keep you in the loop Simon (Blindsmyth) has got Din midi working with sysex</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-11T20:37:41Z' itemprop='datePublished'>
+             2020-03-11 20:37:41 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#21</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>IT WORKS !!  <img src="../../../images/emoji/twitter/star_struckae52.png?v=5" title=":star_struck:" class="emoji" alt=":star_struck:"> </p>
+
+<p>something like this. </p>
+
+<p><a class="attachment" href="../../../uploads/default/original/2X/8/cc%20to%20sysex.axo">cc to sysex.axo</a> (2.6 KB)</p>
+
+<p><img src="../../../uploads/default/original/2X/5/58efed7385747c635bd7d1b4037d157074cb2c3e.png" width="120" height="120"></p>
+
+<p>since sending SysEX to DIN and USB requires different code, the choice of destination port is unconventionally controlled by <strong>sendDIN</strong> switch – when it's active, SysEx messages are sent to DIN, otherwise to USB. </p>
+
+<p>also, <strong>deviceID</strong> is made as attribute, because it can be set different.</p>
+
+<p>moar details in K-rate code comments.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:5'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/reubenfinger.html'><b itemprop='author'>reubenfinger</b></a>
+           
+           <time datetime='2020-03-11T21:33:22Z' itemprop='datePublished'>
+             2020-03-11 21:33:22 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#22</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Very Nice, very nice indeed</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-13T13:44:11Z' itemprop='datePublished'>
+             2020-03-13 13:44:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#23</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>just showing off some work in progress (this time screenshot only). <br>made Model ID bytes attributes too, to make my objects more reusable with less code rewriting. <br>i believe that Roland uses same SysEx with different Model IDs in many other machines MIDI implementation.</p>
+
+<p><img src="../../../uploads/default/original/2X/3/362fb34d98d90fc27e9b9da1381e808cc798b436.png" width="130" height="394"></p>
+
+<p>also, object for controlling Yamaha XG machines are in progress. <br>they should work with (nearly) any XG machine, because typically all those machines have one generic Model ID. </p>
+
+<p>and also i'm going to make inlet versions of my cc-to-SysEx objects to allow incoming CC to be processed in the patch before they converted to SysEx.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-03-19T09:20:10Z' itemprop='datePublished'>
+             2020-03-19 09:20:10 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#24</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>testlab <img src="../../../images/emoji/twitter/sunglassesae52.png?v=5" title=":sunglasses:" class="emoji" alt=":sunglasses:"></p>
+
+<p><strong>EDIT:</strong> just finished the most tedious part of the project — documenting what Roland documented poorly. </p>
+
+<p>Yamaha XG is documented far better. </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/7139a4380d75105f16a840069cb22f180cba5d83" href="../../../uploads/default/original/2X/7/7139a4380d75105f16a840069cb22f180cba5d83.jpg" class="lightbox" title="IMG_20200318_153032-proc-9x.jpg"><img src="../../../uploads/default/optimized/2X/7/7139a4380d75105f16a840069cb22f180cba5d83_1_666x500.jpg" width="666" height="500"><div class="meta">
+<span class="filename">IMG_20200318_153032-proc-9x.jpg</span><span class="informations">960x720 241 KB</span><span class="expand"></span>
+</div></a></div></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/jaffasplaffa.html'><b itemprop='author'>jaffasplaffa</b></a>
+           
+           <time datetime='2020-05-03T14:33:14Z' itemprop='datePublished'>
+             2020-05-03 14:33:14 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#25</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hey <a class="mention" href="../../../u/chaocrator.html">@chaocrator</a> <img src="../../../images/emoji/twitter/slight_smileae52.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>Have been playing around with an edited version of the object today. Really good <img src="../../../images/emoji/twitter/slight_smileae52.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>Did you also try sending the sysex via Axolotis device port, to the computer?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/chaocrator.html'><b itemprop='author'>chaocrator</b></a>
+           
+           <time datetime='2020-05-06T10:36:53Z' itemprop='datePublished'>
+             2020-05-06 10:36:53 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#26</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>not yet, just did not ever need that (i use Axoloti for 100% hardware solutions to do things).<br>anyway, should not be a problem, device port uses the same USB MIDI protocol to communicate.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../../u/jaffasplaffa.html'><b itemprop='author'>jaffasplaffa</b></a>
+           
+           <time datetime='2020-05-06T11:18:41Z' itemprop='datePublished'>
+             2020-05-06 11:18:41 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#27</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="../../../u/chaocrator.html">@chaocrator</a> </p>
+
+<p>Thank you foe the answer.</p>
+
+<p>I tried a few things and had no luck yet.</p>
+
+<p>I am realising that maybe it is the app that i am using to route the sysex data to it's destination, that maybe doesn't support sysex. I wrote the developer and asked, still waiting for a answer.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[SOLVED] SysEx questions &amp; answers'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../../index.html'>Home</a>
+        <a href="../../../categories.html">Categories</a>
+        <a href="../../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../../tos.html">Terms of Service</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/solved-sysex-questions-answers/5089/18 by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 10 Jul 2023 16:03:46 GMT -->
+</html>

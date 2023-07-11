@@ -1,0 +1,136 @@
+<patch-1.0>
+   <obj type="table/alloc 16b sdram" sha="cb01936107b7ffc557704e6a7dcb4838fbb9fe02" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="alloc_1" x="14" y="0">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="262144"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="string/c" sha="914b3f01295e2c5023504807620dd88cfeaa8907" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="140" y="0">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="128newM.raw"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" sha="efd09536a65a5b9f2e1765e4d7dab9d24a29aef8" uuid="9acc3f4565f8074e16f3520d0e4817c9c60a963e" name="load_1" x="294" y="0">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="560" y="0" text="Square for trigger"/>
+   <obj type="lfo/square" sha="b4420b58ca2ae5ece53d53540bc91bc9ed7a4b83" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="toggle_1" x="560" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="-38.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" sha="f5742cc9eee76fae90a4e570c34596dd327b6c28" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="On NP!!" x="224" y="42">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="14" y="168" text="Select table 1-128"/>
+   <obj type="osc/phasor lin" sha="873b68569160056c2e8af2698180935eb8de0268" uuid="ee34c4d34eba2cbd849b9e5631e60ce1651faf4c" name="phasor_1" x="280" y="168">
+      <params>
+         <frac32.u.map name="freq" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/&gt;&gt;" sha="a981b65be712a1224ede1576cb5b93125e900eb8" uuid="5d748ad90476b3ecc3970cde6622af97cf3cf4ac" name="&gt;&gt;_1" x="532" y="168">
+      <params/>
+      <attribs>
+         <spinner attributeName="shift" value="1"/>
+      </attribs>
+   </obj>
+   <obj type="math/+" sha="49587c7bc7e1813d8a9a7a9be012580af00ea274" uuid="44553fdc8628c67ab535845ed1be304ad6c9553b" name="+_1" x="630" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/play pitch" sha="b9d41cf1a1c0da69b093c66035d0c99cf96b4ea7" uuid="5632a54926261833bbb9fff049e71322c360e57e" name="play_1" x="714" y="168">
+      <params>
+         <frac32.s.map name="pitch" value="-12.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="alloc_1"/>
+      </attribs>
+   </obj>
+   <obj type="math/*c" sha="a73a2cafcf92eb4b6524655dcee98a569d5ddc28" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_2" x="854" y="168">
+      <params>
+         <frac32.u.map name="amp" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" sha="c27566f972d15f25252f61b5cff014a3edce9706" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="966" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" sha="501c30e07dedf3d701e8d0b33c3c234908c3388e" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Wavetable" x="14" y="182">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" sha="e98a25a12afc62efc1991c3bb5290ccdf7214102" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="392" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" sha="e98a25a12afc62efc1991c3bb5290ccdf7214102" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="532" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="On NP!!" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="play_1" outlet="wave"/>
+         <dest obj="*c_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="Wavetable" outlet="out"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="wave"/>
+         <dest obj="play_1" inlet="start"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="play_1" inlet="pos"/>
+      </net>
+      <net>
+         <source obj="&gt;&gt;_1" outlet="result"/>
+         <dest obj="+_1" inlet="in1"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="phasor_1" outlet="phasor"/>
+         <dest obj="i_2" inlet="in"/>
+         <dest obj="&gt;&gt;_1" inlet="a"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>38</x>
+      <y>129</y>
+      <width>1108</width>
+      <height>415</height>
+   </windowPos>
+</patch-1.0>

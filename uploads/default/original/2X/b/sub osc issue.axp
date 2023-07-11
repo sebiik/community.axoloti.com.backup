@@ -1,0 +1,158 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="phi/env/adsr c" uuid="69f4935b-0561-4409-b3cb-4bea24e42b4b" name="adsr_1" x="462" y="42">
+      <params>
+         <frac32.s.map name="a" MidiCC="39" value="-64.0"/>
+         <frac32.s.map name="d" MidiCC="40" value="-6.0"/>
+         <frac32.u.map name="s" MidiCC="42" value="33.5"/>
+         <frac32.s.map name="r" MidiCC="44" value="18.0"/>
+         <frac32.u.map name="c" MidiCC="46" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 2 g" uuid="221f038da51943034a75e442c90624fcebfe6112" name="mix_1" x="602" y="42">
+      <params>
+         <frac32.u.map name="gain1" value="31.0"/>
+         <frac32.u.map name="gain2" value="32.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="VCA" x="714" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="798" y="42">
+      <params>
+         <frac32.u.map name="volume" MidiCC="62" value="26.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/keyb touch" uuid="edfcb4cfd5b2064e95f5a7ee644bca56252ec11f" name="keyb_1" x="56" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/brds/saw" uuid="ed06f020-7e68-4db6-836a-95a85e200cfb" name="saw_1" x="210" y="70">
+      <params>
+         <frac32.s.map name="pitch" MidiCC="65" value="-4.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="SUB OSC" x="210" y="224">
+      <params>
+         <frac32.s.map name="pitch" MidiCC="65" value="-4.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/div 2" uuid="ad1e413d83e5edce017e3e9a4f30d86035cf637" name="div_1" x="322" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gpio/in/analog" uuid="1c0c845ed2d7e06ae5f377ba13d9d09f4747ac87" name="VCO1_FREQ" x="448" y="294">
+      <params/>
+      <attribs>
+         <combo attributeName="channel" selection="PA1 (ADC1_IN1)"/>
+      </attribs>
+   </obj>
+   <obj type="kfilter/lowpass" uuid="4f0d68b39b6f6b1c1d371b028d84391d14062d68" name="lowpass_1" x="574" y="294">
+      <params>
+         <frac32.s.map name="freq" value="-24.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/scaleInOut" uuid="1469e0f0-7674-4f23-897c-5dff075314f6" name="scaleInOut_1" x="672" y="294">
+      <params>
+         <frac32.s.map name="inMin" value="-64.0"/>
+         <frac32.s.map name="inMax" value="64.0"/>
+         <frac32.s.map name="outMin" value="-64.0"/>
+         <frac32.s.map name="outMax" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="42071f8cb4cfe1f35956c0bd5a313a57e049bec4" name="change_1" x="784" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/cc" uuid="554fe07ecd943d2ffd8f7435cae99550f8da1fde" name="cc_1" x="868" y="294">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="16"/>
+         <spinner attributeName="cc" value="65"/>
+      </attribs>
+   </obj>
+   <obj type="math/div 2" uuid="f14884de1baf3e615e12ee162a96a013eca76789" name="div_2" x="126" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="VCA" outlet="o"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="adsr_1" outlet="env"/>
+         <dest obj="VCA" inlet="v"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate"/>
+         <dest obj="adsr_1" inlet="gate"/>
+      </net>
+      <net>
+         <source obj="SUB OSC" outlet="wave"/>
+         <dest obj="div_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="saw_1" inlet="pitch"/>
+         <dest obj="div_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="VCA" inlet="a"/>
+      </net>
+      <net>
+         <source obj="VCO1_FREQ" outlet="out"/>
+         <dest obj="lowpass_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="cc_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="lowpass_1" outlet="out"/>
+         <dest obj="scaleInOut_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="scaleInOut_1" outlet="out"/>
+         <dest obj="cc_1" inlet="v"/>
+         <dest obj="change_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="div_1" outlet="out"/>
+         <dest obj="mix_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="div_2" outlet="out"/>
+         <dest obj="SUB OSC" inlet="pitch"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>16</MidiChannel>
+      <NPresets>0</NPresets>
+      <NPresetEntries>0</NPresetEntries>
+      <NModulationSources>0</NModulationSources>
+      <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+      <Author></Author>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>1280</width>
+      <height>777</height>
+   </windowPos>
+</patch-1.0>

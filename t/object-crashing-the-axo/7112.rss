@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Object crashing the axo</title>
+    <link>http://community.axoloti.com/t/object-crashing-the-axo/7112</link>
+    <description>Hi,
+
+
+I&#39;m making a custom object to send text to **tiar/HW/OLED128x64nice**
+I took look at the **tiar/HW/strbar** object to know what output my object should give to have the same behaviour, but something weird happens. When I send it to line 2 of the display, it is more or less correctly displayed. But whenever I send the same output to either line 1,3 or 4 the axo crashes.
+
+The object that works has a float connector and a string attribute and then creates a string with some bits set so the tiar object knows what to do with it. I tried recreating this, but must be making a mistake somewhere.
+
+original object code:
+&quot;Local Data&quot;
+
+&gt; `char c[2 + strlen(&quot;attr_prefix&quot;)];`
+
+&quot;init code&quot;
+
+&gt; `strcpy(&amp;c[2], &quot;attr_prefix&quot;);
+&gt; c[0] = 1;                         //string bar mode`
+
+&quot;k-rate code&quot;
+&gt;     int32_t v = __SSAT(inlet_in,28)&gt;&gt;21;
+&gt;     if(v &gt;= 0)
+&gt;       c[1] = (uint8_t)(v + 1); // must not be zero !
+&gt;     else 
+&gt;       c[1] = (uint8_t)(256 + v); 
+&gt;     outlet_out = c;
+
+my object code:
+
+        //append int tot str
+       char* addItoS(int i, char* s){
+    	int32_t v = __SSAT(i,28)&gt;&gt;21;
+        	char c[2]; /// this shows &quot;amamp&quot; but I want it to display &quot;amp&quot; 
+        //	char c[2 + strlen(s)]; /// for some reason this shows &quot;UUUUU&quot; instead of &quot;amamp&quot;
+        	c[0] = 1; /// this is needed so the tiar object shows the value v as a bar in the display
+        	if(v &gt;= 0)
+          		c[1] = (uint8_t)(v + 1); // must not be zero !
+        	else 
+          		c[1] = (uint8_t)(256 + v); 
+        	strcat(&amp;c[2],s);
+        	return c;
+        }
+
+I call this from K-rate code and a potentiometer is assigned to changing the value, it changes the bar correspondingly in size.
+
+&gt; `outlet_S1L2 = addItoS(rev_dec_hold,&quot;amp&quot;);`
+
+this is what happens:
+&lt;img src=&quot;/uploads/default/original/2X/f/f744132fd084e864c2d80aa06a61667bee1063fa.jpg&quot; width=&quot;223&quot; height=&quot;500&quot;&gt;
+
+
+Whenever I use a different screen line the display line becomes garbage and the axo crashes...</description>
+    
+    <lastBuildDate>Thu, 04 Feb 2021 08:21:56 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>Ok, it all works now! <br>Thanks for the guidance</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/9</link>
+        <pubDate>Thu, 04 Feb 2021 08:21:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-9</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Yes, variables created inside a function are only valid until that function returns. Results are undefined if you pass them to another function which tries to access them later, but likely to cause unexpected results.</p>
+
+<p>Sounds to me like you need two  buffers, one for each line, defined outside of any function.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/8</link>
+        <pubDate>Tue, 02 Feb 2021 22:52:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-8</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>Ok, I'm getting somewhere. It's a scope problem. I can correctly generate the string I need, but only one instance. Once I move it out of the function, into the "local data" it seems to work. but as soon as I create  a second parameter, it just overwrites the first one, leaving me with 2 duplicate lines where there should be two different lines.</p>
+
+<p>the structure I use is </p>
+
+<p><strong>"local data"</strong><br><code>char c[10];   /// a full display line length</code></p>
+
+<pre><code>char* addItoS(int i, char* s){
+    int32_t v = __SSAT(i,28)&gt;&gt;21;
+    strcpy(&amp;c[2],s);
+    c[0] = 1;
+    if(v &gt;= 0)
+	c[1] = (uint8_t)(v + 1); // must not be zero !
+    else 
+  	c[1] = (uint8_t)(256 + v);
+    return c; 
+
+}</code></pre>
+
+<p>I then call this function twice from <br><strong>K-rate Code</strong></p>
+
+<blockquote><pre><code>outlet_S1L2 = addItoS(rev_amp_hold,"amp");
+outlet_S1L3 = addItoS(rev_dec_hold,"dec");</code></pre></blockquote>
+
+<p>resulting in the display correctly showing line 3, but line 2 is the exact same as line 3.</p>
+
+<p>If I move the <code>char c[10];</code> to the function body, I get garbage and crashes...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/7</link>
+        <pubDate>Tue, 02 Feb 2021 21:15:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-7</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>strcat(dst, src) does create a zero-terminated string, BUT dst must already be a zero-terminated string. This is for concatenating  -  appending a string to another string.</p>
+
+<p>To create a new, zero-terminated string, use strcpy(dst, src);</p>
+
+<p>The strn (strncat, strncpy, etc) functions are more specialized</p>
+
+<p>When you think garbage is being added to the end of the string, most likely cause is that the string isn't zero-terminated.</p>
+
+<p>Also,<br></p>
+
+<p></p><pre><code class="lang-auto">char k[5];
+strncpy(k,c,5);
+k[5] = '\0';</code></pre>
+
+<p>is an error. 'char k[5]' only has indices 0-4.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/6</link>
+        <pubDate>Tue, 02 Feb 2021 16:48:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-6</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>I also noticed that I might not be writing the "amp" to the string correctly as uploading fresh code apparently does not clear the display memory. I have to powercycle the display/axo and that might even complicate things further.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/5</link>
+        <pubDate>Tue, 02 Feb 2021 16:38:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-5</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>Ok, I'm a C noob, but I looked into it. <br>As far as I understand strcat <em>creates</em> zero-terminated input. How should I add it myself explicitly? like in the code below?</p>
+
+<p>Something else I observed is that if I use <code>strcpy</code> it renders correctly, but is no longer interactive like when I use <code>strcat</code>.<br>I kept fiddling with it, but I'm stuck.</p>
+
+<p>Other thing that bugs me is that a lot of garbage seems to be added at the end of the string.<br>I don't see it on the display but if I print it to the console it looks like this:<br><img src="//community.axoloti.com/uploads/default/original/2X/1/1e7ca7a99db0084aafaa969440d0f73e3bfcd49b.png" width="560" height="72"></p>
+
+<p>actually all the output after the first "amp" is all I need.<br>I then tried making a partial copy using <code>strncpy</code></p>
+
+<pre><code>char k[5];
+strncpy(k,c,5);
+k[5] = '\0';
+return k;</code></pre>
+
+<p>even adding the terminating zero...<br>still no luck. What am I doing wrong?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/4</link>
+        <pubDate>Tue, 02 Feb 2021 16:29:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-4</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@Nosnibor]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nosnibor">@Nosnibor</a> wrote:</p>
+          <blockquote>
+              <p>c needs to be one byte longer.<br>c[0] and c[1] contain data, then comes the string, and at the end there needs to be a zero-byte to mark the end of the string.<br>strlen() does not count the zero-byte, so c[] is now one byte too short.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/3</link>
+        <pubDate>Tue, 02 Feb 2021 16:18:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-3</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>The str functions (strlen, strcat, strcpy, etc) expect zero-terminated inputs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/2</link>
+        <pubDate>Tue, 02 Feb 2021 15:22:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-2</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+      <item>
+        <title>Object crashing the axo</title>
+        <dc:creator><![CDATA[@kaos Kasper Jordaens]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kaos">@kaos</a> wrote:</p>
+          <blockquote>
+              <p>Hi,</p>
+
+<p>I'm making a custom object to send text to <strong>tiar/HW/OLED128x64nice</strong><br>I took look at the <strong>tiar/HW/strbar</strong> object to know what output my object should give to have the same behaviour, but something weird happens. When I send it to line 2 of the display, it is more or less correctly displayed. But whenever I send the same output to either line 1,3 or 4 the axo crashes.</p>
+
+<p>The object that works has a float connector and a string attribute and then creates a string with some bits set so the tiar object knows what to do with it. I tried recreating this, but must be making a mistake somewhere.</p>
+
+<p>original object code:<br>"Local Data"</p>
+
+<blockquote><p><code>char c[2 + strlen("attr_prefix")];</code></p></blockquote>
+
+<p>"init code"</p>
+
+<blockquote><p><code>strcpy(&amp;c[2], "attr_prefix");<br>c[0] = 1;                         //string bar mode</code></p></blockquote>
+
+<p>"k-rate code"</p>
+
+<blockquote><pre><code>int32_t v = __SSAT(inlet_in,28)&gt;&gt;21;
+if(v &gt;= 0)
+  c[1] = (uint8_t)(v + 1); // must not be zero !
+else 
+  c[1] = (uint8_t)(256 + v); 
+outlet_out = c;</code></pre></blockquote>
+
+<p>my object code:</p>
+
+<pre><code>    //append int tot str
+   char* addItoS(int i, char* s){
+	int32_t v = __SSAT(i,28)&gt;&gt;21;
+    	char c[2]; /// this shows "amamp" but I want it to display "amp" 
+    //	char c[2 + strlen(s)]; /// for some reason this shows "UUUUU" instead of "amamp"
+    	c[0] = 1; /// this is needed so the tiar object shows the value v as a bar in the display
+    	if(v &gt;= 0)
+      		c[1] = (uint8_t)(v + 1); // must not be zero !
+    	else 
+      		c[1] = (uint8_t)(256 + v); 
+    	strcat(&amp;c[2],s);
+    	return c;
+    }</code></pre>
+
+<p>I call this from K-rate code and a potentiometer is assigned to changing the value, it changes the bar correspondingly in size.</p>
+
+<blockquote><p><code>outlet_S1L2 = addItoS(rev_dec_hold,"amp");</code></p></blockquote>
+
+<p>this is what happens:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/f744132fd084e864c2d80aa06a61667bee1063fa" href="//community.axoloti.com/uploads/default/original/2X/f/f744132fd084e864c2d80aa06a61667bee1063fa.jpg" class="lightbox" title="displayproblem.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/f744132fd084e864c2d80aa06a61667bee1063fa_1_690x500.jpg" width="690" height="500"><div class="meta">
+<span class="filename">displayproblem.jpg</span><span class="informations">701x1567 432 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Whenever I use a different screen line the display line becomes garbage and the axo crashes...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/object-crashing-the-axo/7112/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/object-crashing-the-axo/7112/1</link>
+        <pubDate>Tue, 02 Feb 2021 11:13:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7112-1</guid>
+        <source url="http://community.axoloti.com/t/object-crashing-the-axo/7112.rss">Object crashing the axo</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Q-formats used in axoloti_filters</title>
+    <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334</link>
+    <description>Hi
+
+I got my Axoloti this week and I am really impressed, especially by the audio quality, the live mode and how fast a patch is compiled and downloaded.
+
+Today I wrote my first custom object. I used bp.axo and the function biquad_bp_coefs from axoloti_filters.h as starting point and was able to make a notch-filter object :smile: 
+... but without understanding al lot of the code, especially the fractional numbers.
+
+Near the surface, the Q5.27-format seems to be used. I came to this conclusion while playing with controlls and hex-displays, where:
+`0x07FFFFFF * 0x07FFFFFF == 0x07FFFFFE`
+... so 0x07FFFFFF must be interpreted as one.
+
+I come to the same conclusion while looking at the s-rate code in STAR.axo:
+`outlet_result= ___SMMUL(inlet_a&lt;&lt;3,inlet_b&lt;&lt;2);`
+... so during multiplication a left-shift of 5 positions is needed.
+
+But when I look at method biquad_bp_coefs in axoloti_filters.h, then the term
+ `(1.0 + alpha)` is implemented as: `(HALFQ31 + alpha)`,
+where the constant HALFQ31 has the value 0x40000000,
+so this calculation seems to use the Q2.30-format.
+
+And finally in method biquad_dsp in axoloti_filters.h, the Q4.28-format seems to be used, because after the SMMLA-sequence, the result is shifted to the left about 4 positions:
+
+      for (i = 0; i &lt; BUFSIZE; i++) {
+        int32_t filterinput = inbuffer[i];
+        int32_t accu = ___SMMUL(coefs-&gt;cxn_0, filterinput);
+        accu = ___SMMLA(coefs-&gt;cxn_1, filter_x_n1, accu);
+        accu = ___SMMLA(coefs-&gt;cxn_2, filter_x_n2, accu);
+        accu = ___SMMLS(coefs-&gt;cyn_1, filter_y_n1, accu);
+        accu = ___SMMLS(coefs-&gt;cyn_2, filter_y_n2, accu);
+        int32_t filteroutput;
+        filteroutput = accu &lt;&lt; 4;
+        filter_x_n2 = filter_x_n1;
+        filter_x_n1 = filterinput;
+        filter_y_n2 = filter_y_n1;
+        filter_y_n1 = filteroutput;
+        outbuffer[i] = __SSAT(filteroutput, 28);
+      }
+
+On the other hand, the filter-output is saturated on position 28, as in the saturation object sat.axo (which would indicate Q5.27).
+
+I need some help to see the concept, e.g. where the format has to be converted. Thanx very much.
+
+Jan
+
+P.S. My next goal is to implement a parametric equalizer object</description>
+    
+    <lastBuildDate>Fri, 08 Apr 2016 12:04:18 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Q-formats used in axoloti_filters</title>
+        <dc:creator><![CDATA[@Jan Jan Hofmann]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jan">@Jan</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="1334"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>If you add comments, I'd be happy to take a git pull request!</p></blockquote></aside>
+
+<p>As a start I'm trying to comment my own contributions to the community library <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/7</link>
+        <pubDate>Fri, 08 Apr 2016 12:04:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1334-7</guid>
+        <source url="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss">Q-formats used in axoloti_filters</source>
+      </item>
+      <item>
+        <title>Q-formats used in axoloti_filters</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Q5.27 is indeed used for control rate and audio rate in- and outlets.<br>Parameters before transform (pfunction) are also Q5.27<br>Objects can use whatever representation they want internally.</p>
+
+<p>If you add comments, I'd be happy to take a git pull request!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/6</link>
+        <pubDate>Thu, 07 Apr 2016 23:17:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1334-6</guid>
+        <source url="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss">Q-formats used in axoloti_filters</source>
+      </item>
+      <item>
+        <title>Q-formats used in axoloti_filters</title>
+        <dc:creator><![CDATA[@Jan Jan Hofmann]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jan">@Jan</a> wrote:</p>
+          <blockquote>
+              <p>I'm going to try to make some helpful comments in my code. It's especially confusing if a bitshift operation has more than one intention, e.g. if<br><code>x &lt;&lt;= 2;</code><br>stands for: switch from q5.27 to q4.28 AND multiply by 2. <img src="/images/emoji/emoji_one/no_mouth.png?v=0" title=":no_mouth:" class="emoji" alt=":no_mouth:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/5</link>
+        <pubDate>Wed, 06 Apr 2016 21:42:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1334-5</guid>
+        <source url="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss">Q-formats used in axoloti_filters</source>
+      </item>
+      <item>
+        <title>Q-formats used in axoloti_filters</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ah, so just a matter of knowing the convention for different data I suppose...<br>e.g. 5.27 for b/p control rate floats, 1.31 for audio , and 4.28 for filter co-eff ?</p>
+
+<p>I guess, it just needs to use whichever representation is the best fit for the data, and then convert to the relevant  convention for the output to outlets.</p>
+
+<p>Ive also been 'struggling' with some of this stuff, so its good to see some posts about it, its helping me to clarify some of it in my head <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/4</link>
+        <pubDate>Wed, 06 Apr 2016 21:32:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1334-4</guid>
+        <source url="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss">Q-formats used in axoloti_filters</source>
+      </item>
+      <item>
+        <title>Q-formats used in axoloti_filters</title>
+        <dc:creator><![CDATA[@Jan Jan Hofmann]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jan">@Jan</a> wrote:</p>
+          <blockquote>
+              <p>I figured out a lot by myself. At the beginning I was puzzled why the filter coefficient weren't stored in Q1.31 to get the highest possible quality. But the filter-coefficients can be larger than one, so you need some headroom.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/3</link>
+        <pubDate>Wed, 06 Apr 2016 20:59:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1334-3</guid>
+        <source url="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss">Q-formats used in axoloti_filters</source>
+      </item>
+      <item>
+        <title>Q-formats used in axoloti_filters</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/users/johannes">@johannes</a> do you have any thoughts to share on this?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/2</link>
+        <pubDate>Wed, 06 Apr 2016 10:52:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1334-2</guid>
+        <source url="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss">Q-formats used in axoloti_filters</source>
+      </item>
+      <item>
+        <title>Q-formats used in axoloti_filters</title>
+        <dc:creator><![CDATA[@Jan Jan Hofmann]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jan">@Jan</a> wrote:</p>
+          <blockquote>
+              <p>Hi</p>
+
+<p>I got my Axoloti this week and I am really impressed, especially by the audio quality, the live mode and how fast a patch is compiled and downloaded.</p>
+
+<p>Today I wrote my first custom object. I used bp.axo and the function biquad_bp_coefs from axoloti_filters.h as starting point and was able to make a notch-filter object <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> <br>... but without understanding al lot of the code, especially the fractional numbers.</p>
+
+<p>Near the surface, the Q5.27-format seems to be used. I came to this conclusion while playing with controlls and hex-displays, where:<br><code>0x07FFFFFF * 0x07FFFFFF == 0x07FFFFFE</code><br>... so 0x07FFFFFF must be interpreted as one.</p>
+
+<p>I come to the same conclusion while looking at the s-rate code in STAR.axo:<br><code>outlet_result= ___SMMUL(inlet_a&lt;&lt;3,inlet_b&lt;&lt;2);</code><br>... so during multiplication a left-shift of 5 positions is needed.</p>
+
+<p>But when I look at method biquad_bp_coefs in axoloti_filters.h, then the term<br> <code>(1.0 + alpha)</code> is implemented as: <code>(HALFQ31 + alpha)</code>,<br>where the constant HALFQ31 has the value 0x40000000,<br>so this calculation seems to use the Q2.30-format.</p>
+
+<p>And finally in method biquad_dsp in axoloti_filters.h, the Q4.28-format seems to be used, because after the SMMLA-sequence, the result is shifted to the left about 4 positions:</p>
+
+<pre><code>  for (i = 0; i &lt; BUFSIZE; i++) {
+    int32_t filterinput = inbuffer[i];
+    int32_t accu = ___SMMUL(coefs-&gt;cxn_0, filterinput);
+    accu = ___SMMLA(coefs-&gt;cxn_1, filter_x_n1, accu);
+    accu = ___SMMLA(coefs-&gt;cxn_2, filter_x_n2, accu);
+    accu = ___SMMLS(coefs-&gt;cyn_1, filter_y_n1, accu);
+    accu = ___SMMLS(coefs-&gt;cyn_2, filter_y_n2, accu);
+    int32_t filteroutput;
+    filteroutput = accu &lt;&lt; 4;
+    filter_x_n2 = filter_x_n1;
+    filter_x_n1 = filterinput;
+    filter_y_n2 = filter_y_n1;
+    filter_y_n1 = filteroutput;
+    outbuffer[i] = __SSAT(filteroutput, 28);
+  }</code></pre>
+
+<p>On the other hand, the filter-output is saturated on position 28, as in the saturation object sat.axo (which would indicate Q5.27).</p>
+
+<p>I need some help to see the concept, e.g. where the format has to be converted. Thanx very much.</p>
+
+<p>Jan</p>
+
+<p>P.S. My next goal is to implement a parametric equalizer object</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334/1</link>
+        <pubDate>Sun, 20 Mar 2016 19:31:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1334-1</guid>
+        <source url="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss">Q-formats used in axoloti_filters</source>
+      </item>
+  </channel>
+</rss>

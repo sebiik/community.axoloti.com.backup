@@ -1,0 +1,215 @@
+<patch-1.0 appVersion="1.0.11">
+   <comment type="patch/comment" x="322" y="64" text="lokki"/>
+   <patchobj type="patch/object" uuid="9142bf41-563a-4467-b2dc-5864d7cfad95" name="multi_wave_2" x="168" y="84">
+      <params>
+         <frac32.s.map name="pitch" value="-5.0"/>
+         <frac32.u.map name="pw" value="0.0"/>
+         <frac32.s.map name="amp" value="64.0"/>
+         <bool32.tgl name="unipolar" value="0"/>
+         <int32 name="wave" value="3"/>
+         <int32.hradio name="div" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="9142bf41-563a-4467-b2dc-5864d7cfad95">
+         <sDescription>LFO, bipolar, multi wave, modulation inputs</sDescription>
+         <author>Are Leistad</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32.bipolar name="pitch" description="Pitch input"/>
+            <frac32.bipolar name="phase" description="Phase modulation"/>
+            <frac32.bipolar name="pwm" description="Pulse width modulation"/>
+            <frac32.bipolar name="am" description="Amplitude modulation"/>
+            <int32.bipolar name="wave" description="Waveform, added to wave parameter"/>
+            <int32.positive name="div" description="Divide Pitch"/>
+            <bool32.rising name="reset" description="Reset phase"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out" description="Output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.lfopitch name="pitch" description="Pitch" noLabel="false"/>
+            <frac32.u.map.ratio name="pw" description="Pulse width" noLabel="false"/>
+            <frac32.s.map name="amp" description="Amplitude" noLabel="false"/>
+            <bool32.tgl name="unipolar" description="Unipolar output" noLabel="false"/>
+            <int32 name="wave" description="1-5 = tri, sine, saw+, saw-, square" noLabel="false">
+               <MinValue i="1"/>
+               <MaxValue i="5"/>
+            </int32>
+            <int32.hradio name="div">
+               <MaxValue i="5"/>
+            </int32.hradio>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t phase;
+      int32_t  old_reset;
+
+     __attribute__( ( always_inline ) ) __STATIC_INLINE int32_t ___ABS (int32_t op1 )
+      {
+        int32_t result;
+        __ASM volatile ( "movs  %0, %1\n"
+                         "it    mi\n"
+                         "rsbmi %0, %0, #0"
+                         : "=r" (result)
+                         : "r" (op1)
+                       );
+        return(result);
+      };]]></code.declaration>
+         <code.init><![CDATA[phase = 0;
+      old_reset = 0;]]></code.init>
+         <code.krate><![CDATA[if( inlet_reset && !old_reset )
+        {
+          phase = 0;
+        }
+      else
+        {
+          int32_t pitch;
+          pitch = param_pitch + inlet_pitch;
+          if( pitch > 0x07FFFFFF )
+            pitch = 0x07FFFFFF;
+          MTOFEXTENDED( pitch, pitch );
+          phase += pitch>>((param_div+1)+(inlet_div));
+        }
+      old_reset = inlet_reset;
+
+      uint32_t phase1 = phase + (inlet_phase<<3);
+
+      switch( param_wave + inlet_wave )
+        {
+          default:
+          case 1 :
+            // Triangle
+            outlet_out  = (phase1>>4) - (1<<27);
+            outlet_out  = (1<<27) - ___ABS(outlet_out);
+            break;
+
+          case 2 :
+            // Sine
+            SINE2TINTERP( phase1, outlet_out )
+            outlet_out = (outlet_out>>5) + (1<<26);
+            break;
+
+          case 3 :
+            // Saw rising
+            outlet_out  = (phase1>>5);
+            break;
+
+          case 4 :
+            // Saw falling
+            outlet_out  = (1<<27) - (phase1>>5);
+            break;
+
+          case 5 :
+            // Square
+            {
+              int32_t pulsewidth = param_pw + inlet_pwm;
+              if( pulsewidth > (1<<27) )
+                {
+                  pulsewidth = (1<<27);
+                }
+              else if( pulsewidth < 0 )
+                {
+                  pulsewidth = 0;
+                }
+              if( (phase1>>5) > pulsewidth )
+                {
+                  outlet_out = 0;
+                }
+              else
+                {
+                  outlet_out = (1<<27)-1;
+                }
+            }
+            break;
+        }
+
+      if( !param_unipolar )
+        {
+          outlet_out = (outlet_out<<1) - (1<<27);
+        }
+
+     outlet_out = __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_out << 2 ), 28 );]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lokki/math/*c onoff" uuid="45af585c-f303-452a-a43a-947cc75ece0b" name="*c_2" x="308" y="84">
+      <params>
+         <frac32.u.map name="amp" value="21.0"/>
+         <bool32.tgl name="off" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_8" x="420" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="84" y="154">
+      <params>
+         <int32 name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="294" y="238" text="65534"/>
+   <comment type="patch/comment" x="351" y="259" text="loopy"/>
+   <patchobj type="patch/object" uuid="1afeac6d-219a-49d0-bd62-bb8897c9dce7" name="*c_1" x="308" y="280">
+      <params>
+         <frac32.u.map name="amp" value="34.0"/>
+         <bool32.tgl name="on" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="1afeac6d-219a-49d0-bd62-bb8897c9dce7">
+         <sDescription>Multiply (attenuate) with a constant value</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map.gain name="amp" noLabel="true"/>
+            <bool32.tgl name="on"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[if (!param_on) outlet_out= outlet_out = 0;
+else outlet_out=___SMMUL(param_amp,inlet_in)<<1;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_7" x="420" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="multi_wave_2" outlet="out"/>
+         <dest obj="*c_2" inlet="in"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="multi_wave_2" inlet="div"/>
+      </net>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="chart_7" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="chart_8" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>1107</x>
+      <y>96</y>
+      <width>580</width>
+      <height>653</height>
+   </windowPos>
+</patch-1.0>

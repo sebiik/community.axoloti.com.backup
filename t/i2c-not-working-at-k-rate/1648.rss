@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>i2c not working at K-rate</title>
+    <link>http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648</link>
+    <description>We want to communicate with a g sensor via i2c. The following code in the init tab returns signals successfully from the sensor:
+
+    // setup the pins
+    palSetPadMode(GPIOB, 8, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SCL
+    palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SDA
+    const int MPU_addr=0x68;
+    static const I2CConfig i2cfg = {
+        OPMODE_I2C,
+        400000,
+        FAST_DUTY_CYCLE_2,
+    };
+    i2cStart(&amp;I2CD1, &amp;i2cfg);
+    uint8_t transmitBuffer = 0x6B;
+    uint8_t receiveBuffer[14];
+    i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 4, receiveBuffer, 0, 30);
+    transmitBuffer = 0x0;
+    i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 1, receiveBuffer, 0, 30);
+
+    transmitBuffer = 0x3B;
+    i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 1, receiveBuffer, 14, 30);
+    LogTextMessage(&quot;%d&quot;, receiveBuffer[1]);
+
+We are using this code in the K-Rate tab:
+
+      if(++i == 1000) {
+    	i = 0;
+    	const int MPU_addr=0x68;
+    	uint8_t transmitBuffer;
+    	uint8_t receiveBuffer[14];
+    	transmitBuffer = 0x3B;
+    	msg_t status = i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 1, receiveBuffer, 14, 30);
+    	LogTextMessage(&quot;status: %d&quot;, status);
+    	if(status == RDY_RESET) {
+    		i2cflags_t error = i2cGetErrors(&amp;I2CD1);
+    		LogTextMessage(&quot;error: %d&quot;, error);
+    	} else if(status == RDY_TIMEOUT) {
+    		LogTextMessage(&quot;timeout&quot;);
+    	}
+    	LogTextMessage(&quot;%d&quot;, receiveBuffer[1]);
+    }
+
+
+At K-rate an external i2c scope shows that continuously one wrong byte is transmitted from the axoloti board to the sensor and the receiveBuffer always contains the same values as in the init step.
+The status message returned by i2cMasterTransmitTimeout() is RDY_OK.</description>
+    
+    <lastBuildDate>Sat, 07 May 2016 14:40:56 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>i2c not working at K-rate</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Best practice is keeping k-rate code free of functions that take considerable time to process.<br>This can be done by creating a thread at initialization and waking up that thread periodically, you could sleep the thread for a certain time, or wake up the thread from k-rate by sending it a signal.<br>The script/script2 object internals shows how create (and cleanup) a thread.</p>
+
+<p>Another important thing is that the data for I2C transactions must be located in a DMA-capable memory area.<br>like</p>
+
+<pre><code>    // allocate buffers suitable for DMA transfert!
+    static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+    static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));</code></pre>
+
+<p>I suggest to take a look at axoloti/archive/tests/io/spi_lkm1638.axh for an example that uses SPI and script2.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648/2</link>
+        <pubDate>Sat, 07 May 2016 14:40:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1648-2</guid>
+        <source url="http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648.rss">i2c not working at K-rate</source>
+      </item>
+      <item>
+        <title>i2c not working at K-rate</title>
+        <dc:creator><![CDATA[@Hugo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hugo">@Hugo</a> wrote:</p>
+          <blockquote>
+              <p>We want to communicate with a g sensor via i2c. The following code in the init tab returns signals successfully from the sensor:</p>
+
+<pre><code>// setup the pins
+palSetPadMode(GPIOB, 8, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SCL
+palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SDA
+const int MPU_addr=0x68;
+static const I2CConfig i2cfg = {
+    OPMODE_I2C,
+    400000,
+    FAST_DUTY_CYCLE_2,
+};
+i2cStart(&amp;I2CD1, &amp;i2cfg);
+uint8_t transmitBuffer = 0x6B;
+uint8_t receiveBuffer[14];
+i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 4, receiveBuffer, 0, 30);
+transmitBuffer = 0x0;
+i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 1, receiveBuffer, 0, 30);
+
+transmitBuffer = 0x3B;
+i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 1, receiveBuffer, 14, 30);
+LogTextMessage("%d", receiveBuffer[1]);</code></pre>
+
+<p>We are using this code in the K-Rate tab:</p>
+
+<pre><code>  if(++i == 1000) {
+	i = 0;
+	const int MPU_addr=0x68;
+	uint8_t transmitBuffer;
+	uint8_t receiveBuffer[14];
+	transmitBuffer = 0x3B;
+	msg_t status = i2cMasterTransmitTimeout(&amp;I2CD1, MPU_addr, &amp;transmitBuffer, 1, receiveBuffer, 14, 30);
+	LogTextMessage("status: %d", status);
+	if(status == RDY_RESET) {
+		i2cflags_t error = i2cGetErrors(&amp;I2CD1);
+		LogTextMessage("error: %d", error);
+	} else if(status == RDY_TIMEOUT) {
+		LogTextMessage("timeout");
+	}
+	LogTextMessage("%d", receiveBuffer[1]);
+}</code></pre>
+
+<p>At K-rate an external i2c scope shows that continuously one wrong byte is transmitted from the axoloti board to the sensor and the receiveBuffer always contains the same values as in the init step.<br>The status message returned by i2cMasterTransmitTimeout() is RDY_OK.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648/1</link>
+        <pubDate>Fri, 06 May 2016 20:46:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1648-1</guid>
+        <source url="http://community.axoloti.com/t/i2c-not-working-at-k-rate/1648.rss">i2c not working at K-rate</source>
+      </item>
+  </channel>
+</rss>

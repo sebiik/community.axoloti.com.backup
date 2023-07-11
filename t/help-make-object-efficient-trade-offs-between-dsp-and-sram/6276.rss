@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Help make object efficient: Trade offs between dsp and sram</title>
+    <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276</link>
+    <description>Hello wonderful Axo community.
+
+I&#39;m new to coding. I&#39;ve made a couple of variants of an object meant to encapsulate the functionality of a subpatch I was using that was too sram expensive. 
+
+The first version I made declared several variables and was not very efficient memory wise. 
+
+So I tried to put the whole thing into one equation, without declaring any variables and this saves a lot of memory (only using about half), but uses too much DSP resources and I end up overloading. 
+
+ would like to know what would be the best way of approaching this. 
+
+Here is the original code with a bunch of variables, hungry for memory: 
+
+int te1 = attr_t1.array[__USAT((attr_target),attr_t1.LENGTHPOW)]&lt;&lt;attr_t1.GAIN;
+int te2 = attr_t2.array[__USAT((attr_target),attr_t2.LENGTHPOW)]&lt;&lt;attr_t2.GAIN;
+int tl1 = attr_t3.array[__USAT((attr_target),attr_t3.LENGTHPOW)]&lt;&lt;attr_t3.GAIN;
+int tl2 = attr_t4.array[__USAT((attr_target),attr_t4.LENGTHPOW)]&lt;&lt;attr_t4.GAIN;
+int tx = attr_t5.array[__USAT((attr_target),attr_t5.LENGTHPOW)]&lt;&lt;attr_t5.GAIN;
+int ty = attr_t6.array[__USAT((attr_target),attr_t6.LENGTHPOW)]&lt;&lt;attr_t6.GAIN;
+int tz = attr_t7.array[__USAT((attr_target),attr_t7.LENGTHPOW)]&lt;&lt;attr_t7.GAIN;
+
+int bpe1 = (te1-(1&lt;&lt;26))&lt;&lt;1;
+int bpe2 = (te2-(1&lt;&lt;26))&lt;&lt;1;
+int bpl1 = (tl1-(1&lt;&lt;26))&lt;&lt;1;
+int bpl2 = (tl2-(1&lt;&lt;26))&lt;&lt;1;
+int bpx = (tx-(1&lt;&lt;26))&lt;&lt;1;
+int bpy = (ty-(1&lt;&lt;26))&lt;&lt;1;
+int bpz = (tz-(1&lt;&lt;26))&lt;&lt;1;
+
+int se1 = attr_ms.array[__USAT((0),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;
+int se2 = attr_ms.array[__USAT((1),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;
+int sl1 = attr_ms.array[__USAT((2),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;
+int sl2 = attr_ms.array[__USAT((3),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;
+int sx = attr_ms.array[__USAT((4),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;
+int sy = attr_ms.array[__USAT((5),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;
+int sz = attr_ms.array[__USAT((6),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;
+
+int e1 = ___SMMUL(bpe1&lt;&lt;3,se1&lt;&lt;2);
+int e2 = ___SMMUL(bpe2&lt;&lt;3,se2&lt;&lt;2);
+int l1 = ___SMMUL(bpl1&lt;&lt;3,sl1&lt;&lt;2);
+int l2 = ___SMMUL(bpl2&lt;&lt;3,sl2&lt;&lt;2);
+int xt = ___SMMUL(bpx&lt;&lt;3,sx&lt;&lt;2);
+int yt = ___SMMUL(bpy&lt;&lt;3,sy&lt;&lt;2);
+int zt = ___SMMUL(bpz&lt;&lt;3,sz&lt;&lt;2);
+
+outlet_total = e1 + e2 + l1 + l2 + xt + yt + zt + inlet_initial;
+
+Here is the second one that is one equation, more memory efficient, but dsp hungry. 
+
+outlet_total = 
+(___SMMUL((((attr_t1.array[__USAT((attr_target),attr_t1.LENGTHPOW)]&lt;&lt;attr_t1.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[__USAT((+ 0),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+ 
+(___SMMUL((((attr_t2.array[__USAT((attr_target),attr_t2.LENGTHPOW)]&lt;&lt;attr_t2.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[__USAT((+ 1),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+
+(___SMMUL((((attr_t3.array[__USAT((attr_target),attr_t3.LENGTHPOW)]&lt;&lt;attr_t3.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[__USAT((+ 2),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+
+(___SMMUL((((attr_t4.array[__USAT((attr_target),attr_t4.LENGTHPOW)]&lt;&lt;attr_t4.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[__USAT((+ 3),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+
+(___SMMUL((((attr_t5.array[__USAT((attr_target),attr_t5.LENGTHPOW)]&lt;&lt;attr_t5.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[__USAT((+ 4),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+
+(___SMMUL((((attr_t6.array[__USAT((attr_target),attr_t6.LENGTHPOW)]&lt;&lt;attr_t6.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[__USAT((+ 5),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+
+(___SMMUL((((attr_t7.array[__USAT((attr_target),attr_t7.LENGTHPOW)]&lt;&lt;attr_t7.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[__USAT((+ 6),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+
+inlet_initial;
+
+How should I approach making this more efficient. They both work. But I need 192 of them in my patch, so they need to be as efficient as possible. 
+
+I still lack a lot of the coding concepts. Perhaps there is another assembler instruction I can use? 
+Any help welcome!</description>
+    
+    <lastBuildDate>Sun, 19 Jan 2020 15:43:55 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote>
+<p>a) you could modify this, to have single_alloc, single_set , single_get axoloti objects, with inlets and outlets - so basically like the table object.</p>
+<p>b) create custom object(s) using singleton<br>so actually build your functionality into some more high level objects, and just use these in their implementation </p>
+<p>c) create custom object(s) using technique<br>really the idea of this is to demonstrate the technique of using singletons, <br>the approach could be used to handle much more complex data structures that are relevant to your problem space.</p>
+</blockquote></aside>
+
+<p>Hi <a class="mention" href="/u/thetechnobear">@thetechnobear</a> . After having built a functional first version of my mpe synth a few weeks ago and having played and recorded with it (very satisfying experience to build and then play/ produce something with your own instrument)---<br>I'm now itching to make it more efficient, and have been thinking about your singleton suggestion. I was not ready to dive into it when you suggest it, and just needed to finish the version I had in mind, but I'm now ready to slowly take a plunge in this direction. </p>
+
+<p>I've read up on it and have looked at the objects you sent me. But I'm having trouble figuring out how to approach this in my setup. The issue is that I have some "global" parameters, like the positions of knobs and the amounts in the mod matrix, but mostly I have "per voice" parameters (since this is mpe, the summed up values from the mod matrix need to be calculated per voice). </p>
+
+<p>What would be the right way to approach this? (I'm trying to imagine what you meant by "c" in the above quote). </p>
+
+<p>This is where I am conceptually: <br>-create a singleton for each of the "mod sources" (including anything that affects a synth parameter, such as the position of a parameter knob on the interface). <br>-create custom objects that set the appropriate singleton values based on what i do with the interface. <br>-create custom objects that update the interface LEDs based on the state of the interface by reading from the appropriate singletons<br>-create a custom object for each of the synth's parameters for each of the synth's voices which collects the values of these mod source singletons and processes them to get the current value of the given per-voice synth parameter. </p>
+
+<p>What do you think? </p>
+
+<p>Thanks for your time, you are a great help.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/24">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/24</link>
+        <pubDate>Sun, 19 Jan 2020 15:43:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-24</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="22" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>VST on your desktop has to supply things like mod matrix because, as an end user, you cannot modify the code... you cannot change the code to say Y axis should now go to wave shape rather than than filter cutoff. so it has to be 'soft coded' to allow this flexibility.</p></blockquote></aside>
+
+<p>I understand this yes. But I bought the axoloti board recently after coming up with a design for a synth. I wanted to create what I had in mind. I had a roli seaboard lying around that I wasn't using, because there are too few mpe synth. I don't like using vsts... I had it hooked up to an iPad and there are some great synth in there with mpe, but I still was not using it. So I found the axoloti platform and I was blown away.</p>
+
+<p>So I started off with a vision for a synth architecture/interface that allows you to quickly access lots of sounds without presets, apply modulation really quickly and intuitively and have it be really expressive. This is the synth I feel was missing from my collection and that I thought I could create myself. I must say, what I have now is almost there. I've had to take some shortcuts but I can keep tweaking it.</p>
+
+<p>I am very interested in what 2.0.0 offers. As well as the urklang  ot H7 board... I'm hooked! <br>The 2.0.0 with multiple patches is going to be awesome. I was just asking in another thread how to use controller objects to change my oscillator subpatches. It looks like 2.0.0 will make the functionality I was looking for possible. So yeah. I'm so looking forward to how this evolves. I thought I was late to the game but it looks like it is just the beginning.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/23">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/23</link>
+        <pubDate>Sat, 21 Dec 2019 21:56:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-23</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>as stated in the topic i linked on your other thread, mod sources and target are relatively expensive.</p>
+
+<p>so having a huge number is going to cause issues,  if i was doing it, id be probably be looking for a different way to achieve something similar but a bit less generic, and so cheaper to implement.</p>
+
+<p>as <a class="mention" href="/u/jaffasplaffa">@jaffasplaffa</a> pointed out, the thing about axoloti (and will still be true of an H7 version) is that its not a general purpose computer, so building 'generic' patches is not really the best way to tackle it, <br>rather you'd be better off to create a number of patches perhaps with variations ...</p>
+
+<p>looking at this a different way <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> <br>a VST on your desktop has to supply things like mod matrix because, as an end user, you cannot modify the code... you cannot change the code to say Y axis should now go to wave shape rather than than filter cutoff. so it has to be 'soft coded' to allow this flexibility.</p>
+
+<p>this is not true of axoloti, you have the ability to change the patch, to change the code!<br>so you can create variations that behave different.</p>
+
+<p>so what might be two different presets on a VST, can be two different patches.</p>
+
+<p>once you get used to this, it can become pretty liberating for a few reasons<br>a) you don't have to build huge complex patches, you can aim to build smaller things quicker.<br>b) you are not limited in your patches by some predetermined design decisions.</p>
+
+<p>(b) can become quite a pain, when your patch becomes much larger... because you will keep hitting your head against various brick walls, either due to resources, or ones imposed by how you write the patch.</p>
+
+<p>also... i think axoloti OS 2.0, is going to bring some interesting new approaches, given patch modularity has changed... an area I look forward to exploring <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/22">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/22</link>
+        <pubDate>Sat, 21 Dec 2019 20:22:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-22</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Yes of course, squeeze as much out of it as possible <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>But adding a reverb to an all ready complicated patch is going to be hard. Reverbs takes alot of memory, as you need many all pass filters to achieve that.</p>
+
+<p>Anyway, again, I hope you get it all sorted <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>Or else for the effects, it might be worth getting an extra Axoloti. That is what I did when I started running out of memory. Effects could easily work on a second board without too much problems <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/21">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/21</link>
+        <pubDate>Sat, 21 Dec 2019 17:47:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-21</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="19" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/jaffasplaffa/40/5808_1.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>Do you really need a 308 destinations mod matrix?</p></blockquote></aside>
+
+<p> ha!</p>
+
+<p>I know you can't have everything... I currently have 119 destinations working smoothly with my somewhat clunky implementation of mod matrix using __SMMLA accum, etc... and a combination of sends and tables... <br>It works wonderfully and sounds great. 4 voices, 3 oscillators per voice, lowpass per voice, high pass per voice, 2 envelopes per voice, two global lfos, plus mpe x, y, z. Delay. </p>
+
+<p>I love thins thing! </p>
+
+<p>But like technobear said, I'm just trying to squeeze out as much as possible... I'm about 85% dsp, but pretty close to maxing out sram. So that is why I was investigating other ways to do things. I would like to have reverb, and various wave folding... but because of my implementation, each time I add a feature, I need to add mod destinations so it quickly increases workload...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/20">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/20</link>
+        <pubDate>Sat, 21 Dec 2019 17:34:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-20</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>A question that pops to my head is:</p>
+
+<ul><li>Do you really need a 308 destinations mod matrix?</li></ul>
+
+<p>When I started out building patches for Axo, I wanted to build patches that can do everything. But after a while I realised it is probably not feasible to do so, it makes more sense to make more specialised patches with only what is needed for a certain task and then make a patch for each task and switch between them.</p>
+
+<p>And I think you probably need to downscale your expectations a little bit. Or buy the new board from Urklaing when it is released in a not so far distant future. That board has around 4 X power of an original Axoloti.</p>
+
+<p>But I do hope you get what you want, but you should probably also be realistic about it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/19">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/19</link>
+        <pubDate>Sat, 21 Dec 2019 16:00:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-19</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Or perhaps the best way is to just use the singleton pattern to distribute the 308 amounts?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/18</link>
+        <pubDate>Sat, 21 Dec 2019 15:46:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-18</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Hi <a class="mention" href="/u/thetechnobear">@thetechnobear</a>,</p>
+
+<p>I'm having trouble reimagining my architecture using singleton patterns. I wonder if you could set my intuitions straight before I get too deep into a dead end. </p>
+
+<p>My intuition is that I should have a singleton for each of my mod destinations, which themselves accumulate the values from singletons corresponding to each modulation source and singletons for the relative amounts in which these mod sources are applied to each destination. </p>
+
+<p>So in my synth I would have <br>-2 "global" (as in, not per voice) mod source singleton values: LFO1, LFO2 <br>-5 per voice mod source singleton values: envelope 1, envelope 2, MPE x, MPE y, MPE z. (and for my synth with 4 voices, that would mean 20)<br>- 308! (44 mod destinations * 7 amounts of modulation applied for each) mod amount singletons values</p>
+
+<p>It seems like I am just copying the tables paradigm into this one, but though I may save on some cycles because I will have less table parsing to do, I'm not sure I am getting much out of it with this approach. And because of the MPE, there will still be some parsing to do, since I will have to index which singletons are being read depending on the voice.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/17</link>
+        <pubDate>Sat, 21 Dec 2019 15:19:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-17</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>you will not be able to just embed a new copy of the object , as it wont find the header file.<br>you'll have to edit the example.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/16</link>
+        <pubDate>Fri, 20 Dec 2019 20:21:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-16</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote>
+<p>theres a few approaches...<br>(listed in least efficient, but easier to implement order)</p>
+<p>a) you could modify this, to have single_alloc, single_set , single_get axoloti objects, with inlets and outlets - so basically like the table object.</p>
+<p>b) create custom object(s) using singleton<br>so actually build your functionality into some more high level objects, and just use these in their implementation </p>
+<p>c) create custom object(s) using technique<br>really the idea of this is to demonstrate the technique of using singletons, <br>the approach could be used to handle much more complex data structures that are relevant to your problem space.</p>
+</blockquote></aside>
+
+<p>This is really interesting... </p>
+
+<p>I'm having trouble getting it working though. Maybe there is something else I need to understand. </p>
+
+<p>I've tried just adding an inlet to the set object in the help patch you sent me. I then transferred the init code to the k-rate code and swapped the "17" with "inlet_i1"...</p>
+
+<p>It fails to compile, but weirdly so. It just gives me the following:</p>
+
+<p>Creating directory on sdcard : /singleton<br>Done creating directory<br>Changing working directory on sdcard : /singleton<br>file error: FR_NO_FILESYSTEM, filename:"/singleton"<br>Done changing working directory<br>file error: FR_NO_FILESYSTEM, filename:"/singleton"</p>
+
+<p>EDIT: to be clear, on its own your help patch works and the dial moves to 17 when I go live. But with this minor modification it fails to compile.</p>
+
+<p>EDIT2: OK actually, as soon as I "embed as patch/object", without any modification, it fails to compile... perhaps this is just a file directory issue?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/15</link>
+        <pubDate>Fri, 20 Dec 2019 19:00:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-15</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Ok I have a problem: I can't reflash the firmware back to 1.0.12. </p>
+
+<p>It says it is ready to connect when the led stops blinking and is steady green. But it does notflash. It is just immediately green and nothing happens.</p>
+
+<p>EDIT: downgrading worked from the 2.0.0 application. So i'm good to go...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/14</link>
+        <pubDate>Fri, 20 Dec 2019 18:21:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-14</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="12" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>dont use 2.0 yet.</p></blockquote></aside>
+
+<p>That's what I was thinking. </p>
+
+<p>Thanks so much! I'll check it out.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/13</link>
+        <pubDate>Fri, 20 Dec 2019 16:30:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-13</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>dont use 2.0 yet... its going to create too much confusion if users new to axoloti start using it,<br>as it'll be hard to know if something they say is 'user error' or a new bug.</p>
+
+<p>ok, Ive done a 1.0.12 version<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.dropbox.com/s/2rtg1lhvoj6umge/singleton1.zip?dl=0" target="_blank" rel="nofollow noopener">dropbox.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.dropbox.com/static/images/spectrum-icons/generated/content/content-zip-large.png" width="160" height="160" class="thumbnail">
+
+<h3><a href="https://www.dropbox.com/s/2rtg1lhvoj6umge/singleton1.zip?dl=0" target="_blank" rel="nofollow noopener">singleton1.zip</a></h3>
+
+<p>Shared with Dropbox</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>this is actually a little more logical anyway, as it has 3 objects<br>single/create,  single/set, single/get</p>
+
+<p>note: I repeat, the set/get are 'hardcoded', im not trying to create something useful here, rather demonstrate the technique.. I leave it to the 'reader' to make them useful <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/12</link>
+        <pubDate>Fri, 20 Dec 2019 16:26:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-12</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="10" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>I'll see if i can back port this back to 1.0.12</p></blockquote></aside>
+
+<p>oh that would be great, if you have time. </p>
+
+<p>I've tried installing 2.0.0 just to take a look at it, but nothing is compiling. I'm getting this:</p>
+
+<p>Generate code complete<br>xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun<br>Compiling patch failed</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/11</link>
+        <pubDate>Fri, 20 Dec 2019 16:17:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-11</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>yeah, as i said, im focusing on 2.0.0 now... its better for me to be testing, and helping improve that... than focusing on 1.0.12. (not saying that's true for you/new users - as its not 100% stable at the moment) </p>
+
+<p>I'll see if i can back port this back to 1.0.12</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/10</link>
+        <pubDate>Fri, 20 Dec 2019 16:02:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-10</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>demo</p></blockquote></aside>
+
+<p>damn... it was made with version 2.0.0.... i can't open it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/9</link>
+        <pubDate>Fri, 20 Dec 2019 15:36:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-9</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>Ive put together a quick example, of the 'singleton technique'</p></blockquote></aside>
+
+<p>This is incredible! Thanks for taking the time to show me this... <br>I'll dive right in... </p>
+
+<p>Also:<br></p>
+
+<aside class="quote" data-post="6" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>the approach you are using with attributes will NOT work</p></blockquote></aside>
+
+<p>Actually it does work: since this way i didn't have to bury my table/reads two patcher levels deep. It works just fine accessing tables from within the mpe voice patch, just not two levels down. However, it is still inefficient. I've got 16 destinations working with this set up, but I would like to get more going. </p>
+
+<p>I'll look into the singleton technique. I didn't know where to start, and this is an excellent start. </p>
+
+<p>THANK YOU TECHNOBEAR!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/8</link>
+        <pubDate>Fri, 20 Dec 2019 15:25:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-8</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>tip: whilst its tempting to just start cut n' pasting code around, its not a good idea.<br>unlike visual coding , C++ has plenty of potential to bite you in the a** if you do this, <br>and frankly it'll get pretty frustrating if you don't have a little grounding int c/c++.</p></blockquote></aside>
+
+<p>I think of this as the Arduino syndrome.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/7</link>
+        <pubDate>Fri, 20 Dec 2019 14:45:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-7</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>honestly i don't really know what your trying to do... but it does look pretty inefficient <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>(also as i mentioned, the approach you are using with attributes will NOT work) </p>
+
+<p>sorry, I don't have time to create a custom object to deal with what you are trying to do, <br>but Ive put together a quick example, of the 'singleton technique' , i described above...<br>and how to do it in axoloti.</p>
+
+<aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.dropbox.com/s/1w1dj8dce7rfe8a/singleton.zip?dl=0" target="_blank" rel="nofollow noopener">dropbox.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://www.dropbox.com/static/images/spectrum-icons/generated/content/content-zip-large.png" width="160" height="160" class="thumbnail">
+
+<h3><a href="https://www.dropbox.com/s/1w1dj8dce7rfe8a/singleton.zip?dl=0" target="_blank" rel="nofollow noopener">singleton.zip</a></h3>
+
+<p>Shared with Dropbox</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+
+<p>you need to place the stuff in objects, into your objects directory...  (*)<br>this creates two custom objects. single_set and single_get...  (actually single_set is a bit misnamed  it should be something like single_alloc)</p>
+
+<p>then there is a test patch in patches/tests/singleton.axp</p>
+
+<p>(*) you will need to then use reload objects, or restart axoloti editor to pick them up.</p>
+
+<p>what does it do?<br>it defines an c++ object called singleton, that can store 100 signed ints, and allow setting and getting, <br>which can be used anywhere in a patch, and will always refer to the same object.</p>
+
+<p>ive then created two trivial objects, which demonstrates how to use it.<br>single_set , actually creates the Single, and then sets one of its elements (3)  (due to the create, you can only use it once in the patch <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> ) <br>single_get, just return the 3rd elements value.</p>
+
+<p>THIS IS NOT INTENDED TO BE USEFUL - its a demo of the technique.</p>
+
+<p>Ive tried to make the c++ as simple as possible, so you should be able to adapt to your needs.</p>
+
+<p>how would you go forward with this?</p>
+
+<p>theres a few approaches...<br>(listed in least efficient, but easier to implement order)</p>
+
+<p>a) you could modify this, to have single_alloc, single_set , single_get axoloti objects, with inlets and outlets - so basically like the table object.</p>
+
+<p>b) create custom object(s) using singleton<br>so actually build your functionality into some more high level objects, and just use these in their implementation </p>
+
+<p>c) create custom object(s) using technique<br>really the idea of this is to demonstrate the technique of using singletons, <br>the approach could be used to handle much more complex data structures that are relevant to your problem space.</p>
+
+<p>id personally go with (c), but you might find this a bit hard to do at this stage...so perhaps start with (a) and move on.</p>
+
+<p>I hope this is helpful... sorry I don't really have the time to do more, <br>if your new to C/C++ I recommend you go search on the internet for a tutorial, <br>Im sure, there are some excellent ones around that can do a much better job of teaching you the basics than I can over a forum <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>tip: whilst its tempting to just start cut n' pasting code around, its not a good idea.<br>unlike visual coding , C++ has plenty of potential to bite you in the a** if you do this, <br>and frankly it'll get pretty frustrating if you don't have a little grounding int c/c++.</p>
+
+<hr>
+
+<p>note: if you use these objects <strong>thousands</strong> of times in the patch, you will probably want to add  <strong>attribute</strong>((noinline))  after the get/set methods in singleton.h , <br>this reduces performance (so dont do it unless you need too), but means it generates less code.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/6</link>
+        <pubDate>Fri, 20 Dec 2019 14:29:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-6</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>Edit: make sure your ‘test’ patch does an something, when it works ... as the person helping will want to know if it’s working ... doing stuff in isolation is no fun <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p></blockquote></aside>
+
+<p>It is difficult to show you a stripped down version that does something... The whole patch is highly dependent on the hardware i'm using... </p>
+
+<p>But perhaps I could I explain the steps better, and someone will think of a way to improve it. </p>
+
+<p>This is a mod matrix. It distributes 7 modulation sources to (ideally) 44 different destinations. </p>
+
+<p>In my main patch, I have 7 tables filled with the amounts in which each mod source is applied to each mod destination.<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/ee5427a5f8b3b20a893371edd09a042013b59430" href="//community.axoloti.com/uploads/default/original/2X/e/ee5427a5f8b3b20a893371edd09a042013b59430.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/e/ee5427a5f8b3b20a893371edd09a042013b59430_1_690x350.png" width="690" height="350"><div class="meta">
+<span class="filename">image.png</span><span class="informations">952x483 74 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Then, inside my voice patch, I have a 44 mod receive objects (the ones I shared above), that receive the data from these, each destination using an offset corresponding to it to access the relevant amounts of modulation. It also receives another table, specific to each voice (I have four voices), that is filled with the current modulation parameters for that voice (this is MPE, so it is different for each voice), and multiplies the amounts specified in those first 7 tables with the actual current value of those modulation sources. Then the results are added up including the "initial value" (which I specify directly with my interface knobs, etc...). </p>
+
+<p>My first go at thiswas just to patch it:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/a900ae79f1404cedd228817183405a80d4cf75fb" href="//community.axoloti.com/uploads/default/original/2X/a/a900ae79f1404cedd228817183405a80d4cf75fb.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/a/a900ae79f1404cedd228817183405a80d4cf75fb_1_690x327.png" width="690" height="327"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1046x496 44.8 KB</span><span class="expand"></span>
+</div></a></div><br>...and inside that subpatch this is happening: <br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/fe81f551c33c1fa9aa3194a846fa4760ff48bf53" href="//community.axoloti.com/uploads/default/original/2X/f/fe81f551c33c1fa9aa3194a846fa4760ff48bf53.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/fe81f551c33c1fa9aa3194a846fa4760ff48bf53_1_431x500.png" width="431" height="500"><div class="meta">
+<span class="filename">image.png</span><span class="informations">828x959 71.8 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>I hope this helps understand what I'm trying to achieve. This first attempt to just patch the functionality failed due to sram overflow. So I decided to code a custom object (in the two files shared above). But now it seems that I still can't get much more than Since I need so many of these, inside the voice, and there are four voices, and all this multiplication going on it eats up a lot of dsp.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/5</link>
+        <pubDate>Fri, 20 Dec 2019 13:29:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-5</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/9/9367532c03baceef0fbb4d4621b574007c75d5d5.axp">test modreceive explicit.axp</a> (6.5 KB)</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/d/d87bab3dc9785305add698dce5d5b890d530e139.axp">test modreceive compact.axp</a> (6.2 KB)</p>
+
+<aside class="quote" data-post="3" data-topic="6276"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>You’d be better to post the object and the patch.</p></blockquote></aside>
+
+<p>sorry, i'm new to this... here are the two first attempts...</p>
+
+<p>thank you so much for your patience with me. You are a wonderful community and I am learning a lot.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/4</link>
+        <pubDate>Fri, 20 Dec 2019 11:39:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-4</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>KYou’d be better to post the object and the patch.  </p>
+
+<p>For easier sharing/debugging <br>use an embedded custom object, in a single patch that demonstrates  the issue , in context, with as little extra unrelated stuff as possible. </p>
+
+<p>reason to share a single embedded patch is axoloti is able<br>open a single patch via a url.  </p>
+
+<p>The easier you make it for others to replicate your issue, the more likely they dive in an help <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>Edit: make sure your ‘test’ patch does an something, when it works ... as the person helping will want to know if it’s working ... doing stuff in isolation is no fun <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/3</link>
+        <pubDate>Fri, 20 Dec 2019 11:32:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-3</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Ok I just discovered ___SMMLA and tried to implement the object in a third way, using accumulation. </p>
+
+<p>int32_t accum = <em>__SMMUL((((attr</em>t1.array[<strong>USAT((attr_target),attr_t1.LENGTHPOW)]&lt;&lt;attr_t1.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3, (attr_ms.array[</strong>USAT((+ 0),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2);<br>accum = <em>__SMMLA((((attr</em>t2.array[<strong>USAT((attr_target),attr_t2.LENGTHPOW)]&lt;&lt;attr_t2.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3, (attr_ms.array[</strong>USAT((+ 1),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2, accum);<br>accum = <em>__SMMLA((((attr</em>t3.array[<strong>USAT((attr_target),attr_t3.LENGTHPOW)]&lt;&lt;attr_t3.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3, (attr_ms.array[</strong>USAT((+ 2),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2, accum);<br>accum = <em>__SMMLA((((attr</em>t4.array[<strong>USAT((attr_target),attr_t4.LENGTHPOW)]&lt;&lt;attr_t4.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3, (attr_ms.array[</strong>USAT((+ 3),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2, accum);<br>accum = <em>__SMMLA((((attr</em>t5.array[<strong>USAT((attr_target),attr_t5.LENGTHPOW)]&lt;&lt;attr_t5.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3, (attr_ms.array[</strong>USAT((+ 4),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2, accum);<br>accum = <em>__SMMLA((((attr</em>t6.array[<strong>USAT((attr_target),attr_t6.LENGTHPOW)]&lt;&lt;attr_t6.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3, (attr_ms.array[</strong>USAT((+ 5),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2, accum);<br>accum = <em>__SMMLA((((attr</em>t7.array[<strong>USAT((attr_target),attr_t7.LENGTHPOW)]&lt;&lt;attr_t7.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3, (attr_ms.array[</strong>USAT((+ 6),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2, accum); <br>accum = inlet_initial+accum;</p>
+
+<p>outlet_total = accum;</p>
+
+<p>This one compiles, but does not function properly (would have to dig a bit), however there is no performance increase compared to the second version of the object above.</p>
+
+<p>Is there anything I can do to make this more efficient?</p>
+
+<p>the basic idea is I'm receiving data from attributed tables, converting them to bipolar, multiplying these values with data from another table, then summing the results all up with the initial value coming in the inlet. </p>
+
+<p>thanks for your help!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/2</link>
+        <pubDate>Fri, 20 Dec 2019 10:02:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-2</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+      <item>
+        <title>Help make object efficient: Trade offs between dsp and sram</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Hello wonderful Axo community.</p>
+
+<p>I'm new to coding. I've made a couple of variants of an object meant to encapsulate the functionality of a subpatch I was using that was too sram expensive. </p>
+
+<p>The first version I made declared several variables and was not very efficient memory wise. </p>
+
+<p>So I tried to put the whole thing into one equation, without declaring any variables and this saves a lot of memory (only using about half), but uses too much DSP resources and I end up overloading. </p>
+
+<p> would like to know what would be the best way of approaching this. </p>
+
+<p>Here is the original code with a bunch of variables, hungry for memory: </p>
+
+<p>int te1 = attr_t1.array[<em>_USAT((attr</em>target),attr_t1.LENGTHPOW)]&lt;&lt;attr_t1.GAIN;<br>int te2 = attr_t2.array[<em>_USAT((attr</em>target),attr_t2.LENGTHPOW)]&lt;&lt;attr_t2.GAIN;<br>int tl1 = attr_t3.array[<em>_USAT((attr</em>target),attr_t3.LENGTHPOW)]&lt;&lt;attr_t3.GAIN;<br>int tl2 = attr_t4.array[<em>_USAT((attr</em>target),attr_t4.LENGTHPOW)]&lt;&lt;attr_t4.GAIN;<br>int tx = attr_t5.array[<em>_USAT((attr</em>target),attr_t5.LENGTHPOW)]&lt;&lt;attr_t5.GAIN;<br>int ty = attr_t6.array[<em>_USAT((attr</em>target),attr_t6.LENGTHPOW)]&lt;&lt;attr_t6.GAIN;<br>int tz = attr_t7.array[<em>_USAT((attr</em>target),attr_t7.LENGTHPOW)]&lt;&lt;attr_t7.GAIN;</p>
+
+<p>int bpe1 = (te1-(1&lt;&lt;26))&lt;&lt;1;<br>int bpe2 = (te2-(1&lt;&lt;26))&lt;&lt;1;<br>int bpl1 = (tl1-(1&lt;&lt;26))&lt;&lt;1;<br>int bpl2 = (tl2-(1&lt;&lt;26))&lt;&lt;1;<br>int bpx = (tx-(1&lt;&lt;26))&lt;&lt;1;<br>int bpy = (ty-(1&lt;&lt;26))&lt;&lt;1;<br>int bpz = (tz-(1&lt;&lt;26))&lt;&lt;1;</p>
+
+<p>int se1 = attr_ms.array[<em>_USAT((0),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int se2 = attr_ms.array[<em>_USAT((1),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sl1 = attr_ms.array[<em>_USAT((2),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sl2 = attr_ms.array[<em>_USAT((3),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sx = attr_ms.array[<em>_USAT((4),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sy = attr_ms.array[<em>_USAT((5),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;<br>int sz = attr_ms.array[<em>_USAT((6),attr</em>ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN;</p>
+
+<p>int e1 = ___SMMUL(bpe1&lt;&lt;3,se1&lt;&lt;2);<br>int e2 = ___SMMUL(bpe2&lt;&lt;3,se2&lt;&lt;2);<br>int l1 = ___SMMUL(bpl1&lt;&lt;3,sl1&lt;&lt;2);<br>int l2 = ___SMMUL(bpl2&lt;&lt;3,sl2&lt;&lt;2);<br>int xt = ___SMMUL(bpx&lt;&lt;3,sx&lt;&lt;2);<br>int yt = ___SMMUL(bpy&lt;&lt;3,sy&lt;&lt;2);<br>int zt = ___SMMUL(bpz&lt;&lt;3,sz&lt;&lt;2);</p>
+
+<p>outlet_total = e1 + e2 + l1 + l2 + xt + yt + zt + inlet_initial;</p>
+
+<p>Here is the second one that is one equation, more memory efficient, but dsp hungry. </p>
+
+<p>outlet_total = <br>(<em>__SMMUL((((attr</em>t1.array[<strong>USAT((attr_target),attr_t1.LENGTHPOW)]&lt;&lt;attr_t1.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((+ 0),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+ <br>(<em>__SMMUL((((attr</em>t2.array[<strong>USAT((attr_target),attr_t2.LENGTHPOW)]&lt;&lt;attr_t2.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((+ 1),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t3.array[<strong>USAT((attr_target),attr_t3.LENGTHPOW)]&lt;&lt;attr_t3.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((+ 2),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t4.array[<strong>USAT((attr_target),attr_t4.LENGTHPOW)]&lt;&lt;attr_t4.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((+ 3),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t5.array[<strong>USAT((attr_target),attr_t5.LENGTHPOW)]&lt;&lt;attr_t5.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((+ 4),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t6.array[<strong>USAT((attr_target),attr_t6.LENGTHPOW)]&lt;&lt;attr_t6.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((+ 5),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>(<em>__SMMUL((((attr</em>t7.array[<strong>USAT((attr_target),attr_t7.LENGTHPOW)]&lt;&lt;attr_t7.GAIN)-(1&lt;&lt;26))&lt;&lt;1)&lt;&lt;3,(attr_ms.array[</strong>USAT((+ 6),attr_ms.LENGTHPOW)]&lt;&lt;attr_ms.GAIN)&lt;&lt;2))+<br>inlet_initial;</p>
+
+<p>How should I approach making this more efficient. They both work. But I need 192 of them in my patch, so they need to be as efficient as possible. </p>
+
+<p>I still lack a lot of the coding concepts. Perhaps there is another assembler instruction I can use? <br>Any help welcome!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276/1</link>
+        <pubDate>Fri, 20 Dec 2019 09:38:09 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6276-1</guid>
+        <source url="http://community.axoloti.com/t/help-make-object-efficient-trade-offs-between-dsp-and-sram/6276.rss">Help make object efficient: Trade offs between dsp and sram</source>
+      </item>
+  </channel>
+</rss>

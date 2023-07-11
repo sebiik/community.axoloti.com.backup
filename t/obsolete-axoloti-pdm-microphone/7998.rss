@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>[obsolete] Axoloti PDM microphone</title>
+    <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998</link>
+    <description>I have made a first attempt to include the PDM microphone on the Noloti into the firmware.
+
+In short, we are receiving the microphone&#39;s bitstream at 3.072 MHz from I2S3 (which is basically SPI3) via DMA into a buffer of 32 uint32_t, called &quot;pdm_inbuf[32]&quot;. 3.072MHz divided by 64 equals 48kHz. This buffer is made directly available in any custom object.
+
+Some registers have to be written in the Init Code to enable the clock and DMA and such, since I only want these to be on if an object actually uses the PDM microphone. (and ideally the registers should be turned back off in the Dispose Code)
+
+
+Since I am not good at writing filters I get sound but very faint and with a high noise floor. 
+
+I even tried linking and using ST&#39;s dedicated static library for PDM (pdm2pcm) but it seems too much of a hassle to adjust everything to the overall Axoloti way of running processes. 
+
+Right now I am going through 32 samples and reading each 32bit sample bit by bit, and for each bit that is set a fixed amount will be added to the decimated &quot;temp_sum&quot;. Then two temp_sums will be added together and that will become one of the 16-buffer 48kHz audio samples Axoloti expects.
+
+The repetitive bit compare part of the code (if sample &amp; 0x00000001 etc.) is taken from some &quot;ZeroPDM&quot; or so library code I found online. It looks weird not to do a for loop but you indeed save a lot of CPU by doing it this way.
+
+I am assuming I need a running average that repeatedly reads chunks of 16 or 32 bits, then advances a few bits, then samples the shifted signal again, so that each bit is read multiple times, effectively low-pass filtering the stream.
+
+I did try a version employing a sincfilter lookup table but it didn&#39;t sound very good either. I am guessing this is where the multiple count of each sample would come into play?
+
+I am almost embarrased because all I do is 4-pole low pass filter the raw decimated signal with  code I took out of the &quot;lp1&quot; factory object.
+
+**Does anyone here have experience in properly filtering a PDM bitstream?**
+
+Here is what I have so far:
+
+&lt;img src=&quot;/uploads/default/original/2X/a/a1b4880415044b4b350ae9e8d7c2994928cf49da.png&quot; width=&quot;104&quot; height=&quot;103&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/0/04ad540a80f179e9adb19217b433ed1a9ccbaca7.png&quot; width=&quot;658&quot; height=&quot;488&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/2/2fd22908baf58adb4f0b18d88a36c3ec76146a44.png&quot; width=&quot;662&quot; height=&quot;486&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/b/b8d49b7629664ba7fcab2e4f4a658078fc878c0e.png&quot; width=&quot;351&quot; height=&quot;500&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/2/2fa80eb22276af5fc9fd9a72e30927a009503d55.png&quot; width=&quot;455&quot; height=&quot;500&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/7/7006b22b5ca1dc7ec972b3239a342515a27e9b51.png&quot; width=&quot;658&quot; height=&quot;489&quot;&gt;</description>
+    
+    <lastBuildDate>Wed, 14 Jun 2023 02:35:43 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>[obsolete] Axoloti PDM microphone</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>This is now obsolete. On the newest prototype the PDM microphone now connects directly to the codec. Let's have the hardware do the filtering.</p>
+
+<p>See the second half of this post: <a href="//community.axoloti.com/t/new-axoloti-prototype/7970/53">http://community.axoloti.com/t/new-axoloti-prototype/7970/53</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/7</link>
+        <pubDate>Wed, 14 Jun 2023 02:35:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7998-7</guid>
+        <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+      </item>
+      <item>
+        <title>[obsolete] Axoloti PDM microphone</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>You're right, looks like this was not mentioned in the other thread. Yes it does have a PDM mic on board, normalled to SPI3 via PB3 and PB4 but a jumper can be cut to disconnect the mic from power thus release the pins.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/6</link>
+        <pubDate>Sat, 20 May 2023 04:37:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7998-6</guid>
+        <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+      </item>
+      <item>
+        <title>[obsolete] Axoloti PDM microphone</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>The Noloti has a PDM microphone? Was this mentioned anywhere else?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/5</link>
+        <pubDate>Fri, 19 May 2023 13:46:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7998-5</guid>
+        <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+      </item>
+      <item>
+        <title>[obsolete] Axoloti PDM microphone</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="7998"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>when you sum up 32 bits to a single temp_sum - it's basically a 32 tap CIC filter, which has a sinc frequency response</p></blockquote></aside>
+
+<p>Would there be any merit in using a lookup table (that looks like a hanning window)? I have seen this technique in the zeroPWM library, frome where I also took the bit decimation code:<br><aside class="onebox githubblob">
+  <header class="source">
+    <a href="https://github.com/adafruit/Adafruit_ZeroPDM/blob/master/Adafruit_ZeroPDMSPI.cpp" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <h4><a href="https://github.com/adafruit/Adafruit_ZeroPDM/blob/master/Adafruit_ZeroPDMSPI.cpp" target="_blank" rel="nofollow noopener">adafruit/Adafruit_ZeroPDM/blob/master/Adafruit_ZeroPDMSPI.cpp</a></h4>
+<pre><code class="lang-cpp">/*!
+ * @file Adafruit_ZeroPDMSPI.cpp
+ */
+#include "Adafruit_ZeroPDMSPI.h"
+
+/// @cond DISABLE
+#if defined(__SAMD51__)
+/// @endcond DISABLE
+
+static uint16_t const sincfilter[64] = {
+    0,    2,    9,    21,   39,   63,   94,   132,  179,  236,  302,
+    379,  467,  565,  674,  792,  920,  1055, 1196, 1341, 1487, 1633,
+    1776, 1913, 2042, 2159, 2263, 2352, 2422, 2474, 2506, 2516, 2506,
+    2474, 2422, 2352, 2263, 2159, 2042, 1913, 1776, 1633, 1487, 1341,
+    1196, 1055, 920,  792,  674,  565,  467,  379,  302,  236,  179,
+    132,  94,   63,   39,   21,   9,    2,    0,    0};
+
+#define DC_PERIOD 4096 //!&lt; Recalculate DC offset this many samplings
+// DC_PERIOD does NOT need to be a power of 2, but might save a few cycles.
+// PDM rate is 46875, so 4096 = 11.44 times/sec
+</code></pre>
+
+  This file has been truncated. <a href="https://github.com/adafruit/Adafruit_ZeroPDM/blob/master/Adafruit_ZeroPDMSPI.cpp" target="_blank" rel="nofollow noopener">show original</a>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>sincfilter[64] is the lookup table I mean. And Adafruit_ZeroPDMSPI::decimateFilterWord contains the decimation code.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/4</link>
+        <pubDate>Fri, 19 May 2023 08:21:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7998-4</guid>
+        <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+      </item>
+      <item>
+        <title>[obsolete] Axoloti PDM microphone</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Thanks Ricard. </p>
+
+<aside class="quote" data-post="2" data-topic="7998"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>So your += vol_step should have an else, doing -= vol_step when the bit is zero.</p></blockquote></aside>
+
+<p>I was assuming that, in theory, if the bitstream has a lot of zeroes it would mean the audio wave is currently at a "negative pressure" value? And if the signal is at its quietest value, around zero, the PDM stream would have a duty cycle of 50%? Am I misunderstanding this diagram from ST's document AN5027? If I got it wrong this could explain the low levels as I am sort of cancelling out the values!</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/0e7d82f841248d41fef9d8c6e9614d4aa422c437" href="//community.axoloti.com/uploads/default/original/2X/0/0e7d82f841248d41fef9d8c6e9614d4aa422c437.png" class="lightbox" title="2023-05-19 16_08_47-Interfacing PDM digital microphones using STM32 MCUs and MPUs - Application note.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/0/0e7d82f841248d41fef9d8c6e9614d4aa422c437_1_690x410.png" width="690" height="410"><div class="meta">
+<span class="filename">2023-05-19 16_08_47-Interfacing PDM digital microphones using STM32 MCUs and MPUs - Application note.png</span><span class="informations">896x533 73.9 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>It is not clear from my code - actually one can see in the loop that I declare and initialize the "temp_sum" as a negative value of around minus 34 million ... amateurish but I have been trying to keep everything around unsigned levels and shift it with a magic number until I understand more about what levels are required. Are unsigned ints bad for the filtering part?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/3</link>
+        <pubDate>Fri, 19 May 2023 08:12:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7998-3</guid>
+        <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+      </item>
+      <item>
+        <title>[obsolete] Axoloti PDM microphone</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>I think your basic principle is ok, but I'm not good enough at signal processing to say what's going wrong.</p>
+
+<p>Basically PDM can be viewed as a one-bit bitstream that needs to be downsampled. So in principle, you need a low-pass filter that runs at 3.072 MHz that cuts off everything over 20 kHz, and after that the signal is decimated by taking every 64th sample. The first step in this is converting the 0 / 1 in the bitstream to -1 / 1, to get a signal that is symmetric around 0. So your += vol_step should have an else, doing -= vol_step when the bit is zero.</p>
+
+<p>A problem here is that since the filter is running at 3.072 MHz it must be very efficient or it will eat a lot of CPU. The designs I've seen use a simplified form of FIR filter called CIC, which is basically an FIR filter with all the coefficients set to 1, which is used to bring the sample rate down to some intermediate frequency, and then another low pass filter is used to bring it down to the final sample rate of 48 kHz. One trick that can be used with CIC and FIR filters when downsampling is that since only some of the output samples are used, the rest don't need to be calculated. But this is already what you are doing when you sum up 32 bits to a single temp_sum - it's basically a 32 tap CIC filter, which has a sinc frequency response.</p>
+
+<p>I think the reason that the other designs I've seen use a combination of CIC and FIR with an intermediate sample rate, is that the sinc frequenecy response of the CIC gives a lot of passband droop if used to do the complete downsampling, which then needs to be compensated in some way. By only using the CIC filter for part of the downsampling, only part of the sinc curve will be visible in the final output.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/2</link>
+        <pubDate>Fri, 19 May 2023 06:30:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7998-2</guid>
+        <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+      </item>
+      <item>
+        <title>[obsolete] Axoloti PDM microphone</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>I have made a first attempt to include the PDM microphone on the Noloti into the firmware.</p>
+
+<p>In short, we are receiving the microphone's bitstream at 3.072 MHz from I2S3 (which is basically SPI3) via DMA into a buffer of 32 uint32_t, called "pdm_inbuf[32]". 3.072MHz divided by 64 equals 48kHz. This buffer is made directly available in any custom object.</p>
+
+<p>Some registers have to be written in the Init Code to enable the clock and DMA and such, since I only want these to be on if an object actually uses the PDM microphone. (and ideally the registers should be turned back off in the Dispose Code)</p>
+
+<p>Since I am not good at writing filters I get sound but very faint and with a high noise floor. </p>
+
+<p>I even tried linking and using ST's dedicated static library for PDM (pdm2pcm) but it seems too much of a hassle to adjust everything to the overall Axoloti way of running processes. </p>
+
+<p>Right now I am going through 32 samples and reading each 32bit sample bit by bit, and for each bit that is set a fixed amount will be added to the decimated "temp_sum". Then two temp_sums will be added together and that will become one of the 16-buffer 48kHz audio samples Axoloti expects.</p>
+
+<p>The repetitive bit compare part of the code (if sample &amp; 0x00000001 etc.) is taken from some "ZeroPDM" or so library code I found online. It looks weird not to do a for loop but you indeed save a lot of CPU by doing it this way.</p>
+
+<p>I am assuming I need a running average that repeatedly reads chunks of 16 or 32 bits, then advances a few bits, then samples the shifted signal again, so that each bit is read multiple times, effectively low-pass filtering the stream.</p>
+
+<p>I did try a version employing a sincfilter lookup table but it didn't sound very good either. I am guessing this is where the multiple count of each sample would come into play?</p>
+
+<p>I am almost embarrased because all I do is 4-pole low pass filter the raw decimated signal with  code I took out of the "lp1" factory object.</p>
+
+<p><strong>Does anyone here have experience in properly filtering a PDM bitstream?</strong></p>
+
+<p>Here is what I have so far:</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/a/a1b4880415044b4b350ae9e8d7c2994928cf49da.png" width="104" height="103"></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/0/04ad540a80f179e9adb19217b433ed1a9ccbaca7.png" width="658" height="488"></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/2/2fd22908baf58adb4f0b18d88a36c3ec76146a44.png" width="662" height="486"></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/b8d49b7629664ba7fcab2e4f4a658078fc878c0e" href="//community.axoloti.com/uploads/default/original/2X/b/b8d49b7629664ba7fcab2e4f4a658078fc878c0e.png" class="lightbox" title="2023-05-19 12_40_53-embedded.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/b/b8d49b7629664ba7fcab2e4f4a658078fc878c0e_1_351x500.png" width="351" height="500"><div class="meta">
+<span class="filename">2023-05-19 12_40_53-embedded.png</span><span class="informations">573x816 156 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/2fa80eb22276af5fc9fd9a72e30927a009503d55" href="//community.axoloti.com/uploads/default/original/2X/2/2fa80eb22276af5fc9fd9a72e30927a009503d55.png" class="lightbox" title="2023-05-19 12_41_19-.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/2fa80eb22276af5fc9fd9a72e30927a009503d55_1_455x500.png" width="455" height="500"><div class="meta">
+<span class="filename">2023-05-19 12_41_19-.png</span><span class="informations">790x867 158 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/7/7006b22b5ca1dc7ec972b3239a342515a27e9b51.png" width="658" height="489"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998/1</link>
+        <pubDate>Fri, 19 May 2023 05:03:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7998-1</guid>
+        <source url="http://community.axoloti.com/t/obsolete-axoloti-pdm-microphone/7998.rss">[obsolete] Axoloti PDM microphone</source>
+      </item>
+  </channel>
+</rss>

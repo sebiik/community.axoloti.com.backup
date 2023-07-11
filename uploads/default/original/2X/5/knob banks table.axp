@@ -1,0 +1,357 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="154" y="0" text="************* HARDWARE BUTTON **********"/>
+   <comment type="patch/comment" x="182" y="14" text="this should really be momentary, "/>
+   <comment type="patch/comment" x="168" y="28" text="but I&apos;ve used a toggle because you can&apos;t "/>
+   <comment type="patch/comment" x="1232" y="28" text="data (dial outputs) stored here. size = 8 (2 pages of 4 controls)"/>
+   <comment type="patch/comment" x="154" y="42" text="hold the button and turn the dial with a mouse!"/>
+   <comment type="patch/comment" x="476" y="42" text="***************HARDWARE KNOBS ************************"/>
+   <obj type="table/alloc 16b sdram load" uuid="e6b85dad3ab43565cda93ea4c43c73b668b1cd43" name="data" x="1232" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="8"/>
+         <file attributeName="filename" file="presetfile"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="140" y="56" text="so click on &amp;off quickly to similate a short button press"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="434" y="56">
+      <params>
+         <frac32.u.map name="value" value="20.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_2" x="532" y="56">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_3" x="630" y="56">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_4" x="728" y="56">
+      <params>
+         <frac32.u.map name="value" value="44.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="238" y="70">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="938" y="126" text="switches page"/>
+   <comment type="patch/comment" x="910" y="140" text="by changing the offset"/>
+   <comment type="patch/comment" x="882" y="154" text="(where on the table the controls are written to)"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="910" y="168">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="980" y="168">
+      <params>
+         <int32 name="value" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1134" y="182" text="writes control input to the table"/>
+   <comment type="patch/comment" x="1134" y="196" text="if offset is 0, controls 0 - 3 are written to table elements 0-3"/>
+   <comment type="patch/comment" x="1134" y="210" text="if offset is 4, controls 0-3 are written to table elements 4-7"/>
+   <comment type="patch/comment" x="224" y="224" text="timer"/>
+   <obj type="mux/mux 2" uuid="16f90f81694766b0bc8187bfcba5a021e5701d81" name="mux_1" x="966" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c2f9a3dd-c1ed-4f38-9613-09c125cd33df" name="tablestore_1" x="1134" y="224">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+      <object id="patch/object" uuid="c2f9a3dd-c1ed-4f38-9613-09c125cd33df">
+         <sDescription>writes and outputs 4 values to a table.</sDescription>
+         <author>robert schirmer</author>
+         <license>who cares</license>
+         <inlets>
+            <frac32 name="v0"/>
+            <frac32 name="v1"/>
+            <frac32 name="v2"/>
+            <frac32 name="v3"/>
+            <int32 name="offset" description="sets an offset for writing to the table"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t prev0;
+      uint32_t prev1;
+         uint32_t prev2;
+      uint32_t prev3;
+
+      bool init;]]></code.declaration>
+         <code.init><![CDATA[init=1;]]></code.init>
+         <code.krate><![CDATA[if (init){
+	init=0;
+	prev0 = inlet_v0;
+	prev1 = inlet_v1;
+	prev2 = inlet_v2;
+	prev3 = inlet_v3;
+	
+}
+
+
+if (inlet_v0 != prev0){
+attr_table.array[inlet_offset + 0]=__SSAT(inlet_v0,28)>>attr_table.GAIN;
+prev0 = inlet_v0;
+}
+
+
+if (inlet_v1 != prev1){
+attr_table.array[inlet_offset + 1]=__SSAT(inlet_v1,28)>>attr_table.GAIN;
+prev1 = inlet_v1;
+}
+
+
+if (inlet_v2 != prev2){
+attr_table.array[inlet_offset + 2]=__SSAT(inlet_v2,28)>>attr_table.GAIN;
+prev2 = inlet_v2;
+}
+
+
+if (inlet_v3 != prev3){
+attr_table.array[inlet_offset + 3]=__SSAT(inlet_v3,28)>>attr_table.GAIN;
+prev3 = inlet_v3;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="224" y="252" text="this is the window for "/>
+   <comment type="patch/comment" x="42" y="266" text="turn button gate into trigger"/>
+   <comment type="patch/comment" x="224" y="266" text="a short press"/>
+   <comment type="patch/comment" x="392" y="266" text="invert button gate to"/>
+   <obj type="tiar/logic/rising" uuid="1d591a21-ac71-4b69-96f2-5c17b11ec2cd" name="rising_2" x="84" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="timer/pulselength" uuid="ca68725237d8ba8407773340801660a9fd9b0dba" name="pulselength_1" x="224" y="280">
+      <params>
+         <frac32.s.map name="delay" value="28.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="420" y="280" text=" get &quot;button off&quot;"/>
+   <comment type="patch/comment" x="574" y="280" text="turn gate into trigger"/>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="448" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="tiar/logic/rising" uuid="1d591a21-ac71-4b69-96f2-5c17b11ec2cd" name="rising_1" x="574" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="112" y="308" text=""/>
+   <comment type="patch/comment" x="868" y="378" text="outputs the controls from the table"/>
+   <comment type="patch/comment" x="350" y="392" text="if button off happens before timer runs out, "/>
+   <comment type="patch/comment" x="378" y="406" text="let through button off  trigger"/>
+   <comment type="patch/comment" x="868" y="406" text="page 1 outputs"/>
+   <comment type="patch/comment" x="1204" y="406" text="********PAGE 1 OUTPUT**********************"/>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="378" y="420">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="798" y="420" text="reads table elements 0-3  and puts out stored values"/>
+   <comment type="patch/comment" x="630" y="434" text="****BUTTON OUTPUT******"/>
+   <obj type="rbrt/data/tableread 4" uuid="e273ffa8-7368-4748-ba60-f5fa6e082deb" name="tableread_1" x="868" y="434">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <spinner attributeName="offset" value="0"/>
+      </attribs>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_7" x="1148" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_9" x="1246" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_10" x="1344" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_11" x="1442" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="490" y="448" text="turn trigger into gate"/>
+   <comment type="patch/comment" x="672" y="448" text="ON/OFF"/>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_2" x="504" y="462">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="672" y="462">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="42" y="532" text="store settings to sdcard - when you load the patch it will load the saved settings automatically"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="112" y="546">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="868" y="574" text="page 2 outputs"/>
+   <comment type="patch/comment" x="1218" y="574" text="********PAGE 2 OUTPUT**********************"/>
+   <comment type="patch/comment" x="798" y="588" text="reads table elements 4-7  and puts out stored values"/>
+   <obj type="rbrt/data/tableread 4" uuid="e273ffa8-7368-4748-ba60-f5fa6e082deb" name="tableread_2" x="868" y="602">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <spinner attributeName="offset" value="4"/>
+      </attribs>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_8" x="1148" y="602">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_12" x="1246" y="602">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_13" x="1344" y="602">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_14" x="1442" y="602">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="238" y="630">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="presetfile"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="406" y="630">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="tablestore_1" inlet="v0"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="tablestore_1" inlet="v1"/>
+      </net>
+      <net>
+         <source obj="dial_3" outlet="out"/>
+         <dest obj="tablestore_1" inlet="v2"/>
+      </net>
+      <net>
+         <source obj="dial_4" outlet="out"/>
+         <dest obj="tablestore_1" inlet="v3"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="tableread_1" outlet="v0"/>
+         <dest obj="dial_7" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tableread_2" outlet="v0"/>
+         <dest obj="dial_8" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="tablestore_1" inlet="offset"/>
+      </net>
+      <net>
+         <source obj="tableread_1" outlet="v1"/>
+         <dest obj="dial_9" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tableread_1" outlet="v2"/>
+         <dest obj="dial_10" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tableread_1" outlet="v3"/>
+         <dest obj="dial_11" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tableread_2" outlet="v1"/>
+         <dest obj="dial_12" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tableread_2" outlet="v2"/>
+         <dest obj="dial_13" inlet="in"/>
+      </net>
+      <net>
+         <source obj="tableread_2" outlet="v3"/>
+         <dest obj="dial_14" inlet="in"/>
+      </net>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="mux_1" inlet="s"/>
+         <dest obj="inv_1" inlet="i"/>
+         <dest obj="rising_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="o"/>
+         <dest obj="rising_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="rising_2" outlet="trig"/>
+         <dest obj="pulselength_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="pulselength_1" outlet="pulse"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="rising_1" outlet="trig"/>
+         <dest obj="and_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="toggle_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

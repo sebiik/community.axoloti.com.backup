@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>SPI external SRAM implementation</title>
+    <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797</link>
+    <description>So I&#39;ve been playing around trying to get a 23LC1024 SPI SRAM chip working with Axoloti running on the STM32F407 Discovery board.
+
+I know I know, why try using SPI SRAM when the stock Axoloti board has fast and abundant SDRAM. I do own a stock Axoloti and use it live, and my playing with the Discovery board is mainly for learning purposes. Kindly see below what I&#39;ve got so far...
+
+&lt;img src=&quot;/uploads/default/original/2X/4/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7.png&quot; width=&quot;659&quot; height=&quot;500&quot;&gt;
+
+Although the code is still quite ineffective the problem is, the SPI read and write actions seem to be using up so much CPU. Does anyone have a hint on what I am missing (something about threads? Maybe use spiExchange instead of spiSend/spiReceive?)
+I did try minimizing redundant function calls and do the whole read write action in k-rate, writing to the frac32[i] buffer in a &#39;for&#39; loop, but it ended up in roughly the same CPU load.
+
+I am using SPI1 (used SPI2 before, same)
+
+Or is that the best SPI can do on ChibiOS / Axoloti / Discovery? I dare doubt that since the 23LC1024 SRAM works fast (?) and clean e.g. on Teensy 3.X with the Teensy Audio Library?
+
+This is my custom SPI config object code in XML (or download file below):
+https://pastebin.com/wNzuyYzV
+
+And here&#39;s the 23LC(V)1024 delay test object code in XML (or download file below):
+https://pastebin.com/WT9dbQdU
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/e/edd65fb4cafc5591f1ac3796485670bfe318103e.axo&quot;&gt;spi1config.axo&lt;/a&gt; (3.2 KB)
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/6/6cd43fb5e8b1d429c2180a47477467d32d3269d8.axp&quot;&gt;spitest2-buffer.axp&lt;/a&gt; (10.6 KB)
+
+Thanks in advance, and please do let me know wherever my code sucks!</description>
+    
+    <lastBuildDate>Thu, 04 Jun 2020 01:59:51 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Your suggestion worked!</p>
+
+<p>Now I just need to shorten the wires or make a small breakout board for the SPI RAM because I am still getting pops and clicks likely due to wire noise.</p>
+
+<p>Then I can focus on improving the objects (delay interpolation will be another hurdle).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/12</link>
+        <pubDate>Thu, 04 Jun 2020 01:59:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-12</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@Nosnibor]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nosnibor">@Nosnibor</a> wrote:</p>
+          <blockquote>
+              <p>chSysLock() seems too heavy-handed to me. There should be some simple mechanism like a message or an event flag for this.</p>
+
+<p>(after reading some OS documentation) Ugh, messages are too complicated.<br>The SPI thread could call chEvtWaitAny() to wait for the main thread to copy the data. The main thread calls chEvtSignal() with at least one bit set after it has copied the data. This should release the SPI thread to do its job and return to waiting for the next round.<br>The SPI thread needs to have a higher priority than the main thread, so that it can start the SPI hardware immediately instead of waiting for the main thread to finish its k-rate computations (which would mean that (again) CPU and SPI hardware are not working at the same time, wasting precious CPU cycles).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/11</link>
+        <pubDate>Thu, 21 May 2020 20:08:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-11</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Ok so I have the SPI RAM communication in a separate thread now and voila, it consumes very few CPU cycles.</p>
+
+<blockquote><p> and some mechanism (mutex or something) in the K-rate-code to sync the SPI thread to the main thread. I don't (yet) know enough about ChibiOS to figure that out.</p></blockquote>
+
+<p>I do get audio into the RAM and back out, however as you said I need to sync the thread to the main thread, i.e. make sure each audio block sent and received is in sync with the audio buffers. As of now I basically have a delay+samplerate reducer effect going on.</p>
+
+<p>I am currently using a flag that is set each k-rate when an audio block is fully transfered into the SPI's transmit buffer, then checked inside the thread and cleared when the SPI transfer is finished. Doesn't seem to work the way I expected.</p>
+
+<p>Another option, chSysLock(), would probably block the CPU far too long since I am transferring audio samples mono in blocks of BUFSIZE*2 bytes (resulting in 16bit audio), in other words each spiSend and spiReceive transfers BUFSIZE*2 bytes (plus the instructions and address data making up another 4 bytes). This is because the 23LC1024 has this mode called Sequential Mode in which you can basically keep clocking in as many bytes as you want with the chip auto-incrementing the data address.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/10</link>
+        <pubDate>Thu, 21 May 2020 14:07:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-10</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>To answer myself, looks like CAN is too slow to get audio data (at least in axoloti quality format) across.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/9</link>
+        <pubDate>Thu, 21 May 2020 13:56:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-9</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@Nosnibor]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nosnibor">@Nosnibor</a> wrote:</p>
+          <blockquote>
+              <p>The SPI functions (spiSend(), spiReceive() etc.) are from ChibiOS and are meant to be blocking, i.e. spiSend() returns only after all data has been sent. This means two things:<br>1. the CPU (or rather the thread) has to wait for each SPI transaction to finish. This seems wasteful: there is DMA and everything on the chip, and yet the CPU can't do anything else while SPI is active.<br>2. the source code is easily readable: spiSelect(), spiSend(), spiReceive() and spiUnselect() appear in the same order as things happen in realtime. ChibiOS also offers nonblocking SPI access with callbacks and stuff, which can quickly get confusing.<br>Notice that I mentioned the thread has to wait, not the whole CPU. ChibiOS can do multitasking after all. So if we put all SPI stuff in another thread, it won't delay the computation of all the other objects. There is already a factory object that puts code in a separate thread: script/script. Of course for the SPI RAM use some changes are necessary: red inputs and outputs instead of blue, and some mechanism (mutex or something) in the K-rate-code to sync the SPI thread to the main thread. I don't (yet) know enough about ChibiOS to figure that out.</p>
+
+<p>As for linking boards via SPI, that seems to be the intention of the "Multiprocessor stream" and "Multiprocessor sync" connectors. The "stream" connector has SPI, and if we get the CPU not to wait for the hardware, SPI seems a practical interface: fast and no overhead (no start-bit, command-byte, frame checksum, address etc.). It should be possible to swap a block of data each k-rate cycle, maybe enough for stereo audio plus a bunch of control (blue) signals.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/8</link>
+        <pubDate>Sun, 10 May 2020 15:37:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-8</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Looks like CAN is another data transfer protocol and I believe it is used in automotive industry for inter-MCU communication? Anyway since some apps of the venerable Midibox platform use CAN to transfer data between multiple core MCUs I thought this would be a good candidate for Axo as well.</p>
+
+<p>I agree with you that linking boards would be such a performance boost, it's a no-brauner really. Like so many other features, but so little time... I'm sure Johannes is busy enough already.</p>
+
+<p>I'll definitely look into this though, I mean even a rudimentary data exchange (like transferring audio streams between boards directly into the other board's patch) would be so great</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/7</link>
+        <pubDate>Thu, 07 May 2020 00:46:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-7</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>What is CAN?</p>
+
+<p>I think linking 2 boards would be so elegant, just double your resources and you would also have double ins and outs your system.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/6</link>
+        <pubDate>Wed, 06 May 2020 17:21:39 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-6</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Linking boards is definitely worth looking into. Wondering if CAN would be a viable protocol actually.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/5</link>
+        <pubDate>Wed, 06 May 2020 04:26:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-5</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="5797"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sebiiksbcs/40/6295_1.png" class="avatar">sebiiksbcs:</div>
+<blockquote><p>That being said, I believe we're better off just using the Axo's stock SDRAM since it's fast and plenty.</p></blockquote></aside>
+
+<p>I use almost all of that for sampling, so and sram is full too...</p>
+
+<p>since you're busy with spi on axoloti have you ever tested linking to boards via spi? there is an experimental firmware branch, but there wasnt much happeing ever since.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/4</link>
+        <pubDate>Sat, 02 May 2020 17:25:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-4</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>Hi, actually I didn't follow up on this back then and let it be the way it was, however I now understand more about threads, interrupts, DMA etc. so I might have a look at this again to tune it up a bit. I2S, after all, is basically SPI in a specific configuration, and on the Axo it's stereo in stereo out with hardly any CPU load... this must be the power of DMA and interrupts.</p>
+
+<p>That being said, I believe we're better off just using the Axo's stock SDRAM since it's fast and plenty. Expanding the internally usable SRAM in a useful way would mean delving deep in the firmware and linker (or maybe even lower?) code, besides this SRAM chip I have only speaks SPI, so I doubt there'd even be a way to have the memory available during firmware and patch compilation.</p>
+
+<p>Hope this makes sense, glad to know there are others out there interested in this though!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/3</link>
+        <pubDate>Sat, 02 May 2020 09:37:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-3</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>Hey there, this looks very interesting and considering so many users here run out of sram (and sdram) I am surprised nobody commented here.</p>
+
+<p>Have you ben able to make any progress with your project in the meantime?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/2</link>
+        <pubDate>Fri, 01 May 2020 14:45:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-2</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+      <item>
+        <title>SPI external SRAM implementation</title>
+        <dc:creator><![CDATA[@sebiiksbcs Sebastian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebiiksbcs">@sebiiksbcs</a> wrote:</p>
+          <blockquote>
+              <p>So I've been playing around trying to get a 23LC1024 SPI SRAM chip working with Axoloti running on the STM32F407 Discovery board.</p>
+
+<p>I know I know, why try using SPI SRAM when the stock Axoloti board has fast and abundant SDRAM. I do own a stock Axoloti and use it live, and my playing with the Discovery board is mainly for learning purposes. Kindly see below what I've got so far...</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7" href="//community.axoloti.com/uploads/default/original/2X/4/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7.png" class="lightbox" title="Screenshot from 2019-06-17 22-57-43.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/4c60814a64fc64df2a34f3dd381d7aef92c6b8e7_1_659x500.png" width="659" height="500"><div class="meta">
+<span class="filename">Screenshot from 2019-06-17 22-57-43.png</span><span class="informations">1356x1028 244 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Although the code is still quite ineffective the problem is, the SPI read and write actions seem to be using up so much CPU. Does anyone have a hint on what I am missing (something about threads? Maybe use spiExchange instead of spiSend/spiReceive?)<br>I did try minimizing redundant function calls and do the whole read write action in k-rate, writing to the frac32[i] buffer in a 'for' loop, but it ended up in roughly the same CPU load.</p>
+
+<p>I am using SPI1 (used SPI2 before, same)</p>
+
+<p>Or is that the best SPI can do on ChibiOS / Axoloti / Discovery? I dare doubt that since the 23LC1024 SRAM works fast (?) and clean e.g. on Teensy 3.X with the Teensy Audio Library?</p>
+
+<p>This is my custom SPI config object code in XML (or download file below):<br><a href="https://pastebin.com/wNzuyYzV" class="onebox" target="_blank" rel="nofollow noopener">https://pastebin.com/wNzuyYzV</a></p>
+
+<p>And here's the 23LC(V)1024 delay test object code in XML (or download file below):<br><a href="https://pastebin.com/WT9dbQdU" class="onebox" target="_blank" rel="nofollow noopener">https://pastebin.com/WT9dbQdU</a></p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/e/edd65fb4cafc5591f1ac3796485670bfe318103e.axo">spi1config.axo</a> (3.2 KB)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/6/6cd43fb5e8b1d429c2180a47477467d32d3269d8.axp">spitest2-buffer.axp</a> (10.6 KB)</p>
+
+<p>Thanks in advance, and please do let me know wherever my code sucks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/spi-external-sram-implementation/5797/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/spi-external-sram-implementation/5797/1</link>
+        <pubDate>Mon, 17 Jun 2019 15:48:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5797-1</guid>
+        <source url="http://community.axoloti.com/t/spi-external-sram-implementation/5797.rss">SPI external SRAM implementation</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Making k-rate inputs s-rate</title>
+    <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886</link>
+    <description>Is there an easy way to make k-rate inputs s-rate? I want to be able to modulate the pulse width of osc/pwm in audio rate, but when I try I get this ugly tone that I assume is the k-rate limitations. I took a look at the code, but most of it seems to be k-rate already (with buffers), so I&#39;m not too sure where to start. I&#39;ve also noticed that some k-rate (blue) devices will automatically convert to s-rate (red) inlets/outlets. How does that work?</description>
+    
+    <lastBuildDate>Fri, 03 Nov 2017 18:37:03 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="7" data-topic="3886" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ott/40/4529_1.png" class="avatar">Ott:</div>
+<blockquote><p>So S-rate -&gt; K-rate is reducing the sampling rate to 3000hz? Does that mean there will be aliasing artifacts, or is it more akin to a lowpass?</p></blockquote></aside>
+
+<p>Aliasing. Essentially, k-rate signals are sampled at the k-rate, so using them on s-rate inputs will be the same as if they'd been downsampled.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/8</link>
+        <pubDate>Fri, 03 Nov 2017 18:37:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-8</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@Ott]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ott">@Ott</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="3886"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/jfcharles/40/4444_1.png" class="avatar">jfcharles:</div>
+<blockquote><p>That's an interesting question. I depends on the kind of modulation you use, and how precise you need it to be. For instance, if you modulate with a k-rate sine wave, and use conv/interp, you are going to get a "reasonable" version of a sine wave. But if you need a sawtooth with a vertical edge, you can't use lfo/saw cheap: the conv/interp will transform the vertical edge to a line, going from 64 to -64 in 16 samples. In that case, you would use an osc/phasor.</p></blockquote></aside>
+
+<p>So S-rate -&gt; K-rate is reducing the sampling rate to 3000hz? Does that mean there will be aliasing artifacts, or is it more akin to a lowpass?</p>
+
+<p>Also, I figured out how to make my oscillators audio-rate. You have to embed it (so your changes only affect it), change the inlet type to frac32_buffer, and make some code edits:<br>          <a href="https://my.mixtape.moe/fifwwl.png" target="_blank" rel="nofollow noopener">
+            <img src="https://my.mixtape.moe/fifwwl.png" width="690" height="366">
+          </a>
+</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/7</link>
+        <pubDate>Sun, 29 Oct 2017 20:22:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-7</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@jfcharles Jean-Francois Charles]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jfcharles">@jfcharles</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="3886"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ott/40/4529_1.png" class="avatar">Ott:</div>
+<blockquote><p>Do I want to keep my entire signal chain composed of red ports if I want to retain audio-rate modulation abilities?</p></blockquote></aside>
+
+<p>That's an interesting question. I depends on the kind of modulation you use, and how precise you need it to be. For instance, if you modulate with a k-rate sine wave, and use conv/interp, you are going to get a "reasonable" version of a sine wave. But if you need a sawtooth with a vertical edge, you can't use lfo/saw cheap: the conv/interp will transform the vertical edge to a line, going from 64 to -64 in 16 samples. In that case, you would use an osc/phasor.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/6</link>
+        <pubDate>Sun, 29 Oct 2017 13:10:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-6</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@jfcharles Jean-Francois Charles]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jfcharles">@jfcharles</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="3886"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ott/40/4529_1.png" class="avatar">Ott:</div>
+<blockquote><p>What happens when I plug a blue port into a red port? Does it interpolate to fill in the gaps?</p></blockquote></aside>
+
+<p>No, you need to use the conv/interp object to convert from blue to red with interpolation.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/5</link>
+        <pubDate>Sun, 29 Oct 2017 00:17:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-5</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@jfcharles Jean-Francois Charles]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jfcharles">@jfcharles</a> wrote:</p>
+          <blockquote>
+              <p>blue, (and green) are k-rate. red input or output means the signal is s-rate.<br>Check out the User Guide, sections "Connection (and Inlet/Outlet types)" and "Connections between different types"<br><aside class="quote" data-post="1" data-topic="50">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">
+    <a href="//community.axoloti.com/t/axoloti-user-guide/50?source_topic_id=3886" rel="nofollow noopener">Axoloti User Guide</a> <a class="badge-wrapper  bullet" href="/c/user-guide"><span class="badge-category-bg" style="background-color: #3AB54A;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category contains posts to help users use Axoloti, a dynamic user guide.">User Guide</span></a>
+  </div>
+  <blockquote>
+    Overview
+
+Axoloti consists of both hardware and software which work together to provide a virtual modular environment. With the Axoloti software we can create 'patches' which are uploaded to the Axoloti hardware and then run on the hardware. 
+
+When we upload these patches to the Axoloti board, we are actually uploading native code for the hardware and not interpreting these patches on the board.  This means it runs very efficiently, close to the efficiency you would get if you wrote the code spe…
+  </blockquote>
+</aside>
+</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/4</link>
+        <pubDate>Sun, 29 Oct 2017 00:13:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-4</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@Ott]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ott">@Ott</a> wrote:</p>
+          <blockquote>
+              <p>Another question: Are the blue ports and red ports the same as k-rate and s-rate? Or is there a difference?</p>
+
+<p>What happens when I plug a red port into a blue port? Does the blue port only check the value at 1/16th rate?<br>What happens when I plug a blue port into a red port? Does it interpolate to fill in the gaps?<br>Do I want to keep my entire signal chain composed of red ports if I want to retain audio-rate modulation abilities?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/3</link>
+        <pubDate>Sun, 29 Oct 2017 00:02:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-3</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="1" data-topic="3886"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ott/40/4529_1.png" class="avatar">Ott:</div>
+<blockquote><p>I've also noticed that some k-rate (blue) devices will automatically convert to s-rate (red) inlets/outlets. How does that work?</p></blockquote></aside>
+
+<p>that's just the patcher replacing the k-rate object with the s-rate equivalent. no voodoo here <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"><br>if there is no s-rate version the colours don't change.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/2</link>
+        <pubDate>Sat, 28 Oct 2017 23:49:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-2</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+      <item>
+        <title>Making k-rate inputs s-rate</title>
+        <dc:creator><![CDATA[@Ott]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ott">@Ott</a> wrote:</p>
+          <blockquote>
+              <p>Is there an easy way to make k-rate inputs s-rate? I want to be able to modulate the pulse width of osc/pwm in audio rate, but when I try I get this ugly tone that I assume is the k-rate limitations. I took a look at the code, but most of it seems to be k-rate already (with buffers), so I'm not too sure where to start. I've also noticed that some k-rate (blue) devices will automatically convert to s-rate (red) inlets/outlets. How does that work?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886/1</link>
+        <pubDate>Sat, 28 Oct 2017 22:50:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3886-1</guid>
+        <source url="http://community.axoloti.com/t/making-k-rate-inputs-s-rate/3886.rss">Making k-rate inputs s-rate</source>
+      </item>
+  </channel>
+</rss>

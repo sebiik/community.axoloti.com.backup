@@ -1,0 +1,49 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="simple echo" uuid="995638ae-21f9-41b2-a889-560c27594d30">
+      <license>GPL</license>
+      <inlets>
+         <frac32buffer name="in"/>
+         <bool32 name="active"/>
+      </inlets>
+      <outlets>
+         <frac32buffer name="out"/>
+         <frac32buffer name="delsig"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.s.map name="time" noLabel="true"/>
+      </params>
+      <attribs>
+         <spinner name="length" MinValue="32" MaxValue="20000" DefaultValue="5000"/>
+      </attribs>
+      <code.declaration><![CDATA[uint32_t buffwritepos;
+uint32_t buffreadpos;
+int16_t delayline[attr_length];]]></code.declaration>
+      <code.init><![CDATA[int i;
+   for(i=0;i<attr_length;i++) delayline[i] = 0;
+   buffwritepos = 0;
+   buffreadpos = 1;						           //the buffer loop]]></code.init>
+      <code.srate><![CDATA[float fIn = (q27_to_float(inlet_in));
+float fOut, fDelSig;
+
+//while(inlet_active == 1)
+
+buffwritepos ++;                                       //increment buffer pos
+
+if(buffwritepos == attr_length)
+{
+	buffwritepos = 0;                                 //write pos wrapper
+}
+
+delayline[buffwritepos] = fIn;                         // write input into buffwer
+
+buffreadpos = buffwritepos - 12000;                    //delay time at 0.25s in samples
+
+if(buffreadpos < 0) buffreadpos = 0;
+
+fDelSig = delayline[buffreadpos];                      
+
+outlet_delsig = fDelSig;                               //this is to check if signal is going into buffer
+outlet_out = float_to_q27(fIn + fDelSig);]]></code.srate>
+   </obj.normal>
+</objdefs>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Installing Axoloti on an &#39;Unsupported&#39; Platform</title>
+    <link>http://community.axoloti.com/t/installing-axoloti-on-an-unsupported-platform/861</link>
+    <description>(THIS POST IS NOT COMPLETE YET, 
+Id be happy for contributions... intention is to outline possible issues, and the process of using on an unsupported platform
+)
+
+Axoloti is &#39;supported&#39; on various versions of Windows/Mac OSX/Linux.
+We often get questions about if, or how to run it on other platforms or versions.
+e.g. earlier versions of windows/mac  or different Linux distros.
+
+The short answer is yes it can, its cross-platform, but it involves varying degrees of effort... this post aims to highlight some of the issues, and complications, and help users decide if they wish to undertake it, and what is possibly involved.
+(note: Im going to assume some knowledge of build tools etc)
+
+First, the reason why we have supported versions.
+The reality is, Axoloti is cross platform, notionally the same code runs on Windows/OS X/Linux, so its adaptability is already &#39;built-in&#39;, the &#39;issue&#39; is all platforms require small adaptations (which this post will discuss).
+only running and testing on a particular version, can we know what is required, exactly what library versions are used and their dependencies. i.e. we narrow down the possibilities immensely.
+so this is the main reason we have supported versions... we can only test and bug fix for a certain number of setups - even the number we already support is a major effort.
+so we understand people use different versions of Linux, and earlier versions of OSX/Windows but testing them all is impossible.
+
+Ok, so the bad news, is we can offer limited support... but the good news is its quite possible, and is something the community can do and help out on. 
+so lets look at how, and what the issues are:
+
+There are 4 major areas of software in the axoloti install
+- USB support in the operating system/drivers
+- the Patcher, the JAVA UI
+- the software that transfers the patches (part of patcher)
+- the cross compiler
+
+if on your target platform you can install EXACTLY the same version of the above software then it should work, the troubles begin when you can&#39;t. any differences in version **could (not will)** mean it won&#39;t work, or some oddity, unpredictable behaviour.
+
+so the way to begin, is to look at the build script for your platform (e.g. platform_linux/build.sh) , carefully look at what software is downloaded and installed (and patched!), and also the versions used.
+
+**USB support** 
+Before we even start looking at axoloti software, we must look at the software that is provided by the operating system (or 3rd parties in the case of drivers) to drive the hardware. if you cant get this working there is little/no-point continuing.
+
+The Axoloti firmware supports too modes, and will in each will expose a different USB interface
+- normal mode
+- DFU mode
+
+Normal mode
+this exposes a composite interface comprising a class compliant MIDI interface and a &#39;custom&#39; binary interface. the first is used for midi (obviously) , the later is used for communicating with the patcher UI directly e.g. transferring patches,  parameter changes)
+
+DFU mode (Rescue mode) 
+this is the provided by STM, its what you get with a discovery board etc to program it.
+this follows its own protocol, and you can use dfu-util to flash with it.
+we call it rescue mode, and (theoretically!) its impossible to disable/corrupt it, as you are not able to override its operation (or at least none of the Axoloti code attempts to do so) 
+this software will be discussed more below
+
+Nothing much more to say about this, except some platforms may need configuring in different ways to use these usb interfaces, e.g. Windows needs drivers installed, Linux needs permissions added, and a relevant kernel/user module.
+This is probably the first thing you should check when you look to a new platform.
+Simply, can the Axoloti be &#39;seen&#39; in both modes, if not, then that is your first task!
+(whilst dfu mode is not vital, if you start having issues, it can be invaluable when testing the firmware upload process if you have issues with java) 
+
+**Patcher - Java**
+Java is cross-platform, so usually you can install it without issue (e.g. 32 or 64 bit), but there are MANY versions of Java, we support version 1.8. you may find some platforms only support earlier versions.
+many earlier versions (must have Swing, otherwise forget it!) WILL work, as long as you accept some limitations... the java api is &#39;relatively&#39; stable, which means the code will likely compile (or with minor changes) on earlier versions, but each version introduces bug fixes, in particular in the UI area. so its quite possible/likely you will get graphical anomalies - how severe and if you can work around, you will not know until you try it.
+(and we won&#39;t add workarounds to public source, it complicates the code too much, and introduces other bugs)
+
+Java and Linux
+Linux and Java are a bit &#39;odd&#39;, the support is a bit patchy, with different window managers working better or worst, and there being an open-idk vs the oracle official jdk. again usually the &#39;oddities&#39; and bugs appear in the UI area, often just as &#39;annoyances&#39; e.g. window placement, redrawing.
+(probably worth remembering Windows/OSX also have been through this pain in the early days, but Java/Oracle obviously had very strong incentives to fix these issues)
+
+**Transferring Patches**
+This can actually be done in two ways
+the &#39;normal&#39; way is via the Patcher, this is using external libraries in particular libusb, it uses the normal libusb library and then a java wrapper. (JNI)
+command line tools e.g. dfu-util, which again uses libusb, this libusb needs to be patched.
+
+(add some details here of difference between rescue mode and java mode and how java mode transfers to ram first ... also where failure are, and what the &#39;effect&#39; is)
+
+**Cross compiler**
+The cross compiler is used for building 3 bits of software
+- firmware 
+- boot loader
+- patch
+
+the compiler is really 2 parts, gnu make and GCC , the later is GCC for targeting the embedded arm platform (gcc comes in many variants).
+the build is normally triggered from the java ui (via system commands, so it just sets up an environment), but can also be called from the command line. (see platform directory)
+
+(more details of whats required, what can go wrong, relationship between firmware,boot loader and patch)</description>
+    
+    <lastBuildDate>Sun, 10 Jan 2016 13:38:57 +0000</lastBuildDate>
+    <category>User Guide</category>
+    <atom:link href="http://community.axoloti.com/t/installing-axoloti-on-an-unsupported-platform/861.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Installing Axoloti on an &#39;Unsupported&#39; Platform</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>(THIS POST IS NOT COMPLETE YET, <br>Id be happy for contributions... intention is to outline possible issues, and the process of using on an unsupported platform<br>)</p>
+
+<p>Axoloti is 'supported' on various versions of Windows/Mac OSX/Linux.<br>We often get questions about if, or how to run it on other platforms or versions.<br>e.g. earlier versions of windows/mac  or different Linux distros.</p>
+
+<p>The short answer is yes it can, its cross-platform, but it involves varying degrees of effort... this post aims to highlight some of the issues, and complications, and help users decide if they wish to undertake it, and what is possibly involved.<br>(note: Im going to assume some knowledge of build tools etc)</p>
+
+<p>First, the reason why we have supported versions.<br>The reality is, Axoloti is cross platform, notionally the same code runs on Windows/OS X/Linux, so its adaptability is already 'built-in', the 'issue' is all platforms require small adaptations (which this post will discuss).<br>only running and testing on a particular version, can we know what is required, exactly what library versions are used and their dependencies. i.e. we narrow down the possibilities immensely.<br>so this is the main reason we have supported versions... we can only test and bug fix for a certain number of setups - even the number we already support is a major effort.<br>so we understand people use different versions of Linux, and earlier versions of OSX/Windows but testing them all is impossible.</p>
+
+<p>Ok, so the bad news, is we can offer limited support... but the good news is its quite possible, and is something the community can do and help out on. <br>so lets look at how, and what the issues are:</p>
+
+<p>There are 4 major areas of software in the axoloti install<br>- USB support in the operating system/drivers<br>- the Patcher, the JAVA UI<br>- the software that transfers the patches (part of patcher)<br>- the cross compiler</p>
+
+<p>if on your target platform you can install EXACTLY the same version of the above software then it should work, the troubles begin when you can't. any differences in version <strong>could (not will)</strong> mean it won't work, or some oddity, unpredictable behaviour.</p>
+
+<p>so the way to begin, is to look at the build script for your platform (e.g. platform_linux/build.sh) , carefully look at what software is downloaded and installed (and patched!), and also the versions used.</p>
+
+<p><strong>USB support</strong> <br>Before we even start looking at axoloti software, we must look at the software that is provided by the operating system (or 3rd parties in the case of drivers) to drive the hardware. if you cant get this working there is little/no-point continuing.</p>
+
+<p>The Axoloti firmware supports too modes, and will in each will expose a different USB interface<br>- normal mode<br>- DFU mode</p>
+
+<p>Normal mode<br>this exposes a composite interface comprising a class compliant MIDI interface and a 'custom' binary interface. the first is used for midi (obviously) , the later is used for communicating with the patcher UI directly e.g. transferring patches,  parameter changes)</p>
+
+<p>DFU mode (Rescue mode) <br>this is the provided by STM, its what you get with a discovery board etc to program it.<br>this follows its own protocol, and you can use dfu-util to flash with it.<br>we call it rescue mode, and (theoretically!) its impossible to disable/corrupt it, as you are not able to override its operation (or at least none of the Axoloti code attempts to do so) <br>this software will be discussed more below</p>
+
+<p>Nothing much more to say about this, except some platforms may need configuring in different ways to use these usb interfaces, e.g. Windows needs drivers installed, Linux needs permissions added, and a relevant kernel/user module.<br>This is probably the first thing you should check when you look to a new platform.<br>Simply, can the Axoloti be 'seen' in both modes, if not, then that is your first task!<br>(whilst dfu mode is not vital, if you start having issues, it can be invaluable when testing the firmware upload process if you have issues with java) </p>
+
+<p><strong>Patcher - Java</strong><br>Java is cross-platform, so usually you can install it without issue (e.g. 32 or 64 bit), but there are MANY versions of Java, we support version 1.8. you may find some platforms only support earlier versions.<br>many earlier versions (must have Swing, otherwise forget it!) WILL work, as long as you accept some limitations... the java api is 'relatively' stable, which means the code will likely compile (or with minor changes) on earlier versions, but each version introduces bug fixes, in particular in the UI area. so its quite possible/likely you will get graphical anomalies - how severe and if you can work around, you will not know until you try it.<br>(and we won't add workarounds to public source, it complicates the code too much, and introduces other bugs)</p>
+
+<p>Java and Linux<br>Linux and Java are a bit 'odd', the support is a bit patchy, with different window managers working better or worst, and there being an open-idk vs the oracle official jdk. again usually the 'oddities' and bugs appear in the UI area, often just as 'annoyances' e.g. window placement, redrawing.<br>(probably worth remembering Windows/OSX also have been through this pain in the early days, but Java/Oracle obviously had very strong incentives to fix these issues)</p>
+
+<p><strong>Transferring Patches</strong><br>This can actually be done in two ways<br>the 'normal' way is via the Patcher, this is using external libraries in particular libusb, it uses the normal libusb library and then a java wrapper. (JNI)<br>command line tools e.g. dfu-util, which again uses libusb, this libusb needs to be patched.</p>
+
+<p>(add some details here of difference between rescue mode and java mode and how java mode transfers to ram first ... also where failure are, and what the 'effect' is)</p>
+
+<p><strong>Cross compiler</strong><br>The cross compiler is used for building 3 bits of software<br>- firmware <br>- boot loader<br>- patch</p>
+
+<p>the compiler is really 2 parts, gnu make and GCC , the later is GCC for targeting the embedded arm platform (gcc comes in many variants).<br>the build is normally triggered from the java ui (via system commands, so it just sets up an environment), but can also be called from the command line. (see platform directory)</p>
+
+<p>(more details of whats required, what can go wrong, relationship between firmware,boot loader and patch)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/installing-axoloti-on-an-unsupported-platform/861/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/installing-axoloti-on-an-unsupported-platform/861/1</link>
+        <pubDate>Sun, 10 Jan 2016 13:33:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-861-1</guid>
+        <source url="http://community.axoloti.com/t/installing-axoloti-on-an-unsupported-platform/861.rss">Installing Axoloti on an &#39;Unsupported&#39; Platform</source>
+      </item>
+  </channel>
+</rss>

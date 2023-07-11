@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Midi in simple sequencer</title>
+    <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673</link>
+    <description>Hi
+I&#39;m looking into making a simple midi rec looper gate sequencer running over 2 bars.
+fonctions would be really basic:
+midi sync from DIN input
+Rec on via midi switch on/off
+Erase real time via midi switch held during playback.
+recording of gate events (no different midi notes)
+recording of 2 or three midi parameters continuously via knobs.
+Anyone has some intel regarding this.
+
+I would start here 
+&lt;img src=&quot;/uploads/default/original/2X/c/c59ebc42872f01106e5a65e563a519f26d4734b8.png&quot; width=&quot;585&quot; height=&quot;500&quot;&gt;</description>
+    
+    <lastBuildDate>Wed, 04 Mar 2020 15:24:12 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>I'ld just use the 8bit table write/play modules as a template for modifying.<br>eg.<br>if you have an 8bit array like, you can make a "multitrack" of it by doing:<br>int8_t array[4][4][64];<br>in which case you have 4 arrays of 64 length for note, velocity, aftertouch and bend(8bit) (first is track, second is type, third is value).<br>to write it you could do:<br>if(inlet_rec1&gt;0){<br>attr_table.array[0][0][writepos]=inlet_vel1&gt;&gt;20;<br>attr_table.array[0][1][writepos]=(inlet_note1&gt;&gt;20)+64;<br>attr_table.array[0][2][writepos]=inlet_after1&gt;&gt;20;<br>attr_table.array[0][3][writepos]=inlet_bend1&gt;&gt;20;<br>}<br>if(inlet_rec2&gt;0){<br>attr_table.array[1][0][writepos]=inlet_vel2&gt;&gt;20;<br>attr_table.array[1][1][writepos]=(inlet_note2&gt;&gt;20)+64;<br>attr_table.array[1][2][writepos]=inlet_after2&gt;&gt;20;<br>attr_table.array[1][3][writepos]=inlet_bend2&gt;&gt;20;<br>}<br>etc..</p>
+
+<p>to read it you could do:<br>vel1=attr_table.array[0][0][readpos]; (whenever velocity goes high, it means gate goes on and the first high value is held, 0 is off)<br>pitch1=attr_table.array[0][1][readpos];<br>after1=attr_table.array[0][2][readpos];<br>bend1=attr_table.array[0][3][readpos];</p>
+
+<p>vel2=attr_table.array[1][0][readpos]; <br>pitch2=attr_table.array[1][1][readpos];<br>after2=attr_table.array[1][2][readpos];<br>bend=attr_table.array[1][3][readpos];<br>etc.</p>
+
+<p>you could also combine this with the code of the midi note module to make the recording polyphonic by keeping track of which notes are (still) open/closed and whether an array is already playing a note (forcing it to record to the next empty one).</p>
+
+<p>oh, and I just noticed that I already done something like this, check my midi folder for:<br>"QuneoPoly4Rec_1"<br>"poly8ARecorder_1"</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/8</link>
+        <pubDate>Wed, 04 Mar 2020 15:24:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-8</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@krikor krikor kouchian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/krikor">@krikor</a> wrote:</p>
+          <blockquote>
+              <p>I haven't had time to get back to it.<br>my needs were more simple.<br>just one midi loop, with overdub, replace, erase, 16th quantize and no quantize, but always linked to a 1 bar,  2 bar or 4 bar loop.<br>thanks <a class="mention" href="/u/andrewchi">@AndrewChi</a>, I'm gonna get back to it soon and look at the polymidiXL by <a class="mention" href="/u/sirsicksik">@SirSickSik</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/7</link>
+        <pubDate>Tue, 03 Mar 2020 11:21:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-7</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@AndrewChi]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/andrewchi">@AndrewChi</a> wrote:</p>
+          <blockquote>
+              <p>Did you check out <a class="mention" href="/u/sirsicksik">@SirSickSik</a>'s polymidiXL object?<br>Does most things, except for CC's...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/6</link>
+        <pubDate>Mon, 02 Mar 2020 20:00:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-6</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>Possible, I think. Up to a point. But maybe not with existing objects.<br>I've done that with CCs at some point. Having quantized notes would be tricky. </p>
+
+<p>In my setup I have one axoloti running a 4 track midi Looper, each recording a different channel, each with 7 'slots'. It records notes, CCs, bend and touch. Notes can be quantized but only to 16ths. All synced, you can have different bar lengths, but recording is quantized to the bar. You can also trigger all tracks at the same time so it works like one Looper recording 4 channels... But that's with specified channels. The way my objects work makes it hard to have one Looper record any channel.</p>
+
+<p>My set up uses an expanded version of the midi Looper patch I uploaded, this is a one track version with patcher controls (I use a launchpad mini to control the 4 track version):</p>
+
+<aside class="quote" data-topic="5379" data-slug="mattilyn-mattroe-contributions" data-post="4"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/m/e8c25b/40.png" class="avatar"><a href="//community.axoloti.com/t/mattilyn-mattroe-contributions/5379/4" rel="nofollow noopener">Mattilyn Mattroe contributions</a>
+</div>
+<blockquote><p>Some new midi objects and a patch. They're untested in version 2, and most likely won't work. I'll update them when I finally move on to 2...  Midi looper objects. matroe/midi looper/ A suite of objects to make a midi looper patch.  There's a "midi looper" patch in the matroe folder, and a copy of it as a help patch:   <a href="//community.axoloti.com/uploads/default/original/2X/3/3fa42593a3ec1114208f4f7d7e8d652d55fb5db7.png" title="image.png" rel="nofollow noopener">[image]</a> It works in a similar way to ableton's session view clipslots; If you trigger an empty clip it starts recording at the beginning of the next bar. If you trigger it aga…</p></blockquote></aside>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/5</link>
+        <pubDate>Mon, 02 Mar 2020 19:18:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-5</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@Cedrick Cedrick]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/cedrick">@Cedrick</a> wrote:</p>
+          <blockquote>
+              <p>Hi MattilynMattroe, Hi Krikor,</p>
+
+<p>I'm new to this (tables ) so I 'd need some advice concerning this topic : <br>- do you think possible to make any recorded midi sequence going out automaticaly using the same midi channel as recorded? Even listening all channels, triggering when notes are played on any channel, then playing the result loop in the same channel as the notes were initialy played?<br>- Do you think it possible to make "several midi tracks" that could listen, record on trigger then play along, using the same table length ?</p>
+
+<p>In fact, this project made me think about what the Future Artist Midi Looper does. I then wondered if it was possible to do the same using the Axoloti board... ( 4 tracks really clever midi looper : <a href="https://www.youtube.com/watch?v=LyR8zlP5rLk" rel="nofollow noopener">https://www.youtube.com/watch?v=LyR8zlP5rLk</a> )</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/4</link>
+        <pubDate>Mon, 02 Mar 2020 17:54:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-4</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@krikor krikor kouchian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/krikor">@krikor</a> wrote:</p>
+          <blockquote>
+              <p>Thanks a lot for this!<br>I started to work on it and found this post <br><aside class="quote" data-post="1" data-topic="539">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/letter_avatar_proxy/v2/letter/a/3e96dc/40.png" class="avatar">
+    <a href="//community.axoloti.com/t/how-to-record-knob-modulation-into-a-table-and-play-it-back/539?source_topic_id=5673" rel="nofollow noopener">How to record knob modulation into a table and play it back?</a> <a class="badge-wrapper  bullet" href="/c/patching"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category is for discussion about patching Axoloti, and sharing patches.">Patching</span></a>
+  </div>
+  <blockquote>
+    Hey 
+
+Have been trying to record a LFO output signal to a table and then play it back. But I havent been succesful in making the table play it back right. I just dont know what I should use to "drive" the table play object. I tried with square lfo, constants, other lfos, etc. but it doesnt play the movement back in the way it is before it is recorded to table. 
+
+Any ideas? Thanks :wink:  
+
+Patch: .<a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/061125199890d8d8409f380944d03d6afb2b5acb.axp" rel="nofollow noopener">Table record live Test.axp</a> (4.5 KB) 
+
+ <a href="//community.axoloti.com/uploads/default/original/1X/7df1affd3a4861cbc5434d70cebe3d9bb6272606.png" class="lightbox" title="Table live record.png" rel="nofollow noopener">[image]</a>
+  </blockquote>
+</aside>
+<br>that might be more effective to use that, even though I'm not sure it will work with notes getting recorded.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/3</link>
+        <pubDate>Sun, 05 May 2019 13:08:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-3</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@MattilynMattroe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mattilynmattroe">@MattilynMattroe</a> wrote:</p>
+          <blockquote>
+              <p>Hi, </p>
+
+<p>I've made a patch showing the approach I use. It's pretty basic, records one midi note gate and one midi cc. Hopefully it'll get you started!</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/656d596e0cef64f7c6231335ddd06df3f9801264" href="//community.axoloti.com/uploads/default/original/2X/6/656d596e0cef64f7c6231335ddd06df3f9801264.JPG" class="lightbox" title="Capture.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/6/656d596e0cef64f7c6231335ddd06df3f9801264_1_690x362.JPG" width="690" height="362"><div class="meta">
+<span class="filename">Capture.JPG</span><span class="informations">1586x833 133 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/f/f48c2ceb4fcfcb8c866305045017ac419ecf4b58.axp">basic midi recording.axp</a> (11.4 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/2</link>
+        <pubDate>Sat, 04 May 2019 18:51:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-2</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+      <item>
+        <title>Midi in simple sequencer</title>
+        <dc:creator><![CDATA[@krikor krikor kouchian]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/krikor">@krikor</a> wrote:</p>
+          <blockquote>
+              <p>Hi<br>I'm looking into making a simple midi rec looper gate sequencer running over 2 bars.<br>fonctions would be really basic:<br>midi sync from DIN input<br>Rec on via midi switch on/off<br>Erase real time via midi switch held during playback.<br>recording of gate events (no different midi notes)<br>recording of 2 or three midi parameters continuously via knobs.<br>Anyone has some intel regarding this.</p>
+
+<p>I would start here <br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/c59ebc42872f01106e5a65e563a519f26d4734b8" href="//community.axoloti.com/uploads/default/original/2X/c/c59ebc42872f01106e5a65e563a519f26d4734b8.png" class="lightbox" title="Capture d’écran 2019-05-04 à 19.47.20.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/c/c59ebc42872f01106e5a65e563a519f26d4734b8_1_585x500.png" width="585" height="500"><div class="meta">
+<span class="filename">Capture d’écran 2019-05-04 à 19.47.20.png</span><span class="informations">676x577 17.8 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/midi-in-simple-sequencer/5673/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/midi-in-simple-sequencer/5673/1</link>
+        <pubDate>Sat, 04 May 2019 17:47:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-5673-1</guid>
+        <source url="http://community.axoloti.com/t/midi-in-simple-sequencer/5673.rss">Midi in simple sequencer</source>
+      </item>
+  </channel>
+</rss>

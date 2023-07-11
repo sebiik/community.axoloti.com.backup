@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Need help with SRAM usage and custom objects</title>
+    <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272</link>
+    <description>Hi all axoloti lovers,
+
+I&#39;m currently facing some problems regarding the use of SRAM. I&#39;ll explain my problem in this first paragraph, and then I&#39;ll detail my objects afterwards if you&#39;re interested.
+
+I am setting up a workflow with 3 parts:
+
+- the **Axoloti**, with a display, four potentiometers and two extra buttons to change presets.
+- a **Faderfox EC4** midi controller that I use to control the necessary parameters
+- **Bitwig** running on a Surface Pro that allows me to send modulations to the axoloti (and generate sound/fx, but not important here).
+
+To achieve this, I had to make some custom objects, mainly subpatches, or sometimes by coding/modifying objects directly, but my coding skills are relatively limited.
+
+All these objects consume a lot of ram and leave very little room for the rest. I hadn&#39;t anticipated this, unfortunately.
+**So I was wondering: Does coding &quot;native&quot; objects use a lot less resources than subpatch objects?**
+
+For those who are interested, here are the custom objects. I also put the result of this workflow at the end with an example of a patch using the DX7 object made by sss:
+
+### subpatch 1: axoloti physical interface
+
+**Role:**
+- send information to the screen (scope + name of the current patch and preset number)
+- retrieve the values of the analog buttons
+- retrieve the values of the buttons preset and patch changes
+
+&lt;img src=&quot;/uploads/default/original/2X/1/1abe5f26fc7a6b33d23fe3e39a11d9689b5cb888.jpg&quot; width=&quot;128&quot; height=&quot;139&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/a/a13da5a09ac93853fffb9dd11670c59f71e1b166.jpg&quot; width=&quot;690&quot; height=&quot;460&quot;&gt;
+
+### subpatch 2: midi cc interface (sd or hd version for 14 bits nrpn)
+An instance of this object has to be created for each parameter I want to control. I can choose between an &quot;SD&quot; version for standard 7bits midi cc or an &quot;HD&quot; one for 14 bits midi.
+
+**Role:** 
+- retrieve midi values (sd or hd)
+- retrieve the modulation value
+- retrieve the preset value
+- if the preset value changes, send this value back to the Faderfox EC4
+- smooth these values
+
+&lt;img src=&quot;/uploads/default/original/2X/2/26fc8786c473b86c297eec31cda061a3e123db70.png&quot; width=&quot;239&quot; height=&quot;129&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/c/caa893b50ebae670ad3763f43898bc35f69740df.png&quot; width=&quot;690&quot; height=&quot;325&quot;&gt;
+
+### subpatch 3: Getting modulations values from Bitwig
+I use Bitwig to modulate the parameters that are accessible from the Faderfox. So I need this object for each pages of the Faderfox.
+
+**Role:**
+- retrieve modulation values via specific CCs
+- smooth these values
+- centralise all the modulations in a single object
+
+&lt;img src=&quot;/uploads/default/original/2X/8/8c24c9461b9c1022e508af3f999384714dad950c.png&quot; width=&quot;136&quot; height=&quot;264&quot;&gt;
+
+&lt;img src=&quot;/uploads/default/original/2X/2/2b6f605860a36254a5d1548dd6581c11274296df.png&quot; width=&quot;690&quot; height=&quot;353&quot;&gt;
+
+## Result:
+### Full setup:
+
+&lt;img src=&quot;/uploads/default/original/2X/4/41b1166d7125e7f1b4688f005c54b6dc311c5fe4.jpg&quot; width=&quot;690&quot; height=&quot;458&quot;&gt;
+### FM Patch
+(here I cannot add the second &quot;modulation&quot; object for the second voice due to the lack of ram)
+&lt;img src=&quot;/uploads/default/original/2X/0/08a7831b4a52aa9d90e0f8e0d33b54af8ce78bfa.png&quot; width=&quot;690&quot; height=&quot;435&quot;&gt;
+### Faderfox EC4 page for the first voice
+&lt;img src=&quot;/uploads/default/original/2X/f/fbf66f12453a383d53b847c2420f418e00434f32.jpg&quot; width=&quot;307&quot; height=&quot;500&quot;&gt;
+
+### Modulations in Bitwig for the forst voice
+The number in white below the CCs corresponds to the button number on the Faderfox EC4 (from 1 to 16)
+&lt;img src=&quot;/uploads/default/original/2X/c/cb16e167010d35dfe4beb1380400e67e16f02381.png&quot; width=&quot;690&quot; height=&quot;227&quot;&gt;
+
+
+Thanks if you have read this far, and sorry for the long message!</description>
+    
+    <lastBuildDate>Sat, 01 May 2021 02:07:26 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>Something that I can't emphasize enough which will surely save you a lot of SRAM right off the bat is, as Jaffa mentioned, the execution order. </p>
+
+<p>The patch is turned into code in order of the alignment of objects from left to right, top to bottom, imagine the shape of the letter Z. You want all of the gray bars that say the object name to line up if they're in the same row. </p>
+
+<p>Any time that a cable is going up or backward, the value is held in the code until it does a full loop back to the destination object. Even if the object is one notch higher than the object before it, the Axoloti will interpret the object as being 'before' it. Big patches are much less pretty this way, but they save a ton of ram. Especially with red wires.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/8</link>
+        <pubDate>Sat, 01 May 2021 02:07:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-8</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@mrtata]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mrtata">@mrtata</a> wrote:</p>
+          <blockquote>
+              <p>Thank you very much <a class="mention" href="/u/jaffasplaffa">@jaffasplaffa</a> for your help.<br>Now my patch is working without removing any features. I also learnt a lot about how to optimise the ram usage.</p>
+
+<p>It is surprising how much the position of the blocks have an impact on this point. I also merged some objects as you suggested as well as removed all the unnecessary presets/mod source and target ect. from the subpatches.</p>
+
+<p>Thanks again for your help!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/7</link>
+        <pubDate>Sat, 01 May 2021 01:06:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-7</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>My experience is that since I started coding many objects into a single objects, I can push it a lot more before reaching the sram limits. </p>
+
+<p>I think it's worth a shot <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>A good habit for making subpatches is always keeping inlets at the top of the subpatch and outlets at the bottom, like this:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/e3488a597495449afb6962ea97b59dc336131a84" href="//community.axoloti.com/uploads/default/original/2X/e/e3488a597495449afb6962ea97b59dc336131a84.png" class="lightbox" title="Screen Shot 2021-04-30 at 21.17.16.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/e/e3488a597495449afb6962ea97b59dc336131a84_1_581x500.png" width="581" height="500"><div class="meta">
+<span class="filename">Screen Shot 2021-04-30 at 21.17.16.png</span><span class="informations">607x522 2.98 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/6</link>
+        <pubDate>Fri, 30 Apr 2021 18:59:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-6</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@mrtata]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mrtata">@mrtata</a> wrote:</p>
+          <blockquote>
+              <p>Thanks a lot!<br>this looks like something I can do, I will review everything as I think there is room for substantial optimisations.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/5</link>
+        <pubDate>Fri, 30 Apr 2021 18:50:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-5</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>If you know some coding, I am sure you can optimise it further.</p>
+
+<p>For example building several objects into one single object. That way you use less cables, which also uses ram. </p>
+
+<p>Like for example these ones, those could me made into a single object and it would not be too hard:<br><img src="//community.axoloti.com/uploads/default/original/2X/f/f21122ff6f4e379e5d7e6447ca952abae595afa7.png" width="146" height="124"></p>
+
+<p>That's just an example. If you can't do the code, then at least make the right order of execution for them, put all three objects at the same horisontal level in the right order, from left to right. </p>
+
+<p>You can probably, if you make it in a bit smarter way, even drop all the cc in objects, by using a single common cc in object that does not need a specific cc nr, but uses a general midi in object and then out to an output in some way.<br>.<br>I'd say there are many things you can try, before removing anything, so don't give up yet <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/4</link>
+        <pubDate>Fri, 30 Apr 2021 18:45:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-4</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@mrtata]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mrtata">@mrtata</a> wrote:</p>
+          <blockquote>
+              <p>Yes indeed it is all about SRAM, I changed the title.</p>
+
+<p>I wasn't aware for the position of the objects having an influence on the amount of SRAM, this is a good tip!</p>
+
+<p>And thanks for this ressource, I will try to optimise my patch/subpatches as much as I can. But I'm affraid I will have to remove some features.</p>
+
+<p>Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/3</link>
+        <pubDate>Fri, 30 Apr 2021 18:29:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-3</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>I think your problem is the SRAM not the SDRAM. SRAM is used for loading objects, sort of. And the SDRAM is for tables, delays, etc. </p>
+
+<p>You can check this thread for some optimisation tips for the SRAM:<br><aside class="quote" data-post="1" data-topic="4412">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/letter_avatar_proxy/v2/letter/r/a6a055/40.png" class="avatar">
+    <a href="//community.axoloti.com/t/saving-sram-tips/4412?source_topic_id=7272" rel="nofollow noopener">Saving sram tips</a> <a class="badge-wrapper  bullet" href="/c/patching"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category is for discussion about patching Axoloti, and sharing patches.">Patching</span></a>
+  </div>
+  <blockquote>
+    There's all sorts of alternatives or things to change to save sram in a patch. I just saved 700 bytes by editing all my mix objects. I left out all the bus inputs and all the gain controlls. 
+
+Using tables (like with jaffa's table2) instead of wave/play is also a real sram saver. 
+
+Using midi/in/cc instead of midi/in/keyb note for my buttons saved me some more sram. 
+
+Also putting objects in subpatches uses up sram too. 
+
+Anybody else got some tricks to save sram? 
+
+P.S: I am making a list of ho…
+  </blockquote>
+</aside>
+</p>
+
+<p>And this too, which is about order of execution and object placement:<br><aside class="quote" data-post="1" data-topic="5814">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/user_avatar/community.axoloti.com/mypetrobot/40/6294_1.png" class="avatar">
+    <a href="//community.axoloti.com/t/the-position-of-an-object-effects-the-amount-of-sram-it-uses/5814?source_topic_id=7272" rel="nofollow noopener">The position of an object effects the amount of SRAM it uses?</a> <a class="badge-wrapper  bullet" href="/c/patching"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category is for discussion about patching Axoloti, and sharing patches.">Patching</span></a>
+  </div>
+  <blockquote>
+    I have a patch that I've been optimizing for a few days now. It compiles/loads fine currently, but it is right on the edge of using all of the available SRAM as I remove knobs, etc. in an attempt to eke out as much functionality as possible. 
+
+So I move a CONST/i up to a different position in my patch and suddenly I'm over the SRAM limit by 32 bytes. I move it back and the patch compiles fine. 
+
+Can someone explain this to me as well as best practices to mitigate SRAM usage as it relates to the …
+  </blockquote>
+</aside>
+</p>
+
+<p>For the object placement, I am seeing a lot of cables going upwards:<br>Cables going downwards or to the right = good<br>Cables going upwards or to the left = bad</p>
+
+<p>Especially red(audio) cables going upwards or left is a no go, as it uses extra resources. I see many cables going upwards in your patch, so fixing that, might give you a little extra ressources <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/2</link>
+        <pubDate>Fri, 30 Apr 2021 18:00:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-2</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+      <item>
+        <title>Need help with SRAM usage and custom objects</title>
+        <dc:creator><![CDATA[@mrtata]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/mrtata">@mrtata</a> wrote:</p>
+          <blockquote>
+              <p>Hi all axoloti lovers,</p>
+
+<p>I'm currently facing some problems regarding the use of SRAM. I'll explain my problem in this first paragraph, and then I'll detail my objects afterwards if you're interested.</p>
+
+<p>I am setting up a workflow with 3 parts:</p>
+
+<ul>
+<li>the <strong>Axoloti</strong>, with a display, four potentiometers and two extra buttons to change presets.</li>
+<li>a <strong>Faderfox EC4</strong> midi controller that I use to control the necessary parameters</li>
+<li>
+<strong>Bitwig</strong> running on a Surface Pro that allows me to send modulations to the axoloti (and generate sound/fx, but not important here).</li>
+</ul>
+
+<p>To achieve this, I had to make some custom objects, mainly subpatches, or sometimes by coding/modifying objects directly, but my coding skills are relatively limited.</p>
+
+<p>All these objects consume a lot of ram and leave very little room for the rest. I hadn't anticipated this, unfortunately.<br><strong>So I was wondering: Does coding "native" objects use a lot less resources than subpatch objects?</strong></p>
+
+<p>For those who are interested, here are the custom objects. I also put the result of this workflow at the end with an example of a patch using the DX7 object made by sss:</p>
+
+<h3>subpatch 1: axoloti physical interface</h3>
+
+<p><strong>Role:</strong><br>- send information to the screen (scope + name of the current patch and preset number)<br>- retrieve the values of the analog buttons<br>- retrieve the values of the buttons preset and patch changes</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/1/1abe5f26fc7a6b33d23fe3e39a11d9689b5cb888.jpg" width="128" height="139"></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/a13da5a09ac93853fffb9dd11670c59f71e1b166" href="//community.axoloti.com/uploads/default/original/2X/a/a13da5a09ac93853fffb9dd11670c59f71e1b166.jpg" class="lightbox" title="axo-inside-Interface.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/a/a13da5a09ac93853fffb9dd11670c59f71e1b166_1_690x460.jpg" width="690" height="460"><div class="meta">
+<span class="filename">axo-inside-Interface.jpg</span><span class="informations">1189x794 89.6 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<h3>subpatch 2: midi cc interface (sd or hd version for 14 bits nrpn)</h3>
+
+<p>An instance of this object has to be created for each parameter I want to control. I can choose between an "SD" version for standard 7bits midi cc or an "HD" one for 14 bits midi.</p>
+
+<p><strong>Role:</strong> <br>- retrieve midi values (sd or hd)<br>- retrieve the modulation value<br>- retrieve the preset value<br>- if the preset value changes, send this value back to the Faderfox EC4<br>- smooth these values</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/2/26fc8786c473b86c297eec31cda061a3e123db70.png" width="239" height="129"></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/caa893b50ebae670ad3763f43898bc35f69740df" href="//community.axoloti.com/uploads/default/original/2X/c/caa893b50ebae670ad3763f43898bc35f69740df.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/c/caa893b50ebae670ad3763f43898bc35f69740df_1_690x325.png" width="690" height="325"><div class="meta">
+<span class="filename">image.png</span><span class="informations">830x391 27.5 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<h3>subpatch 3: Getting modulations values from Bitwig</h3>
+
+<p>I use Bitwig to modulate the parameters that are accessible from the Faderfox. So I need this object for each pages of the Faderfox.</p>
+
+<p><strong>Role:</strong><br>- retrieve modulation values via specific CCs<br>- smooth these values<br>- centralise all the modulations in a single object</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/8/8c24c9461b9c1022e508af3f999384714dad950c.png" width="136" height="264"></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/2b6f605860a36254a5d1548dd6581c11274296df" href="//community.axoloti.com/uploads/default/original/2X/2/2b6f605860a36254a5d1548dd6581c11274296df.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/2/2b6f605860a36254a5d1548dd6581c11274296df_1_690x353.png" width="690" height="353"><div class="meta">
+<span class="filename">image.png</span><span class="informations">1330x682 109 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<h2>Result:</h2>
+
+<h3>Full setup:</h3>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/41b1166d7125e7f1b4688f005c54b6dc311c5fe4" href="//community.axoloti.com/uploads/default/original/2X/4/41b1166d7125e7f1b4688f005c54b6dc311c5fe4.jpg" class="lightbox" title="DSC_08722sd.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/41b1166d7125e7f1b4688f005c54b6dc311c5fe4_1_690x458.jpg" width="690" height="458"><div class="meta">
+<span class="filename">DSC_08722sd.jpg</span><span class="informations">2000x1328 400 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<h3>FM Patch</h3>
+
+<p>(here I cannot add the second "modulation" object for the second voice due to the lack of ram)<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/08a7831b4a52aa9d90e0f8e0d33b54af8ce78bfa" href="//community.axoloti.com/uploads/default/original/2X/0/08a7831b4a52aa9d90e0f8e0d33b54af8ce78bfa.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/0/08a7831b4a52aa9d90e0f8e0d33b54af8ce78bfa_1_690x435.png" width="690" height="435"><div class="meta">
+<span class="filename">image.png</span><span class="informations">2049x1293 235 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<h3>Faderfox EC4 page for the first voice</h3>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/fbf66f12453a383d53b847c2420f418e00434f32" href="//community.axoloti.com/uploads/default/original/2X/f/fbf66f12453a383d53b847c2420f418e00434f32.jpg" class="lightbox" title="WIN_20210430_19_31_24_Pro - Copie.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/fbf66f12453a383d53b847c2420f418e00434f32_1_307x500.jpg" width="307" height="500"><div class="meta">
+<span class="filename">WIN_20210430_19_31_24_Pro - Copie.jpg</span><span class="informations">1121x1824 188 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<h3>Modulations in Bitwig for the forst voice</h3>
+
+<p>The number in white below the CCs corresponds to the button number on the Faderfox EC4 (from 1 to 16)<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/cb16e167010d35dfe4beb1380400e67e16f02381" href="//community.axoloti.com/uploads/default/original/2X/c/cb16e167010d35dfe4beb1380400e67e16f02381.png" class="lightbox" title="Screenshot 2021-04-30 190754.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/c/cb16e167010d35dfe4beb1380400e67e16f02381_1_690x227.png" width="690" height="227"><div class="meta">
+<span class="filename">Screenshot 2021-04-30 190754.png</span><span class="informations">1934x638 62.3 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Thanks if you have read this far, and sorry for the long message!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272/1</link>
+        <pubDate>Fri, 30 Apr 2021 17:42:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7272-1</guid>
+        <source url="http://community.axoloti.com/t/need-help-with-sram-usage-and-custom-objects/7272.rss">Need help with SRAM usage and custom objects</source>
+      </item>
+  </channel>
+</rss>

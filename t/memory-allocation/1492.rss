@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Memory allocation</title>
+    <link>http://community.axoloti.com/t/memory-allocation/1492</link>
+    <description>While working on a patching problem (http://community.axoloti.com/t/maximum-patch-size/1483/9) I&#39;ve been studying how the Axoloti Core allocates its memory, and there are some things that I don&#39;t understand in the .ld files.
+
+In the firmware .ld file STM32F407xG.ld 44 k (from address 0x2000000, i.e. 0x2000000..0x2000B000) is allocated as RAM, with the rest of the internal SRAM presumable intended for patch storage. However in ramlink.ld which defines the allocation of the patch code itself, the defined SRAM for the patch starts at 0x000110000 (again with a length of 0xB000). I assume this RAM is a mapped mirror of the true SRAM at 0x20000000, but why is there an offset between the end of the area defined in STM32F407xG (0x2000B000) and the start in ramlink.ld ? (There is a definition of a PATCHMAINLOC in patch.h, which is 0x20011000).
+
+Also, why is the patch code linked to start at 0x00011000 rather than in the SRAM proper, so that its starting address would be 0x20011000 ? When the patch is initialized, the Axoloti Core calls to 0x20011000, so this would imply that the patch code is compiled to be position independent. The patch initialization code then returns (among other things) the address to the DSP function to be called from the Core, which is in the 0x000..... segment.</description>
+    
+    <lastBuildDate>Wed, 13 Apr 2016 12:48:11 +0000</lastBuildDate>
+    <category>Developer</category>
+    <atom:link href="http://community.axoloti.com/t/memory-allocation/1492.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Memory allocation</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for reviewing this!</p>
+
+<p>SRAM1 at address 0x20000000 is remapped to 0x00000000.<br>The reference manual (RM0090) shows in figure 2 that SRAM1 (but not SRAM2 or SRAM3) can be accessed through the I-Bus and the D-Bus. That looks like it 'd have better performance than using only the S-Bus.</p>
+
+<p>Section 2.3.1 says:</p>
+
+<blockquote><p>The CPU can access the SRAM1, SRAM2, and SRAM3 through the System Bus or through<br>the I-Code/D-Code buses when boot from SRAM is selected or when physical remap is<br>selected (Section 9.2.1: SYSCFG memory remap register (SYSCFG_MEMRMP) in the<br>SYSCFG controller). To get the max performance on SRAM execution, physical remap<br>should be selected (boot or software selection).</p></blockquote>
+
+<p>That contradicts figure 2. Execution from the remapped memory area was chosen to enable max performance, but it is not clear if just remapping 'd be enough, or if it needs to address the remapped area. I can't remember if this had an effect on performance.</p>
+
+<p>The memory remap table (Table 4) shows only SRAM1 remapped to 0x00000000. </p>
+
+<p>I'm not sure what the reason is for the gap between SRAM1 for firmware 0x200000000 to 0x2000B000 and SRAM1 for patch starting at 0x20011000.  I think I started to squeeze firmware usage of SRAM1, since code can only execute from SRAM1 at full speed it is a precious resource, but then did not close the gap to avoid hard crashes when transitioning to a new patch entry point - loading old patches at a new location. I believe the first check (matching firmware crc) in xpatch_init2 does not depend on absolute code location, but I'm not sure that I verified that this is indeed the case.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/memory-allocation/1492/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/memory-allocation/1492/3</link>
+        <pubDate>Wed, 13 Apr 2016 12:48:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1492-3</guid>
+        <source url="http://community.axoloti.com/t/memory-allocation/1492.rss">Memory allocation</source>
+      </item>
+      <item>
+        <title>Memory allocation</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Ive moved this to the developer section, as its pretty low level... I think I'll move your other topic too</p>
+
+<p>I think these are great discussions to have, lots to learn... but possibly daunting for many users.</p>
+
+<p>hmm, what I think would be a good idea is to perhaps 'draw' these regions, so we get a clearer picture.<br>(to be honest, this is what I will have to do to have any chance of answering the above) </p>
+
+<p>also would obviously be best to get <a class="mention" href="/users/johannes">@johannes</a> input (actually, he may even have a picture of this, as he set it all up)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/memory-allocation/1492/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/memory-allocation/1492/2</link>
+        <pubDate>Wed, 13 Apr 2016 10:49:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1492-2</guid>
+        <source url="http://community.axoloti.com/t/memory-allocation/1492.rss">Memory allocation</source>
+      </item>
+      <item>
+        <title>Memory allocation</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>While working on a patching problem (http://community.axoloti.com/t/maximum-patch-size/1483/9) I've been studying how the Axoloti Core allocates its memory, and there are some things that I don't understand in the .ld files.</p>
+
+<p>In the firmware .ld file STM32F407xG.ld 44 k (from address 0x2000000, i.e. 0x2000000..0x2000B000) is allocated as RAM, with the rest of the internal SRAM presumable intended for patch storage. However in ramlink.ld which defines the allocation of the patch code itself, the defined SRAM for the patch starts at 0x000110000 (again with a length of 0xB000). I assume this RAM is a mapped mirror of the true SRAM at 0x20000000, but why is there an offset between the end of the area defined in STM32F407xG (0x2000B000) and the start in ramlink.ld ? (There is a definition of a PATCHMAINLOC in patch.h, which is 0x20011000).</p>
+
+<p>Also, why is the patch code linked to start at 0x00011000 rather than in the SRAM proper, so that its starting address would be 0x20011000 ? When the patch is initialized, the Axoloti Core calls to 0x20011000, so this would imply that the patch code is compiled to be position independent. The patch initialization code then returns (among other things) the address to the DSP function to be called from the Core, which is in the 0x000..... segment.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/memory-allocation/1492/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/memory-allocation/1492/1</link>
+        <pubDate>Wed, 13 Apr 2016 09:57:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1492-1</guid>
+        <source url="http://community.axoloti.com/t/memory-allocation/1492.rss">Memory allocation</source>
+      </item>
+  </channel>
+</rss>

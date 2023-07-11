@@ -1,0 +1,257 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="seqpreset" uuid="77185c9a-d2c9-4710-97a2-4e32703569cc">
+      <sDescription>save table to sdcard</sDescription>
+      <author>Johannes Taelman</author>
+      <license>BSD</license>
+      <helpPatch>table.axh</helpPatch>
+      <inlets>
+         <int32 name="in"/>
+         <charptr32 name="filename" description="file name"/>
+         <bool32.rising name="load" description="trigger"/>
+         <bool32.rising name="save"/>
+         <int32 name="index"/>
+         <bool32 name="def1"/>
+         <bool32 name="def2"/>
+         <bool32 name="def3"/>
+         <bool32 name="def4"/>
+      </inlets>
+      <outlets>
+         <int32 name="chain"/>
+         <bool32.pulse name="o1"/>
+         <bool32.pulse name="o2"/>
+         <bool32.pulse name="o3"/>
+         <bool32.pulse name="o4"/>
+      </outlets>
+      <displays>
+         <int32.bar16 name="in" noLabel="true"/>
+      </displays>
+      <params>
+         <bin16 name="p1"/>
+         <bin16 name="p2"/>
+         <bin16 name="p3"/>
+         <bin16 name="p4"/>
+         <bool32.mom name="save"/>
+         <int32 name="preset">
+            <MinValue i="0"/>
+            <MaxValue i="100"/>
+         </int32>
+         <bool32.mom name="load"/>
+      </params>
+      <attribs>
+         <combo name="size">
+            <MenuEntries>
+               <string>2</string>
+               <string>4</string>
+               <string>8</string>
+               <string>16</string>
+               <string>32</string>
+               <string>64</string>
+               <string>128</string>
+               <string>256</string>
+               <string>512</string>
+               <string>1024</string>
+               <string>2048</string>
+               <string>4096</string>
+               <string>8192</string>
+               <string>16384</string>
+               <string>32768</string>
+               <string>65536</string>
+               <string>131072</string>
+               <string>262144</string>
+               <string>524288</string>
+               <string>1048576</string>
+               <string>2097152</string>
+            </MenuEntries>
+            <CEntries>
+               <string>1</string>
+               <string>2</string>
+               <string>3</string>
+               <string>4</string>
+               <string>5</string>
+               <string>6</string>
+               <string>7</string>
+               <string>8</string>
+               <string>9</string>
+               <string>10</string>
+               <string>11</string>
+               <string>12</string>
+               <string>13</string>
+               <string>14</string>
+               <string>15</string>
+               <string>16</string>
+               <string>17</string>
+               <string>18</string>
+               <string>19</string>
+               <string>20</string>
+               <string>21</string>
+            </CEntries>
+         </combo>
+         <table name="prefix"/>
+         <table name="suffix"/>
+      </attribs>
+      <includes>
+         <include>chibios/ext/fatfs/src/ff.h</include>
+      </includes>
+      <depends>
+         <depend>fatfs</depend>
+      </depends>
+      <code.declaration><![CDATA[int ltrig;
+int strig;
+
+
+static const uint32_t LENGTHPOW = attr_size;
+static const uint32_t LENGTH = 1<<attr_size;
+static const uint32_t LENGTHMASK = (1<<attr_size)-1;
+static const uint32_t BITS = 32;
+static const uint32_t GAIN = 0;
+int32_t *array;
+
+char c[64];
+int offset;
+int pval;
+
+
+//Logic change //
+int ptrig2;
+int32_t pval2;
+
+int32_t LcOut;
+
+int in_prev;]]></code.declaration>
+      <code.init><![CDATA[ltrig = 0;
+strig = 0;
+
+
+
+static int32_t _array[attr_poly][LENGTH] __attribute__ ((section (".sdram")));
+array = &_array[parent->polyIndex][0];
+{ 
+  int i;
+  for(i=0;i<LENGTH;i++) array[i]=0;
+}
+
+
+
+//String/index
+
+strcpy(&c[0],"attr_prefix000attr_suffix");
+offset = strlen("attr_prefix");
+pval = 0;
+
+// Logic change //
+ptrig2 = 0;
+pval2 = 0;
+
+in_prev = 0;]]></code.init>
+      <code.krate><![CDATA[if (inlet_index+param_preset != pval){   pval = inlet_index+param_preset;
+   int i = inlet_index+param_preset;   int i0 = i/10;
+   c[offset+2] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+1] = '0'+i-10*i0;
+   i = i0; i0 = i/10;
+   c[offset+0] = '0'+i-10*i0;
+}
+
+
+
+
+// logic change //
+if ((pval2 != inlet_index+param_preset)&(!ptrig2)) { 
+  LcOut = 1;
+  pval2 = inlet_index+param_preset;
+  ptrig2 = 1;
+} else {
+  ptrig2 = 0;
+  LcOut = 0;
+}
+
+
+
+
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p1],array[0],0xFFFD);
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p2],array[1],0xFFFD);
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p3],array[2],0xFFFD);
+PExParameterChange(&parent->PExch[PARAM_INDEX_attr_legal_name_p4],array[3],0xFFFD);
+
+array[0]=param_p1;
+array[1]=param_p2;
+array[2]=param_p3;
+array[3]=param_p4;
+
+
+
+if ((inlet_in>=0)&&(inlet_in<16)) {
+   outlet_o1=(inlet_in!=in_prev)&&(param_p1&(1<<inlet_in));
+   outlet_o2=(inlet_in!=in_prev)&&(param_p2&(1<<inlet_in));
+   outlet_o3=(inlet_in!=in_prev)&&(param_p3&(1<<inlet_in));
+   outlet_o4=(inlet_in!=in_prev)&&(param_p4&(1<<inlet_in));
+} else {
+   outlet_o1 = inlet_def1;
+   outlet_o2 = inlet_def2;
+   outlet_o3 = inlet_def3;
+   outlet_o4 = inlet_def4;
+}
+
+
+disp_in=inlet_in;
+
+
+
+
+int save=inlet_save+param_save;
+int load=LcOut;
+  if ((save>0) && !strig) {
+    strig=1;
+    FIL FileObject;
+    FRESULT err;
+    UINT bytes_written;
+    err = f_open(&FileObject, &c[0], FA_WRITE | FA_CREATE_ALWAYS);
+    if (err != FR_OK) {report_fatfs_error(err,&c[0]); return;}
+    int rem_sz = sizeof(*array)*LENGTH;
+    int offset = 0;
+    while (rem_sz>0) {
+      if (rem_sz>sizeof(fbuff)) {
+        memcpy((char *)fbuff,(char *)(&array[0]) + offset, sizeof(fbuff));
+        err = f_write(&FileObject, fbuff, sizeof(fbuff),&bytes_written);
+        rem_sz -= sizeof(fbuff);
+        offset += sizeof(fbuff);
+      } else {
+        memcpy((char *)fbuff,(char *)(&array[0]) + offset, rem_sz);
+        err = f_write(&FileObject, fbuff, rem_sz, &bytes_written);
+        rem_sz = 0;
+      }
+    }    if (err != FR_OK) report_fatfs_error(err,&c[0]);
+    err = f_close(&FileObject);
+    if (err != FR_OK) report_fatfs_error(err,&c[0]);
+  }
+  else if (!(save>0)) strig=0;
+
+
+  if ((load>0) && !ltrig) {
+    ltrig=1;
+    FIL FileObject;
+    FRESULT err;
+    UINT bytes_read;
+    err = f_open(&FileObject, &c[0], FA_READ | FA_OPEN_EXISTING);
+    if (err != FR_OK) { report_fatfs_error(err,&c[0]); return;}
+    int rem_sz = sizeof(*array)*LENGTH;
+    int offset = 0;
+    while (rem_sz>0) {
+      if (rem_sz>sizeof(fbuff)) {
+        err = f_read(&FileObject, fbuff, sizeof(fbuff),&bytes_read);
+        if (bytes_read == 0) break;
+        memcpy((char *)(&array[0]) + offset,(char *)fbuff,bytes_read);
+        rem_sz -= bytes_read;
+        offset += bytes_read;
+      } else {
+        err = f_read(&FileObject, fbuff, rem_sz,&bytes_read);
+        memcpy((char *)(&array[0]) + offset,(char *)fbuff,bytes_read);
+        rem_sz = 0;
+      }
+    }    if (err != FR_OK) { report_fatfs_error(err,&c[0]); return;};
+    err = f_close(&FileObject);
+    if (err != FR_OK) { report_fatfs_error(err,&c[0]); return;};
+  }
+  else if (!(load>0)) ltrig=0;]]></code.krate>
+   </obj.normal>
+</objdefs>

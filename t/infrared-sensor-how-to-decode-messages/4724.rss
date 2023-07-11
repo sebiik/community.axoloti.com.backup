@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>InfraRed Sensor &gt; how to decode messages?</title>
+    <link>http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724</link>
+    <description>Hello,
+
+I saw that Axoloti can support sensors. I would like indeed to use an IR Sensor with a TV Remote Control.
+I connected it and can receive some dummy data. But these data has to be interpreted and translated into hexadecimal data. For that, I&#39;m trying to port an IR Arduino Library (**with lot of pain**) and create my own Axoloti object which use this library.
+
+**How can I decode IR messages ?**
+
+Does someone has an experience with IR sensors ? On porting Arduino libraries to Axoloti ?
+
+Thanks,
+
+Emilie</description>
+    
+    <lastBuildDate>Mon, 25 Jun 2018 20:15:03 +0000</lastBuildDate>
+    <category>AxoObject coding</category>
+    <atom:link href="http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>InfraRed Sensor &gt; how to decode messages?</title>
+        <dc:creator><![CDATA[@deadsy Jason T Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/deadsy">@deadsy</a> wrote:</p>
+          <blockquote>
+              <p>Have you looked at some other objects which talk to hardware?</p>
+
+<p>E.g. <br>./axoloti-contrib/objects/tiar/HW/OLED128x64.axo<br>./axoloti-contrib/objects/tiar/HW/OLED128x64.axh</p>
+
+<p>In general the issue is that the "object" gets called through its krate/srate code and that code can't hang around. ie- it can't wait for the hardware to do something. It needs to just produce/consume it's values/buffers and return- so the system can proceed in real time.</p>
+
+<p>If you have something that's going to take some time (E.g. i2c access, polling an IR receiver, blinking an IR led) then the general approach is to start up another thread to handle it, and have that thread communicate with the krate code when it needs to.</p>
+
+<p>What was normally "the arduino library" would be within that thread- e.g get the raw ir data and try to decode it per the type of frame you are interested in. When you have a valid frame you would send it to the krate code (shared variable, message passing, etc.) which would them make it available to other objects.</p>
+
+<p>Adding to the fun is that the axoloti environment expects the object to be defined within the *.axo file(xml) which it then uses as input to code generate a tree of C++ objects (xpatch.cpp). It expects all of the code to be there (I don't think there is any facility with the patch building to compile and link stand-alone C/C++ files). It's possible to get it done, but it's different from the normal code development process.</p>
+
+<p>In short - you need to do more than a simple port. You need to add some structure (thread to handle IR receive) and you need to change the way the arduino library shows up when the patch get's built (probably shove it all into xpatch.cpp via the include mechanism).</p>
+
+<p>Other than that it seems pretty do-able.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724/2</link>
+        <pubDate>Mon, 25 Jun 2018 20:15:03 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4724-2</guid>
+        <source url="http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724.rss">InfraRed Sensor &gt; how to decode messages?</source>
+      </item>
+      <item>
+        <title>InfraRed Sensor &gt; how to decode messages?</title>
+        <dc:creator><![CDATA[@emilie.zawadzki Emilie Zawadzki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/emilie.zawadzki">@emilie.zawadzki</a> wrote:</p>
+          <blockquote>
+              <p>Hello,</p>
+
+<p>I saw that Axoloti can support sensors. I would like indeed to use an IR Sensor with a TV Remote Control.<br>I connected it and can receive some dummy data. But these data has to be interpreted and translated into hexadecimal data. For that, I'm trying to port an IR Arduino Library (<strong>with lot of pain</strong>) and create my own Axoloti object which use this library.</p>
+
+<p><strong>How can I decode IR messages ?</strong></p>
+
+<p>Does someone has an experience with IR sensors ? On porting Arduino libraries to Axoloti ?</p>
+
+<p>Thanks,</p>
+
+<p>Emilie</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724/1</link>
+        <pubDate>Mon, 25 Jun 2018 10:37:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4724-1</guid>
+        <source url="http://community.axoloti.com/t/infrared-sensor-how-to-decode-messages/4724.rss">InfraRed Sensor &gt; how to decode messages?</source>
+      </item>
+  </channel>
+</rss>

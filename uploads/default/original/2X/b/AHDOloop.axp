@@ -1,0 +1,147 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="14" y="84">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="556ea38f-ed3d-4288-870a-02c4f6f133a2" name="AHDOloop" x="98" y="84">
+      <params>
+         <frac32.s.map name="tA" value="-32.0"/>
+         <frac32.s.map name="tB" value="4.0"/>
+         <frac32.s.map name="tC" value="60.0"/>
+         <frac32.s.map name="tD" value="6.0"/>
+         <bool32.tgl name="LOOP" MidiCC="28" value="0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="556ea38f-ed3d-4288-870a-02c4f6f133a2">
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>env.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig"/>
+            <frac32.bipolar name="tA" description="time A (v0..v1)"/>
+            <frac32.bipolar name="tB" description="time B (v1..v2)"/>
+            <frac32.bipolar name="tC" description="time C (v2..v3)"/>
+            <frac32.bipolar name="tD" description="time D (v3..v4)"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.klineartime.exp name="tA"/>
+            <frac32.s.map.klineartime.exp name="tB"/>
+            <frac32.s.map.klineartime.exp name="tC"/>
+            <frac32.s.map.klineartime.exp name="tD"/>
+            <bool32.tgl name="LOOP"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int32_t time1;
+int32_t phase1;
+int32_t ntrig;
+bool tick;]]></code.declaration>
+         <code.init><![CDATA[phase1 = 0;
+val = 0;
+ntrig = 0;
+tick = true;]]></code.init>
+         <code.krate><![CDATA[if (((inlet_trig > 0)||(tick&&param_LOOP)) && (!ntrig)) {
+  time1 = 0;
+  phase1 = 1;
+  val = 0;
+  ntrig = 1;
+  tick = false;
+}
+else if (phase1 == 1) {
+  int32_t t;
+  int32_t tA2 = param_tA + inlet_tA;
+  MTOF(-tA2,t);
+  time1 += t>>2;
+  if (time1>=0)
+     val = (___SMMUL(1<<27,time1)<<1);
+  else {
+    phase1 = 2;
+    
+    val = 1<<27;
+    time1 = 0;
+  }
+}
+else if (phase1 == 2) {
+  int32_t t;
+  int32_t tB2 = param_tB + inlet_tB;
+  MTOF(-tB2,t);
+  time1 += t>>2;
+  if ((time1>=0)||(inlet_trig > 0))
+    
+     
+     val = 1<<27 ;
+     
+     
+  else {
+    phase1 = 3;
+    val = 1<<27;
+    time1 = 0;
+  }
+}
+else if (phase1 == 3) {
+  int32_t t;
+  int32_t tC2 = param_tC + inlet_tC;
+  MTOF(-tC2,t);
+  time1 += t>>2;
+  if (time1>=0)
+     val = (1<<27) + (___SMMUL(-(1<<27),time1)<<1);
+    
+  else {
+    phase1 = 4;
+    val = 0; 
+    time1 = 0;
+  }
+}
+else if (phase1 == 4) {
+  int32_t t;
+  int32_t tD2 = param_tD + inlet_tD;
+  MTOF(-tD2,t);
+  time1 += t>>2;
+  if (time1>=0)
+    
+     val=0;
+  else {
+    phase1 = 0;
+    val = 0;
+   tick = true;
+
+  }
+
+}
+if (!(inlet_trig > 0)) ntrig = 0;
+
+outlet_out = val;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="sss/disp/BIGscopeK" uuid="7c48260e-333a-48a3-8fc5-071c814aaef0" name="BIGscopeK_1" x="210" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="AHDOloop" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="AHDOloop" outlet="out"/>
+         <dest obj="BIGscopeK_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>86</x>
+      <y>39</y>
+      <width>1378</width>
+      <height>771</height>
+   </windowPos>
+</patch-1.0>

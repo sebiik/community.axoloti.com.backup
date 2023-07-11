@@ -1,0 +1,104 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="input dial" x="224" y="238">
+      <params>
+         <frac32.u.map name="value" value="37.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="458408f1-93fd-471e-982f-b9e7c3d136f9" name="dial freezer" x="350" y="266">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="458408f1-93fd-471e-982f-b9e7c3d136f9">
+         <sDescription>when &apos;active&apos; goes low, it locks the &apos;signal&apos; input. When &apos;active goes high again, the signal only starts being used again when it gets close to locked value.</sDescription>
+         <author>Phillip Mates</author>
+         <license>BSD</license>
+         <helpPatch>ctrl.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="signal"/>
+            <bool32 name="active"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="output"/>
+            <bool32 name="frozen"/>
+            <frac32 name="delta"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[float current;
+int frozen;]]></code.declaration>
+         <code.init><![CDATA[current = 0;
+frozen = 0;]]></code.init>
+         <code.krate><![CDATA[float current_delta = (inlet_signal - current);
+float abs_delta = current_delta>0?current_delta:-current_delta;
+outlet_delta=abs_delta;
+
+if (inlet_active>0) {
+	if (frozen>0) {
+		if (abs_delta < 5) {
+			current = inlet_signal;
+			frozen = 0;
+		}
+	} else {
+		current = inlet_signal;
+	}
+} else {
+	frozen = 1;
+}
+
+outlet_output=current;
+outlet_frozen=frozen;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/chart p" uuid="58f42040a894006a5f73ed8cb8d0bd45481b28cd" name="output" x="630" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="dial enabled?" x="224" y="350">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="output frozen?" x="644" y="420">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/chart p" uuid="58f42040a894006a5f73ed8cb8d0bd45481b28cd" name="delta between frozen and current" x="476" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="dial freezer" outlet="output"/>
+         <dest obj="output" inlet="in"/>
+      </net>
+      <net>
+         <source obj="input dial" outlet="out"/>
+         <dest obj="dial freezer" inlet="signal"/>
+      </net>
+      <net>
+         <source obj="dial freezer" outlet="frozen"/>
+         <dest obj="output frozen?" inlet="in"/>
+      </net>
+      <net>
+         <source obj="dial freezer" outlet="delta"/>
+         <dest obj="delta between frozen and current" inlet="in"/>
+      </net>
+      <net>
+         <source obj="dial enabled?" outlet="o"/>
+         <dest obj="dial freezer" inlet="active"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>30</y>
+      <width>960</width>
+      <height>1050</height>
+   </windowPos>
+</patch-1.0>

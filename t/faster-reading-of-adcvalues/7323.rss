@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Faster reading of adcvalues</title>
+    <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323</link>
+    <description>Hello community,
+
+I have an issue programming an array of sensors using axoloti. I have 15x15 pressure-sensitive sensors, which I would like to use. They are connected using two HC4067-multiplexers (One for the 15 rows, one for the 15 columns). They are connected to the 8 GPIOA-pins. GPIOC4 is used to read out the sensors.
+
+Below, see a snippet of my code, I am using a script2-object here. The problem is, it is far too slow to use as an instrument. There is a quite significant delay between pressing down on the pressure sensitive mat and the sound played by axoloti. As you can also see, I had to use a _chThdSleep(1);_ in my code. Without it, the readings from the sensors are simply wrong (it gives me 15x15 exactly same values for example)
+
+Is there a way to make this code any faster? A way to &quot;force&quot; the correct value into the adcvalues-Array without the sleep-function? Or a way to actively read the value? Where is the adcvalues even written? 
+
+&gt;     
+    void loop()
+    {
+      for(int j = 0; j &lt; 15; j++)
+      { 
+        for(int i = 0; i &lt; 15; i++)
+        {
+          val = readMux(j+(i&lt;&lt;4));
+          //Do stuff with the data here and store it into an array
+        }
+      }
+      //Write the processed data to the outputs here
+    }
+    int readMux(int portmask){
+      palWritePort(GPIOA,portmask);
+      chThdSleep(1);
+      int val = adcvalues[14];
+      return val;
+    }</description>
+    
+    <lastBuildDate>Thu, 17 Jun 2021 09:24:05 +0000</lastBuildDate>
+    <category>Software</category>
+    <atom:link href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@simonmogli]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonmogli">@simonmogli</a> wrote:</p>
+          <blockquote>
+              <p>Hi all,</p>
+
+<p>thanks for all the ideas and inputs. I think I have "solved" the problem and just want to share my solution. I am pretty sure, it is probably kind of "quick and dirty" and somebody with more knowledge would kill me for what I did <img src="//community.axoloti.com/images/emoji/twitter/stuck_out_tongue.png?v=5" title=":stuck_out_tongue:" class="emoji" alt=":stuck_out_tongue:"> But here it is (at least the snippet of the readMux-function and the definitions):</p>
+
+<pre><code>#define ADC_GRP1_NUM_CHANNELS   16
+#define ADC_GRP1_BUF_DEPTH      1
+ADCConversionGroup adcgrpcfg1 = {
+    //Pretty long definition, copy from axoloti_board.c
+}
+ 
+int readMux(int portmask)
+{
+    palWritePort(GPIOA,portmask);
+    adcStopConversion(&amp;ADCD1);
+    adcConvert(&amp;ADCD1, &amp;adcgrpcfg1, adcvalues, ADC_GRP1_BUF_DEPTH);
+    int val = adcvalues[14];
+    return val;
+}</code></pre>
+
+<p>As I already pointed out, it is probably a really unclean solution, but it works, so I am happy...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/10</link>
+        <pubDate>Thu, 17 Jun 2021 09:24:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-10</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>After the last sensor has been converted, you could simply disable the callback, putting the system in the same state it was initially. I.e., when your function is entered, you set up the callback, convert all the values, and disable the callback afterwards.</p>
+
+<p>However, there is a problem with this too. Whatever delays you put into an object will delay the whole patch. If the delay is longer than a k-rate period the patch essentially becomes useless as it can't complete it's tasks within the allotted k-rate period.</p>
+
+<p>I would rewrite the object so that it reads one sensor per k-rate cycle (depending on how fast the ADC interrupt actually runs). Thus, instead of the i and j loops, you would have i and j variables which are updated once per k-rate cycle.</p>
+
+<p>Basically, the object the would do the following:</p>
+
+<ul>
+<li>Read the previously converted value from adcvalues[].</li>
+<li>Calculate the next sensor to read, and output its address to the gpio pins.</li>
+<li>Exit, thus in practice waiting a k-rate period for the conversion to take place, after which the object's code is called again and the converted value read.</li>
+</ul>
+
+<p>If the ADC routine produces a new adcvalues[] update more seldom than once per k-rate period, you'd need to add yet another state variable and more code to wait for more than one k-rate period between writing the sensor address and reading adcvalues[]. I think that's why one of the code snippets referenced above only reads the value every second k rate cycle.</p>
+
+<p>I think trying to force extra ADC conversions from your object will cause a conflict between the ADC interrupt and your object. ADC conversion takes time, which is why it's relegated to an interrupt and not done on the fly.</p>
+
+<p>If the resulting scan rate is too slow (assuming you can read adcvalues[] once per k-rate period, it gives you a scan rate of 3000/225 = 13.333 Hz, as noted above), I'd suggest modifying the hardware to read more than one sensor at a time, using more ADC channels.</p>
+
+<p>The basic issue here is that AD conversion takes time, and when converting a large number of sensors, it scales up. This is a problem which has plagued designers of synths with a large number of knobs since the Prophet-5.</p>
+
+<p>A secondary issue is that in an Axoloti object, you need to do your stuff and get out without any delays, as any delays will disrupt the whole patch. The reason for this is that all objects are called in the same call chain, rather than being separate processes (which is the most efficient way of executing code, as there is no interprocess communication, but it does require the programmer to think in terms of the code executing in a number of states, rather than one long sequence).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/9</link>
+        <pubDate>Sun, 06 Jun 2021 04:47:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-9</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@Nosnibor]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nosnibor">@Nosnibor</a> wrote:</p>
+          <blockquote>
+              <p>The function adc_convert() is defined in firmware/axoloti_board.c and used in firmware/patch.c. It calls adcStartConversion(), which belongs to ChibiOS (chibios/os/hal/include/adc.h and chibios/os/hal/src/adc.c). I found some explanations (they may be about a different version of the OS though):<br><a href="http://chibios.sourceforge.net/docs3/hal/group___a_d_c.html" class="onebox" target="_blank" rel="nofollow noopener">http://chibios.sourceforge.net/docs3/hal/group___a_d_c.html</a><br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.playembedded.org/blog/stm32-adc-chibios/" target="_blank" rel="nofollow noopener">playembedded.org</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://i0.wp.com/www.playembedded.org/blog/wp-content/uploads/2018/07/121180.jpg?fit=600%2C338&amp;ssl=1" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.playembedded.org/blog/stm32-adc-chibios/" target="_blank" rel="nofollow noopener">Using STM32 ADC with ChibiOS ADC Driver</a></h3>
+
+<p>A microcontroller is a system which works on bits and bitstreams more than analog signals, anyway, those signals are still widely used in many fields</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>You can give adcStartConversion() a pointer to a callback function that gets called when the AD conversion is complete. This callback function then could set your multiplexers to the next position and call adcStartConversion() again, so that the ADC would scan all sensors as fast as possible. I'm not sure what to do after the last sensor though.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/8</link>
+        <pubDate>Tue, 01 Jun 2021 21:43:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-8</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@simonmogli]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonmogli">@simonmogli</a> wrote:</p>
+          <blockquote>
+              <p>Hey Nosnibor,</p>
+
+<p>thanks, I was kind of expecting something like this. And I was actually looking for something like the two options you are mentioning. (either manually forcing adcvalues to refresh or calling the driver itself) For neither of those I found a lot of info online but I will probably have a deeper look into the chibios adc-driver.</p>
+
+<p>Can you tell me the file / line in the firmware code where you found, when and how adcvalues is set? Maybe I can copy parts of the code from there. I didn't find a lot of useful things when looking through the firmware code before.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/7</link>
+        <pubDate>Tue, 01 Jun 2021 20:34:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-7</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@Nosnibor]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nosnibor">@Nosnibor</a> wrote:</p>
+          <blockquote>
+              <p>From what I can see in the firmware source code, adcvalues[] is refreshed once per k-rate, right after the dsp-function of the patch gets called.<br>This means two things:<br>1. you only get 3000 analog values per pin per second.<br>2. reading adcvalues[] from a separate thread is inefficient, as it is not synchronized with the actual A/D-conversions.</p>
+
+<p>I can think of several ways to read more than 3000 analog values per second:<br>1. use more analog input pins. This is simple on the software side, but you'd need to change your hardware.<br>2. maybe it is possible to call adc_convert() from an object to get an extra refresh of adcvalues[], but AFAIK there is no easy way to know when the conversion is finished and the new data is available.<br>3. maybe you can call the ADC driver of chibiOS directly to get more conversions (and know when they have finished).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/6</link>
+        <pubDate>Tue, 01 Jun 2021 20:16:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-6</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@simonmogli]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonmogli">@simonmogli</a> wrote:</p>
+          <blockquote>
+              <p>Hi,</p>
+
+<p>I think I still don't understand and I also don't quite get how the code should help me... I'm sorry, if I sound completely stupid now... But what exactly do you mean with "all values from the first IC"??? I can only read a single value at a time, because only one pressure sensor is selected by the multiplexers.</p>
+
+<p>Just to clarify my physical setup again: I have one multiplexer to select the row and one for the column. On the selected row I apply a voltage and at the selected column I read the value. Meaning, I only use one single pin for reading the actual pressure value. Not three like in the code example.</p>
+
+<p>Therefore I only see the option of doing the two actions of "set the multiplexers" and "read the value" alternatingly 225 Times (15x15) Which is basically exactly what the function "readMux" is doing. I don't see, how it's possible to get multiple readings from one adcvalues[14] reading.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/5</link>
+        <pubDate>Mon, 31 May 2021 19:19:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-5</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>In your code, you are calling readMux() for each object in your grid. </p>
+
+<p>This is some of the code from tiar/HW/Ctrl_4067_3. This object reads 3 ICs. So <code>adcvalues[attr_Z0]</code> will contain all values from the first IC, <code>adcvalues[attr_Z1]</code> from the second IC, and so on. So each IC is only read once, at half speed to stabilize the data. After reading the data and setting the GPIO outputs, the incoming data is filtered, and the <strong>a_inF3</strong> array will contain the stable data from all the ICs.</p>
+
+<pre><code>//the inputs are sampled 1/2 kcycle so that the multiplexed signals (4067) are stable 
+kcycle2_cpt++;
+if(kcycle2_cpt == 2){
+	kcycle2_cpt = 0;
+
+	int32_t* a_in = a_inF0 + multiplex_cpt;
+	//LP with 0.25 coefficient
+	*a_in = ___SMMLA(0x40000000, (adcvalues[attr_Z0]&lt;&lt;15) - *a_in, *a_in);
+	a_in += 16; 
+	*a_in = ___SMMLA(0x40000000, (adcvalues[attr_Z1]&lt;&lt;15) - *a_in, *a_in);
+	a_in += 16; 
+	*a_in = ___SMMLA(0x40000000, (adcvalues[attr_Z2]&lt;&lt;15) - *a_in, *a_in);
+
+	// prepare next
+	multiplex_cpt++;
+	multiplex_cpt &amp;= 15;
+}
+//set gpio outputs
+palWritePad(attr_S0, (multiplex_cpt &amp; 1) != 0);
+palWritePad(attr_S1, (multiplex_cpt &amp; 2) != 0);
+palWritePad(attr_S2, (multiplex_cpt &amp; 4) != 0);
+palWritePad(attr_S3, (multiplex_cpt &amp; 8) != 0);
+//Repartition des filtrages 'intelligent' des 48 entrees analogiques
+{
+	kcycle48_cpt++;
+	if(kcycle48_cpt == 48){
+		kcycle48_cpt = 0;
+	}
+	int i = kcycle48_cpt;
+
+	//extends to  [0 64[ even if there is some noise
+	a_inF0[i]=__USAT(___SMMLA(a_inF0[i],0x40800000,-1&lt;&lt;17)&lt;&lt;2,27);
+
+     int32_t coef = a_inF0[i] - a_inF1[i];
+     coef = __USAT(___SMMLA(coef,coef,0x00008000)&lt;&lt;8,25)&lt;&lt;6;
+     a_inF1[i] = ___SMMLA(coef,(a_inF0[i] - a_inF1[i])&lt;&lt;1,a_inF1[i]);
+
+	coef = a_inF1[i] - a_inF2[i];
+     coef = __USAT(___SMMLA(coef,coef,0x00000800)&lt;&lt;8,24)&lt;&lt;7;
+     a_inF2[i] = ___SMMLA(coef,(a_inF1[i] - a_inF2[i])&lt;&lt;1,a_inF2[i]);
+     
+	coef = a_inF2[i] - a_inF3[i];
+     coef = __USAT(___SMMLA(coef,coef,0x00000100)&lt;&lt;8,23)&lt;&lt;8;
+     a_inF3[i] = ___SMMLA(coef,(a_inF2[i] - a_inF3[i])&lt;&lt;1,a_inF3[i]);
+	
+}</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/4</link>
+        <pubDate>Mon, 31 May 2021 13:08:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-4</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@simonmogli]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonmogli">@simonmogli</a> wrote:</p>
+          <blockquote>
+              <p>Hello janvantomme,</p>
+
+<p>thanks for the answer. I think, I don't quite understand what you mean, though. You are saying, "Best to read all values from each chip into an array, and construct your grid from these arrays". That's exactly what I'm doing. One 4067 defines the column and the second defines the row and in each iteration of the loop I read one value. After the loop, I then process the data and convert it to something like x-position &amp; y-positon.</p>
+
+<p>As I said, I think, the speed issue comes mainly from the "chThdSleep(1)", if I remove this line, the code seems to run faster, but the data I get is non-sense.</p>
+
+<p>Looking at the code you are referencing, I see an even bigger speed issue. If I see it right, the code is only reading one value every two k-cycles. If I do that with the 225 values I have, this would mean, I get a rate of (1500/225)=6.67 readings per second. Even if I leave out this "divide by two", it still only gives me around 13 readings per second.</p>
+
+<p>Just FYI, I am basically copying this code 1-to-1 from arduino. There I had no problems with this and was able to read the 225 values "instantly" with no visible delay</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/3</link>
+        <pubDate>Mon, 31 May 2021 11:52:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-3</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Processing each individual value in a nested loop like this will indeed be slow. Best to read all values from each chip into an array, and construct your grid from these arrays.</p>
+
+<p>Take a good look at the 4067 and 4051 code by <a class="mention" href="/u/smashedtransistors">@SmashedTransistors</a>. <strong>tiar/HW/Ctrl2_4051</strong> for instance reads out 2 CD4051 ICs at half speed, and outputs these to the outlets of the object. The output code could be replaced with an algorithm to find which buttons in your grid were pressed.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/2</link>
+        <pubDate>Mon, 31 May 2021 11:10:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-2</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+      <item>
+        <title>Faster reading of adcvalues</title>
+        <dc:creator><![CDATA[@simonmogli]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/simonmogli">@simonmogli</a> wrote:</p>
+          <blockquote>
+              <p>Hello community,</p>
+
+<p>I have an issue programming an array of sensors using axoloti. I have 15x15 pressure-sensitive sensors, which I would like to use. They are connected using two HC4067-multiplexers (One for the 15 rows, one for the 15 columns). They are connected to the 8 GPIOA-pins. GPIOC4 is used to read out the sensors.</p>
+
+<p>Below, see a snippet of my code, I am using a script2-object here. The problem is, it is far too slow to use as an instrument. There is a quite significant delay between pressing down on the pressure sensitive mat and the sound played by axoloti. As you can also see, I had to use a <em>chThdSleep(1);</em> in my code. Without it, the readings from the sensors are simply wrong (it gives me 15x15 exactly same values for example)</p>
+
+<p>Is there a way to make this code any faster? A way to "force" the correct value into the adcvalues-Array without the sleep-function? Or a way to actively read the value? Where is the adcvalues even written? </p>
+
+<blockquote><pre><code>void loop()
+{
+  for(int j = 0; j &lt; 15; j++)
+  { 
+    for(int i = 0; i &lt; 15; i++)
+    {
+      val = readMux(j+(i&lt;&lt;4));
+      //Do stuff with the data here and store it into an array
+    }
+  }
+  //Write the processed data to the outputs here
+}
+int readMux(int portmask){
+  palWritePort(GPIOA,portmask);
+  chThdSleep(1);
+  int val = adcvalues[14];
+  return val;
+}</code></pre></blockquote>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/faster-reading-of-adcvalues/7323/1</link>
+        <pubDate>Mon, 31 May 2021 10:16:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7323-1</guid>
+        <source url="http://community.axoloti.com/t/faster-reading-of-adcvalues/7323.rss">Faster reading of adcvalues</source>
+      </item>
+  </channel>
+</rss>

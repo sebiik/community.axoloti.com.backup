@@ -1,0 +1,166 @@
+<patch-1.0 appVersion="1.0.11">
+   <comment type="patch/comment" x="168" y="0" text="Want to recreate these 4 objects into a single object"/>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="56" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_1" x="168" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/bipolar2unipolar" uuid="f6f63d71053d572d3c795f83c7ec11dfbbce82dd" name="bipolar2unipolar_1" x="294" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="0bf62a8f-7e55-41c6-993a-5e0e462bd495" name="Bi/Uni" x="434" y="14">
+      <params>
+         <bool32.tgl name="on" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="0bf62a8f-7e55-41c6-993a-5e0e462bd495">
+         <sDescription>input multiplexer. Output is i1 when s is false, i2 otherwise.
+
+With a button to select input i1 or i2.
+
+NB! Input for selecting i1 or i1 ONLY works when button is off!</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>mux.axh</helpPatch>
+         <inlets>
+            <frac32 name="i1" description="input 1"/>
+            <frac32 name="i2" description="input 2"/>
+            <bool32 name="s" description="select"/>
+         </inlets>
+         <outlets>
+            <frac32 name="o" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="on" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_o= (inlet_s+param_on)?inlet_i2:inlet_i1;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="c9f14ba4-4f28-46b4-994f-bace658bdf93" name="Am1_1" x="518" y="14">
+      <params>
+         <frac32.u.map name="am" value="64.0"/>
+         <bool32.tgl name="on" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="c9f14ba4-4f28-46b4-994f-bace658bdf93">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="am"/>
+            <bool32.tgl name="on"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_result= 0;
+
+// on/off button + amount 
+if(param_on){
+outlet_result= ___SMMUL(inlet_a<<3,param_am<<2);
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="Ori test" x="602" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="New" x="686" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="1bd95970-07a9-4fb1-9534-5fac832770a5" name="Bi2UniOO" x="434" y="154">
+      <params>
+         <bool32.tgl name="Uni" value="1"/>
+         <bool32.tgl name="On" value="1"/>
+         <frac32.u.map name="am" value="64.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="1bd95970-07a9-4fb1-9534-5fac832770a5">
+         <sDescription>bipolar to unipolar</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32 name="i" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="o" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="Uni"/>
+            <bool32.tgl name="On"/>
+            <frac32.u.map name="am"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_o= 0;
+
+// on/off
+if(param_On){
+
+outlet_o= ___SMMUL(inlet_i<<2,param_am<<3);
+
+// unipolar
+if(param_Uni){
+   outlet_o= ___SMMUL((inlet_i>>1)+(1<<26),param_am<<4);
+}
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="434" y="294" text="^ Object that needs to be fixed"/>
+   <nets>
+      <net>
+         <source obj="uniform_1" outlet="rand"/>
+         <dest obj="bipolar2unipolar_1" inlet="i"/>
+         <dest obj="Bi/Uni" inlet="i1"/>
+         <dest obj="Bi2UniOO" inlet="i"/>
+      </net>
+      <net>
+         <source obj="Bi2UniOO" outlet="o"/>
+         <dest obj="New" inlet="in"/>
+      </net>
+      <net>
+         <source obj="Am1_1" outlet="result"/>
+         <dest obj="Ori test" inlet="in"/>
+      </net>
+      <net>
+         <source obj="bipolar2unipolar_1" outlet="o"/>
+         <dest obj="Bi/Uni" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="uniform_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="Bi/Uni" outlet="o"/>
+         <dest obj="Am1_1" inlet="a"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>23</x>
+      <y>55</y>
+      <width>857</width>
+      <height>709</height>
+   </windowPos>
+</patch-1.0>

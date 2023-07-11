@@ -1,0 +1,45 @@
+<objdefs>
+   <obj.normal id="keyb note ch" uuid="8cbbc80099dede5dc93d8d0d9b597c4188614de9" sha="20ea0a978c6a321329ddb1f8ed21a4110323f2c5">
+      <upgradeSha>5d623ad73ade2280421069a67ee3f30595794c72</upgradeSha>
+      <sDescription>Monophonic MIDI keyboard note input, gate, velocity and release velocity from channel</sDescription>
+      <author>Markus Kaczmarek</author>
+      <license>BSD</license>
+      <helpPatch>midi_in.axh</helpPatch>
+      <inlets/>
+      <outlets>
+         <bool32 name="gate" description="key pressed?"/>
+         <frac32.positive name="velocity" description="note-on velocity"/>
+         <frac32.positive name="releaseVelocity" description="note-off velocity"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs>
+         <spinner name="note" MinValue="0" MaxValue="127" DefaultValue="64"/>
+         <spinner name="channel" MinValue="0" MaxValue="15" DefaultValue="9"/>
+      </attribs>
+      <code.declaration><![CDATA[uint8_t _gate;
+          uint8_t _velo;
+          uint8_t _rvelo;
+          ]]></code.declaration>
+                <code.init><![CDATA[_gate = 0;
+          ]]></code.init>
+                <code.krate><![CDATA[outlet_gate= _gate<<27;
+          outlet_velocity= _velo<<20;
+          outlet_releaseVelocity= _rvelo<<20;
+          ]]></code.krate>
+                <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_channel) && (data2)) {if (data1 == attr_note) {
+             _velo = data2;
+             _gate = 1;
+          }
+          } else if (((status == MIDI_NOTE_ON + attr_channel) && (!data2))||          (status == MIDI_NOTE_OFF + attr_channel)) {
+            if (data1 == attr_note) {
+              _rvelo = data2;
+              _gate = 0;
+            }
+          } else if ((status == attr_channel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+            _gate = 0;
+          }
+          ]]>
+      </code.midihandler>
+   </obj.normal>
+</objdefs>

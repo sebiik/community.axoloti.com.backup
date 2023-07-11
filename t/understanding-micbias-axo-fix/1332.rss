@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Understanding MICBIAS (+axo fix)</title>
+    <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332</link>
+    <description>I read that the inputs can be biased for using an electret mic. I was confused on how to use the biasing.
+
+I&#39;m measuring 0V at the input jack between any of the pins, so the input jack doesn&#39;t seem to be biased.
+
+I found the &quot;audio/inconfic mic&quot; object. From what I can tell from the object definition, this simply sets the values of the audio codec&#39;s 0x4010 register. Looking at the [datasheet](http://www.analog.com/media/en/technical-documentation/data-sheets/ADAU1961.pdf), that should control the voltage &amp; max current on the codec&#39;s MICBIAS pin. 
+
+While looking into this, I found a bug in the implementation of audio/inconfig mic.axo:
+
+The 0x4010 register is a bitfield. See datasheet. In the .axo, the values are combined like this:
+`    ADAU1961_WriteRegister(0x4010,attr_bias+attr_mperf+1);`
+where `mperf` is 0 or 1, and `bias` is 0 or 4 (from the dropdown controls).
+This means that selecting &quot;Normal&quot; in the mperf dropdown turns bit 0 off, which disables the bias, and flips bit 1 (which is undefined). (1 + 1 = 0b10)
+MPERF, which is bit 3, is never touched by the code.
+
+I corrected this by 
+
+* including bit 0 in the `bias` field, adding a third value to disable the bias
+* correcting the `mperf` values (MPERF is bit 3, not bit 0)
+* ORing the values together instead of adding them
+
+I tested the modified axo and measured the bias voltage, it works as intended. @johannes or whoever maintains such things, could you have a look and include the fixed object: &lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/d/df246c30514465bd5012a0bfd0390829670d963e.axo&quot;&gt;inconfig mic.axo&lt;/a&gt; (1.3 KB)
+
+
+So, looking at the [Axoloti Schematic](http://www.axoloti.com/wp-content/uploads/2013/12/axoloti-core-sch-v10.pdf) on page 4 and on my board... R17 and R18 are unpopulated so it is clear to me now why there is no bias voltage on the input jack. I guess I should just solder in two 1K resistors then.</description>
+    
+    <lastBuildDate>Fri, 07 Apr 2017 20:44:43 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@Blindsmyth Simon]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/blindsmyth">@Blindsmyth</a> wrote:</p>
+          <blockquote>
+              <p>Hi There,</p>
+
+<p>I want to hook up an electret mic too but am somewhat clueless on how to do so really.</p>
+
+<p>I added the two resistors (1k) as <a class="mention" href="/users/bambif">@BambiF</a> did. How should I connect the mic now?</p>
+
+<p>It has a trs jack so what I tried was, Sleeve to GND, Tip to LIN- Ring to RIN+ with no succes.</p>
+
+<p><a class="mention" href="/users/bambif">@BambiF</a> how did you hook up your mic?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/9</link>
+        <pubDate>Fri, 07 Apr 2017 20:44:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-9</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>No need for the same hack with this SparkFun Electret Microphone Breakout.<br>I suggest to connect : </p>
+
+<ul>
+<li>
+<code>VCC</code> of the breakout to <code>VDDC</code> of Axoloti</li>
+<li>
+<code>GND</code> of the breakout to <code>GND</code> of Axoloti - use on of the <code>GND</code> holes close to the <code>VDDC</code> hole</li>
+<li>
+<code>AUD/OUT</code> of the breakout to the <code>LIN-</code> hole on Axoloti</li>
+</ul>
+
+<p>that bypasses the input DC blocking capacitor on Axoloti, the SparkFun Electret Microphone Breakout already outputs a DC bias at half the supply voltage, which is what the audio convertor input wants.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/8</link>
+        <pubDate>Tue, 17 May 2016 19:28:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-8</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@KontinuumLab Jeppe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kontinuumlab">@KontinuumLab</a> wrote:</p>
+          <blockquote>
+              <p>I have one of these: <br><a href="https://www.sparkfun.com/products/9964" class="onebox" target="_blank" rel="nofollow">https://www.sparkfun.com/products/9964</a><br>Does the same hack (as explained above) apply with an preamplified electret like this one?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/7</link>
+        <pubDate>Tue, 17 May 2016 18:54:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-7</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Sorry for my late answer... <em>if</em> MICBIAS would "connect" to ground inside the codec in the off state, the input circuit would only present a low impedance to both inputs, not generating crosstalk. But I suspect it's rather in high-impedance state when electret bias is off, so yes, expect considerable crosstalk if your signal source is not very low impedance. </p>
+
+<p>I just integrated your fixes to "audio/inconfig mic". Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/6</link>
+        <pubDate>Tue, 10 May 2016 20:17:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-6</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@BambiF Bambi Richard von Sloterdijk-Fischmehl]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/bambif">@BambiF</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="1332" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Well if MICBIAS is on, it is a voltage source so crosstalk will be small. But if it's off, the datasheet is not clear what impedance MICBIAS will be. If it's high impedance, it 'd cause crosstalk, if it's low, it 'd lower the input impedance a lot...</p></blockquote></aside>
+
+<p>Not sure I understand... What I meant was, soldering in R17+R18 would create a connection between the left&amp;right channels. I mean this signal path:</p>
+
+<p>Right In (Ring) - R18 - R17 - R19 - C44 - LIN-<br>and<br>Left In (Tip) - R17 - R18 - R20 - C45 - RIN-</p>
+
+<p>So that would be 2k of resistance between the channels, plus the capacitors (but an audio signal would pass the caps). Allowing signal intended for one input to pass to the other.</p>
+
+<p>That would be independent of the MICBIAS state, right?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/5</link>
+        <pubDate>Wed, 23 Mar 2016 01:21:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-5</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="1332"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/b/848f3c/40.png" class="avatar">BambiF:</div>
+<blockquote><p>One question remains though: Won't those resistors generate cross-talk between the left&amp;right channels? I only used a mono mic so far, in that case it doesn't matter. But what if I connected a stereo mic?</p></blockquote></aside>
+
+<p>Oh now I recall, that was one of the reasons to not populate these resistors in production, but leaving the resistor footprints for hackability.<br>Well if MICBIAS is on, it is a voltage source so crosstalk will be small. But if it's off, the datasheet is not clear what impedance MICBIAS will be. If it's high impedance, it 'd cause crosstalk, if it's low, it 'd lower the input impedance a lot...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/4</link>
+        <pubDate>Wed, 23 Mar 2016 00:07:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-4</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@BambiF Bambi Richard von Sloterdijk-Fischmehl]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/bambif">@BambiF</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="2" data-topic="1332" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Thanks for the corrections, will integrate them.</p></blockquote></aside>
+
+<p>Cool.</p>
+
+<p><aside class="quote"><blockquote><p>I did not have the time to test electret microphone configurations - and that is also why R17/R18 are unpopulated. <br>Please share your experience with electret microphones!</p></blockquote></aside></p>
+
+<p>I salvaged 2 1K resistors from an old computer mainboard and soldered them onto the Axoloti. Behold my mad SMD hand soldering skills... Not:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/46e10517059ad489452461b672a09e9a4dab91e4" href="//community.axoloti.com/uploads/default/original/2X/4/46e10517059ad489452461b672a09e9a4dab91e4.JPG" class="lightbox" title="IMG_2801_sm.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/46e10517059ad489452461b672a09e9a4dab91e4_1_679x500.JPG" width="679" height="500"><div class="meta">
+<span class="filename">IMG_2801_sm.JPG</span><span class="informations">1009x742 118 KB</span><span class="expand"></span>
+</div></a></div><br>They ended up pretty crooked... It works though. I turned on the bias and set the gain to 33db with the inconfig object, then connected a cheap electret capsule mic:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/6bcdf614dc75c7771564c4f6fbc953ad0a060061" href="//community.axoloti.com/uploads/default/original/2X/6/6bcdf614dc75c7771564c4f6fbc953ad0a060061.JPG" class="lightbox" title="IMG_2766_sm.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/6/6bcdf614dc75c7771564c4f6fbc953ad0a060061_1_666x500.JPG" width="666" height="500"><div class="meta">
+<span class="filename">IMG_2766_sm.JPG</span><span class="informations">800x600 55.9 KB</span><span class="expand"></span>
+</div></a></div><br>The quality isn't great of course, but it is OK for inputting speech and such. So I can use those mics now without any preamp, which is nice.</p>
+
+<p>One question remains though: Won't those resistors generate cross-talk between the left&amp;right channels? I only used a mono mic so far, in that case it doesn't matter. But what if I connected a stereo mic?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/3</link>
+        <pubDate>Tue, 22 Mar 2016 21:35:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-3</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for the corrections, will integrate them.<br>I did not have the time to test electret microphone configurations - and that is also why R17/R18 are unpopulated. <br>Please share your experience with electret microphones!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/2</link>
+        <pubDate>Mon, 21 Mar 2016 18:00:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-2</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+      <item>
+        <title>Understanding MICBIAS (+axo fix)</title>
+        <dc:creator><![CDATA[@BambiF Bambi Richard von Sloterdijk-Fischmehl]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/bambif">@BambiF</a> wrote:</p>
+          <blockquote>
+              <p>I read that the inputs can be biased for using an electret mic. I was confused on how to use the biasing.</p>
+
+<p>I'm measuring 0V at the input jack between any of the pins, so the input jack doesn't seem to be biased.</p>
+
+<p>I found the "audio/inconfic mic" object. From what I can tell from the object definition, this simply sets the values of the audio codec's 0x4010 register. Looking at the <a href="http://www.analog.com/media/en/technical-documentation/data-sheets/ADAU1961.pdf" rel="nofollow">datasheet</a>, that should control the voltage &amp; max current on the codec's MICBIAS pin. </p>
+
+<p>While looking into this, I found a bug in the implementation of audio/inconfig mic.axo:</p>
+
+<p>The 0x4010 register is a bitfield. See datasheet. In the .axo, the values are combined like this:<br><code>ADAU1961_WriteRegister(0x4010,attr_bias+attr_mperf+1);</code><br>where <code>mperf</code> is 0 or 1, and <code>bias</code> is 0 or 4 (from the dropdown controls).<br>This means that selecting "Normal" in the mperf dropdown turns bit 0 off, which disables the bias, and flips bit 1 (which is undefined). (1 + 1 = 0b10)<br>MPERF, which is bit 3, is never touched by the code.</p>
+
+<p>I corrected this by </p>
+
+<ul>
+<li>including bit 0 in the <code>bias</code> field, adding a third value to disable the bias</li>
+<li>correcting the <code>mperf</code> values (MPERF is bit 3, not bit 0)</li>
+<li>ORing the values together instead of adding them</li>
+</ul>
+
+<p>I tested the modified axo and measured the bias voltage, it works as intended. <a class="mention" href="/users/johannes">@johannes</a> or whoever maintains such things, could you have a look and include the fixed object: <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/d/df246c30514465bd5012a0bfd0390829670d963e.axo">inconfig mic.axo</a> (1.3 KB)</p>
+
+<p>So, looking at the <a href="http://www.axoloti.com/wp-content/uploads/2013/12/axoloti-core-sch-v10.pdf" rel="nofollow">Axoloti Schematic</a> on page 4 and on my board... R17 and R18 are unpopulated so it is clear to me now why there is no bias voltage on the input jack. I guess I should just solder in two 1K resistors then.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/understanding-micbias-axo-fix/1332/1</link>
+        <pubDate>Sun, 20 Mar 2016 14:01:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1332-1</guid>
+        <source url="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss">Understanding MICBIAS (+axo fix)</source>
+      </item>
+  </channel>
+</rss>

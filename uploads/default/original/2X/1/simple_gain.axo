@@ -1,0 +1,29 @@
+<objdefs>
+   <obj.normal id="simple_gain" uuid="6b5dd3da49f98e54900f6c20031f38f4624fa364" sha="479fc45a4d36c8ec5e991834d52fa725d1c27de7">
+      <sDescription>Amplify from zero to 1</sDescription>
+      <author>Joren Six</author>
+      <license>BSD</license>
+      <inlets>
+         <frac32buffer name="in" description="input"/>
+      </inlets>
+      <outlets>
+         <frac32buffer name="out" description="output"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.u.map.gain name="amp" noLabel="true"/>
+      </params>
+      <attribs/>
+      <code.srate><![CDATA[
+
+      // frac32.u.map.gain is apparently mapped from 0 to 2^31
+      // so the following gives a float between 0 and one
+      float amplification = (param_amp / (float) (1<<31));
+
+      // the value is simply multiplied with the current value of the
+      // sample to get a correctly scaled output
+      outlet_out = (int32_t) (amplification * inlet_in);
+
+]]></code.srate>
+   </obj.normal>
+</objdefs>
