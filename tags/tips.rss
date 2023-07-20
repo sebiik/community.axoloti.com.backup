@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:discourse="http://www.discourse.org/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Axoloti Community - Topics tagged tips</title>
+    <link>http://community.axoloti.com/tags/tips</link>
+    <description>Topics tagged tips</description>
+    
+      <lastBuildDate>Thu, 23 Jul 2015 10:41:05 +0000</lastBuildDate>
+      <atom:link href="http://community.axoloti.com/tags/tips.rss" rel="self" type="application/rss+xml" />
+        <item>
+          <title>Using precious resources</title>
+          <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+          <category>User Guide</category>
+          <description><![CDATA[
+            <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+            <blockquote>
+              <h1>Overview</h1>
+
+<p>The axoloti board is a powerful board, but like everything it has only a finite amount of memory and processing power.</p>
+
+<p>The good news is axoloti is also very flexible, so there are lots of ways to get to similar results!</p>
+
+<p>Here are some tips about how to best make use of the resources it has.</p>
+
+<h2>General</h2>
+
+<p>Dont get too worried about 'optimisation' when creating a patch, its better to make it understandable and functioning initial - but try to keep it efficient as you build it.</p>
+
+<p>Keep it tidy, especially when it gets big... this will mean if you need to 'refactor' it later to make it more efficient, it will be easier.  Use subpatches, to encapsulate functionality, so later blocks can be optimised.</p>
+
+<p>An obvious statement, but 'nothing in life is free' (ok, not true, but hey) ... every object has a cost, in memory (sram) and probably CPU - so when things get tight, reduce the number of objects ... this might need a change in approach.</p>
+
+<h1>Memory</h1>
+
+<p>SRAM is very precious on the Axoloti (used by table/write delay/write) , there is much more SDRAM available, </p>
+
+<h2>use SDRAM alternatives of objects where possible (usually have sdram in the name).</h2>
+
+<p>e.g. use table/alloc 8b sdram rather than table/alloc 8b </p>
+
+<p>tables, use the appropriate size... don't allocate more space than you need, and use 8bit forms if you only need 8bit data (e.g. -127 to 127) , start with the smallest size, and if you need more later, allocate then.</p>
+
+<h2>Delays/Reverbs:</h2>
+
+<p>we all like long delays, but the longer the delay the more memory it uses, so try trimming back delay/reverb times to conserve memory... Consider different configurations e.g. a short delay per voice, and then a longer global delay for all voices.</p>
+
+<h2>Presets/Entries per preset, modulation sources/targets (in patch / settings)</h2>
+
+<p>the defaults for these are 8/32/8/8 ... these are good defaults.<br>but if you start using lots of sub-patches (and instances of sub-patches), these will start consuming alot of memory.<br>so get into the habit (especially with 'utility sub-patches' of reducing these to the minimum value you need...<br>e.g. if your only 3 presets, set it to 3... you can always increase later.<br>for many sub-patches you can set these  all to zero!!! </p>
+
+<h1>Concise patches</h1>
+
+<p>with DSP processing, the emphasis is on speed of execution, since an audio buffer must be processed to a strict deadline to avoid an audio dropout.<br>to do this Axoloti generates code which is all 'inlined', this means that rather than reusing code and calling functions, it will often just copy the code. this means alot of memory is used for the program, so making concise patches can reduce memory usage considerably.</p>
+
+<h1>Feedback connection</h1>
+
+<p>Connections which are executed on the next k-cycle cost sram. Ensure you know where these exist in your path and remove where not required. (they are also a huge source of bugs)<br>If your not sure about what these are , read about Execution Order in the user guide.</p>
+
+<h2>CPU</h2>
+
+<h1>Per voice patches</h1>
+
+<p>When using polyphonic subpatches it's tempting to simply allocate 16 voices - just in case!<br>but it's worth considering how many voices you really need...<br>Remember, each voice often has independent filters/envelopes all of which consume CPU to be processed. Additionally if you include things like delays, these are also using memory.</p>
+
+<p>Tips are:<br>- allocate as many voices as you need (and no more)<br>- FX, consider carefully (especially reverb/delays) which need to be per voice, and which could be global (in the main patch)</p>
+
+<h1>Patch algorithms</h1>
+
+<p>Implementing an idea as a patch/object in axoloti can often be done in many different ways. each having different characteristics e.g. flexibility, performance , memory requirements.... sometimes you will need to trade these off against each other. so if you find that a particular patch is too CPU intensive consider other approaches, using approximations or pre-calculation (e.g. in another thread).</p>
+
+<h1>Attributes vs Parameters/Inlets</h1>
+
+<p>Its tempting to use controls for everything in a patch, so it can be changed 'on the fly' when Live. BUT this does have a cost. if instead you use a constant (e.g. const/i) then this is just hardcoded into the patch when you go live. This means less memory usage, but also means its subject to the compilers optimiser.</p>
+
+<p>consider the following<br></p>
+
+<p></p><pre><code class="lang-auto">if(param==true) {
+// 100 lines of my finest code
+}</code></pre>
+
+<p>vs<br></p>
+
+<p></p><pre><code class="lang-auto">if(attrib==true) {
+// 100 lines of my finest code
+}</code></pre>
+
+<p>in the first example, the extra code will be included even if you never have param set to true and this condition is checked every time the code is called. whereas with an attribute the code is completely stripped, and the condition is never checked at runtime<br>its a contrived example to illustrate the point.... which is attributes are cool <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>(we are considering an enhancement which will make this a bit easier for end users to control i.e. marking parameters are 'fixed for runtime')</p>
+
+<h1>Custom objects</h1>
+
+<p>If you are a C coder, then for some areas of your patch you may want to consider creating a custom (embedded) object.<br>In particular, graphical patching environments are great for most tasks, as they are easy to update , but something are just easier in code e.g. long strings of boolean comparisons.<br>note: this wont always bring improvements even if the patch looks 'complicated', its likely the compilers optimiser will compress it down.  (this is why converting a subpatch to an object is unlikely to give you any performance gains)</p>
+
+<h1>Finally....</h1>
+
+<p>Axoloti hardware is also quite modular...<br>if you cant do you sequencer, synth and special effects on one board, then perhaps consider getting another axoloti core board. you can then feed midi/audio between the boards, and spread the memory and cpu across these boards.<br>(there are also plans in the future to have digital i/o between multiple boards, so midi / audio doesnt have to go through the external ports ... no timescales on this, but for now you can use USB/Midi DIN and the audio jacks)<br>What I like about this (Ive bought a few axoloti boards <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) is Axoloti is so flexibly having a few lying around is great either to be used together or connected to different pieces of synth hardware <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+            </blockquote>
+            <p>Posts: 1</p>
+            <p>Participants: 1</p>
+            <p><a href="http://community.axoloti.com/t/using-precious-resources/52">Read full topic</a></p>
+          ]]></description>
+          <link>http://community.axoloti.com/t/using-precious-resources/52</link>
+          <pubDate>Thu, 23 Jul 2015 10:41:05 +0000</pubDate>
+          <discourse:topicPinned>No</discourse:topicPinned>
+          <discourse:topicClosed>No</discourse:topicClosed>
+          <discourse:topicArchived>No</discourse:topicArchived>
+          <guid isPermaLink="false">community.axoloti.com-topic-52</guid>
+          <source url="http://community.axoloti.com/t/using-precious-resources/52.rss">Using precious resources</source>
+        </item>
+  </channel>
+</rss>

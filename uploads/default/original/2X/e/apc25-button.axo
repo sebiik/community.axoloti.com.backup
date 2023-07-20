@@ -1,0 +1,110 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="apc25-button" uuid="dc678667-992c-49ad-8193-fb0435635231">
+      <sDescription>Toggle button for AKAI APC KEY 25 controller.</sDescription>
+      <author>Fabio Barbon</author>
+      <license>any</license>
+      <inlets/>
+      <outlets>
+         <bool32 name="state" description="pad state (on, off)"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs>
+         <combo name="device">
+            <MenuEntries>
+               <string>din</string>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <combo name="color">
+            <MenuEntries>
+               <string>green</string>
+               <string>red</string>
+               <string>yellow</string>
+            </MenuEntries>
+            <CEntries>
+               <string>1</string>
+               <string>3</string>
+               <string>5</string>
+            </CEntries>
+         </combo>
+         <combo name="x">
+            <MenuEntries>
+               <string>1</string>
+               <string>2</string>
+               <string>3</string>
+               <string>4</string>
+               <string>5</string>
+               <string>6</string>
+               <string>7</string>
+               <string>8</string>
+            </MenuEntries>
+            <CEntries>
+               <string>0</string>
+               <string>1</string>
+               <string>2</string>
+               <string>3</string>
+               <string>4</string>
+               <string>5</string>
+               <string>6</string>
+               <string>7</string>
+            </CEntries>
+         </combo>
+         <combo name="y">
+            <MenuEntries>
+               <string>1</string>
+               <string>2</string>
+               <string>3</string>
+               <string>4</string>
+               <string>5</string>
+            </MenuEntries>
+            <CEntries>
+               <string>0</string>
+               <string>1</string>
+               <string>2</string>
+               <string>3</string>
+               <string>4</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <code.declaration><![CDATA[int8_t _note;
+int32_t _gate;
+int32_t _state;
+int8_t _x;
+int8_t _y;
+]]></code.declaration>
+      <code.init><![CDATA[_note=0;
+_gate=0;
+_state=0;]]></code.init>
+      <code.krate><![CDATA[outlet_state= _state;]]></code.krate>
+      <code.midihandler><![CDATA[//if(dev!=attr_device) return;
+
+if ((status == MIDI_NOTE_ON + 0) && (data2)) {
+  _note = data1;//-64;
+//  _x = (8 - data1%8)%8;
+  _x = data1 % 8;
+  _y = 4 - data1 / 8 ;
+  if (_x == attr_x && _y == attr_y){
+	  _gate = 1<<27;
+	  _state = _state == 0 ? 1 : 0;
+	  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + 0,_note, (_state ? attr_color : 0));
+  }  
+}]]></code.midihandler>
+   </obj.normal>
+</objdefs>

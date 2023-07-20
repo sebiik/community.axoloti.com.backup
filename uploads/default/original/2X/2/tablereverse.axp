@@ -1,0 +1,137 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="112" y="14">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="224" y="14">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="b82e65bd-6165-4506-b4d7-750ae7d5a17c" name="playexpanded_1" x="336" y="28">
+      <params>
+         <bool32.tgl name="reverse" value="1"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="test"/>
+      </attribs>
+      <object id="patch/object" uuid="b82e65bd-6165-4506-b4d7-750ae7d5a17c">
+         <sDescription>play audio from table (non-transposed), starting from position</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32.positive name="pos" description="start position in table"/>
+            <bool32.rising name="start" description="start playback"/>
+            <bool32.rising name="stop" description="stop playback"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="wave" description="wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="reverse" noLabel="true"/>
+         </params>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int pstart;
+   int pstop;
+   int pos;]]></code.declaration>
+         <code.init><![CDATA[pos = 0;
+pstart = 0;
+pstop = 1;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_start>0) && !pstart) {
+      pstart = 1;
+      pstop = 0;
+      uint32_t asat = __USAT(inlet_pos,27);
+      pos = asat>>(27-attr_table.LENGTHPOW);
+   } else if (!(inlet_start>0)) {
+      pstart = 0;
+   }
+  if ((inlet_stop>0) && !pstop) {
+      pstop = 1;
+      pstart = 0;
+   }]]></code.krate>
+         <code.srate><![CDATA[if (!pstop) {
+   	if (!param_reverse) {
+	 if (pos< attr_table.LENGTH)
+      outlet_wave = attr_table.array[pos++]<<attr_table.GAIN;
+	else outlet_wave = 0;
+   	} else {
+	if ((attr_table.LENGTH - pos))
+     outlet_wave = attr_table.array[attr_table.LENGTH - pos++]<<attr_table.GAIN;
+	else outlet_wave = 0;
+   	} 	
+   } else outlet_wave = 0;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="546" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="test" x="112" y="126">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="524288"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_2" x="112" y="224">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="210" y="224">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="MELO3NM.raw"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="378" y="280">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="test"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="playexpanded_1" inlet="start"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="playexpanded_1" inlet="pos"/>
+      </net>
+      <net>
+         <source obj="playexpanded_1" outlet="wave"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>356</x>
+      <y>114</y>
+      <width>706</width>
+      <height>481</height>
+   </windowPos>
+</patch-1.0>

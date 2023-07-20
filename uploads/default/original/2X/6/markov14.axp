@@ -1,0 +1,4682 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="7ad3182c-63be-4daa-ab34-6c2fda575cc8" name="cc_110" x="28" y="14">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="7ad3182c-63be-4daa-ab34-6c2fda575cc8">
+         <sDescription>Receives Midi Continuous Controller messages from any CC number and channel.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <bool32 name="isActive"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int8_t activeArray[16];
+
+int8_t isActive;
+
+int8_t _value;
+int8_t _cc;
+int8_t _channel;
+
+int8_t i;]]></code.declaration>
+         <code.init><![CDATA[for(i=0;i<16;i++){
+	activeArray[i] = 0;
+}
+
+isActive = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_isActive = isActive;]]></code.krate>
+         <code.midihandler><![CDATA[if ((status&0xF0) == MIDI_CONTROL_CHANGE && (data1 == 110) ) {
+	
+	_value = data2;
+	_cc = data1;
+	_channel = (status & 0x0F);
+	
+	activeArray[_channel] = _value;
+	
+	isActive = 0;
+
+	if(_value <= 64) {
+		
+		for(i=0;i<16;i++){
+			if( activeArray[i] != 0) {
+				isActive = 1;
+				break;
+			}
+		}
+	
+	} else {
+		isActive = 1;
+	}
+
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_3" x="140" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="tb/ctrl/axoc/switches" uuid="891af40c-754c-4024-b434-5326d5c08fde" name="switches_1" x="238" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_2" x="378" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle" x="630" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="714" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="patch/send b" uuid="b428934ee3ee80efb18736216fd871d264e9b695" name="compute" x="798" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="feb4d414-53f5-486d-ba4c-5aa7afecfb2a" name="midithru_clock_no_notes" x="1134" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="input" selection="omni"/>
+         <combo attributeName="output" selection="din"/>
+         <combo attributeName="led" selection="off"/>
+      </attribs>
+      <object id="patch/object" uuid="feb4d414-53f5-486d-ba4c-5aa7afecfb2a">
+         <sDescription>an object to forward midi from one device to another
+note: does not handle sysex or clock</sDescription>
+         <author>Mark Harris</author>
+         <license>GPL</license>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <combo name="led">
+               <MenuEntries>
+                  <string>on</string>
+                  <string>off</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>false</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[
+int 		flash_cnt=0;
+bool 	flash_state = false;
+const int FLASH_LEN = 0x100;
+]]></code.declaration>
+         <code.init><![CDATA[if(attr_led) {
+	sysmon_disable_blinker();
+	palSetPadMode(LED2_PORT,LED2_PIN,PAL_MODE_OUTPUT_PUSHPULL);
+}
+flash_cnt = 0;
+flash_state = false;]]></code.init>
+         <code.krate><![CDATA[if(attr_led) {
+	if(flash_cnt > 0) flash_cnt--;
+	bool fs = flash_cnt > 0;
+	if(fs!=flash_state) {
+		palWritePad(LED2_PORT,LED2_PIN,fs);
+		flash_state = fs;
+	}
+    }]]></code.krate>
+         <code.midihandler><![CDATA[if(attr_input) {
+        uint8_t status_type = status & 0xF0;
+            if (status_type == MIDI_CONTROL_CHANGE) {
+            		if(data1<110 || data1>112) {
+	                    MidiSend3((midi_device_t) attr_output,status,data1,data2);
+     	               flash_cnt = FLASH_LEN;
+            		}
+            } else if ((status_type == MIDI_POLY_PRESSURE) ||
+                (status_type == MIDI_PITCH_BEND)) {
+                    MidiSend3((midi_device_t) attr_output,status,data1,data2);
+                    flash_cnt = FLASH_LEN;
+            } else if ( (status_type == MIDI_PROGRAM_CHANGE) ||
+                        (status_type == MIDI_CHANNEL_PRESSURE)) {
+                MidiSend2((midi_device_t) attr_output,status,data1);
+                flash_cnt = FLASH_LEN;
+            } else if ((status == MIDI_TIMING_CLOCK) ||
+      			(status == MIDI_START) ||
+    				(status == MIDI_CONTINUE) ||
+      			(status == MIDI_STOP)) {
+    					MidiSend1((midi_device_t) attr_output,status);
+  				}
+        }]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="deadsy/input/debounce2" uuid="daa73e25-b954-48ca-be31-a3b4b9cb09d8" name="debounce2_1" x="476" y="42">
+      <params/>
+      <attribs>
+         <spinner attributeName="period" value="3"/>
+         <combo attributeName="mode" selection="fast 0 to 1"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="7ad3182c-63be-4daa-ab34-6c2fda575cc8" name="cc_111" x="28" y="84">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="7ad3182c-63be-4daa-ab34-6c2fda575cc8">
+         <sDescription>Receives Midi Continuous Controller messages from any CC number and channel.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <bool32 name="isActive"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int8_t isActive;
+
+int8_t _value;
+int8_t _cc;
+int8_t _channel;]]></code.declaration>
+         <code.init><![CDATA[isActive = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_isActive = isActive;]]></code.krate>
+         <code.midihandler><![CDATA[if ((status&0xF0) == MIDI_CONTROL_CHANGE && (data1 == 111) ) {
+	
+	_value = data2;
+	_cc = data1;
+	_channel = (status & 0x0F);
+	
+	isActive = 0;
+
+	if(_value > 64) {
+		isActive = 1;
+	}
+
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_4" x="140" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_" x="700" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="patch/send b" uuid="b428934ee3ee80efb18736216fd871d264e9b695" name="inhibeAll" x="798" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="56" y="168" text="markov chain note processing"/>
+   <comment type="patch/comment" x="56" y="182" text="----------------------------"/>
+   <comment type="patch/comment" x="56" y="210" text="cc 110 &gt; 64: compute channel"/>
+   <comment type="patch/comment" x="56" y="238" text="cc 111 &gt; 64: compute all channel (xor cc 110)"/>
+   <comment type="patch/comment" x="574" y="238" text="markov table here :"/>
+   <comment type="patch/comment" x="56" y="252" text="axo control button 1-2 : same"/>
+   <patchobj type="patch/object" uuid="ef52704b-c27b-4be4-b536-e561dcf11d0e" name="gtab" x="588" y="252">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="ef52704b-c27b-4be4-b536-e561dcf11d0e">
+         <author>pvi</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <depends>
+            <depend>fatfs</depend>
+         </depends>
+         <code.declaration><![CDATA[static const int16_t NOTES = 12;
+static const int16_t LENGTH = 16;
+
+uint32_t  ktimer;
+
+int16_t *timeSlotInit;
+
+int16_t *array;
+int16_t *index;
+int16_t *previousNotes;
+
+int i;
+int cIndex = 0;
+
+int processNote(int channel, int noteIn, bool compute) {
+
+	int prevDegree2 = previousNotes[(channel*2) + 1] % 12;
+	int prevDegree = previousNotes[channel*2] % 12;
+	
+	int note = noteIn + 64;
+	int octave = note / 12;
+	
+	int degree = note % 12;
+	
+	int nextNote = 0;
+	int storedNote;
+	int indexPos;
+	int chainNoteIndex;
+	
+	if(previousNotes[(channel*2) + 1] != 0) {
+		indexPos = (prevDegree2 * NOTES) + prevDegree;
+		chainNoteIndex = indexPos * NOTES;
+
+		//don't store note if is same
+		if(prevDegree != prevDegree2 && prevDegree != degree ) {
+			index[indexPos] = (index[indexPos] + 1) % LENGTH;
+			array[ chainNoteIndex + index[indexPos] ] = note;
+		}
+	
+		if(compute && !timeSlotInit[channel] ) {
+			//indexPos = GenerateRandomNumber() % LENGTH;
+			storedNote = array[ chainNoteIndex + cIndex];
+			cIndex = (cIndex + 1) % LENGTH;
+			
+			if( storedNote == 0 ) {
+				// try a 2nd time if needed
+				storedNote = array[ chainNoteIndex + cIndex];
+				cIndex = (cIndex + 1) % LENGTH;
+			}
+			
+			if( storedNote != 0) {
+				nextNote = (octave * 12) + (storedNote % 12) - 64;
+				//octave fix :
+				if( nextNote - noteIn > 12) {
+					nextNote -= 12;
+				}
+				if( noteIn - nextNote > 12) {
+					nextNote += 12;
+				}
+			}
+		}
+	}
+
+	if( !timeSlotInit[channel] ) {
+		previousNotes[(channel*2) + 1] = previousNotes[channel*2];
+		previousNotes[channel*2] = note;
+		timeSlotInit[channel] = true;
+	}
+
+	return nextNote;
+}]]></code.declaration>
+         <code.init><![CDATA[//2nd order markov chain :
+static int16_t _array[NOTES][NOTES][LENGTH] __attribute__ ((section (".sdram")));
+array = &_array[0][0][0];
+
+for(i=0;i<(NOTES * NOTES * LENGTH);i++){
+	array[i]=0;
+}
+
+
+//note pair chain index :
+static int16_t _index[NOTES][NOTES] __attribute__ ((section (".sdram")));
+index = &_index[0][0];
+
+for(i=0;i<(NOTES * NOTES);i++){
+	index[i]=0;
+}
+
+
+//previous notes, per channel :
+static int16_t _previousnotes[16][2] __attribute__ ((section (".sdram")));
+previousNotes = &_index[0][0];
+
+for(i=0;i<(16 * 2);i++){
+	previousNotes[i]=0;
+}
+
+
+//channel time slot init :
+static int16_t _timeSlotInit[16] __attribute__ ((section (".sdram")));
+timeSlotInit = &_timeSlotInit[0];
+
+for(i=0;i<16;i++){
+	timeSlotInit[i] = false;
+}
+
+
+ktimer = 0;]]></code.init>
+         <code.krate><![CDATA[if (ktimer++ > 3*40) {
+	//every 40ms
+	
+	for(i=0;i<16;i++){
+		timeSlotInit[i] = false;
+	}
+
+	ktimer = 0;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="56" y="280" text="cc 112 &gt; 64: exclude channel from processing"/>
+   <comment type="patch/comment" x="56" y="294" text="axo control button 3 : notes pass untouched"/>
+   <patcher type="patch/patcher" uuid="e49a1565-2794-4a3b-ada7-3d684359145b" name="poly_markov1" x="70" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="1"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="772bcb74-1c44-4ab2-8b80-80a1dfac3761" name="poly_markov2" x="210" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="2"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="75d27fbf-28ce-433a-8a7c-747324e997e0" name="poly_markov3" x="350" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="3"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="37621b23-592c-4b0c-97f4-528d87b3597e" name="poly_markov4" x="490" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="4"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="6e6d607d-f191-496c-9823-a5a5340ef607" name="poly_markov5" x="630" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="5"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="9628e9e6-59e8-4287-a9bd-fb59661ea72c" name="poly_markov6" x="770" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="6"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="f44dfc12-99b2-49c6-b0f8-d47918b7079b" name="poly_markov7" x="910" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="7"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="0b48ce21-2eaf-4bd5-be48-866b3d1ed4f1" name="poly_markov8" x="1050" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="8"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="d8270ca7-d855-47f3-89fa-9739f4473123" name="poly_markov9" x="70" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="9"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="c337ddf9-b5bc-4233-ae2a-9742784a84d8" name="poly_markov10" x="210" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="10"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="1e83f039-4ff3-4d13-9bbb-ac460687ffb6" name="poly_markov11" x="350" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="11"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="6e1eb164-af85-48c4-9d93-f7848f031cde" name="poly_markov12" x="490" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="12"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="df81b65d-cb76-4039-81c1-f2ac7415b932" name="poly_markov13" x="630" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="13"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="4150cf5c-b21c-4476-9158-9f69dc3edf2f" name="poly_markov14" x="770" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="14"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="5dcf8de7-5baa-4412-94a7-85e322500529" name="poly_markov15" x="910" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="15"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="209bfd21-d682-41ce-9b90-af47b5baee68" name="poly_markov16" x="1050" y="490">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="8"/>
+         <combo attributeName="midichannel" selection="16"/>
+         <combo attributeName="mididevice" selection="omni"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_2" x="252" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../inhibeAll"/>
+            </attribs>
+         </obj>
+         <obj type="patch/recv b" uuid="6ce86e0c667a0168b53a910eb891366e96b944d1" name="recv_1" x="252" y="168">
+            <params/>
+            <attribs>
+               <objref attributeName="sender" obj="../compute"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="70" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/xor 2" uuid="7902b0001a2672a9008b3882d3681ec3e33fec74" name="xor_1" x="434" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="mux_1" x="560" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f" name="markovRec" x="728" y="266">
+            <params/>
+            <attribs>
+               <objref attributeName="globData" obj="../gtab"/>
+            </attribs>
+            <object id="patch/object" uuid="780b6d27-0957-46bd-ae47-583f08116f2f">
+               <author>pvi</author>
+               <license>BSD</license>
+               <rotatedParams>true</rotatedParams>
+               <inlets>
+                  <bool32 name="gate"/>
+                  <int32 name="note"/>
+                  <bool32 name="compute"/>
+                  <bool32 name="exclusion"/>
+               </inlets>
+               <outlets>
+                  <int32 name="note"/>
+                  <bool32 name="gate"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <objref name="globData"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int nextNote;
+
+int gtrig;
+
+bool prevStatus;
+
+bool gate;
+
+int32_t _channel;]]></code.declaration>
+               <code.init><![CDATA[nextNote = 0;
+gate = false;
+
+_channel = 0;]]></code.init>
+               <code.krate><![CDATA[if(inlet_exclusion) {
+	outlet_note = inlet_note;
+	outlet_gate = inlet_gate;
+} else {
+
+	if(inlet_compute != prevStatus) {
+		//close active notes :
+		gate = false;
+		//recompute if needed :
+		gtrig = 0;
+		//LogTextMessage("%d", inlet_mode);
+	} else {
+		if(inlet_compute && nextNote != 0) {
+			outlet_note = nextNote;	
+		} else {
+			outlet_note = inlet_note;
+		}
+		gate = inlet_gate;
+	}
+
+	if( (inlet_gate>0) && !gtrig ) {
+		gtrig = 1;
+		nextNote = attr_globData.processNote(_channel, inlet_note, inlet_compute);
+		//close active notes :
+		gate = false;
+	} else if(inlet_gate == 0) {
+		gtrig = 0;
+	}
+	
+	prevStatus = inlet_compute;
+	outlet_gate = gate;
+}]]></code.krate>
+               <code.midihandler><![CDATA[_channel = (status & 0x0F);]]></code.midihandler>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0" name="note_out" x="980" y="266">
+            <params/>
+            <attribs>
+               <combo attributeName="device" selection="din"/>
+            </attribs>
+            <object id="patch/object" uuid="d7a45467-9e37-4c20-ae8d-79508f6700a0">
+               <sDescription>Midi note transmitter, midi channel as live parameter</sDescription>
+               <author>Johannes Taelman, hacked by AL</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32.bipolar name="note" description="note (-64..63)"/>
+                  <frac32.positive name="velo" description="velocity"/>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays/>
+               <params/>
+               <attribs>
+                  <combo name="device">
+                     <MenuEntries>
+                        <string>din</string>
+                        <string>usb host port 1</string>
+                        <string>usb host port 2</string>
+                        <string>usb host port 3</string>
+                        <string>usb host port 4</string>
+                        <string>internal port 1</string>
+                        <string>internal port 2</string>
+                        <string>usb device port 1</string>
+                     </MenuEntries>
+                     <CEntries>
+                        <string>MIDI_DEVICE_DIN, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 1</string>
+                        <string>MIDI_DEVICE_USB_HOST, 2</string>
+                        <string>MIDI_DEVICE_USB_HOST, 3</string>
+                        <string>MIDI_DEVICE_USB_HOST, 4</string>
+                        <string>MIDI_DEVICE_INTERNAL, 1</string>
+                        <string>MIDI_DEVICE_INTERNAL, 2</string>
+                        <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+                     </CEntries>
+                  </combo>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int ntrig;
+      int lastnote;]]></code.declaration>
+               <code.init><![CDATA[ntrig=0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig)
+        {
+          lastnote = (64+(inlet_note>>21))&0x7F;
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (attr_midichannel),lastnote,inlet_velo>>20);
+          ntrig=1;
+        }
+      if (!(inlet_trig>0) && ntrig)
+        {
+          MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (attr_midichannel),lastnote,__USAT(inlet_velo>>20,7));
+          ntrig=0;
+        }]]></code.krate>
+            </object>
+         </patchobj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="70" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="110"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_1" x="168" y="308">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <obj type="midi/in/cc i" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_2" x="70" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="112"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="drj/math/&gt; const i" uuid="a498caeb4da17a59588d64bcf9d5e9b4a652362f" name="&gt;_2" x="168" y="434">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="64"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="markovRec" outlet="note"/>
+               <dest obj="note_out" inlet="note"/>
+            </net>
+            <net>
+               <source obj="recv_1" outlet="v"/>
+               <dest obj="xor_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="gate2"/>
+               <dest obj="markovRec" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="markovRec" inlet="note"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="note_out" inlet="velo"/>
+            </net>
+            <net>
+               <source obj="markovRec" outlet="gate"/>
+               <dest obj="note_out" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="xor_1" outlet="o"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&gt;_1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="cc_2" outlet="midiCC"/>
+               <dest obj="&gt;_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="&gt;_2" outlet="out"/>
+               <dest obj="markovRec" inlet="exclusion"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="xor_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="markovRec" inlet="compute"/>
+            </net>
+            <net>
+               <source obj="recv_2" outlet="v"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>249</x>
+            <y>261</y>
+            <width>1150</width>
+            <height>703</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <nets>
+      <net>
+         <source obj="switches_1" outlet="out1"/>
+         <dest obj="or_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="compute" inlet="v"/>
+      </net>
+      <net>
+         <source obj="cc_110" outlet="isActive"/>
+         <dest obj="or_3" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="toggle" outlet="o"/>
+         <dest obj="or_1" inlet="i1"/>
+         <dest obj="or_3" inlet="i2"/>
+         <dest obj="or_4" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="cc_111" outlet="isActive"/>
+         <dest obj="or_1" inlet="i2"/>
+         <dest obj="or_4" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="switches_1" outlet="out2"/>
+         <dest obj="or_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="or_3" outlet="o"/>
+         <dest obj="switches_1" inlet="led1"/>
+      </net>
+      <net>
+         <source obj="or_4" outlet="o"/>
+         <dest obj="switches_1" inlet="led2"/>
+      </net>
+      <net>
+         <source obj="toggle_" outlet="o"/>
+         <dest obj="inhibeAll" inlet="v"/>
+         <dest obj="switches_1" inlet="led3"/>
+      </net>
+      <net>
+         <source obj="switches_1" outlet="out3"/>
+         <dest obj="debounce2_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="debounce2_1" outlet="o1"/>
+         <dest obj="toggle_" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="or_2" outlet="o"/>
+         <dest obj="debounce2_1" inlet="i0"/>
+      </net>
+      <net>
+         <source obj="debounce2_1" outlet="o0"/>
+         <dest obj="toggle" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>0</NPresets>
+      <NPresetEntries>0</NPresetEntries>
+      <NModulationSources>0</NModulationSources>
+      <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>451</x>
+      <y>112</y>
+      <width>1331</width>
+      <height>730</height>
+   </windowPos>
+</patch-1.0>

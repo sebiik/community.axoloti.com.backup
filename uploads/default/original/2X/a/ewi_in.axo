@@ -1,0 +1,128 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="ewi_in" uuid="3e718ff6-1664-49bd-9646-49bcc01c6e5a">
+      <sDescription>Monophonic MIDI breath controller (EWI4000s) input: note, gate, velocity, breath, bend, glide</sDescription>
+      <author>Joao Gatao</author>
+      <license>GPL</license>
+      <inlets/>
+      <outlets>
+         <frac32.bipolar name="note" description="midi note number (-64..63)"/>
+         <frac32.positive name="breath" description="breath pressure (0..64)"/>
+         <bool32 name="gate" description="key pressed no retrigger legato"/>
+         <frac32.positive name="velocity" description="note-on velocity (breath attack)"/>
+         <bool32 name="hold" description="hold toggle"/>
+         <bool32 name="octave" description="octave toggle"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.s.map.klineartime.exp2 name="glide" description="glide rate">
+            <DefaultValue v="21.0"/>
+         </frac32.s.map.klineartime.exp2>
+         <frac32.u.map name="bend" description="bend min/max (semitones)">
+            <DefaultValue v="2.0"/>
+         </frac32.u.map>
+      </params>
+      <attribs>
+         <spinner name="bendsens" description="bend sensitivity" MinValue="0" MaxValue="64" DefaultValue="25"/>
+      </attribs>
+      <code.declaration><![CDATA[int8_t _note;
+int32_t _gate;
+uint8_t _velo;
+int32_t _breath;
+int32_t _hold;
+int32_t _octave;
+int32_t _gliss;
+int32_t _bend;
+
+int32_t pitch;
+int32_t glide;
+int32_t prev;
+int32_t follow;
+int64_t diff;
+int64_t rate;
+int32_t bend;]]></code.declaration>
+      <code.init><![CDATA[_gate = 0;
+_note = 0;
+_breath = 0;
+_hold = 0;
+_octave = 0;
+_gliss = 0;
+_bend = 0;]]></code.init>
+      <code.krate><![CDATA[outlet_gate= _gate;
+outlet_velocity= _velo<<20;
+outlet_breath= _breath<<20;
+outlet_hold= _hold;
+outlet_octave= _octave;
+
+pitch= _note<<21;
+
+rate= ___SMMUL(_gliss<<3,_gliss<<2);
+rate= ___SMMUL(rate<<2,param_glide<<3);
+rate= rate<<14;
+if (_gate){
+  if(!(_note<<21==prev)){
+    diff= _note<<21-follow;
+    diff= diff>0?(1<<27):-(1<<27);
+  }
+  if(diff>0){
+    if(follow>_note<<21){
+    	 diff= 0;
+	 follow= _note<<21;
+  } }
+  if(diff<0){
+    if(follow<_note<<21){
+      diff= 0;
+	 follow= _note<<21;
+  } }
+  follow+= (diff<<21)/((1<<21)+rate);
+  pitch= follow;
+  prev= _note<<21;
+}
+else {
+  pitch= _note<<21;
+}
+
+bend= ___SMMUL(_bend<<4,(attr_bendsens<<21)<<4);
+bend= bend>1<<27?1<<27:bend;
+bend= bend<-1<<27?-1<<27:bend;
+pitch= pitch+___SMMUL(bend<<3,param_bend<<2);
+
+outlet_note= pitch;]]></code.krate>
+      <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_midichannel) && (data2)) {
+  _velo = data2;
+  _note = data1-64;
+  _gate = 1<<27;
+} else if (((status == MIDI_NOTE_ON + attr_midichannel) && (!data2))||
+          (status == MIDI_NOTE_OFF + attr_midichannel)) {
+  if (_note == data1-64) {
+    _gate = 0;
+  }
+} else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+  _gate = 0;
+}
+
+if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == 2)) {
+  _breath = data2;
+}
+
+if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == 64)&&(data2)) {
+  _hold = 1<<27;
+} else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == 64)&&(!data2)) {
+  _hold = 0;
+}
+
+if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == 69)&&(data2)) {
+  _octave = 1<<27;
+} else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == 69)&&(!data2)) {
+  _octave = 0;
+}
+
+if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == 5)) {
+  _gliss = data2<<20;
+}
+
+
+if (status == MIDI_PITCH_BEND + attr_midichannel) {
+  _bend = ((int)((data2<<7)+data1)-0x2000)<<14;
+}]]></code.midihandler>
+   </obj.normal>
+</objdefs>

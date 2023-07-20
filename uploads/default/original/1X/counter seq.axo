@@ -1,0 +1,143 @@
+<objdefs>
+   <obj.normal id="counter seq" uuid="7c141bo82230e54e5f5cd12da5dbe5a74ba854a5" sha="51bf79f42a7c84352830b08e68696ecbf5d0bd52">
+      <upgradeSha>77a4b4804913320c0ec3fcc53592eed1cd9af148</upgradeSha>
+      <sDescription>Cyclic up counter, sequencer version</sDescription>
+      <author>sputnki</author>
+      <license>BSD</license>
+      <helpPatch>counter.axh</helpPatch>
+      <inlets>
+         <bool32.rising name="trig" description="trigger"/>
+         <bool32.rising name="r" description="reset"/>
+	 <int32 name="shuffle" description="amount of shuffle on even steps"/>
+      </inlets>	
+      <outlets>
+         <int32 name="o" description="output"/>
+	 <bool32 name="gate" description="triggered at each active step"/>
+	 <bool32 name="legato" description="legato is active for this step"/>
+	 <bool32 name="accent" description="accent is active for this step"/>
+	 <bool32 name="ghost" description="ghost is active for this step"/>
+      </outlets>
+      <displays>
+         <int32.bar32 name="stepbar" noLabel="true"/>
+      </displays>
+      <params>
+
+	<int32 name="steps">
+            <MinValue i="1"/>
+            <MaxValue i="32"/>
+	</int32>
+
+	<int32 name="pps1">
+            <MinValue i="2"/>
+            <MaxValue i="128"/>
+	</int32>
+
+	<int32 name="pps2">
+            <MinValue i="2"/>
+            <MaxValue i="128"/>
+	</int32>
+
+	<bin32 name="rest"/>
+	<bin32 name="legato"/>
+	<bin32 name="accent"/>
+	<bin32 name="ghost"/>
+	<bin32 name="ppssel"/>	
+	<bin32 name="mul2"/>	
+	
+	</params>
+
+      <attribs/> 	
+	
+      <code.declaration><![CDATA[  
+ 
+   int ntrig;
+   int rtrig;
+
+   int pulsecnt;
+   int stepcnt; 
+
+   bool even;
+
+   int steplen;
+   int tmplen;
+
+   int gate;
+   bool tmp;
+   
+]]></code.declaration>
+      <code.init><![CDATA[
+    
+   ntrig = 0;
+   rtrig = 0;
+   pulsecnt = 0;
+   stepcnt = 0;
+   even = 0;
+   steplen = 0;
+   gate = 0;
+   tmplen =1;
+   tmp=0;
+
+]]></code.init>
+      <code.krate><![CDATA[
+
+//This section determines the length of the current step
+
+tmp=param_ppssel&(1<<stepcnt);
+if (tmp==0) {tmplen=param_pps1; } else if (tmp==1) {tmplen=param_pps2; } 
+
+tmp=param_mul2&(1<<stepcnt);
+if (tmp==1) {tmplen=tmplen*2;} 
+
+if (even) {steplen=tmplen-inlet_shuffle;} else if (!even) {steplen=tmplen+inlet_shuffle;}
+
+
+
+
+
+
+if ((inlet_r>0) && !rtrig) {pulsecnt=0; stepcnt=0; even=0; rtrig = 1; 
+
+tmp=param_rest&(1<<stepcnt);
+if (tmp==0) {gate=1;} 
+
+}
+
+else if (!(inlet_r>0)) {rtrig=0;}
+outlet_o= stepcnt;
+
+
+
+if ((inlet_trig>0) && !ntrig && (inlet_r==0)) {
+
+   pulsecnt += 1; 
+   if (pulsecnt>=steplen) {pulsecnt = 0; stepcnt+=1; even=(!even);
+
+tmp=param_rest&(1<<stepcnt);
+if (tmp==0) {gate=1;} 
+}
+
+   if (stepcnt>=param_steps) {stepcnt = 0; even = 0;
+tmp=param_rest&(1<<stepcnt);
+if (tmp==0) {gate=1;} 
+}
+
+tmp=param_legato&(1<<stepcnt);
+   if ((pulsecnt==(steplen-1))&&tmp==0) {gate=0;}
+   ntrig=1;   
+}
+
+else if (!(inlet_trig>0)) {ntrig=0;}
+
+outlet_accent=param_accent&(1<<stepcnt);
+outlet_ghost=param_ghost&(1<<stepcnt);
+outlet_legato=param_legato&(1<<stepcnt);
+
+outlet_gate=gate;
+disp_stepbar=stepcnt;
+
+]]></code.krate>
+   </obj.normal>
+</objdefs>
+
+
+

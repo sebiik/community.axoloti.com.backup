@@ -1,0 +1,545 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="28" y="126" text="(A) USB Midi control (start/stop/reset)"/>
+   <comment type="patch/comment" x="392" y="126" text="(B) Midi looping patch using polymidiXL"/>
+   <comment type="patch/comment" x="756" y="126" text="1) Test midi input (connect cables, then click Live)"/>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_4" x="224" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="0b7ca68e-da23-4ee1-8d27-33a2569bb8ab" name="patcher_2" x="28" y="154">
+      <params/>
+      <attribs>
+         <combo attributeName="midichannel" selection="inherit"/>
+         <combo attributeName="mididevice" selection="usb host"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <comment type="patch/comment" x="0" y="14" text="(A) USB Midi control (start/stop/reset)"/>
+         <comment type="patch/comment" x="28" y="42" text="set the start and end note to be the same, that way it only &apos;bangs&apos; or sends out a pulse on that particular note"/>
+         <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="266" y="70">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="c1c629db-5eb4-4dac-8cc0-6fa6846934f2" name="note_2" x="84" y="84">
+            <params/>
+            <attribs>
+               <spinner attributeName="startNote" value="1"/>
+               <spinner attributeName="endNote" value="1"/>
+            </attribs>
+            <object id="patch/object" uuid="c1c629db-5eb4-4dac-8cc0-6fa6846934f2">
+               <sDescription>noteOn issues a pulse whenever a note-on occurs,
+note returns the note number.
+hold is 1 if any keys are on hold.</sDescription>
+               <author>Robert Schirmer</author>
+               <license>BSD</license>
+               <helpPatch>poly.axh</helpPatch>
+               <inlets/>
+               <outlets>
+                  <int32 name="note" description="note on note-on"/>
+                  <bool32.pulse name="noteOn" description="pulse on note-on"/>
+                  <bool32 name="gate" description="any notes on hold?"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <spinner name="startNote" MinValue="0" MaxValue="127" DefaultValue="0"/>
+                  <spinner name="endNote" MinValue="0" MaxValue="127" DefaultValue="127"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int8_t _note;
+uint8_t count;
+bool trigon;]]></code.declaration>
+               <code.init><![CDATA[_note = 0;]]></code.init>
+               <code.krate><![CDATA[outlet_noteOn = trigon;
+outlet_note = _note;
+trigon = 0;
+
+outlet_gate = bool (count);]]></code.krate>
+               <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_midichannel) && (data2)) {
+  if ((data1 >= attr_startNote)&&(data1 <= attr_endNote))
+  {
+    trigon = 1;
+    count += 1;
+    _note = data1;
+  }
+}
+if (((status == MIDI_NOTE_ON + attr_midichannel) && (!data2))||(status == MIDI_NOTE_OFF + attr_midichannel)) 
+{
+ if ((data1 >= attr_startNote)&&(data1 <= attr_endNote))
+{
+if (count) count -= 1;
+}
+ }
+else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+   count = 0;
+}]]></code.midihandler>
+            </object>
+         </patchobj>
+         <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_4" x="378" y="112">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="rec_play" x="574" y="112">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_1" x="266" y="140">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_3" x="238" y="308">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="c1c629db-5eb4-4dac-8cc0-6fa6846934f2" name="note_3" x="84" y="364">
+            <params/>
+            <attribs>
+               <spinner attributeName="startNote" value="7"/>
+               <spinner attributeName="endNote" value="7"/>
+            </attribs>
+            <object id="patch/object" uuid="c1c629db-5eb4-4dac-8cc0-6fa6846934f2">
+               <sDescription>noteOn issues a pulse whenever a note-on occurs,
+note returns the note number.
+hold is 1 if any keys are on hold.</sDescription>
+               <author>Robert Schirmer</author>
+               <license>BSD</license>
+               <helpPatch>poly.axh</helpPatch>
+               <inlets/>
+               <outlets>
+                  <int32 name="note" description="note on note-on"/>
+                  <bool32.pulse name="noteOn" description="pulse on note-on"/>
+                  <bool32 name="gate" description="any notes on hold?"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs>
+                  <spinner name="startNote" MinValue="0" MaxValue="127" DefaultValue="0"/>
+                  <spinner name="endNote" MinValue="0" MaxValue="127" DefaultValue="127"/>
+               </attribs>
+               <includes/>
+               <code.declaration><![CDATA[int8_t _note;
+uint8_t count;
+bool trigon;]]></code.declaration>
+               <code.init><![CDATA[_note = 0;]]></code.init>
+               <code.krate><![CDATA[outlet_noteOn = trigon;
+outlet_note = _note;
+trigon = 0;
+
+outlet_gate = bool (count);]]></code.krate>
+               <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_midichannel) && (data2)) {
+  if ((data1 >= attr_startNote)&&(data1 <= attr_endNote))
+  {
+    trigon = 1;
+    count += 1;
+    _note = data1;
+  }
+}
+if (((status == MIDI_NOTE_ON + attr_midichannel) && (!data2))||(status == MIDI_NOTE_OFF + attr_midichannel)) 
+{
+ if ((data1 >= attr_startNote)&&(data1 <= attr_endNote))
+{
+if (count) count -= 1;
+}
+ }
+else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+   count = 0;
+}]]></code.midihandler>
+            </object>
+         </patchobj>
+         <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_2" x="280" y="406">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_5" x="378" y="406">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="reset" x="560" y="406">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="note_2" outlet="note"/>
+               <dest obj="i_2" inlet="in"/>
+            </net>
+            <net>
+               <source obj="toggle_1" outlet="o"/>
+               <dest obj="bool_4" inlet="in"/>
+               <dest obj="rec_play" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="note_2" outlet="noteOn"/>
+               <dest obj="toggle_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="note_3" outlet="note"/>
+               <dest obj="i_3" inlet="in"/>
+            </net>
+            <net>
+               <source obj="toggle_2" outlet="o"/>
+               <dest obj="bool_5" inlet="in"/>
+               <dest obj="reset" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="note_3" outlet="noteOn"/>
+               <dest obj="toggle_2" inlet="trig"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>727</x>
+            <y>227</y>
+            <width>1038</width>
+            <height>665</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <patcher type="patch/patcher" uuid="491ac193-16d7-48e8-a177-a249651a7b16" name="patcher_3" x="392" y="154">
+      <params/>
+      <attribs>
+         <combo attributeName="midichannel" selection="inherit"/>
+         <combo attributeName="mididevice" selection="din"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <comment type="patch/comment" x="14" y="28" text="(B) Midi looping patch using polymidiXL"/>
+         <comment type="patch/comment" x="14" y="84" text="clock generator"/>
+         <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="read count" x="630" y="84">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="sss/lfo/BPMext" uuid="7b90c9ef-c596-431d-a030-cf6c78757bca" name="BPMext_1" x="28" y="98">
+            <params>
+               <int32 name="BPM" value="125"/>
+               <int32 name="vari1" value="1"/>
+               <int32 name="vari2" value="1"/>
+               <int32 name="vari3" value="1"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="demux/demux 2" uuid="357def86905d97a677c7080b4c9a2a4c0b8cd0fe" name="demux_1" x="490" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="196" y="112" text="counter"/>
+         <comment type="patch/comment" x="350" y="112" text="6) read / write (play or record)"/>
+         <obj type="sss/midi/polymidiXL" uuid="ad3450a4-53f5-4d52-a98d-b54f6d95dd72" name="polymidiXL_1" x="700" y="112">
+            <params>
+               <bool32.mom name="CHANNEL internal/DIN 1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  G   1  2  3  4  5  6  7  8  9 A  B  C  D  E  F " value="0"/>
+               <bin32 name="edit" value="65536"/>
+               <bin32 name="mute" value="0"/>
+               <bin32 name="solo" value="0"/>
+               <bin32 name="scaled" value="0"/>
+               <int32 name="predelay" value="0"/>
+               <int32 name="toChnlOffset" value="0"/>
+            </params>
+            <attribs>
+               <combo attributeName="size" selection="8192"/>
+               <objref attributeName="scale" obj="scale7bank_1"/>
+            </attribs>
+         </obj>
+         <comment type="patch/comment" x="1246" y="112" text="1) Test midi input (connect cables, then click Live)"/>
+         <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="countExt_1" x="196" y="126">
+            <params>
+               <int32 name="max" value="512"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="play / record" x="336" y="140">
+            <params>
+               <bool32.tgl name="b" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="1246" y="140" text="2) Test midi output (connect cables, then click Live)"/>
+         <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="write count" x="630" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="1246" y="168" text="3) Set midi input (click button for midi DIN cable input)"/>
+         <comment type="patch/comment" x="1246" y="196" text="4a) look at and copy  the name in the box &apos;scale7bank_1&apos;"/>
+         <comment type="patch/comment" x="1260" y="210" text="4b) enter scale - type scale7bank_1 into the scale box"/>
+         <comment type="patch/comment" x="1246" y="224" text="4b) type the name from 4a into the scale box - it will error if you don&apos;t"/>
+         <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="countExt_2" x="182" y="238">
+            <params>
+               <int32 name="max" value="4"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="bar count" x="336" y="238">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="1246" y="252" text="5) Select channel 1 in the edit strip  (or check what the midi input test said your device is transmitting)"/>
+         <comment type="patch/comment" x="1246" y="280" text="6) click the button to record (Click Live first)"/>
+         <comment type="patch/comment" x="1246" y="308" text="6) click the button to play back"/>
+         <comment type="patch/comment" x="336" y="322" text="delete all recorded midi notes"/>
+         <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="delete seq" x="336" y="336">
+            <params>
+               <bool32.tgl name="b" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="504" y="336" text="3) midi input, select for midi cable input "/>
+         <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="midi input" x="560" y="350">
+            <params>
+               <bool32.tgl name="b" value="1"/>
+            </params>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="28" y="378" text="metronome - turn up CloseDec"/>
+         <obj type="sss/edrum/HH1" uuid="543068e0-de1c-4e1b-b5e6-5dc4f11ce3b0" name="HH1_1" x="28" y="392">
+            <params>
+               <frac32.u.map name="CloseDec" value="1.5"/>
+               <frac32.s.map name="OpenDec" value="-1.0"/>
+               <int32 name="octaves" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="140" y="392">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="350" y="420" text="sends notes off (flush all note ons)"/>
+         <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="flush notes" x="350" y="434">
+            <params>
+               <bool32.tgl name="b" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="238" y="504" text="4b) - the name in the scale box needs to match exactly what is in the scale7bank box below --&gt;"/>
+         <comment type="patch/comment" x="532" y="532" text="5) select channel 1 to record --&gt;"/>
+         <comment type="patch/comment" x="196" y="616" text="inputs"/>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="rec_play" x="196" y="644">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="700" y="644" text="4a) the below doesn&apos;t do anything, but you have to have it"/>
+         <obj type="sss/harmony/scale7bank" uuid="2a9fe655-6081-48a6-9f59-4d760af3266b" name="scale7bank_1" x="700" y="658">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_4" x="406" y="672">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="erase" x="196" y="714">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="active" x="196" y="770">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_6" x="434" y="770">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="midi input" outlet="o"/>
+               <dest obj="polymidiXL_1" inlet="port"/>
+            </net>
+            <net>
+               <source obj="countExt_1" outlet="o"/>
+               <dest obj="demux_1" inlet="i"/>
+            </net>
+            <net>
+               <source obj="countExt_1" outlet="max"/>
+               <dest obj="polymidiXL_1" inlet="maxcount"/>
+            </net>
+            <net>
+               <source obj="demux_1" outlet="o0"/>
+               <dest obj="read count" inlet="in"/>
+               <dest obj="polymidiXL_1" inlet="read"/>
+            </net>
+            <net>
+               <source obj="demux_1" outlet="o1"/>
+               <dest obj="write count" inlet="in"/>
+               <dest obj="polymidiXL_1" inlet="write"/>
+            </net>
+            <net>
+               <source obj="BPMext_1" outlet="beat"/>
+               <dest obj="HH1_1" inlet="close"/>
+               <dest obj="countExt_2" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="HH1_1" outlet="wave"/>
+               <dest obj="out_1" inlet="left"/>
+               <dest obj="out_1" inlet="right"/>
+            </net>
+            <net>
+               <source obj="countExt_2" outlet="c"/>
+               <dest obj="polymidiXL_1" inlet="restart"/>
+               <dest obj="countExt_1" inlet="r"/>
+            </net>
+            <net>
+               <source obj="countExt_2" outlet="o"/>
+               <dest obj="bar count" inlet="in"/>
+            </net>
+            <net>
+               <source obj="rec_play" outlet="inlet"/>
+               <dest obj="demux_1" inlet="s"/>
+               <dest obj="countExt_2" inlet="r"/>
+               <dest obj="bool_4" inlet="in"/>
+            </net>
+            <net>
+               <source obj="erase" outlet="inlet"/>
+               <dest obj="bool_6" inlet="in"/>
+               <dest obj="polymidiXL_1" inlet="erase"/>
+            </net>
+            <net>
+               <source obj="active" outlet="inlet"/>
+               <dest obj="polymidiXL_1" inlet="active"/>
+            </net>
+            <net>
+               <source obj="BPMext_1" outlet="32"/>
+               <dest obj="countExt_1" inlet="trig"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+            <Author></Author>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>0</y>
+            <width>1652</width>
+            <height>1001</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <comment type="patch/comment" x="756" y="154" text="2) Test midi output (connect cables, then click Live)"/>
+   <comment type="patch/comment" x="756" y="196" text="Then click Edit to enter subpatch (B), and update the below"/>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_6" x="224" y="224">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="756" y="224" text="3) Set midi input (click button for midi DIN cable input)"/>
+   <comment type="patch/comment" x="756" y="252" text="4a) look at and copy  the name in the box &apos;scale7bank_1&apos;"/>
+   <comment type="patch/comment" x="756" y="252" text="4b) enter scale - type scale7bank_1 into the scale box"/>
+   <comment type="patch/comment" x="756" y="280" text="4b) type the name from 4a into the scale box - it will error if you don&apos;t"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="224" y="308">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="756" y="308" text="5) Select channel 1 in the edit strip  (or check what the midi input test said your device is transmitting)"/>
+   <comment type="patch/comment" x="756" y="336" text="6) click the button to record (Click Live first)"/>
+   <comment type="patch/comment" x="756" y="364" text="6) click the button to play back"/>
+   <comment type="patch/comment" x="224" y="448" text="2) THE BELOW IS JUST TO TEST MIDI OUTPUT IS WORKING"/>
+   <comment type="patch/comment" x="28" y="462" text="1) Check for midi input"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_5" x="224" y="462">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/monitor" uuid="b51863ca-6afa-4d29-acfd-c8c2fe06cb16" name="monitor_1" x="28" y="476">
+      <params>
+         <bool32.tgl name="ControlChange" value="0"/>
+         <bool32.tgl name="Note" value="1"/>
+         <bool32.tgl name="ProgramChange" value="0"/>
+         <bool32.tgl name="Bend" value="0"/>
+         <bool32.tgl name="PolyPressure" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/out/note" uuid="a76ae870da278cbbce5501a57ce7bd0e0ea4215c" name="note_1" x="434" y="504">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="1"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="velocity" x="336" y="518">
+      <params>
+         <frac32.u.map name="value" value="55.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="pitch" x="224" y="532">
+      <params>
+         <frac32.u.map name="value" value="23.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_3" x="1400" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="patch/send b" uuid="b428934ee3ee80efb18736216fd871d264e9b695" name="midi_rec_play" x="1680" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="patch/outlet b" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="outlet_1" x="1666" y="826">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="toggle_5" outlet="o"/>
+         <dest obj="note_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="pitch" outlet="out"/>
+         <dest obj="note_1" inlet="note"/>
+      </net>
+      <net>
+         <source obj="velocity" outlet="out"/>
+         <dest obj="note_1" inlet="velo"/>
+      </net>
+      <net>
+         <source obj="patcher_2" outlet="rec_play"/>
+         <dest obj="bool_4" inlet="in"/>
+         <dest obj="patcher_3" inlet="rec_play"/>
+      </net>
+      <net>
+         <dest obj="midi_rec_play" inlet="v"/>
+         <dest obj="outlet_1" inlet="outlet"/>
+      </net>
+      <net>
+         <source obj="patcher_2" outlet="reset"/>
+         <dest obj="bool_6" inlet="in"/>
+         <dest obj="patcher_3" inlet="erase"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="patcher_3" inlet="active"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+      <Author></Author>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>113</x>
+      <y>87</y>
+      <width>1836</width>
+      <height>840</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,95 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_1" x="84" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="658" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="e299199b-9ad5-4dbf-893e-c59588a2a065" name="patcher_1" x="364" y="112">
+      <params/>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="jaffa/env/adsr1" uuid="8c132eff-2072-413e-84cc-c8bdc90f832b" name="adsr1_1" x="322" y="28">
+            <params>
+               <bool32.tgl name="on" value="1"/>
+               <frac32.s.map name="a" value="-24.0"/>
+               <frac32.s.map name="d" value="2.0"/>
+               <frac32.u.map name="s" value="33.5"/>
+               <frac32.s.map name="r" value="-64.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="2f702052-c865-499d-b036-5347e6f3f53d" name="sine_2" x="112" y="42">
+            <params>
+               <frac32.s.map name="pitch" value="0.0"/>
+            </params>
+            <attribs/>
+            <object id="patch/object" uuid="2f702052-c865-499d-b036-5347e6f3f53d">
+               <sDescription>sine wave oscillator</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>osc.axh</helpPatch>
+               <inlets>
+                  <frac32.bipolar name="pitch" description="pitch"/>
+                  <frac32buffer name="freq" description="frequency"/>
+                  <frac32buffer name="phase" description="phase"/>
+               </inlets>
+               <outlets>
+                  <frac32buffer.bipolar name="wave" description="sine wave"/>
+               </outlets>
+               <displays/>
+               <params>
+                  <frac32.s.map.pitch name="pitch" noLabel="true"/>
+               </params>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[uint32_t Phase;]]></code.declaration>
+               <code.init><![CDATA[Phase = 0;]]></code.init>
+               <code.krate><![CDATA[   int32_t freq;
+   MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+]]></code.krate>
+               <code.srate><![CDATA[Phase += freq + inlet_freq;
+int32_t r;
+int32_t p2 = Phase + (inlet_phase<<4);
+SINE2TINTERP(p2,r)
+outlet_wave= (r>>4);
+]]></code.srate>
+            </object>
+         </patchobj>
+         <nets>
+            <net>
+               <source obj="sine_2" outlet="wave"/>
+               <dest obj="adsr1_1" inlet="i"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>643</x>
+            <y>60</y>
+            <width>526</width>
+            <height>405</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <nets>
+      <net>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>194</x>
+      <y>588</y>
+      <width>921</width>
+      <height>745</height>
+   </windowPos>
+</patch-1.0>

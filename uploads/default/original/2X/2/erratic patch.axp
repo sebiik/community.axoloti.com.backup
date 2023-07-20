@@ -1,0 +1,239 @@
+<patch-1.0 appVersion="1.0.10">
+   <patcher type="patch/patcher" uuid="19d51fb2-f30f-45ee-9c3f-6d292cfd89ee" name="obj_1" x="280" y="154">
+      <params>
+         <frac32.s.map name="4op_1:pitch" value="0.0"/>
+         <int32 name="4op_1:op4p" value="1"/>
+         <bool32.tgl name="4op_1:mode" value="0"/>
+      </params>
+      <attribs>
+         <combo attributeName="poly" selection="1"/>
+      </attribs>
+      <subpatch appVersion="1.0.10">
+         <patchobj type="patch/object" uuid="d5705457-11fa-4c73-8d10-460d4a486b48" name="4op_1" x="518" y="182">
+            <params>
+               <frac32.s.map name="pitch" onParent="true" value="0.0"/>
+               <int32 name="op1p" value="1"/>
+               <int32 name="op2p" value="1"/>
+               <int32 name="op3p" value="1"/>
+               <int32 name="op4p" onParent="true" value="1"/>
+               <frac32.u.map name="op1mix" value="64.0"/>
+               <frac32.u.map name="op2mix" value="0.0"/>
+               <frac32.u.map name="op3mix" value="0.0"/>
+               <frac32.u.map name="op4mix" value="0.0"/>
+               <bool32.tgl name="mode" onParent="true" value="0"/>
+            </params>
+            <attribs/>
+            <object id="patch/object" uuid="d5705457-11fa-4c73-8d10-460d4a486b48">
+               <sDescription>description</sDescription>
+               <author>Sptnk</author>
+               <license>BSD</license>
+               <inlets>
+                  <frac32 name="pitch"/>
+                  <frac32 name="env1"/>
+                  <frac32 name="env2"/>
+                  <frac32 name="env3"/>
+                  <frac32 name="env4"/>
+                  <frac32 name="matrix4"/>
+               </inlets>
+               <outlets>
+                  <frac32buffer name="out"/>
+                  <int32 name="matrix4"/>
+               </outlets>
+               <displays/>
+               <params>
+                  <frac32.s.map.pitch name="pitch"/>
+                  <int32 name="op1p">
+                     <MinValue i="1"/>
+                     <MaxValue i="99"/>
+                  </int32>
+                  <int32 name="op2p">
+                     <MinValue i="1"/>
+                     <MaxValue i="99"/>
+                  </int32>
+                  <int32 name="op3p">
+                     <MinValue i="1"/>
+                     <MaxValue i="99"/>
+                  </int32>
+                  <int32 name="op4p">
+                     <MinValue i="1"/>
+                     <MaxValue i="99"/>
+                  </int32>
+                  <frac32.u.map.gain name="op1mix"/>
+                  <frac32.u.map.gain name="op2mix"/>
+                  <frac32.u.map.gain name="op3mix"/>
+                  <frac32.u.map.gain name="op4mix"/>
+                  <bool32.tgl name="mode"/>
+               </params>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int32_t matrix[4][4] = {
+					{0,0,0,0},	
+					{0,0,0,0},
+					{0,0,0,0},
+					{0,0,0,0}
+				   }	;
+				   
+int32_t tempv[4] = {0,0,0,0};
+int32_t temps = 0 ;
+
+int sel =0;
+
+int32_t freq[4] = {0,0,0,0};
+uint32_t phase[4] = {0,0,0,0};
+uint32_t wave[4] = {0,0,0,0};
+uint32_t wave_old[4] = {0,0,0,0};
+
+int32_t envelope[4] = {0,0,0,0};
+int32_t envelope_old[4] = {0,0,0,0};
+int32_t increment[4] = {0,0,0,0};
+
+
+uint32_t gain[4] = {0,0,0,0};]]></code.declaration>
+               <code.krate><![CDATA[// modmatrix handling section
+matrix[sel>>2][sel-((sel>>2)<<2)]=inlet_matrix4<<1;
+
+sel +=1;
+if (sel == 16)
+sel=0;
+
+outlet_matrix4=sel;
+
+
+
+// pitch handling section
+MTOFEXTENDED(param_pitch + inlet_pitch,temps);
+
+freq[0]=temps*param_op1p;
+freq[1]=temps*param_op2p;
+freq[2]=temps*param_op3p;
+freq[3]=temps*param_op4p;
+
+
+
+
+
+   increment[0] = (inlet_env1 - envelope_old[0])>>4;
+   increment[1] = (inlet_env2 - envelope_old[1])>>4;
+   increment[2] = (inlet_env3 - envelope_old[2])>>4;
+   increment[3] = (inlet_env4 - envelope_old[3])>>4;
+   
+   for(int i=0;i<4;i++)
+   envelope[i] = envelope_old[i];
+   
+   envelope_old[0] = inlet_env1;
+   envelope_old[1] = inlet_env2;
+   envelope_old[2] = inlet_env3;
+   envelope_old[3] = inlet_env4;
+   
+gain[0] = param_op1mix;
+gain[1] = param_op2mix;
+gain[2] = param_op3mix;
+gain[3] = param_op4mix;
+
+]]></code.krate>
+               <code.srate><![CDATA[//actual fm handling
+for(int i=0;i<4;i++)
+{
+	phase[i]+=freq[i];	
+	temps = 0;
+	if (param_mode)
+	{
+		for(int j=0;j<4;j++)
+		if (i!=j) 	
+		phase[i] =  ___SMMLA(matrix[i][j]<<3,wave_old[j]<<4,phase[i]);
+		SINE2TINTERP((___SMMUL(matrix[i][i]<<3,wave_old[i]<<3)<<3)+phase[i],wave[i]);
+	}
+	else
+	{
+		for(int j=0;j<4;j++)
+		temps+=  ___SMMUL(matrix[i][j]<<((i!=j)?3:1),wave_old[j]<<4);
+		SINE2TINTERP((temps<<4)+phase[i],wave[i]);
+	}
+	wave[i] = ___SMMUL(wave[i],envelope[i]);
+	envelope[i] += increment[i];
+}
+
+
+//final output handling
+temps=0;
+for(int i=0;i<4;i++)
+{
+wave_old[i] = wave[i];
+temps=___SMMLA(wave_old[i],gain[i],temps);
+}
+outlet_out = temps<<1;]]></code.srate>
+            </object>
+         </patchobj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="output" x="784" y="182">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_1" x="252" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet i" uuid="aae2176b26209e34e4fdeba5edb1ace82d178655" name="sel" x="784" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="matrix4" x="252" y="308">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="4op_1" outlet="out"/>
+               <dest obj="output" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="4op_1" outlet="matrix4"/>
+               <dest obj="sel" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="note"/>
+               <dest obj="4op_1" inlet="pitch"/>
+            </net>
+            <net>
+               <source obj="matrix4" outlet="inlet"/>
+               <dest obj="4op_1" inlet="matrix4"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="gate"/>
+               <dest obj="4op_1" inlet="env1"/>
+               <dest obj="4op_1" inlet="env2"/>
+               <dest obj="4op_1" inlet="env3"/>
+               <dest obj="4op_1" inlet="env4"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polychannel</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+            <Author>sptnk</Author>
+            <License>BSD</License>
+            <Saturate>true</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>-8</x>
+            <y>0</y>
+            <width>1378</width>
+            <height>780</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1382</width>
+      <height>784</height>
+   </windowPos>
+</patch-1.0>

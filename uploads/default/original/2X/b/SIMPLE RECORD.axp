@@ -1,0 +1,267 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="350" y="0" text="Test osc - can be switched for anything you want to record"/>
+   <comment type="patch/comment" x="672" y="0" text="Connect what you want to record to the wave in"/>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="RECORD" x="28" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="262144"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="Start RECORD" x="182" y="14">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="Stop RECORD" x="266" y="14">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="drj/osc/sin_pm_pr_b" uuid="6e0087345c134da9dbf7ebfa72e44e4700d2b3ba" name="sin_pm_pr_b_1" x="350" y="14">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="cf9831fe-3fdc-4278-aa47-973eec2fd439" name="Am2_1" x="518" y="14">
+      <params>
+         <frac32.u.map name="am" value="64.0"/>
+         <bool32.tgl name="on" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="cf9831fe-3fdc-4278-aa47-973eec2fd439">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="a"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="result"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="am"/>
+            <bool32.tgl name="on"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_result= 0;
+
+// on/off button + amount 
+if(param_on){
+outlet_result= ___SMMUL(inlet_a<<3,param_am<<2);
+}]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="table/record" uuid="2f8909f3691be093f0b8cf6532d4acff2dcb1a9f" name="record_1" x="672" y="14">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="RECORD"/>
+      </attribs>
+   </obj>
+   <obj type="disp/kscope 128 b" uuid="e71f3dd9bc5b799ad703079e63fb929dd75def0" name="Prerecord" x="1078" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="855" y="154" text="/Wt/Serum/Serum"/>
+   <comment type="patch/comment" x="42" y="252" text="Playback the recorded audio"/>
+   <obj type="osc/phasor compl GC" uuid="ddcfd58b5dcf986a1dc8ef5e1ca9cc7644d7ca84" name="phasor_2" x="42" y="266">
+      <params>
+         <frac32.s.map name="pitch" onParent="true" value="-58.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Position" x="196" y="266">
+      <params>
+         <frac32.u.map name="value" onParent="true" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/nointerp" uuid="5e7389d61f8cd8945790bb71f1670b3a0904c15b" name="nointerp_2" x="280" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 2" uuid="30c04239c88e09d3fa5c333b784ecf54f1b0e268" name="mix_2" x="378" y="266">
+      <params>
+         <frac32.u.map name="gain1" value="1.0"/>
+         <frac32.u.map name="gain2" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="table/read interp" uuid="42918ec2255011ae3787cc5488c9b29980d796a8" name="play_1" x="504" y="266">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="RECORD"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="658" y="266">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="539c246f4c360ac476e128cfbfa84348fb7f7e73" name="mux_1" x="770" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_1" x="854" y="266">
+      <params>
+         <frac32.u.map name="volume" value="7.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/kscope 128 b" uuid="e71f3dd9bc5b799ad703079e63fb929dd75def0" name="Postrecord" x="1078" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="42" y="420" text="SAVE TO; sets where to save"/>
+   <comment type="patch/comment" x="112" y="434" text="SAVE; Saves the audio"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="SAVE TO" x="42" y="448">
+      <params>
+         <int32 name="value" onParent="true" value="5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="SAVE" x="112" y="448">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="SAVE    " x="196" y="448">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="/TEST"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="476" y="448">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="RECORD"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="616" y="448" text="The files will be save in root of SD-card named:"/>
+   <comment type="patch/comment" x="616" y="462" text="TEST001.raw"/>
+   <comment type="patch/comment" x="616" y="476" text="TEST002.raw"/>
+   <comment type="patch/comment" x="616" y="490" text="TEST003.raw"/>
+   <comment type="patch/comment" x="616" y="504" text="ETC..."/>
+   <comment type="patch/comment" x="112" y="532" text="Loads the audio"/>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="LOAD" x="112" y="546">
+      <params>
+         <int32 name="value" onParent="true" value="5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="LOAD     " x="196" y="546">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="/TEST"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_1" x="378" y="546">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="476" y="546">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="RECORD"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="LOAD     " outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="LOAD" outlet="out"/>
+         <dest obj="LOAD     " inlet="index"/>
+         <dest obj="change_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mix_2" outlet="out"/>
+         <dest obj="play_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="nointerp_2" outlet="o"/>
+         <dest obj="mix_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="Position" outlet="out"/>
+         <dest obj="nointerp_2" inlet="i"/>
+      </net>
+      <net>
+         <source obj="Start RECORD" outlet="o"/>
+         <dest obj="record_1" inlet="start"/>
+         <dest obj="sin_pm_pr_b_1" inlet="reset"/>
+         <dest obj="phasor_2" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="Stop RECORD" outlet="o"/>
+         <dest obj="record_1" inlet="stop"/>
+      </net>
+      <net>
+         <source obj="Am2_1" outlet="result"/>
+         <dest obj="Prerecord" inlet="in"/>
+         <dest obj="record_1" inlet="wave"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="out_stereo_vol_1" inlet="left"/>
+         <dest obj="out_stereo_vol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="play_1" outlet="o"/>
+         <dest obj="mux_1" inlet="i2"/>
+         <dest obj="Postrecord" inlet="in"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="SAVE TO" outlet="out"/>
+         <dest obj="SAVE    " inlet="index"/>
+      </net>
+      <net>
+         <source obj="SAVE    " outlet="out"/>
+         <dest obj="save_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="SAVE" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="phasor_2" outlet="phasor0"/>
+         <dest obj="mix_2" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="sin_pm_pr_b_1" outlet="out"/>
+         <dest obj="Am2_1" inlet="a"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>1248</width>
+      <height>726</height>
+   </windowPos>
+</patch-1.0>

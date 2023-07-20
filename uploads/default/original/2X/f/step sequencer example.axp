@@ -1,0 +1,136 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="812" y="14" text="data storage"/>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="data" x="812" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="128"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="476" y="98" text="clock"/>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="476" y="112">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="574" y="112">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="84" y="196" text="midi input"/>
+   <comment type="patch/comment" x="14" y="210" text=" midi note 64=0 in axoloti so that&apos;s a handy number to start your midi notes from"/>
+   <obj type="midi/in/keyb zone" uuid="e7413176a91acc060036fd7f68fda24bbee265d3" name="keyb_1" x="84" y="224">
+      <params/>
+      <attribs>
+         <spinner attributeName="startNote" value="64"/>
+         <spinner attributeName="endNote" value="80"/>
+      </attribs>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="238" y="238">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="378" y="252" text="toggle on elements of a table. each element is one step."/>
+   <comment type="patch/comment" x="378" y="266" text="note on and note number tell it where to store the data"/>
+   <obj type="rbrt/seq/step toggle" uuid="864cad38-2192-455c-96cb-821f3c756943" name="step_1" x="378" y="280">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="617" y="360" text="counter steps through elements of a table"/>
+   <obj type="rbrt/seq/step read" uuid="b1f7ea1e-9c45-44ff-8088-aa839d65d0d2" name="step_2" x="616" y="392">
+      <params>
+         <int32 name="offset" value="0"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="784" y="406" text="controls the length of the step trigger"/>
+   <comment type="patch/comment" x="1022" y="406" text="output - connect this to drum voice gate"/>
+   <obj type="timer/pulselength" uuid="ca68725237d8ba8407773340801660a9fd9b0dba" name="pulselength_1" x="826" y="420">
+      <params>
+         <frac32.s.map name="delay" value="8.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="1022" y="420">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="476" text="this sends the step data from the table to the midi output for feedback"/>
+   <obj type="rbrt/midi/out/table send note" uuid="fc4d86c9-3ae0-4ecd-a529-bc2e90e0087e" name="table_1" x="126" y="490">
+      <params>
+         <bool32.tgl name="active" value="1"/>
+         <int32 name="offset" value="0"/>
+         <int32 name="startnote" value="64"/>
+         <int32 name="length" value="16"/>
+      </params>
+      <attribs>
+         <objref attributeName="table" obj="data"/>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="1"/>
+         <combo attributeName="blocksize" selection="1"/>
+         <spinner attributeName="velon" value="127"/>
+         <spinner attributeName="veloff" value="0"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="1022" y="504" text="velocity"/>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_1" x="1022" y="518">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="i_1" inlet="in"/>
+         <dest obj="step_1" inlet="index"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate"/>
+         <dest obj="step_1" inlet="toggle"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="step_2" inlet="step"/>
+      </net>
+      <net>
+         <source obj="step_2" outlet="trig"/>
+         <dest obj="pulselength_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="pulselength_1" outlet="pulse"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="velocity"/>
+         <dest obj="step_1" inlet="value"/>
+      </net>
+      <net>
+         <source obj="step_2" outlet="vhold"/>
+         <dest obj="dial_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

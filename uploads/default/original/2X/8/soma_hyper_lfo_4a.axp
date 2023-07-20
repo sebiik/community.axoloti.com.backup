@@ -1,0 +1,356 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="37d83dad-2cf2-44fa-a584-11608d9e9f42" name="axocontrol_1" x="154" y="0">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="37d83dad-2cf2-44fa-a584-11608d9e9f42">
+         <sDescription>exposes the controls of the MTM axocontrol board</sDescription>
+         <author>a773</author>
+         <license>GPL</license>
+         <helpPatch>axocontrol.axh</helpPatch>
+         <inlets>
+            <bool32 name="PB0"/>
+            <bool32 name="PB1"/>
+            <bool32 name="PB8"/>
+            <bool32 name="PB9"/>
+         </inlets>
+         <outlets>
+            <frac32.bipolar name="joyx"/>
+            <frac32.bipolar name="joyy"/>
+            <bool32 name="joyPress"/>
+            <frac32.positive name="knob1"/>
+            <frac32.positive name="knob2"/>
+            <frac32.positive name="knob3"/>
+            <frac32.positive name="knob4"/>
+            <frac32.positive name="knob5"/>
+            <frac32.positive name="knob6"/>
+            <bool32 name="buttonA"/>
+            <bool32 name="buttonB"/>
+            <bool32 name="buttonC"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t a_adcvalues[8];]]></code.declaration>
+         <code.init><![CDATA[a_adcvalues[0] = 0;
+a_adcvalues[1] = 0;
+a_adcvalues[2] = 0;
+a_adcvalues[3] = 0;
+a_adcvalues[4] = 0;
+a_adcvalues[5] = 0;
+a_adcvalues[6] = 0;
+a_adcvalues[7] = 0;
+
+palSetPadMode(GPIOC,0,PAL_MODE_INPUT_PULLDOWN);
+palSetPadMode(GPIOC,1,PAL_MODE_INPUT_PULLDOWN);
+palSetPadMode(GPIOC,2,PAL_MODE_INPUT_PULLDOWN);
+palSetPadMode(GPIOC,3,PAL_MODE_INPUT_PULLDOWN);
+palSetPadMode(GPIOB,0,PAL_MODE_OUTPUT_PUSHPULL);
+palSetPadMode(GPIOB,1,PAL_MODE_OUTPUT_PUSHPULL);
+palSetPadMode(GPIOB,8,PAL_MODE_OUTPUT_PUSHPULL);
+palSetPadMode(GPIOB,9,PAL_MODE_OUTPUT_PUSHPULL);]]></code.init>
+         <code.krate><![CDATA[#define A_NUM (100)
+#define ma(old, new)  (((old*(A_NUM-1))+new)/A_NUM)
+
+a_adcvalues[0] = ma(a_adcvalues[0], adcvalues[0]);
+a_adcvalues[1] = ma(a_adcvalues[1], adcvalues[1]);
+a_adcvalues[2] = ma(a_adcvalues[2], adcvalues[2]);
+a_adcvalues[3] = ma(a_adcvalues[3], adcvalues[3]);
+a_adcvalues[4] = ma(a_adcvalues[4], adcvalues[4]);
+a_adcvalues[5] = ma(a_adcvalues[5], adcvalues[5]);
+a_adcvalues[6] = ma(a_adcvalues[6], adcvalues[6]);
+a_adcvalues[7] = ma(a_adcvalues[7], adcvalues[7]);
+
+outlet_joyy = (a_adcvalues[0]-2048)<<16;
+outlet_joyx = (a_adcvalues[1]-2048)<<16;
+outlet_knob4 = a_adcvalues[2]<<15;
+outlet_knob5 = a_adcvalues[3]<<15;
+outlet_knob6 = a_adcvalues[4]<<15;
+outlet_knob1 = a_adcvalues[5]<<15;
+outlet_knob2 = a_adcvalues[6]<<15;
+outlet_knob3 = a_adcvalues[7]<<15;
+
+outlet_joyPress = palReadPad(GPIOC,0)<<27;
+outlet_buttonA= palReadPad(GPIOC,1)<<27;
+outlet_buttonB= palReadPad(GPIOC,2)<<27;
+outlet_buttonC= palReadPad(GPIOC,3)<<27;
+palWritePad(GPIOB,0,(inlet_PB0>0));
+palWritePad(GPIOB,1,(inlet_PB1>0));
+palWritePad(GPIOB,8,(inlet_PB8>0));
+palWritePad(GPIOB,9,(inlet_PB9>0));]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="364" y="0">
+      <params>
+         <frac32.s.map name="pitch" value="-32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="096f3d4d-40c4-4562-9eec-f04853bf1e34" name="object_1" x="490" y="0">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="096f3d4d-40c4-4562-9eec-f04853bf1e34">
+         <inlets>
+            <bool32 name="i1"/>
+            <bool32 name="i2"/>
+            <bool32 name="i5"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o1"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[if (!inlet_i5) {
+	outlet_o1 = inlet_i1 + inlet_i2;
+} else {
+     outlet_o1 = inlet_i1 * inlet_i2;
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="filter/eq4" uuid="e74037f1462a4ff4c609ebd11974780e4d486ba6" name="eq4_1" x="728" y="0">
+      <params>
+         <int32 name="lowmid" value="0"/>
+         <int32 name="mid" value="0"/>
+         <int32 name="highmid" value="-5"/>
+         <int32 name="high" value="-9"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="stomps/reverb1" uuid="7bec3ef2-a5a4-49e4-89a6-2eae8ef73504" name="obj_1" x="826" y="0">
+      <params>
+         <bool32.tgl name="on" value="1"/>
+         <frac32.u.map name="*c_1" MidiCC="4" value="15.5"/>
+         <frac32.u.map name="decay" MidiCC="5" value="12.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="924" y="0">
+      <params>
+         <frac32.u.map name="volume" MidiCC="6" value="35.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="0" y="14" text="It&apos;s all about interaction"/>
+   <comment type="patch/comment" x="0" y="28" text="between two LFOs"/>
+   <comment type="patch/comment" x="0" y="56" text="KNOB 1: LFO 1 rate"/>
+   <comment type="patch/comment" x="0" y="70" text="KNOB 2: LFO 2 rate"/>
+   <comment type="patch/comment" x="0" y="84" text="KNOB 3: pitch"/>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_2" x="364" y="84">
+      <params>
+         <frac32.s.map name="pitch" value="-32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="0" y="98" text="KNOB 4: verb AMT"/>
+   <comment type="patch/comment" x="0" y="112" text="KNOB 5: verb DECAY"/>
+   <comment type="patch/comment" x="0" y="126" text="KNOB 6: VOLUME"/>
+   <obj type="osc/brds/plucked" uuid="e78bfbb5-2963-49a0-8863-dead044d748c" name="plucked_1" x="602" y="126">
+      <params>
+         <frac32.s.map name="pitch" value="18.0"/>
+         <frac32.u.map name="timbre" value="16.0"/>
+         <frac32.u.map name="color" value="16.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="0" y="140" text="BUTTON A: ???"/>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_1" x="784" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="0" y="154" text="BUTTON B: ???"/>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_1" x="322" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="392" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/cc thin" uuid="fd6026be5e7a856b804776c5d7d4df1a4480795e" name="cc_7" x="168" y="280">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="cc" value="4"/>
+      </attribs>
+   </obj>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_2" x="322" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="392" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_1" x="434" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_1" x="616" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/cc thin" uuid="fd6026be5e7a856b804776c5d7d4df1a4480795e" name="cc_6" x="168" y="364">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="cc" value="5"/>
+      </attribs>
+   </obj>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_2" x="434" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="3bcb8a666381ed18b8962eda50b1aa679136f618" name="mux_1" x="700" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_3" x="434" y="420">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/cc thin" uuid="fd6026be5e7a856b804776c5d7d4df1a4480795e" name="cc_5" x="168" y="448">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="1"/>
+         <spinner attributeName="cc" value="6"/>
+      </attribs>
+   </obj>
+   <obj type="math/&lt;&lt;" uuid="b03d8d8009c0480be0ccb29ed65933a82fa4a80f" name="&lt;&lt;_1" x="504" y="462">
+      <params/>
+      <attribs>
+         <spinner attributeName="shift" value="1"/>
+      </attribs>
+   </obj>
+   <obj type="math/-c" uuid="bc70bed87e5405985ade03f4806b9450609a9093" name="-c_1" x="602" y="462">
+      <params>
+         <frac32.u.map name="c" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="object_1" inlet="i1"/>
+         <dest obj="uniform_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="square_2" outlet="wave"/>
+         <dest obj="object_1" inlet="i2"/>
+         <dest obj="uniform_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o1"/>
+         <dest obj="plucked_1" inlet="strike"/>
+         <dest obj="uniform_1" inlet="trig"/>
+         <dest obj="axocontrol_1" inlet="PB0"/>
+      </net>
+      <net>
+         <source obj="plucked_1" outlet="wave"/>
+         <dest obj="scope_1" inlet="in"/>
+         <dest obj="eq4_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="buttonA"/>
+         <dest obj="toggle_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="object_1" inlet="i5"/>
+         <dest obj="bool_1" inlet="in"/>
+         <dest obj="axocontrol_1" inlet="PB1"/>
+      </net>
+      <net>
+         <source obj="uniform_2" outlet="rand"/>
+         <dest obj="plucked_1" inlet="timbre"/>
+      </net>
+      <net>
+         <source obj="uniform_3" outlet="rand"/>
+         <dest obj="plucked_1" inlet="color"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="knob1"/>
+         <dest obj="square_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="knob2"/>
+         <dest obj="square_2" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="knob6"/>
+         <dest obj="cc_5" inlet="v"/>
+      </net>
+      <net>
+         <source obj="obj_1" outlet="outL"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="obj_1" outlet="outR"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="knob5"/>
+         <dest obj="cc_6" inlet="v"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="knob4"/>
+         <dest obj="cc_7" inlet="v"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="bool_2" inlet="in"/>
+         <dest obj="mux_1" inlet="s"/>
+         <dest obj="axocontrol_1" inlet="PB8"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="buttonB"/>
+         <dest obj="toggle_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="axocontrol_1" outlet="knob3"/>
+         <dest obj="&lt;&lt;_1" inlet="a"/>
+         <dest obj="*_1" inlet="b"/>
+      </net>
+      <net>
+         <source obj="-c_1" outlet="out"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="&lt;&lt;_1" outlet="result"/>
+         <dest obj="-c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="uniform_1" outlet="rand"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="eq4_1" outlet="out"/>
+         <dest obj="obj_1" inlet="inL"/>
+         <dest obj="obj_1" inlet="inR"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="plucked_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="*_1" inlet="a"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>41</x>
+      <y>23</y>
+      <width>1208</width>
+      <height>678</height>
+   </windowPos>
+</patch-1.0>

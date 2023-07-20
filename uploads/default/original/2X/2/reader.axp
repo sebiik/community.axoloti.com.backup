@@ -1,0 +1,204 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="88a275b4-6453-4a28-a6a6-e30d3b5a79d4" name="reader_1" x="140" y="98">
+      <params/>
+      <attribs>
+         <spinner attributeName="NoOfParms" value="15"/>
+         <table attributeName="map" table=""/>
+         <combo attributeName="pickup" selection="off (jump)"/>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="1"/>
+      </attribs>
+      <object id="patch/object" uuid="88a275b4-6453-4a28-a6a6-e30d3b5a79d4">
+         <sDescription>Reads all 15 analog inputs and drops them as midi cc, according to attr_map
+Inputs have a threshold, to avoid noise.
+Value outputs the value that is currently being changed;
+ccNo outputs the cc-number of the value being canged ;
+valchg and ccchg output triggers when there are changes in cc-number or value, respectively.
+ccchgsoon and ccsoon give you one cycle warning before ccNo actually changes; this is so that you can write the old value e.g. to a table, or load a new value for pval</sDescription>
+         <author>burek</author>
+         <license>GPL</license>
+         <inlets>
+            <int32 name="offset"/>
+            <frac32.positive name="pval"/>
+         </inlets>
+         <outlets>
+            <frac32.bipolar name="value"/>
+            <int32.positive name="ccNo"/>
+            <bool32 name="valchg"/>
+            <bool32 name="ccchg"/>
+            <bool32 name="ccchgsoon"/>
+            <int32.positive name="ccsoon"/>
+         </outlets>
+         <displays>
+            <bool32 name="active" description="writing" noLabel="true"/>
+            <int32.label name="on"/>
+         </displays>
+         <params/>
+         <attribs>
+            <spinner name="NoOfParms" MinValue="1" MaxValue="128" DefaultValue="15"/>
+            <table name="map"/>
+            <combo name="pickup">
+               <MenuEntries>
+                  <string>off (jump)</string>
+                  <string>on (connect inlet pval!)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+               </CEntries>
+            </combo>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="channel" MinValue="1" MaxValue="16" DefaultValue="1"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int i,active,lastact,timer,offset,pactive;
+int32_t currval;
+int32_t val[attr_NoOfParms];
+int8_t waitforpickup;
+//int32_t pval[15];
+int8_t map[attr_NoOfParms] = {0};//{36,40,37,38,39,41,43,42,44,45,31,32,33,34,35};
+/*int8_t imap[128] = 
+{6,10,7,8,9,11,13,12,14,15,1,2,3,4,5,
+111,
+21,25,22,23,24,26,27,29,28,100,16,17,18,19,20,
+36,40,37,38,39,41,42,44,43,100,31,32,33,34,35};
+int8_t maxi;*/
+bool ignore;]]></code.declaration>
+         <code.init><![CDATA[i=0;
+active = -2;
+lastact = -2;
+offset = -1;
+int8_t imap[128] = {attr_map};
+for (i=0;i<=attr_NoOfParms;i++){
+	if (imap[i]>0){
+		map[i] = imap[i];
+	}
+	else map[i] = i+1;	
+}
+waitforpickup=0;
+
+
+/* Good Initial Map:
+ *  6,10,7,8,9,11,13,12,14,15,1,2,3,4,5, 21,25,22,23,24,26,28,27,29,20,16,17,18,19,20,
+ */]]></code.init>
+         <code.krate><![CDATA[if (offset!=inlet_offset){ // we're newly switched on or offset
+	outlet_ccsoon = 0;
+	if ((inlet_offset+15)<=((attr_NoOfParms<15)?(15):(attr_NoOfParms))){
+	
+	ignore = 0;
+	offset = inlet_offset;
+	for(i=0;i<=14;i++){
+		val[i+offset] = adcvalues[i]<<15;
+		//LogTextMessage("Setting %1D to %3D",map[i+offset],val[i+offset]);
+	}
+	active = -1; // no activity yet
+	i = 0;
+	}
+	else if (!ignore){ // offset too high
+		LogTextMessage("WARNING: offset %1D too high, only %1D parameters; I will ignore this change!",inlet_offset,((attr_NoOfParms<15)?(15):(attr_NoOfParms)));
+		ignore = 1;
+	}
+}
+
+if (i==15) i=0;
+currval = adcvalues[i]<<15; // read one analog input per circ
+
+
+int8_t ioff=i+offset;
+
+
+outlet_valchg = 0;
+outlet_ccchg = 0;
+outlet_ccchgsoon = 0;
+
+
+if (ioff==active){
+	//LogTextMessage("%d is active",map[active]);
+	timer -= 1<<16;
+	if (waitforpickup<=1){ // either we're in JUMP mode, or the value has been picked up (0), or we're ready to output inlet_pval
+		if (abs(currval-val[ioff])>(1<<19)){ // ignore mini-changes
+			timer += abs(currval-val[ioff]); // small change give you active time
+			if (lastact!=active){
+					lastact = active;
+					outlet_ccchg = 1;
+			}
+			if (waitforpickup==1){
+				waitforpickup=11; // will stay 11 until we have pick-up
+				currval = inlet_pval;
+			}
+			MidiSend3((midi_device_t) attr_device,MIDI_CONTROL_CHANGE+ (attr_channel-1),map[ioff],__USAT(currval>>20,7));// write to midi cc	
+			outlet_valchg = 1;
+		}
+	}
+	else{ // waitforpickup = 2 and <11
+		if (waitforpickup<=10) { // waitforpickup>=2 : wait for cc/valchg until inlet_pval is ready
+			waitforpickup--;				
+		}
+		else if (abs(currval-inlet_pval)<(1<<19)){ // we got pickup
+				//LogTextMessage("Gleich!!!");
+				waitforpickup = 0;
+		}
+	}
+	val[ioff] = currval;
+}
+else{      
+	if (abs(currval-val[ioff])>(1<<22)){ // to become active, larger chg required
+		//LogTextMessage("Major Change: %1D is active now",map[ioff]);
+		active = ioff;
+		// LogTextMessage("%d is (p)active",ioff);
+		outlet_ccchgsoon = (active!=lastact);  // if there will be a ccchange, time to trigger a table write if desired
+		if (attr_pickup&&(active!=lastact))waitforpickup = 2;
+		disp_on = map[ioff];
+		timer = 1<<23; // for a little while, this is active
+	}
+}
+
+
+if (timer < 0&&active>=0){//...but as time passes, it become inactive again
+	//LogTextMessage("Left %1D at %3D",map[ioff],currval>>21);
+	active=-1;
+}
+
+
+
+disp_active = (active >= 0);
+outlet_value = val[lastact];
+outlet_ccsoon = map[active];	
+outlet_ccNo = map[lastact];
+
+i++;]]></code.krate>
+      </object>
+   </patchobj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>603</width>
+      <height>507</height>
+   </windowPos>
+</patch-1.0>

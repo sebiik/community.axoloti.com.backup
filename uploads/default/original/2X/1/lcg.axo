@@ -1,0 +1,51 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="lcg" uuid="5ecc624a-7031-4297-a300-7d8247edeac1">
+      <sDescription>Linear Congruential Generator based on well known algorithm:
+Value@n+1 = ((Value@n * a) + c) % modulus
+
+A variety of output sequences can be achieved based on various inputs.
+
+If the first iteration is being calculated Value@n will be called the &quot;seed&quot;. If no seed is present the seed will be considered to be 0. 
+You may seed the algoritm by sending a trigger to the Seed trigger input. Once the seed has been received the algorithm will compute and send out the next value each time it received a trigger at the Trigger input.
+
+The inputs must take the following format:
+modulus &gt; 0
+modulus &gt; a &gt; 0
+modulus &gt; c &gt;= 0
+modulus &gt; Value@n &gt;= 0</sDescription>
+      <author>Jordan Justice</author>
+      <license>BSD</license>
+      <inlets>
+         <bool32.rising name="trig" description="trigger"/>
+         <bool32.rising name="seed" description="seed trigger"/>
+         <int32.positive name="s" description="s"/>
+         <int32.positive name="m" description="m"/>
+         <int32.positive name="a" description="a"/>
+         <int32.positive name="c" description="c"/>
+      </inlets>
+      <outlets>
+         <int32.positive name="o"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs/>
+      <code.declaration><![CDATA[bool inTrigPrev = false;
+bool inSeedPrev = false;
+
+int value = 0;]]></code.declaration>
+      <code.krate><![CDATA[// If a trig is received at the seed trigger input sample the 's' (seed) input for a new value.
+if (inlet_seed && !inSeedPrev) {
+		value = inlet_s;
+}
+// Advance the sequence only if a trig is received
+if (inlet_trig && !inTrigPrev) { 
+	
+	value = ((value * inlet_a) + inlet_c) % inlet_m;
+}
+
+outlet_o = value;
+
+inTrigPrev = inlet_trig;
+inSeedPrev = inlet_seed;]]></code.krate>
+   </obj.normal>
+</objdefs>

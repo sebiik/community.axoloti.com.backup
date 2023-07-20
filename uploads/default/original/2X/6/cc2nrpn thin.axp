@@ -1,0 +1,137 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="4710fa8d-2d43-4067-b6af-bb2f3d3e3d4a" name="cc2nrpn_thin" x="0" y="0">
+      <params/>
+      <attribs>
+         <combo attributeName="rxdev" selection="usb host port 1"/>
+         <spinner attributeName="rxch" value="1"/>
+         <spinner attributeName="rxcc" value="0"/>
+         <combo attributeName="txdev" selection="usb device port 1"/>
+         <spinner attributeName="txchnl" value="1"/>
+         <spinner attributeName="nrpnmsb" value="0"/>
+         <spinner attributeName="nrpnlsb" value="0"/>
+         <spinner attributeName="demsb" value="0"/>
+         <spinner attributeName="thin" value="30"/>
+      </attribs>
+      <object id="patch/object" uuid="4710fa8d-2d43-4067-b6af-bb2f3d3e3d4a">
+         <sDescription>receives CC messages, thins them out, converts to NRPN messages and sends. 
+this object is for 7-bit messages (with value range 0–127). 
+data entry MSB should usually be 0, but made as changeable attribute just in case. 
+
+default thinning value is 30, which means 100 messages per second (MIDI DIN optimized). for faster message rate, you want lower thin attribute (e.g. 3 for USB midi, which means 1000 messages per second). more details in k-rate code comments. 
+
+based on objects/code by Johannes Taelman, Are Leistad, Mark Harris.</sDescription>
+         <author>chaocrator</author>
+         <license>do what Thou wilt should be the whole of the Law</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="rxdev">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="rxch" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <spinner name="rxcc" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <combo name="txdev">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <spinner name="txchnl" MinValue="1" MaxValue="16" DefaultValue="0"/>
+            <spinner name="nrpnmsb" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="nrpnlsb" MinValue="0" MaxValue="127" DefaultValue="0"/>
+            <spinner name="demsb" MinValue="0" MaxValue="0" DefaultValue="0"/>
+            <spinner name="thin" MinValue="3" MaxValue="1000" DefaultValue="30"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int32_t dv;
+int32_t timer;
+int32_t period;
+int32_t last_maxrate;
+int32_t last_dv;]]></code.declaration>
+         <code.init><![CDATA[dv = 0;
+timer = 0;
+period = 3000;
+last_maxrate = 1;
+last_dv = 0;]]></code.init>
+         <code.krate><![CDATA[if( timer > period && dv != last_dv ) {
+    if( attr_thin != last_maxrate ) {
+        period = 3000 / attr_thin; // 3000 is Axoloti k-rate, which is theoretical maximum. 
+        // for USB MIDI, which has 1 millisecond frame rate, you don't need attr_thin lower than 3. 
+        // default value 30 (100 messages per second) is optimized for DIN MIDI, which is 31250 baud, 
+        // and single NRPN message takes 12 bytes, or 120 bits (because of start and stop bits). 
+        last_maxrate = attr_thin;
+    }
+	   MidiSend3((midi_device_t) attr_txdev, MIDI_CONTROL_CHANGE + (attr_txchnl-1),99,__USAT(attr_nrpnmsb,7));  // NRPN MSB
+	   MidiSend3((midi_device_t) attr_txdev, MIDI_CONTROL_CHANGE + (attr_txchnl-1),98,__USAT(attr_nrpnlsb,7));  // NRPN LSB
+	   MidiSend3((midi_device_t) attr_txdev, MIDI_CONTROL_CHANGE + (attr_txchnl-1),6,__USAT(attr_demsb,7));         // Data Entry MSB
+	   MidiSend3((midi_device_t) attr_txdev, MIDI_CONTROL_CHANGE + (attr_txchnl-1),38,__USAT(dv,7));  // Data Entry LSB
+        last_dv = dv;
+        timer = 0;
+}
+timer++;]]></code.krate>
+         <code.midihandler><![CDATA[if (attr_rxdev) {
+    if ((status == attr_rxch - 1 + MIDI_CONTROL_CHANGE)&&(data1 == attr_rxcc))
+    { dv = data2; }
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+      <Author>chaocrator</Author>
+      <License>do what Thou wilt should be the whole of the Law</License>
+      <Saturate>false</Saturate>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>348</x>
+      <y>363</y>
+      <width>400</width>
+      <height>400</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,181 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="14" y="0" text="MONOPHONIC LINEAR TO EXPONENTIAL CURVE PITCHBEND CONVERTER"/>
+   <comment type="patch/comment" x="14" y="28" text="Forwarding USB Host MIDI to DIN, PitchBend data are filtered out (commented out in script)."/>
+   <obj type="midi/in/script" uuid="92cbee0cb01566f753d6515bcc16c32f0baa37a3" name="script_1" x="14" y="42">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[if (dev == MIDI_DEVICE_USB_HOST) {
+  uint8_t status_type = status & 0xF0;
+  if ((status_type == MIDI_CONTROL_CHANGE) ||
+      (status_type == MIDI_NOTE_OFF) ||
+      (status_type == MIDI_NOTE_ON) ||
+      (status_type == MIDI_POLY_PRESSURE) /*||
+      (status_type == MIDI_PITCH_BEND)*/) {
+    MidiSend3(MIDI_DEVICE_DIN,0,status,data1,data2);
+  } else if ((status_type == MIDI_PROGRAM_CHANGE) ||
+      (status_type == MIDI_CHANNEL_PRESSURE)) {
+    MidiSend2(MIDI_DEVICE_DIN,0,status,data1);
+  }
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="midi/in/bend ch" uuid="f89059e671665dcc4e745aa50e8a3a4721f262e6" name="bend_1" x="14" y="140">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="1"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="140" y="140" text="Splitting positive and negative PB values and sending them to positive and negative PB curve adjustment."/>
+   <obj type="jv/math/constrain b" uuid="32556959-2471-4853-a1ee-cd607b20fccc" name="constrain_1" x="140" y="154">
+      <params>
+         <frac32.s.map name="minimum" value="0.0"/>
+         <frac32.s.map name="maximum" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/expCurveK" uuid="bde45a1d-540b-4c33-b7b5-d733d42a1772" name="expCurveK_1" x="280" y="154">
+      <params>
+         <frac32.s.map name="exp" value="16.0"/>
+         <int32 name="stack" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="406" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="392" y="210" text="&lt;&lt; ADJUST THE POSITIVE PB CURVE HERE"/>
+   <obj type="jv/math/constrain b" uuid="32556959-2471-4853-a1ee-cd607b20fccc" name="constrain_2" x="140" y="266">
+      <params>
+         <frac32.s.map name="minimum" value="-64.0"/>
+         <frac32.s.map name="maximum" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/math/expCurveK" uuid="bde45a1d-540b-4c33-b7b5-d733d42a1772" name="expCurveK_2" x="280" y="266">
+      <params>
+         <frac32.s.map name="exp" value="-16.0"/>
+         <int32 name="stack" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="406" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="392" y="322" text="&lt;&lt; ADJUST THE NEGATIVE PB CURVE HERE"/>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_4" x="448" y="350">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="392" text="When gate is off (note-off event), PB value must be re-set to 0."/>
+   <comment type="patch/comment" x="504" y="392" text="Mixing all together."/>
+   <obj type="midi/in/keyb mod" uuid="abcd509d15e7d13d5381203fd2b4d0ac6fe57bb3" name="keyb_1" x="14" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="126" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="210" y="406">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/control/gate_hold" uuid="4c315d47-8c76-4c21-bf06-e3d5001b8c21" name="gate_hold_1" x="294" y="406">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 2" uuid="682ea5496ded046d981e26b720a6e7f8eca97541" name="mix_1" x="504" y="406">
+      <params>
+         <frac32.u.map name="gain1" value="64.0"/>
+         <frac32.u.map name="gain2" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/out/bend" uuid="abf797e33f98a9de8dab17cabdb43c7412442e42" name="bend_2" x="616" y="406">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="1"/>
+      </attribs>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_3" x="126" y="462">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_5" x="210" y="504">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/midi/monitor" uuid="64b3d36e-97ab-4b18-91f7-ff611e14fd7a" name="monitor_1" x="14" y="588">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="bend_1" outlet="trig"/>
+         <dest obj="bend_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="bend_1" outlet="bend"/>
+         <dest obj="constrain_1" inlet="in"/>
+         <dest obj="constrain_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="expCurveK_1" outlet="out"/>
+         <dest obj="i_1" inlet="in"/>
+         <dest obj="mix_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="bend_2" inlet="bend"/>
+         <dest obj="i_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="constrain_1" outlet="out"/>
+         <dest obj="expCurveK_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="constrain_2" outlet="out"/>
+         <dest obj="expCurveK_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="expCurveK_2" outlet="out"/>
+         <dest obj="mix_1" inlet="in2"/>
+         <dest obj="i_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate"/>
+         <dest obj="i_3" inlet="in"/>
+         <dest obj="inv_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="o"/>
+         <dest obj="i_5" inlet="in"/>
+         <dest obj="gate_hold_1" inlet="gate"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="gate_hold_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="gate_hold_1" outlet="out"/>
+         <dest obj="mix_1" inlet="bus_in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>527</x>
+      <y>305</y>
+      <width>799</width>
+      <height>696</height>
+   </windowPos>
+</patch-1.0>

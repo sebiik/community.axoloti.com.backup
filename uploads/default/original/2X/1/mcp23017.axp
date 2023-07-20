@@ -1,0 +1,67 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="gpio/i2c/config" uuid="b095a33e56de5fcd23740a7d983bc0bafb315d81" name="config_1" x="84" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="script2_1" x="84" y="98">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[uint8_t *txbuf;
+uint8_t *rxbuf;
+unsigned char t1 = 0b11111111;
+unsigned char t2 = 0b00000000;
+uint8_t address = 0x20;
+
+#define MCP_IODIRA 0x00
+#define MCP_IODIRB 0x01
+#define MCP_IOCONA 0x0A
+#define MCP_GPPUA  0x0C
+#define MCP_GPPUB  0x0D
+#define MCP_GPIOA  0x12
+#define MCP_GPIOB  0x13
+
+
+void setup(void){
+	static uint8_t txbuf[32] __attribute__ ((section (".sram2")));
+	static uint8_t rxbuf[8] __attribute__ ((section (".sram2")));
+	
+	mcp_send_command(MCP_IOCONA,0x20);   // I/O Control Register: BANK=0, SEQOP=1, HAEN=0 (Disable Addressing)
+	mcp_send_command(MCP_IODIRA,0x00);   // GPIOA As Output
+	mcp_send_command(MCP_IODIRB,0x00);   // GPIOB As Output
+	mcp_send_command(MCP_GPIOA,0x00);    // Reset Output on GPIOA
+	mcp_send_command(MCP_GPIOB,0x00);    // Reset Output on GPIOA
+
+}
+
+void mcp_send_command(uint8_t reg, uint8_t val){
+	i2cAcquireBus(&I2CD1);
+	  txbuf[0] = reg;
+	  txbuf[1] = val;
+	  i2cMasterTransmitTimeout(&I2CD1, 0x20, txbuf, 2, rxbuf, 0, 30);
+	i2cReleaseBus(&I2CD1);	
+}
+
+void loop(void){
+     mcp_send_command(MCP_GPIOB, t2);
+     mcp_send_command(MCP_GPIOA, t1);
+     chThdSleepMilliseconds(100);
+     mcp_send_command(MCP_GPIOB, t1);
+     mcp_send_command(MCP_GPIOA, t2);
+     chThdSleepMilliseconds(100);  
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>189</x>
+      <y>85</y>
+      <width>560</width>
+      <height>468</height>
+   </windowPos>
+</patch-1.0>

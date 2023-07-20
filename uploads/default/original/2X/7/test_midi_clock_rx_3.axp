@@ -1,0 +1,107 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="210" y="14" text="Clock divider"/>
+   <obj type="drj/midi/clock_rx" uuid="83a7e9eb627413a35b43f97114c130af4b3a4793" name="clock_rx_1" x="42" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="210" y="42">
+      <params>
+         <int32 name="maximum" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/to f" uuid="bdd08445689602ce174689ccb6be085f627d9892" name="to_1" x="448" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/kscope 128 p trig" uuid="b1422e51800273c4e8afe943ddfa1441ecb7a77b" name="kscope_1" x="518" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="42" y="210" text="LFO for testing"/>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="42" y="238">
+      <params>
+         <frac32.s.map name="pitch" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="210" y="266" text="Using a toggle to get a 50% duty cycle for the clock"/>
+   <comment type="patch/comment" x="210" y="280" text="Also adding a reset on Start &amp; Continue to control the phase"/>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="210" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/flipflop toggle" uuid="195e489e5fc3d275944b0de56c7a91c8641ea22a" name="flipflop_1" x="322" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/to f" uuid="bdd08445689602ce174689ccb6be085f627d9892" name="to_2" x="448" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/kscope 128 p trig" uuid="b1422e51800273c4e8afe943ddfa1441ecb7a77b" name="kscope_2" x="518" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_2" x="672" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="336" y="406" text="Clock output"/>
+   <obj type="gpio/out/digital" uuid="320eed040f6c55bb24c56416596ac2e67d0c82bc" name="digital_1" x="336" y="434">
+      <params/>
+      <attribs>
+         <combo attributeName="pad" selection="PA0"/>
+         <combo attributeName="mode" selection="Push pull"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="counter_1" outlet="c"/>
+         <dest obj="to_1" inlet="i"/>
+         <dest obj="flipflop_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="to_1" outlet="o"/>
+         <dest obj="kscope_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="to_2" outlet="o"/>
+         <dest obj="kscope_2" inlet="in"/>
+         <dest obj="chart_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="flipflop_1" outlet="o"/>
+         <dest obj="to_2" inlet="i"/>
+         <dest obj="digital_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="start"/>
+         <dest obj="or_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="continue"/>
+         <dest obj="or_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="flipflop_1" inlet="reset"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>81</x>
+      <y>179</y>
+      <width>808</width>
+      <height>681</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,125 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="294" y="28" text="50% duty cycle with phase"/>
+   <comment type="patch/comment" x="196" y="42" text="Clock divider"/>
+   <comment type="patch/comment" x="294" y="42" text="reset on start/continue."/>
+   <comment type="patch/comment" x="448" y="42" text="Clock gate"/>
+   <comment type="patch/comment" x="560" y="42" text="Digital output"/>
+   <comment type="patch/comment" x="742" y="42" text="headphone  Output"/>
+   <comment type="patch/comment" x="742" y="56" text="put pocket operator in SY2-SY3-SY4 or SY5 mode"/>
+   <obj type="drj/midi/clock_rx" uuid="83a7e9eb627413a35b43f97114c130af4b3a4793" name="clock_rx_1" x="28" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="usb device port 1"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="196" y="70">
+      <params>
+         <int32 name="maximum" value="6"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/flipflop toggle" uuid="195e489e5fc3d275944b0de56c7a91c8641ea22a" name="flipflop_2" x="294" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="448" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gpio/out/digital" uuid="320eed040f6c55bb24c56416596ac2e67d0c82bc" name="digital_1" x="560" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="pad" selection="PA0"/>
+         <combo attributeName="mode" selection="Push pull"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="742" y="70" text="use stereo cable"/>
+   <obj type="conv/to f" uuid="bdd08445689602ce174689ccb6be085f627d9892" name="to_1" x="728" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/interp" uuid="d68c1a8709d8b55e3de8715d727ec0a2d8569d9a" name="interp_1" x="798" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="294" y="154" text="Clock switch, acting"/>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="742" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="196" y="168" text="Start/continue"/>
+   <comment type="patch/comment" x="294" y="168" text="on start/continue and stop."/>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="196" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/flipflop" uuid="f9b15363f5ee203152e062c08a8846f0074b0ea5" name="flipflop_1" x="294" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/outconfig" uuid="eace67e3304afaa1bb695b444e9345f2d8adaf00" name="outconfig_1" x="742" y="266">
+      <params/>
+      <attribs>
+         <combo attributeName="headphones" selection="0dB"/>
+         <combo attributeName="mode" selection="Stereo"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="clock_rx_1" outlet="24ppq"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="c"/>
+         <dest obj="flipflop_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="digital_1" inlet="in"/>
+         <dest obj="to_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="flipflop_1" outlet="o"/>
+         <dest obj="and_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="stop"/>
+         <dest obj="flipflop_1" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="flipflop_1" inlet="set"/>
+         <dest obj="flipflop_2" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="start"/>
+         <dest obj="or_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="continue"/>
+         <dest obj="or_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="flipflop_2" outlet="o"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="interp_1" outlet="o"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="to_1" outlet="o"/>
+         <dest obj="interp_1" inlet="i"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>2097</x>
+      <y>81</y>
+      <width>1332</width>
+      <height>652</height>
+   </windowPos>
+</patch-1.0>

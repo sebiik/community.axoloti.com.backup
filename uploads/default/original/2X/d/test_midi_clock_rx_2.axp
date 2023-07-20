@@ -1,0 +1,132 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="224" y="56" text="Output one pulse per quarter note"/>
+   <comment type="patch/comment" x="406" y="56" text="Gate for the clock pulses"/>
+   <comment type="patch/comment" x="616" y="56" text="Digital output"/>
+   <obj type="drj/midi/clock_rx" uuid="83a7e9eb627413a35b43f97114c130af4b3a4793" name="clock_rx_1" x="56" y="84">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="224" y="84">
+      <params>
+         <int32 name="maximum" value="24"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="406" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gpio/out/digital" uuid="320eed040f6c55bb24c56416596ac2e67d0c82bc" name="digital_1" x="616" y="84">
+      <params/>
+      <attribs>
+         <combo attributeName="pad" selection="PA0"/>
+         <combo attributeName="mode" selection="Push pull"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="224" y="168" text="Clock switch with display - acts on start/continue and stop"/>
+   <comment type="patch/comment" x="616" y="168" text="Analogue output"/>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="224" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/flipflop" uuid="f9b15363f5ee203152e062c08a8846f0074b0ea5" name="flipflop_1" x="308" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="406" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/to f" uuid="bdd08445689602ce174689ccb6be085f627d9892" name="to_1" x="546" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gpio/out/analog" uuid="3dbaacfe87bc5c0e92392273b4e45350d1ffd708" name="analog_1" x="616" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="224" y="294" text="Count the non-gated quarter notes"/>
+   <comment type="patch/comment" x="420" y="294" text="Count the gated quarter notes"/>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_3" x="224" y="322">
+      <params>
+         <int32 name="maximum" value="65536"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="336" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_2" x="420" y="322">
+      <params>
+         <int32 name="maximum" value="65536"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="532" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="clock_rx_1" outlet="24ppq"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="c"/>
+         <dest obj="and_1" inlet="i1"/>
+         <dest obj="counter_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_2" outlet="o"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="digital_1" inlet="in"/>
+         <dest obj="counter_2" inlet="trig"/>
+         <dest obj="to_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="flipflop_1" outlet="o"/>
+         <dest obj="and_1" inlet="i2"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="stop"/>
+         <dest obj="flipflop_1" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="flipflop_1" inlet="set"/>
+      </net>
+      <net>
+         <source obj="counter_3" outlet="o"/>
+         <dest obj="i_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="start"/>
+         <dest obj="or_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="clock_rx_1" outlet="continue"/>
+         <dest obj="or_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="to_1" outlet="o"/>
+         <dest obj="analog_1" inlet="PA4"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>562</x>
+      <y>165</y>
+      <width>891</width>
+      <height>599</height>
+   </windowPos>
+</patch-1.0>

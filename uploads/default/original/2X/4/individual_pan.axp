@@ -1,0 +1,222 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="8d87292c-1f5a-44d2-8ab4-dd59bc2fc1b5" name="voicevariant" x="266" y="98">
+      <params/>
+      <attribs>
+         <spinner attributeName="MIDIchannel" value="1"/>
+      </attribs>
+      <object id="patch/object" uuid="8d87292c-1f5a-44d2-8ab4-dd59bc2fc1b5">
+         <sDescription>Allocate a Midi nots to voice variant</sDescription>
+         <author>Flub</author>
+         <inlets/>
+         <outlets>
+            <int32 name="allocatedVoice"/>
+            <int32 name="midichannel"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <spinner name="MIDIchannel" MinValue="1" MaxValue="16" DefaultValue="0"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int8_t channels[8];
+int8_t voiceVariant;]]></code.declaration>
+         <code.init><![CDATA[voiceVariant = 0;
+for (int8_t i=0;i<8;i++) {
+	channels[i] = 0;
+}]]></code.init>
+         <code.krate><![CDATA[outlet_allocatedVoice = voiceVariant;]]></code.krate>
+         <code.midihandler><![CDATA[int channel = (status & 0xf) + 1;
+int cmd = (status & 0x70) >> 4;
+
+if ((channel!=attr_MIDIchannel && attr_MIDIchannel>0)) {
+	return;	
+}
+
+// some midi devices send note on with velocity 0 instead of note off
+if (cmd==1 && data2==0) {
+	cmd = 0;
+}
+
+if (cmd==1 ) { // note on
+	//LogTextMessage("note on");
+	for (int8_t i=0;i<8;i++) {
+		if (channels[i] == 0) {
+			channels[i] = data1;
+			voiceVariant = i;
+			if (voiceVariant >= 3 && voiceVariant < 6) {
+				voiceVariant = voiceVariant - 3;
+			} else if (voiceVariant >= 6) {
+				voiceVariant = voiceVariant - 6;
+			}
+			//LogTextMessage("voiceVariant = %3D", voiceVariant);
+			break;
+		}
+	}
+}
+else if (cmd==0) { // note off
+	//LogTextMessage("note off");
+	for (int8_t i=0;i<8;i++) {
+		if (channels[i] == data1) {
+			channels[i] = 0;
+			break;
+		}
+	}
+}
+if ((cmd == 3)&&(data1 == 123)) { // all notes off message
+	for (int8_t i=0;i<8;i++) {
+		channels[i] = 0;
+	}
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <patcher type="patch/patcher" uuid="e36270cf-4841-46ad-b413-bdb3a2d75648" name="voice" x="518" y="126">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="3"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet i" uuid="f11927f00c59219df0c50f73056aa19f125540b7" name="inlet_1" x="112" y="0">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="PAN1" x="238" y="28">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="PAN2" x="238" y="70">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="PAN3" x="238" y="112">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 3" uuid="9340a203d87e774443faa0d744b56e0967b23125" name="mux_1" x="336" y="126">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="420" y="140" text="&lt;- get the pan value here"/>
+         <obj type="logic/latch" uuid="2a50e4657301542464c6a97931847b5e8e0e6d2b" name="latch_1" x="224" y="154">
+            <params/>
+            <attribs/>
+         </obj>
+         <patchobj type="patch/object" uuid="159b6323-d34c-426f-975d-d02ce136bb5c" name="keyb_2" x="84" y="196">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="159b6323-d34c-426f-975d-d02ce136bb5c">
+               <sDescription>Monophonic MIDI keyboard note input, gate, velocity and release velocity. Polyphonic touch output.</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>midi_in.axh</helpPatch>
+               <inlets/>
+               <outlets>
+                  <frac32.bipolar name="note" description="midi note number (-64..63)"/>
+                  <bool32 name="gate" description="key pressed, no retrigger legato"/>
+                  <bool32 name="gate2" description="key pressed, retrigger on legato"/>
+                  <frac32.positive name="velocity" description="note-on velocity"/>
+                  <frac32.positive name="releaseVelocity" description="note-off velocity"/>
+                  <frac32.positive name="touch" description="polyphonic aftertouch"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int8_t _note;
+int32_t _gate;
+int32_t _gate2;
+uint8_t _velo;
+uint8_t _rvelo;
+uint8_t _touch;
+]]></code.declaration>
+               <code.init><![CDATA[_gate = 0;
+_note = 0;
+_touch = 0;
+]]></code.init>
+               <code.krate><![CDATA[outlet_note= _note<<21;
+outlet_gate= _gate;
+outlet_gate2= _gate2;
+_gate2 = _gate;
+outlet_velocity= _velo<<20;
+outlet_touch = _touch<<20;
+outlet_releaseVelocity= _rvelo<<20;
+]]></code.krate>
+               <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + attr_midichannel) && (data2)) {
+	//LogTextMessage(device);
+  _velo = data2;
+  _note = data1-64;
+  _gate = 1<<27;
+  _gate2 = 0;
+} else if (((status == MIDI_NOTE_ON + attr_midichannel) && (!data2))||
+          (status == MIDI_NOTE_OFF + attr_midichannel)) {
+  if (_note == data1-64) {
+    _rvelo = data2;
+    _gate = 0;
+  }
+} else if ((status == attr_midichannel + MIDI_POLY_PRESSURE)&&(data1-64 == _note)) {
+  _touch = data2;
+} else if ((status == attr_midichannel + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+  _gate = 0;
+}]]></code.midihandler>
+            </object>
+         </patchobj>
+         <nets>
+            <net>
+               <source obj="latch_1" outlet="o"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+            <net>
+               <source obj="inlet_1" outlet="inlet"/>
+               <dest obj="latch_1" inlet="i"/>
+            </net>
+            <net>
+               <source obj="PAN2" outlet="inlet"/>
+               <dest obj="mux_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="PAN1" outlet="inlet"/>
+               <dest obj="mux_1" inlet="i0"/>
+            </net>
+            <net>
+               <source obj="PAN3" outlet="inlet"/>
+               <dest obj="mux_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="keyb_2" outlet="gate"/>
+               <dest obj="latch_1" inlet="trig"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+            <Author></Author>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>0</y>
+            <width>793</width>
+            <height>523</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <nets>
+      <net>
+         <source obj="voicevariant" outlet="allocatedVoice"/>
+         <dest obj="voice" inlet="inlet_1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>0</y>
+      <width>781</width>
+      <height>579</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,91 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="mpeenv" uuid="9f0b2dd4-11f8-487d-aa8c-c2ebf64e62e3">
+      <sDescription>ADSR with mod inputs for velocity, pressure (aftertouch), and release velocity</sDescription>
+      <author>burek</author>
+      <license>BSD</license>
+      <inlets>
+         <bool32.risingfalling name="gate"/>
+         <frac32 name="velocity" description="input"/>
+         <frac32 name="pressure"/>
+         <frac32 name="relvel"/>
+      </inlets>
+      <outlets>
+         <frac32.positive name="env"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.s.map name="attack"/>
+         <frac32.s.map name="decay"/>
+         <frac32.u.map name="sustain"/>
+         <frac32.s.map name="release"/>
+         <frac32.u.map name="velo" description="amount to which velocity input influences peak as well as sustain levels"/>
+         <frac32.u.map name="press" description="amount to which pressure input influences sustain level"/>
+         <frac32.u.map name="relvel" description="amount to which release velocity influences release time (the greater, the faster)"/>
+         <frac32.u.map name="velatdec" description="amount to which velocity influences attach &amp; decay times (higher velocity -&gt; shorter attack, longer delay)"/>
+      </params>
+      <attribs/>
+      <code.declaration><![CDATA[int8_t stage;
+int ntrig;
+int32_t val;]]></code.declaration>
+      <code.init><![CDATA[stage = 0;
+ntrig = 0;
+val = 0;]]></code.init>
+      <code.krate><![CDATA[{
+      int64_t level = (int64_t)__SSAT(___SMMUL(0xb000000,__SSAT(inlet_velocity,28)<<4)<<1,28) * param_velo;
+      // crossfade velo inlet, after adding gain (0xb000000 (=88<<21) here is the Gain; corresponds to 5.5 in the math/gain object)
+      // with 64 (=0x8000000), according to param velo
+      level += (int64_t)0x8000000 * ((128<<20)-param_velo);
+      
+ //     outlet_o= level>>27;
+
+
+if ((inlet_gate>0) && !ntrig) {
+   stage = 1;
+   ntrig = 1;
+}
+if (!(inlet_gate>0) && ntrig) {
+   stage = 0;
+   ntrig = 0;
+}
+
+
+
+if (stage == 0){
+   int32_t r1;
+   int32_t r2;
+   MTOF(-param_release-(___SMMUL(-((inlet_relvel-(1<<26)))<<5,param_relvel<<2)), r1);
+   r1 = 0x7FFFFFFF - (r1 >> 2);
+   val = ___SMMUL(val,r1)<<1;
+} else if (stage == 1){
+   int32_t a;
+   MTOF(-param_attack-(___SMMUL(-((inlet_velocity-(1<<26)))<<4,param_velatdec<<2)),a);
+   a = a >> 2;
+   val = val + a;
+ //  LogTextMessage("a %d, val %d, p1 %d",a,val>>25,param_p1>>21);
+   if ((val>>4)>(level>>27)) {
+      stage = 2;
+   }
+   else if (val<0){
+   	stage = 2;
+   	val =0x7FFFFFFF;
+   }
+} else if (stage == 2) {
+   
+   int64_t b = (int64_t)inlet_pressure * param_press;
+    // crossfade pressure inlet -- according to param_press --
+    // with sustain parameter, multiplied by the velocity from above
+      b += (int64_t)___SMMUL(param_sustain<<3,level>>25) * ((128<<20)-param_press);
+	int32_t s = b>>27;
+   int32_t d;
+   MTOF(-param_decay-(___SMMUL((inlet_velocity-(1<<26))<<3,param_velatdec<<3)), d);
+   d = 0x7FFFFFFF - (d >> 2);
+   val = (s<<4) + (___SMMUL(val - (s<<4),d)<<1);
+}
+outlet_env = val>>4;
+
+
+
+
+   }]]></code.krate>
+   </obj.normal>
+</objdefs>

@@ -1,0 +1,172 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="14" y="14" text="reply to http://community.axoloti.com/t/triggering-random-samples/1725"/>
+   <comment type="patch/comment" x="14" y="28" text="works with three samples named snd_001.raw to snd_003.raw stored at the root of the SD Card"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="Play Next" x="14" y="42">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_2" x="210" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="294" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="728" y="70" text="Master Gain"/>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="504" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="728" y="84">
+      <params>
+         <frac32.u.map name="value" value="15.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="Re-Play" x="14" y="112">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="826" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="896" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rand/uniform i" uuid="9b1f945f346af0165ed99b8e19136cdbf744e594" name="uniform_1" x="336" y="140">
+      <params>
+         <int32 name="max" value="3"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="98" y="154" text="Play Next Sound only when toggle is on"/>
+   <obj type="math/+1" uuid="13c1a4574bb81783beb8839e81782b9a34e3fc17" name="+1_1" x="434" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_1" x="504" y="154">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table="/snd_"/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="98" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="Auto Loop" x="14" y="182">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="wave/play" uuid="2e6265136dbaaf4d885a669520546de2e3306819" name="play_1" x="686" y="182">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="812" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="182" y="294" text="After playing a sound, wait random amount of time before triggering the next"/>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_2" x="182" y="308">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="delay modulation" x="308" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="timer/delayedpulsem" uuid="edae71bda6092aa94232876fd3f8a107bdb9ebcf" name="delayedpulsem_1" x="406" y="336">
+      <params>
+         <frac32.s.map name="delay" value="47.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="indexed_1" outlet="out"/>
+         <dest obj="play_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="+1_1" outlet="result"/>
+         <dest obj="indexed_1" inlet="index"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="play_1" outlet="out"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="or_2" outlet="o"/>
+         <dest obj="or_1" inlet="i1"/>
+         <dest obj="uniform_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="play_1" outlet="end"/>
+         <dest obj="bool_1" inlet="in"/>
+         <dest obj="delayedpulsem_1" inlet="trig"/>
+         <dest obj="uniform_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="play_1" inlet="start"/>
+      </net>
+      <net>
+         <source obj="uniform_2" outlet="rand"/>
+         <dest obj="delayedpulsem_1" inlet="delay"/>
+         <dest obj="delay modulation" inlet="in"/>
+      </net>
+      <net>
+         <source obj="uniform_1" outlet="v"/>
+         <dest obj="+1_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="Auto Loop" outlet="o"/>
+         <dest obj="and_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="delayedpulsem_1" outlet="pulse"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="Play Next" outlet="o"/>
+         <dest obj="or_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="Re-Play" outlet="o"/>
+         <dest obj="or_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="or_2" inlet="i2"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>213</x>
+      <y>99</y>
+      <width>1061</width>
+      <height>545</height>
+   </windowPos>
+</patch-1.0>

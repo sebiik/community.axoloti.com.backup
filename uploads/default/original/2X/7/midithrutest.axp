@@ -1,0 +1,139 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="on/off" x="84" y="84">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="2e71ee78-4c90-408f-ae07-29cfb3e2df2c" name="midithru_1" x="196" y="84">
+      <params/>
+      <attribs>
+         <combo attributeName="input" selection="omni"/>
+         <combo attributeName="output" selection="din"/>
+         <combo attributeName="led" selection="on"/>
+      </attribs>
+      <object id="patch/object" uuid="2e71ee78-4c90-408f-ae07-29cfb3e2df2c">
+         <sDescription>an object to forward midi from one device to another
+note: does not handle sysex or clock</sDescription>
+         <author>Mark Harris</author>
+         <license>GPL</license>
+         <inlets>
+            <bool32.rising name="on"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="input">
+               <MenuEntries>
+                  <string>omni</string>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>dev == MIDI_DEVICE_DIN &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 3</string>
+                  <string>dev == MIDI_DEVICE_USB_HOST &amp;&amp; port == 4</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 1</string>
+                  <string>dev == MIDI_DEVICE_INTERNAL &amp;&amp; port == 2</string>
+                  <string>dev == MIDI_DEVICE_USB_DEVICE &amp;&amp; port == 1</string>
+               </CEntries>
+            </combo>
+            <combo name="output">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+            <combo name="led">
+               <MenuEntries>
+                  <string>on</string>
+                  <string>off</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>true</string>
+                  <string>false</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int 		flash_cnt=0;
+bool 	flash_state = false;
+const int FLASH_LEN = 0x100;
+bool turn_on = false;]]></code.declaration>
+         <code.init><![CDATA[if(attr_led) {
+        sysmon_disable_blinker();
+        palSetPadMode(LED2_PORT,LED2_PIN,PAL_MODE_OUTPUT_PUSHPULL);
+}
+flash_cnt = 0;
+flash_state = false;]]></code.init>
+         <code.krate><![CDATA[if(attr_led) {
+	if(flash_cnt > 0) flash_cnt--;
+	bool fs = flash_cnt > 0;
+	if(fs!=flash_state) {
+		palWritePad(LED2_PORT,LED2_PIN,fs);
+		flash_state = fs;
+	}
+    }
+
+if (inlet_on) turn_on = true;
+else turn_on = false;]]></code.krate>
+         <code.midihandler><![CDATA[if(attr_input && turn_on) {
+        uint8_t status_type = status & 0xF0;
+            if ((status_type == MIDI_CONTROL_CHANGE) ||
+                (status_type == MIDI_NOTE_OFF) ||
+                (status_type == MIDI_NOTE_ON) ||
+                (status_type == MIDI_POLY_PRESSURE) ||
+                (status_type == MIDI_PITCH_BEND)) {
+                    MidiSend3((midi_device_t) attr_output,status,data1,data2);
+                    flash_cnt = FLASH_LEN;
+            } else if ( (status_type == MIDI_PROGRAM_CHANGE) ||
+                        (status_type == MIDI_CHANNEL_PRESSURE)) {
+                MidiSend2((midi_device_t) attr_output,status,data1);
+                flash_cnt = FLASH_LEN;
+            }
+        }]]></code.midihandler>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="on/off" outlet="o"/>
+         <dest obj="midithru_1" inlet="on"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>4</x>
+      <y>0</y>
+      <width>400</width>
+      <height>400</height>
+   </windowPos>
+</patch-1.0>

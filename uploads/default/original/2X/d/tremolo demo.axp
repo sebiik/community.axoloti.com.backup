@@ -1,0 +1,127 @@
+<patch-1.0>
+   <obj type="lfo/sine" sha="a2851b3d62ed0faceefc98038d9571422f0ce260" uuid="75f7330c26a13953215dccc3b7b9008545c9daa9" name="sine_1" x="28" y="56">
+      <params>
+         <frac32.s.map name="pitch" value="5.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="conv/bipolar2unipolar" sha="93baeaf78c9a228f23225186d21e61abc921c3d6" uuid="f6f63d71053d572d3c795f83c7ec11dfbbce82dd" name="bipolar2unipolar_1" x="140" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="392" y="182" text="The constant is the &apos;no-trem&apos; level. Setting it to 64 gives full volume when the trem depth is turned all the way down, but the perceived average volume level drops as the trem is just dipping the volume. "/>
+   <comment type="patch/comment" x="392" y="196" text="Using a constant of 32 means that as you increase the trem depth it starts to swing above and below this level. This helps to avoid the perceived volume drop."/>
+   <comment type="patch/comment" x="392" y="210" text="Of course the downside is that you&apos;re not making the best use of your headroom when the trem is turned down. Of course, the constant can be adjusted to taste completely, so whatever sounds right for you is right."/>
+   <obj type="ctrl/dial p" sha="501c30e07dedf3d701e8d0b33c3c234908c3388e" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Constant" x="56" y="266">
+      <params>
+         <frac32.u.map name="value" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" sha="501c30e07dedf3d701e8d0b33c3c234908c3388e" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="Trem Amt" x="182" y="266">
+      <params>
+         <frac32.u.map name="value" value="15.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/xfade" sha="5f3afbcb5737db365d029496323420815367c522" uuid="bb87360199938d53d1183cdc80947ed0a39e3c9a" name="xfade_1" x="378" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" sha="c904cdd24d65968df2f5796e107db3747dd691a6" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="1064" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" sha="5d4fe09e04ac9d02b2f3224e493c9536fe25fa66" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="chart_1" x="392" y="434">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/kscope 128 b" sha="8d4224a2649d7e1034724772735c137003a43ad7" uuid="e71f3dd9bc5b799ad703079e63fb929dd75def0" name="kscope_1" x="378" y="532">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/tri" sha="e7066d3dcd0e52be1613be8b5ccc96acee0ed064" uuid="905879afa8256b0ca207557d656949e476ca6f16" name="tri_1" x="686" y="546">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" sha="c904cdd24d65968df2f5796e107db3747dd691a6" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="896" y="546">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" sha="c27566f972d15f25252f61b5cff014a3edce9706" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1302" y="574">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" sha="3a0057991a9376823a6a654a8cf7201abdc31135" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="700" y="672">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/adsr" sha="2c4b16047d03b574d8a72b651f130895749eb670" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="adsr_1" x="798" y="672">
+      <params>
+         <frac32.s.map name="a" value="-64.0"/>
+         <frac32.s.map name="d" value="38.0"/>
+         <frac32.u.map name="s" value="0.0"/>
+         <frac32.s.map name="r" value="19.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="bipolar2unipolar_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="Trem Amt" outlet="out"/>
+         <dest obj="xfade_1" inlet="c"/>
+      </net>
+      <net>
+         <source obj="xfade_1" outlet="o"/>
+         <dest obj="chart_1" inlet="in"/>
+         <dest obj="kscope_1" inlet="in"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="Constant" outlet="out"/>
+         <dest obj="xfade_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="bipolar2unipolar_1" outlet="o"/>
+         <dest obj="xfade_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="adsr_1" outlet="env"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="tri_1" outlet="wave"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="adsr_1" inlet="gate"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1936</width>
+      <height>1056</height>
+   </windowPos>
+</patch-1.0>

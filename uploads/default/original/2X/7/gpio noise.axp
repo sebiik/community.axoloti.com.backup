@@ -1,0 +1,702 @@
+<patch-1.0 appVersion="1.0.11">
+   <patchobj type="patch/object" uuid="e0cea47c-e8ea-4d0e-a868-d8ac5a7354cf" name="analog_2" x="14" y="28">
+      <params/>
+      <attribs>
+         <combo attributeName="channel" selection="PA0 (ADC1_IN0)"/>
+      </attribs>
+      <object id="patch/object" uuid="e0cea47c-e8ea-4d0e-a868-d8ac5a7354cf">
+         <sDescription>Reads an external analog voltage. Voltage range 0 to 3.3V maps to 0..64, with 12-bit precision. Apply no more than 3.3V!</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>analog.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32 name="out" description="external analog control voltage input"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="channel">
+               <MenuEntries>
+                  <string>PA0 (ADC1_IN0)</string>
+                  <string>PA1 (ADC1_IN1)</string>
+                  <string>PA2 (ADC1_IN2)</string>
+                  <string>PA3 (ADC1_IN3)</string>
+                  <string>PA4 (ADC1_IN4)</string>
+                  <string>PA5 (ADC1_IN5)</string>
+                  <string>PA6 (ADC1_IN6)</string>
+                  <string>PA7 (ADC1_IN7)</string>
+                  <string>PB0 (ADC1_IN8)</string>
+                  <string>PB1 (ADC1_IN9)</string>
+                  <string>PC0 (ADC1_IN10)</string>
+                  <string>PC1 (ADC1_IN11)</string>
+                  <string>PC2 (ADC1_IN12)</string>
+                  <string>PC3 (ADC1_IN13)</string>
+                  <string>PC4 (ADC1_IN14)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= adcvalues[attr_channel]<<15;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="filter/delta" uuid="58aa97f36fc7af885445a28604363a388a6b25f3" name="delta_1" x="154" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="23e2f153-be43-40d3-ae03-c8082faed373" name="&lt;&lt;_2" x="238" y="28">
+      <params>
+         <int32 name="shift" value="2"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="23e2f153-be43-40d3-ae03-c8082faed373">
+         <sDescription>Left shift. Doubles the value &quot;shift&quot; times, with overflow. If overflow is not desireable, use &quot;muls&quot;.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="a"/>
+            <int32 name="shift" description="b"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="a amplified in 6dB steps"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="shift">
+               <MinValue i="0"/>
+               <MaxValue i="17"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_result= inlet_a << (param_shift + inlet_shift);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_6" x="336" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="a773/quantizer" uuid="4720391c-8f92-430f-bfde-f9168fd622cf" name="quantizer_1" x="420" y="28">
+      <params>
+         <bin12 name="b12" value="1715"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_1" x="588" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/glide" uuid="cfa0324c7cc8ebfd6e03c6b92f41115e3172d0d9" name="glide_1" x="672" y="28">
+      <params>
+         <frac32.u.map name="time" value="16.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="756" y="28">
+      <params>
+         <frac32.s.map name="pitch" value="-19.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="filter/vcf3" uuid="92455c652cd098cbb682a5497baa18abbf2ef865" name="vcf3_2" x="868" y="28">
+      <params>
+         <frac32.s.map name="pitch" value="12.0"/>
+         <frac32.u.map name="reso" value="18.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="2637ee2f-996f-49f4-a258-9b74eb22191e" name="obj_1" x="980" y="28">
+      <params>
+         <bool32.tgl name="on" value="1"/>
+         <frac32.u.map name="fdbk" value="35.5"/>
+         <frac32.u.map name="time" value="45.5"/>
+      </params>
+      <attribs/>
+      <subpatch appVersion="1.0.11">
+         <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="on" x="322" y="0">
+            <params>
+               <bool32.tgl name="b" onParent="true" value="0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="fdbk" x="126" y="28">
+            <params>
+               <frac32.u.map name="value" onParent="true" value="16.5"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="time" x="196" y="28">
+            <params>
+               <frac32.u.map name="value" onParent="true" value="13.5"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet a" uuid="b577fe41e0a6bc7b5502ce33cb8a3129e2e28ee5" name="in" x="42" y="112">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" uuid="3bcb8a666381ed18b8962eda50b1aa679136f618" name="mux_1" x="126" y="112">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mix/xfade" uuid="375dc91d218e96cdc9cbc7e92adb48f705ef701a" name="xfade_1" x="196" y="112">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="out" x="378" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="delay/write sdram" uuid="5ae03f8d7b815edcfc40585d8bbac2ed48460fba" name="d1" x="154" y="210">
+            <params/>
+            <attribs>
+               <combo attributeName="size" selection="16384 (341ms)"/>
+            </attribs>
+         </obj>
+         <obj type="delay/read" uuid="9323a43569373145e559ad309eaf65a47b14cb54" name="read_1" x="154" y="266">
+            <params>
+               <frac32.u.map name="time" value="0.0"/>
+            </params>
+            <attribs>
+               <objref attributeName="delayname" obj="d1"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="time" outlet="out"/>
+               <dest obj="read_1" inlet="time"/>
+            </net>
+            <net>
+               <source obj="xfade_1" outlet="o"/>
+               <dest obj="out" inlet="outlet"/>
+               <dest obj="d1" inlet="in"/>
+            </net>
+            <net>
+               <source obj="in" outlet="inlet"/>
+               <dest obj="xfade_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="on" outlet="o"/>
+               <dest obj="mux_1" inlet="s"/>
+            </net>
+            <net>
+               <source obj="mux_1" outlet="o"/>
+               <dest obj="xfade_1" inlet="c"/>
+            </net>
+            <net>
+               <source obj="fdbk" outlet="out"/>
+               <dest obj="mux_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="read_1" outlet="out"/>
+               <dest obj="xfade_1" inlet="i2"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>310</x>
+            <y>300</y>
+            <width>688</width>
+            <height>506</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="drj/audio/out_stereo_vol" uuid="awca1a567f535acc21055669829101d3ee7f0189" name="out_stereo_vol_5" x="1078" y="28">
+      <params>
+         <frac32.u.map name="volume" value="45.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="phi/prob/%gate d" uuid="27e0e38a-6bd7-491b-a54a-a5fe0c69455e" name="%gate_1" x="420" y="112">
+      <params>
+         <frac32.s.map name="prob" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="e4ba15d2-529b-430d-ad47-da7d5e70aef3" name="%latch_1" x="532" y="112">
+      <params>
+         <frac32.s.map name="prob" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e4ba15d2-529b-430d-ad47-da7d5e70aef3">
+         <sDescription>probabilty latch</sDescription>
+         <author>Philoop</author>
+         <license>BSD</license>
+         <helpPatch>prob.axh</helpPatch>
+         <inlets>
+            <int32 name="i"/>
+         </inlets>
+         <outlets>
+            <int32 name="o"/>
+         </outlets>
+         <displays>
+            <bool32 name="on"/>
+         </displays>
+         <params>
+            <frac32.s.map name="prob" noLabel="false"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;
+int rnd;
+int bang;
+int latch;
+int mtrig;
+int ptrig;
+int pval;]]></code.declaration>
+         <code.init><![CDATA[val = (int32_t)(GenerateRandomNumber())>>4;
+      ntrig = 0;
+      rnd = 0;
+      bang = 1;
+      latch = 0;
+      ptrig = 0;
+	  pval = 0;
+	  mtrig = 0;]]></code.init>
+         <code.krate><![CDATA[// change
+if ((pval != inlet_i)&(!ptrig)) { 
+  pval = inlet_i;
+  ptrig = 1;
+} else {
+  ptrig = 0;
+} 
+     //prob
+if ((ptrig>0) && !ntrig) { val = (int32_t)(GenerateRandomNumber())>>4; ntrig=1;}
+      else if (!(ptrig>0)) ntrig=0;
+      rnd=val;
+      rnd = param_prob>val ;
+      bang =rnd>0?1:0;
+      //latch
+      if ((bang>0) && !mtrig) {latch = inlet_i; mtrig=1;}
+      if (!(bang>0)) mtrig=0; 
+outlet_o= (rnd>0)?latch:inlet_i;
+disp_on = outlet_o;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="224" y="140">
+      <params>
+         <frac32.s.map name="pitch" value="-1.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="672" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_5" x="756" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="phi/ctrl/i 1-max" uuid="a3786816db6ea5bc6ac4193a5cccdb2ct6b83496" name="i_1" x="28" y="154">
+      <params>
+         <int32 name="value" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_1" x="1078" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="e0cea47c-e8ea-4d0e-a868-d8ac5a7354cf" name="analog_3" x="28" y="266">
+      <params/>
+      <attribs>
+         <combo attributeName="channel" selection="PA1 (ADC1_IN1)"/>
+      </attribs>
+      <object id="patch/object" uuid="e0cea47c-e8ea-4d0e-a868-d8ac5a7354cf">
+         <sDescription>Reads an external analog voltage. Voltage range 0 to 3.3V maps to 0..64, with 12-bit precision. Apply no more than 3.3V!</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>analog.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32 name="out" description="external analog control voltage input"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="channel">
+               <MenuEntries>
+                  <string>PA0 (ADC1_IN0)</string>
+                  <string>PA1 (ADC1_IN1)</string>
+                  <string>PA2 (ADC1_IN2)</string>
+                  <string>PA3 (ADC1_IN3)</string>
+                  <string>PA4 (ADC1_IN4)</string>
+                  <string>PA5 (ADC1_IN5)</string>
+                  <string>PA6 (ADC1_IN6)</string>
+                  <string>PA7 (ADC1_IN7)</string>
+                  <string>PB0 (ADC1_IN8)</string>
+                  <string>PB1 (ADC1_IN9)</string>
+                  <string>PC0 (ADC1_IN10)</string>
+                  <string>PC1 (ADC1_IN11)</string>
+                  <string>PC2 (ADC1_IN12)</string>
+                  <string>PC3 (ADC1_IN13)</string>
+                  <string>PC4 (ADC1_IN14)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= adcvalues[attr_channel]<<15;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="filter/delta" uuid="58aa97f36fc7af885445a28604363a388a6b25f3" name="delta_2" x="182" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="23e2f153-be43-40d3-ae03-c8082faed373" name="&lt;&lt;_3" x="266" y="266">
+      <params>
+         <int32 name="shift" value="2"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="23e2f153-be43-40d3-ae03-c8082faed373">
+         <sDescription>Left shift. Doubles the value &quot;shift&quot; times, with overflow. If overflow is not desireable, use &quot;muls&quot;.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="a"/>
+            <int32 name="shift" description="b"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="a amplified in 6dB steps"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="shift">
+               <MinValue i="0"/>
+               <MaxValue i="17"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_result= inlet_a << (param_shift + inlet_shift);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_7" x="364" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="a773/quantizer" uuid="4720391c-8f92-430f-bfde-f9168fd622cf" name="quantizer_2" x="448" y="266">
+      <params>
+         <bin12 name="b12" value="1715"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_2" x="616" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_10" x="700" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_2" x="784" y="266">
+      <params>
+         <frac32.s.map name="pitch" value="8.177757263183594E-4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_1" x="896" y="266">
+      <params>
+         <frac32.u.map name="amp" value="41.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="e0cea47c-e8ea-4d0e-a868-d8ac5a7354cf" name="analog_4" x="28" y="392">
+      <params/>
+      <attribs>
+         <combo attributeName="channel" selection="PA2 (ADC1_IN2)"/>
+      </attribs>
+      <object id="patch/object" uuid="e0cea47c-e8ea-4d0e-a868-d8ac5a7354cf">
+         <sDescription>Reads an external analog voltage. Voltage range 0 to 3.3V maps to 0..64, with 12-bit precision. Apply no more than 3.3V!</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>analog.axh</helpPatch>
+         <inlets/>
+         <outlets>
+            <frac32 name="out" description="external analog control voltage input"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <combo name="channel">
+               <MenuEntries>
+                  <string>PA0 (ADC1_IN0)</string>
+                  <string>PA1 (ADC1_IN1)</string>
+                  <string>PA2 (ADC1_IN2)</string>
+                  <string>PA3 (ADC1_IN3)</string>
+                  <string>PA4 (ADC1_IN4)</string>
+                  <string>PA5 (ADC1_IN5)</string>
+                  <string>PA6 (ADC1_IN6)</string>
+                  <string>PA7 (ADC1_IN7)</string>
+                  <string>PB0 (ADC1_IN8)</string>
+                  <string>PB1 (ADC1_IN9)</string>
+                  <string>PC0 (ADC1_IN10)</string>
+                  <string>PC1 (ADC1_IN11)</string>
+                  <string>PC2 (ADC1_IN12)</string>
+                  <string>PC3 (ADC1_IN13)</string>
+                  <string>PC4 (ADC1_IN14)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= adcvalues[attr_channel]<<15;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="filter/delta" uuid="58aa97f36fc7af885445a28604363a388a6b25f3" name="delta_3" x="182" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="23e2f153-be43-40d3-ae03-c8082faed373" name="&lt;&lt;_4" x="266" y="392">
+      <params>
+         <int32 name="shift" value="3"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="23e2f153-be43-40d3-ae03-c8082faed373">
+         <sDescription>Left shift. Doubles the value &quot;shift&quot; times, with overflow. If overflow is not desireable, use &quot;muls&quot;.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="a"/>
+            <int32 name="shift" description="b"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="a amplified in 6dB steps"/>
+         </outlets>
+         <displays/>
+         <params>
+            <int32 name="shift">
+               <MinValue i="0"/>
+               <MaxValue i="17"/>
+            </int32>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_result= inlet_a << (param_shift + inlet_shift);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_8" x="364" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_2" x="448" y="392">
+      <params>
+         <frac32.u.map name="amp" value="26.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_3" x="616" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/chart b" uuid="d2bdf496f96ee521628490a038411210fbe29b15" name="chart_9" x="700" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_3" x="784" y="392">
+      <params>
+         <frac32.s.map name="pitch" value="-25.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_3" x="896" y="392">
+      <params>
+         <frac32.u.map name="amp" value="33.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="analog_2" outlet="out"/>
+         <dest obj="delta_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="latch_1" outlet="o"/>
+         <dest obj="glide_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="vcf3_2" outlet="out"/>
+         <dest obj="obj_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="obj_1" outlet="out"/>
+         <dest obj="out_stereo_vol_5" inlet="right"/>
+         <dest obj="out_stereo_vol_5" inlet="left"/>
+         <dest obj="scope_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="vcf3_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="latch_1" inlet="trig"/>
+         <dest obj="latch_2" inlet="trig"/>
+         <dest obj="latch_3" inlet="trig"/>
+         <dest obj="%gate_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="&lt;&lt;_2" outlet="result"/>
+         <dest obj="chart_6" inlet="in"/>
+         <dest obj="quantizer_1" inlet="note"/>
+      </net>
+      <net>
+         <source obj="quantizer_1" outlet="note"/>
+         <dest obj="latch_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="analog_3" outlet="out"/>
+         <dest obj="delta_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="delta_2" outlet="d"/>
+         <dest obj="&lt;&lt;_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="&lt;&lt;_3" outlet="result"/>
+         <dest obj="chart_7" inlet="in"/>
+         <dest obj="quantizer_2" inlet="note"/>
+      </net>
+      <net>
+         <source obj="quantizer_2" outlet="note"/>
+         <dest obj="latch_2" inlet="i"/>
+      </net>
+      <net>
+         <source obj="sine_2" outlet="wave"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="sine_1" inlet="freq"/>
+      </net>
+      <net>
+         <source obj="latch_2" outlet="o"/>
+         <dest obj="sine_2" inlet="pitch"/>
+         <dest obj="chart_10" inlet="in"/>
+      </net>
+      <net>
+         <source obj="analog_4" outlet="out"/>
+         <dest obj="delta_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="delta_3" outlet="d"/>
+         <dest obj="&lt;&lt;_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="&lt;&lt;_4" outlet="result"/>
+         <dest obj="chart_8" inlet="in"/>
+         <dest obj="*c_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="latch_3" inlet="i"/>
+      </net>
+      <net>
+         <source obj="latch_3" outlet="o"/>
+         <dest obj="chart_9" inlet="in"/>
+         <dest obj="sine_3" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="sine_3" outlet="wave"/>
+         <dest obj="*c_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_3" outlet="out"/>
+         <dest obj="sine_1" inlet="phase"/>
+      </net>
+      <net>
+         <source obj="glide_1" outlet="out"/>
+         <dest obj="sine_1" inlet="pitch"/>
+         <dest obj="chart_5" inlet="in"/>
+      </net>
+      <net>
+         <source obj="%gate_1" outlet="o"/>
+         <dest obj="%latch_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="delta_1" outlet="d"/>
+         <dest obj="&lt;&lt;_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="&lt;&lt;_2" inlet="shift"/>
+         <dest obj="&lt;&lt;_3" inlet="shift"/>
+         <dest obj="&lt;&lt;_4" inlet="shift"/>
+      </net>
+      <net>
+         <source obj="%latch_1" outlet="o"/>
+         <dest obj="glide_1" inlet="en"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>14</x>
+      <y>0</y>
+      <width>1334</width>
+      <height>860</height>
+   </windowPos>
+</patch-1.0>

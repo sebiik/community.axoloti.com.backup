@@ -1,0 +1,88 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="apc25-button" uuid="b97f9488-d59e-40c6-bec3-ea6391bab25b">
+      <sDescription>Momentary button for AKAI APC KEY 25 controller.</sDescription>
+      <author>Fabio Barbon</author>
+      <license>any</license>
+      <inlets>
+         <bool32 name="trig" description="trigger pad button"/>
+         <int32.positive name="x"/>
+         <int32.positive name="y"/>
+      </inlets>
+      <outlets/>
+      <displays/>
+      <params/>
+      <attribs>
+         <combo name="device">
+            <MenuEntries>
+               <string>din</string>
+               <string>usb host port 1</string>
+               <string>usb host port 2</string>
+               <string>usb host port 3</string>
+               <string>usb host port 4</string>
+               <string>internal port 1</string>
+               <string>internal port 2</string>
+               <string>usb device port 1</string>
+            </MenuEntries>
+            <CEntries>
+               <string>MIDI_DEVICE_DIN, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 1</string>
+               <string>MIDI_DEVICE_USB_HOST, 2</string>
+               <string>MIDI_DEVICE_USB_HOST, 3</string>
+               <string>MIDI_DEVICE_USB_HOST, 4</string>
+               <string>MIDI_DEVICE_INTERNAL, 1</string>
+               <string>MIDI_DEVICE_INTERNAL, 2</string>
+               <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+            </CEntries>
+         </combo>
+         <combo name="color">
+            <MenuEntries>
+               <string>green</string>
+               <string>red</string>
+               <string>yellow</string>
+            </MenuEntries>
+            <CEntries>
+               <string>1</string>
+               <string>3</string>
+               <string>5</string>
+            </CEntries>
+         </combo>
+      </attribs>
+      <code.declaration><![CDATA[int8_t _note;
+int8_t _last_note;
+int32_t _state[128];
+int ntrig;
+int i;]]></code.declaration>
+      <code.init><![CDATA[_note=0;
+_last_note=0;
+ntrig=0;
+for (i=0;i<128;i++) {
+  _state[i]=0;
+  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + 0,i, 0);
+}]]></code.init>
+      <code.krate><![CDATA[_note = (4-inlet_y%5)*8 + inlet_x%8;
+if(_last_note!=_note){
+  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + 0, _last_note, 0);
+  ntrig = 0;
+}
+if(inlet_trig>0 && !ntrig){
+  /*
+  for(i=0;i<128;i++){
+  	if(i!=_note && _state[i]){
+       //MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + 0,i, 0);
+       _state[i]=0;
+  	}
+  }
+  */
+  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + 0,_note, attr_color);
+  _last_note = _note;
+  _state[_note] = 1;
+  ntrig = 1;
+}
+if(!(inlet_trig>0) && ntrig){
+  MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + 0,_note, 0);
+  _last_note = _note;
+  ntrig = 0;
+  _state[_note] = 0;
+}]]></code.krate>
+   </obj.normal>
+</objdefs>

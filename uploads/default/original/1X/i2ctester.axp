@@ -1,0 +1,112 @@
+<patch-1.0>
+   <obj type="gpio/i2c/config" sha="1ea9db31ce7ec2874d2a8315213c733a6b3c2dcf" uuid="b095a33e56de5fcd23740a7d983bc0bafb315d81" name="config_1" x="196" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="script2_1" x="112" y="182">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[// --------------------------------------
+// i2c_scanner version kaosbeat
+//
+// Version 1
+//    This program (or code that looks like it)
+//    can be found in many places.
+//    For example on the Arduino.cc forum.
+//    The original author is not know.
+// Version 2, Juni 2012, Using Arduino 1.0.1
+//     Adapted to be as simple as possible by Arduino.cc user Krodal
+// Version 3, Feb 26  2013
+//    V3 by louarnold
+// Version 4, March 3, 2013, Using Arduino 1.0.3
+//    by Arduino.cc user Krodal.
+//    Changes by louarnold removed.
+//    Scanning addresses changed from 0...127 to 1...119,
+//    according to the i2c scanner by Nick Gammon
+//    http://www.gammon.com.au/forum/?id=10896
+// Version 5, March 28, 2013
+//    As version 4, but address scans now to 127.
+//    A sensor seems to use address 120.
+// Version ThomasOlson 20140527.1 works with RFduino with mods. 
+// Version kaosbeat 20150814 works with axoloti
+// This sketch tests the standard 7-bit addresses
+// Devices with higher bit address might not be seen properly.
+//
+
+#include <Wire.h>
+//int SCLpin = 3;
+//int SDApin = 4;
+
+
+void setup()
+{
+  Wire.begin();
+ //Wire.beginOnPins(SCLpin, SDApin);
+
+  //Serial.begin(115200);
+  System.out.println("\nI2C Scanner");
+}
+
+
+void loop()
+{
+  byte error, address;
+  int nDevices;
+
+  System.out.println("Scanning...");
+
+  nDevices = 0;
+
+  for(address = 1; address < 127; address++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    Wire.beginTransmission(address);
+    Wire.write(0x00);
+    error = Wire.endTransmission();
+
+    if (error == 0)
+    {
+      System.out.print("I2C device found at address 0x");
+      if (address<16) 
+        System.out.print("0");
+      System.out.print(address,HEX);
+      System.out.println("  !");
+
+      nDevices++;
+    //}else if (error==4) 
+    }else{
+      System.out.print("Error ");
+      System.out.print(error);
+      System.out.print(" at address 0x");
+      if (address<16) 
+        System.out.print("0");
+      System.out.println(address,HEX);
+    }    
+  }
+  
+  if (nDevices == 0){
+    System.out.println("No I2C devices found\n");
+  }else{
+    System.out.print(nDevices);
+    System.out.println(" found\n");
+  }
+  delay(5000);           // wait 5 seconds for next scan
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>2196</x>
+      <y>136</y>
+      <width>687</width>
+      <height>626</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,293 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="env/d" uuid="190ae648e41832b41adbedb465317c18a010aefe" name="envd_1" x="546" y="42">
+      <params>
+         <frac32.s.map name="d" onParent="true" MidiCC="19" value="26.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_2" x="658" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 1" uuid="26fb1fe4ed25d8bc2ac4a3f91ab6b80ed6d9d4fa" name="mix1_1" x="728" y="112">
+      <params>
+         <frac32.u.map name="gain1" onParent="true" MidiCC="23" value="45.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="env/ahd" uuid="2139369d6de2ba5ddf76e602d1d25df653ca9eed" name="envahd_1" x="826" y="112">
+      <params>
+         <frac32.s.map name="a" value="-51.0"/>
+         <frac32.s.map name="d" onParent="true" MidiCC="24" value="7.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_1" x="70" y="238">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="osc~_1" x="798" y="490">
+      <params>
+         <frac32.s.map name="pitch" value="-10.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/square sync" uuid="8c4efe949c87c913d572a4303b8c63e097dac37e" name="squaresync~_1" x="938" y="504">
+      <params>
+         <frac32.s.map name="pitch" value="-6.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca~_1" x="1050" y="504">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_1" x="1120" y="518">
+      <params>
+         <frac32.u.map name="amp" onParent="true" MidiCC="18" value="34.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="858ea585-339c-4116-80d8-0b03f8a8a6a2" name="vcf4pole_1" x="1232" y="518">
+      <params>
+         <frac32.u.map name="pitch" onParent="true" MidiCC="22" value="43.5"/>
+         <frac32.u.map name="reso" value="40.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="858ea585-339c-4116-80d8-0b03f8a8a6a2">
+         <sDescription>Four pole VCF
+The cutoff frequency is limited to 9.4kHz. For higher cutoff frequencies, use the vcf4pole2x version.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>GPL</license>
+         <helpPatch>vcf4pole.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in"/>
+            <frac32.bipolar name="pitch"/>
+            <frac32.positive name="reso"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="pitch"/>
+            <frac32.u.map name="reso"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[/* based on https://github.com/ddiakopoulos/MoogLadders/blob/master/src/RKSimulationModel.h 
+*
+Copyright (c) 2015, Miller Puckette. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+*/
+
+int32_t cutoff=0;
+int32_t resonance=0;
+
+int32_t clip(int32_t x) {
+	return __SSAT(x,28);
+}
+
+int32_t state[4];
+
+int32_t MultCutoff_A(int32_t x) {
+	return ___SMMUL(x, cutoff);
+}
+
+void calculateDerivatives_A(int32_t input, int32_t * dstate, int32_t * sstate)
+{
+	int32_t satstate0 = clip(sstate[0]);
+	int32_t satstate1 = clip(sstate[1]);
+	int32_t satstate2 = clip(sstate[2]);
+	int32_t satstate3 = clip(sstate[3]);
+	
+	dstate[0] = MultCutoff_A(clip(input - (___SMMUL(resonance,sstate[3])<<4)) - satstate0);
+	dstate[1] = MultCutoff_A(satstate0 - satstate1);
+	dstate[2] = MultCutoff_A(satstate1 - satstate2);
+	dstate[3] = MultCutoff_A(satstate2 - satstate3);
+}
+
+void rungekutteSolver_A(int32_t input)
+{
+	int i;
+	int32_t deriv1[4], deriv2[4], deriv3[4], deriv4[4], tempState[4];
+	
+	calculateDerivatives_A(input, deriv1, state);
+	
+	for (i = 0; i < 4; i++)
+		tempState[i] = state[i] + (deriv1[i]);
+	
+	calculateDerivatives_A(input, deriv2, tempState);
+	
+	for (i = 0; i < 4; i++)
+		tempState[i] = state[i] + (deriv2[i]);
+	
+	calculateDerivatives_A(input, deriv3, tempState);
+	
+	for (i = 0; i < 4; i++)
+		tempState[i] = state[i] + (deriv3[i]<<1);
+	
+	calculateDerivatives_A(input, deriv4, tempState);
+	
+	for (i = 0; i < 4; i++)
+		state[i] = ___SMMLA(deriv1[i]+deriv4[i] + ((deriv2[i] + deriv3[i])<<1),(int)(0xFFFFFFFFu/3u),state[i]);
+}
+
+int32_t MultCutoff_B(int32_t x) {
+	return ___SMMLA(x, cutoff, x);
+}
+
+void calculateDerivatives_B(int32_t input, int32_t * dstate, int32_t * sstate)
+{
+	int32_t satstate0 = clip(sstate[0]);
+	int32_t satstate1 = clip(sstate[1]);
+	int32_t satstate2 = clip(sstate[2]);
+	int32_t satstate3 = clip(sstate[3]);
+	
+	dstate[0] = MultCutoff_B(clip(input - (___SMMUL(resonance,sstate[3])<<4)) - satstate0);
+	dstate[1] = MultCutoff_B(satstate0 - satstate1);
+	dstate[2] = MultCutoff_B(satstate1 - satstate2);
+	dstate[3] = MultCutoff_B(satstate2 - satstate3);
+}
+
+void rungekutteSolver_B(int32_t input)
+{
+	int i;
+	int32_t deriv1[4], deriv2[4], deriv3[4], deriv4[4], tempState[4];
+	
+	calculateDerivatives_B(input, deriv1, state);
+	
+	for (i = 0; i < 4; i++)
+		tempState[i] = state[i] + (deriv1[i]);
+	
+	calculateDerivatives_B(input, deriv2, tempState);
+	
+	for (i = 0; i < 4; i++)
+		tempState[i] = state[i] + (deriv2[i]);
+	
+	calculateDerivatives_B(input, deriv3, tempState);
+	
+	for (i = 0; i < 4; i++)
+		tempState[i] = state[i] + (deriv3[i]<<1);
+	
+	calculateDerivatives_B(input, deriv4, tempState);
+	
+	for (i = 0; i < 4; i++)
+		state[i] = ___SMMLA(deriv1[i]+deriv4[i] + ((deriv2[i] + deriv3[i])<<1),(int)(0xFFFFFFFFu/3u),state[i]);
+}]]></code.declaration>
+         <code.krate><![CDATA[int pitch1=param_pitch + inlet_pitch + 0x01000000;
+if (pitch1>0x08400000)
+	pitch1=0x08400000;
+int32_t freq;
+MTOFEXTENDED(pitch1,freq);
+cutoff = (freq<<1);
+resonance = __USAT(param_reso+inlet_reso,28)<<3;
+resonance += resonance>>6;
+
+if (cutoff>0) {
+	// case A	
+	int i;
+	for(int i=0;i<BUFSIZE;i++){
+		rungekutteSolver_A(inlet_in[i]);
+		outlet_out[i] = state[3];
+	}
+} else {
+	// case B
+	int i;
+	for(int i=0;i<BUFSIZE;i++){
+		rungekutteSolver_B(inlet_in[i]);
+		outlet_out[i] = state[3];
+	}	
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="1358" y="560">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="envd_1" outlet="env"/>
+         <dest obj="*_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="mix1_1" inlet="bus_in"/>
+         <dest obj="osc~_1" inlet="pitch"/>
+         <dest obj="vcf4pole_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="*_2" outlet="result"/>
+         <dest obj="mix1_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="mix1_1" outlet="out"/>
+         <dest obj="squaresync~_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="osc~_1" outlet="wave"/>
+         <dest obj="squaresync~_1" inlet="sync"/>
+      </net>
+      <net>
+         <source obj="squaresync~_1" outlet="wave"/>
+         <dest obj="vca~_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="envahd_1" outlet="env"/>
+         <dest obj="vca~_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="vcf4pole_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="vca~_1" outlet="o"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="vcf4pole_1" outlet="out"/>
+         <dest obj="outlet_1" inlet="outlet"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="velocity"/>
+         <dest obj="*_2" inlet="b"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate2"/>
+         <dest obj="envd_1" inlet="trig"/>
+         <dest obj="envahd_1" inlet="gate"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>polyphonic</subpatchmode>
+      <MidiChannel>1</MidiChannel>
+      <NPresets>8</NPresets>
+      <NPresetEntries>32</NPresetEntries>
+      <NModulationSources>8</NModulationSources>
+      <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>1936</width>
+      <height>1066</height>
+   </windowPos>
+</patch-1.0>

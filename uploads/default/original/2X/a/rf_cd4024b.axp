@@ -1,0 +1,142 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="56" y="14" text="rfries:t 7 bit ripple carry counter/divider"/>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="462" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="84" y="98">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bb7b48af-5b9b-46c4-8f1a-a6786aa561d4" name="object_1" x="280" y="98">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="bb7b48af-5b9b-46c4-8f1a-a6786aa561d4">
+         <inlets>
+            <bool32.rising name="clock"/>
+            <bool32.rising name="reset"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o1"/>
+            <bool32 name="o2"/>
+            <bool32 name="o3"/>
+            <bool32 name="o4"/>
+            <bool32 name="o5"/>
+            <bool32 name="o6"/>
+            <bool32 name="o7"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[unsigned char bits;
+uint32_t c;
+uint32_t r;]]></code.declaration>
+         <code.init><![CDATA[bits = 0;
+r = 1;
+c = 1;]]></code.init>
+         <code.krate><![CDATA[{
+		if (inlet_reset && r) {
+			r = 0;
+			bits = 0;
+		} else {
+			if (!inlet_reset) r = 1;
+			if (inlet_clock & c) {
+				c = 0;
+				bits = ++bits % 128;
+			} else {
+				if (!inlet_clock) c = 1;
+			}
+		}
+
+		outlet_o1 = bits & 0b00000001;
+		outlet_o2 = bits & 0b00000010;
+		outlet_o3 = bits & 0b00000100;
+		outlet_o4 = bits & 0b00001000;
+		outlet_o5 = bits & 0b00010000;
+		outlet_o6 = bits & 0b00100000;
+		outlet_o7 = bits & 0b01000000;
+	}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="462" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_3" x="462" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="84" y="210">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_4" x="462" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_5" x="462" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_6" x="462" y="322">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_7" x="462" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="object_1" inlet="clock"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o1"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o2"/>
+         <dest obj="bool_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o3"/>
+         <dest obj="bool_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o4"/>
+         <dest obj="bool_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o5"/>
+         <dest obj="bool_5" inlet="in"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o6"/>
+         <dest obj="bool_6" inlet="in"/>
+      </net>
+      <net>
+         <source obj="object_1" outlet="o7"/>
+         <dest obj="bool_7" inlet="in"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="object_1" inlet="reset"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>207</x>
+      <y>87</y>
+      <width>740</width>
+      <height>605</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,196 @@
+<patch-1.0>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="mpr121 I2C" x="42" y="28">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[/*
+SDA = GPIOB,9
+SCL = GPIO,8
+IRQ = GPIOA,1
+*/
+
+// MPR121 Register Defines
+#define MHD_R 0x2B
+#define NHD_R 0x2C
+#define NCL_R   0x2D
+#define FDL_R 0x2E
+#define MHD_F 0x2F
+#define NHD_F 0x30
+#define NCL_F 0x31
+#define FDL_F 0x32
+#define ELE0_T  0x41
+#define ELE0_R  0x42
+#define ELE1_T  0x43
+#define ELE1_R  0x44
+#define ELE2_T  0x45
+#define ELE2_R  0x46
+#define ELE3_T  0x47
+#define ELE3_R  0x48
+#define ELE4_T  0x49
+#define ELE4_R  0x4A
+#define ELE5_T  0x4B
+#define ELE5_R  0x4C
+#define ELE6_T  0x4D
+#define ELE6_R  0x4E
+#define ELE7_T  0x4F
+#define ELE7_R  0x50
+#define ELE8_T  0x51
+#define ELE8_R  0x52
+#define ELE9_T  0x53
+#define ELE9_R  0x54
+#define ELE10_T 0x55
+#define ELE10_R 0x56
+#define ELE11_T 0x57
+#define ELE11_R 0x58
+#define FIL_CFG 0x5D
+#define ELE_CFG 0x5E
+#define GPIO_CTRL0  0x73
+#define GPIO_CTRL1  0x74
+#define GPIO_DATA 0x75
+#define GPIO_DIR  0x76
+#define GPIO_EN   0x77
+#define GPIO_SET  0x78
+#define GPIO_CLEAR  0x79
+#define GPIO_TOGGLE 0x7A
+#define ATO_CFG0  0x7B
+#define ATO_CFGU  0x7D
+#define ATO_CFGL  0x7E
+#define ATO_CFGT  0x7F
+
+// Global Constants
+#define TOU_THRESH  0x0F
+#define REL_THRESH  0x0A
+
+// I2C R/W Address of the MPR121. ADD is unconnected = 0x5A.
+#define MPR121_R 0xB5
+#define MPR121_W 0xB4 
+
+uint8_t rxbuf[8];
+uint8_t txbuf[8];
+
+systime_t tmo = MS2ST(4);
+
+
+void setup(void){
+	palSetPadMode(GPIOA,1,PAL_MODE_INPUT_PULLUP);
+
+  //IC2 CONFIG
+  // setup the pins
+  palSetPadMode(GPIOB, 8, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SCL
+  palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4)|PAL_STM32_PUDR_PULLUP|PAL_STM32_OTYPE_OPENDRAIN);// SDA
+  
+  static const I2CConfig i2cfg = {
+    OPMODE_I2C,
+    100000,           // CLOCK SPEED
+    STD_DUTY_CYCLE,
+    // FAST_DUTY_CYCLE_2,
+  };
+
+  i2cStart(&I2CD1, &i2cfg);
+
+	mpr121_setup();
+}
+
+void loop(void){
+  // i2cAcquireBus(&I2CD1);
+	// i2cMasterReceiveTimeout(&I2CD1, MPR121_R, rxbuf, 2, TIME_INFINITE);    //SPI READ MPR121 address 0xB5 
+  // i2cReleaseBus(&I2CD1);
+  chThdSleepMilliseconds(10);
+}
+
+
+void mpr121_setup(void){
+
+  set_register(MPR121_W, ELE_CFG, 0x00); 
+  
+  // Section A - Controls filtering when data is > baseline.
+  set_register(MPR121_W, MHD_R, 0x01);
+  set_register(MPR121_W, NHD_R, 0x01);
+  set_register(MPR121_W, NCL_R, 0x00);
+  set_register(MPR121_W, FDL_R, 0x00);
+
+  // Section B - Controls filtering when data is < baseline.
+  set_register(MPR121_W, MHD_F, 0x01);
+  set_register(MPR121_W, NHD_F, 0x01);
+  set_register(MPR121_W, NCL_F, 0xFF);
+  set_register(MPR121_W, FDL_F, 0x02);
+  
+  // Section C - Sets touch and release thresholds for each electrode
+  set_register(MPR121_W, ELE0_T, TOU_THRESH);
+  set_register(MPR121_W, ELE0_R, REL_THRESH);
+ 
+  set_register(MPR121_W, ELE1_T, TOU_THRESH);
+  set_register(MPR121_W, ELE1_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE2_T, TOU_THRESH);
+  set_register(MPR121_W, ELE2_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE3_T, TOU_THRESH);
+  set_register(MPR121_W, ELE3_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE4_T, TOU_THRESH);
+  set_register(MPR121_W, ELE4_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE5_T, TOU_THRESH);
+  set_register(MPR121_W, ELE5_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE6_T, TOU_THRESH);
+  set_register(MPR121_W, ELE6_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE7_T, TOU_THRESH);
+  set_register(MPR121_W, ELE7_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE8_T, TOU_THRESH);
+  set_register(MPR121_W, ELE8_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE9_T, TOU_THRESH);
+  set_register(MPR121_W, ELE9_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE10_T, TOU_THRESH);
+  set_register(MPR121_W, ELE10_R, REL_THRESH);
+  
+  set_register(MPR121_W, ELE11_T, TOU_THRESH);
+  set_register(MPR121_W, ELE11_R, REL_THRESH);
+  
+  // Section D
+  // Set the Filter Configuration
+  // Set ESI2
+  set_register(MPR121_W, FIL_CFG, 0x04);
+  
+  // Section E
+  // Electrode Configuration
+  // Set ELE_CFG to 0x00 to return to standby mode
+  set_register(MPR121_W, ELE_CFG, 0x0C);  // Enables all 12 Electrodes
+  
+  
+  // Section F
+  // Enable Auto Config and auto Reconfig
+  /*set_register(MPR121_W, ATO_CFG0, 0x0B);
+  set_register(MPR121_W, ATO_CFGU, 0xC9);  // USL = (Vdd-0.7)/vdd*256 = 0xC9 @3.3V   set_register(0x5A, ATO_CFGL, 0x82);  // LSL = 0.65*USL = 0x82 @3.3V
+  set_register(MPR121_W, ATO_CFGT, 0xB5);*/  // Target = 0.9*USL = 0xB5 @3.3V
+}
+
+void set_register(int address, unsigned char r, unsigned char v){
+    
+  txbuf[0] = r;
+  txbuf[1] = v;
+  // i2cAcquireBus(&I2CD1);
+  i2cMasterTransmitTimeout(&I2CD1, MPR121_W, txbuf, 2, rxbuf, 0, TIME_INFINITE);
+  // i2cReleaseBus(&I2CD1);
+  // chThdSleepMilliseconds(1);
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>2859</x>
+      <y>190</y>
+      <width>400</width>
+      <height>400</height>
+   </windowPos>
+</patch-1.0>

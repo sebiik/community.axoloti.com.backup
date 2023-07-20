@@ -1,0 +1,475 @@
+<patch-1.0>
+   <obj type="disp/bool" sha="330cd7d2342f59124b04a39d118a0ab97185ecaa" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="play display" x="434" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/alloc 8b" sha="2e6356e1ee24feede71a195192041fd1542b5331" uuid="9a8785a40e0aebb9cc22af09b0a7cf5f91ad2c64" name="seqMem" x="182" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="64"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <patcher type="patch/patcher" sha="da39a3ee5e6b4b0d3255bfef95601890afd80709" uuid="a245c220448000c901caef03c8b07740d533914a" name="playback" x="434" y="98">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="1"/>
+         <combo attributeName="midichannel" selection="11"/>
+         <combo attributeName="mididevice" selection="din"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch>
+         <obj type="midi/in/keyb mod" sha="8a3a022c1939dab132d8384e14252d713eff5cc3" uuid="abcd509d15e7d13d5381203fd2b4d0ac6fe57bb3" name="keyb_1" x="28" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet i" sha="525f64aba3d51dde5253cccedd116ec84bf5d5d1" uuid="f11927f00c59219df0c50f73056aa19f125540b7" name="max" x="56" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" sha="17c8e188371661163bfa55cea9974eecb785fb06" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="reset" x="56" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="table/read" sha="17be286e1755b43c67fa0ca370d63d3d38f8dcd7" uuid="65eb8d0f6a3344638de94c9882999b9af15510d0" name="read_1" x="378" y="42">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../seqMem"/>
+            </attribs>
+         </obj>
+         <obj type="logic/dynamic counter" sha="6cb1d2e714c44d7e6ba8634f2a67b09f7479c7cf" uuid="5ce3406f0bf9385cd5284c5079d0a25e506adced" name="playback counter" x="210" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" sha="c0c4ce40c7dec73dfbb009fd86c9b89c068b137a" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="note" x="532" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" sha="c0c4ce40c7dec73dfbb009fd86c9b89c068b137a" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="velo" x="322" y="140">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" sha="d53edf73b9c33108cbb6e5487759ac27b809cfcc" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="trig" x="322" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="midi/in/keyb note" sha="2537eb57cf2582827c7418a0512e0d0a2e41ead7" uuid="ac0cd98e6c0373b7be73d25900342a62ebcf5f" name="keyb_2" x="168" y="252">
+            <params/>
+            <attribs>
+               <spinner attributeName="note" value="48"/>
+            </attribs>
+         </obj>
+         <nets>
+            <net>
+               <source obj="keyb_2" outlet="gate"/>
+               <dest obj="playback counter" inlet="trig"/>
+               <dest obj="trig" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="max" outlet="inlet"/>
+               <dest obj="playback counter" inlet="max"/>
+            </net>
+            <net>
+               <source obj="reset" outlet="inlet"/>
+               <dest obj="playback counter" inlet="r"/>
+            </net>
+            <net>
+               <source obj="playback counter" outlet="o"/>
+               <dest obj="read_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="read_1" outlet="o"/>
+               <dest obj="note" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="keyb_2" outlet="velocity"/>
+               <dest obj="velo" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+      </subpatch>
+   </patcher>
+   <obj type="midi/out/note" sha="30f60759a7391e48e5c23608906d46ce3c44df8c" uuid="a76ae870da278cbbce5501a57ce7bd0e0ea4215c" name="playback output" x="672" y="168">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="2"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="322" y="196" text="trigger input device"/>
+   <obj type="ctrl/button" sha="3a0057991a9376823a6a654a8cf7201abdc31135" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="play seq" x="42" y="210">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" sha="da39a3ee5e6b4b0d3255bfef95601890afd80709" uuid="a245c220448000c901caef03c8b07740d533914a" name="midi input" x="182" y="210">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="1"/>
+         <combo attributeName="midichannel" selection="1"/>
+         <combo attributeName="mididevice" selection="usb host"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch>
+         <obj type="patch/inlet b" sha="17c8e188371661163bfa55cea9974eecb785fb06" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="play" x="14" y="0">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/or 2" sha="6941575503e8a946c74e5388ec4e6a97468ae3c5" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="266" y="42">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" sha="d53edf73b9c33108cbb6e5487759ac27b809cfcc" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="p" x="406" y="14">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/or 2" sha="6941575503e8a946c74e5388ec4e6a97468ae3c5" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_2" x="266" y="196">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" sha="d53edf73b9c33108cbb6e5487759ac27b809cfcc" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="r" x="406" y="210">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" sha="17c8e188371661163bfa55cea9974eecb785fb06" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="rec" x="14" y="322">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="midi/in/cc i" sha="74a847b235a3e6e117925d2dadafaa6f6c84b9b" uuid="614eb76edef2b43632fa1fcda25aab54f821daf6" name="cc_1" x="42" y="56">
+            <params/>
+            <attribs>
+               <spinner attributeName="cc" value="7"/>
+               <spinner attributeName="default" value="0"/>
+            </attribs>
+         </obj>
+         <obj type="const/i" sha="15b9dce9232a04e8881936a6ea800e66ae8e0da9" uuid="e202f44b2df17ae0b3e663b98ea6b14c8ff00408" name="i_3" x="42" y="168">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="96"/>
+            </attribs>
+         </obj>
+         <obj type="math/&gt;" sha="6ce6ff4d125547d10653d4bac2820364d8297d6f" uuid="a459588d6498caeb4daf3a07f9d5e9b4a657262f" name="&gt;_1" x="154" y="140">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="const/i" sha="15b9dce9232a04e8881936a6ea800e66ae8e0da9" uuid="e202f44b2df17ae0b3e663b98ea6b14c8ff00408" name="i_2" x="42" y="238">
+            <params/>
+            <attribs>
+               <spinner attributeName="value" value="32"/>
+            </attribs>
+         </obj>
+         <obj type="math/&lt;" sha="65a19110375857a3f7428a0abee85d491f8ef346" uuid="e1b31418165304d34c713638837722589dcacb6" name="&lt;_1" x="154" y="210">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="play" outlet="inlet"/>
+               <dest obj="or_1" inlet="i1"/>
+            </net>
+            <net>
+               <source obj="rec" outlet="inlet"/>
+               <dest obj="or_2" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="or_1" outlet="o"/>
+               <dest obj="p" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="or_2" outlet="o"/>
+               <dest obj="r" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="cc_1" outlet="midiCC"/>
+               <dest obj="&lt;_1" inlet="in1"/>
+               <dest obj="&gt;_1" inlet="in1"/>
+            </net>
+            <net>
+               <source obj="i_2" outlet="out"/>
+               <dest obj="&lt;_1" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="i_3" outlet="out"/>
+               <dest obj="&gt;_1" inlet="in2"/>
+            </net>
+            <net>
+               <source obj="&gt;_1" outlet="out"/>
+               <dest obj="or_1" inlet="i2"/>
+            </net>
+            <net>
+               <source obj="&lt;_1" outlet="out"/>
+               <dest obj="or_2" inlet="i1"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+      </subpatch>
+   </patcher>
+   <obj type="logic/latch" sha="5374da06ca3703d6af026e3244094e7004cb7ace" uuid="2a50e4657301542464c6a97931847b5e8e0e6d2b" name="set maximum" x="476" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" sha="3a0057991a9376823a6a654a8cf7201abdc31135" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="record seq" x="42" y="294">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="672" y="294" text="note output; set both same!"/>
+   <obj type="midi/out/note" sha="30f60759a7391e48e5c23608906d46ce3c44df8c" uuid="a76ae870da278cbbce5501a57ce7bd0e0ea4215c" name="record output" x="672" y="336">
+      <params/>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+         <spinner attributeName="channel" value="2"/>
+      </attribs>
+   </obj>
+   <patcher type="patch/patcher" sha="da39a3ee5e6b4b0d3255bfef95601890afd80709" uuid="a245c220448000c901caef03c8b07740d533914a" name="record" x="434" y="350">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="1"/>
+         <combo attributeName="midichannel" selection="1"/>
+         <combo attributeName="mididevice" selection="usb host"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch>
+         <obj type="midi/in/keyb mod" sha="8a3a022c1939dab132d8384e14252d713eff5cc3" uuid="abcd509d15e7d13d5381203fd2b4d0ac6fe57bb3" name="keyb_1" x="42" y="28">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="table/write" sha="1c91ce8614cadb0dc4b4f00db2d3b18d030df263" uuid="50b8c8807ba1fc700ed79381c9360a982e0c3fb9" name="write to memory" x="532" y="0">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../seqMem"/>
+            </attribs>
+         </obj>
+         <obj type="patch/inlet b" sha="17c8e188371661163bfa55cea9974eecb785fb06" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="reset" x="28" y="280">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/counter" sha="519c79f42a7c84352830b08e68696ecbf5d0bd52" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="record counter" x="504" y="182">
+            <params>
+               <int32 name="maximum" value="64"/>
+            </params>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet i" sha="9c18b5ec0ea721bb98852ab326891478ca87a360" uuid="aae2176b26209e34e4fdeba5edb1ace82d178655" name="count" x="616" y="154">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="mux/mux 2" sha="39c64f8958b4334d9767864dde93394de4ba4fe3" uuid="e1c92bc92f4d191bfadf0efeae4503b458a4e440" name="record gate" x="280" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="280" y="196" text="only record in rec mode!"/>
+         <obj type="patch/outlet f" sha="c0c4ce40c7dec73dfbb009fd86c9b89c068b137a" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="note" x="378" y="322">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" sha="c0c4ce40c7dec73dfbb009fd86c9b89c068b137a" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="vel" x="378" y="378">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet b" sha="d53edf73b9c33108cbb6e5487759ac27b809cfcc" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="trig" x="378" y="434">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="266" y="224" text="allows note input while sequence is playing"/>
+         <nets>
+            <net>
+               <source obj="keyb_1" outlet="note"/>
+               <dest obj="write to memory" inlet="v"/>
+               <dest obj="note" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="record gate" outlet="o"/>
+               <dest obj="write to memory" inlet="trig"/>
+               <dest obj="record counter" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="record counter" outlet="o"/>
+               <dest obj="write to memory" inlet="a"/>
+               <dest obj="count" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="reset" outlet="inlet"/>
+               <dest obj="record counter" inlet="r"/>
+               <dest obj="record gate" inlet="s"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="gate"/>
+               <dest obj="record gate" inlet="i2"/>
+               <dest obj="trig" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="keyb_1" outlet="velocity"/>
+               <dest obj="vel" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+      </subpatch>
+   </patcher>
+   <comment type="patch/comment" x="182" y="378" text="play = CC7 &gt;= 96"/>
+   <comment type="patch/comment" x="182" y="392" text="rec = CC7 &lt;= 32"/>
+   <patcher type="patch/patcher" sha="da39a3ee5e6b4b0d3255bfef95601890afd80709" uuid="a245c220448000c901caef03c8b07740d533914a" name="patcher_1" x="42" y="448">
+      <params/>
+      <attribs>
+         <combo attributeName="poly" selection="1"/>
+         <combo attributeName="midichannel" selection="11"/>
+         <combo attributeName="mididevice" selection="din"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch>
+         <obj type="midi/in/keyb note" sha="2537eb57cf2582827c7418a0512e0d0a2e41ead7" uuid="ac0cd98e6c0373b7be73d25900342a62ebcf5f" name="keyb_1" x="84" y="56">
+            <params/>
+            <attribs>
+               <spinner attributeName="note" value="48"/>
+            </attribs>
+         </obj>
+         <obj type="patch/outlet b" sha="d53edf73b9c33108cbb6e5487759ac27b809cfcc" uuid="191792f616d4835dba0b55375474a12942e5bcbd" name="outlet_1" x="224" y="56">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="midi/in/keyb mod" sha="8a3a022c1939dab132d8384e14252d713eff5cc3" uuid="abcd509d15e7d13d5381203fd2b4d0ac6fe57bb3" name="keyb_2" x="84" y="168">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="keyb_1" outlet="gate"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+            <Author></Author>
+         </settings>
+         <notes><![CDATA[]]></notes>
+      </subpatch>
+   </patcher>
+   <comment type="patch/comment" x="322" y="462" text="note input device"/>
+   <obj type="disp/bool" sha="330cd7d2342f59124b04a39d118a0ab97185ecaa" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="rec display" x="560" y="476">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" sha="5a62a6a55b2a4ed72cdc1543ff6d670b9e69ec38" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_1" x="728" y="476">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" sha="519c79f42a7c84352830b08e68696ecbf5d0bd52" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="168" y="490">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/ibar 16" sha="6998eafb11a17e8569492b9ac4fa9710eb907cb8" uuid="302bfed4cde8894229679ce81f6b8a5c5212dd98" name="ibar_1" x="280" y="546">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="set maximum" outlet="o"/>
+         <dest obj="playback" inlet="max"/>
+      </net>
+      <net>
+         <source obj="record" outlet="count"/>
+         <dest obj="set maximum" inlet="i"/>
+      </net>
+      <net>
+         <source obj="record seq" outlet="o"/>
+         <dest obj="midi input" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="midi input" outlet="r"/>
+         <dest obj="record" inlet="reset"/>
+         <dest obj="rec display" inlet="in"/>
+      </net>
+      <net>
+         <source obj="midi input" outlet="p"/>
+         <dest obj="set maximum" inlet="trig"/>
+         <dest obj="playback" inlet="reset"/>
+         <dest obj="play display" inlet="in"/>
+      </net>
+      <net>
+         <source obj="play seq" outlet="o"/>
+         <dest obj="midi input" inlet="play"/>
+      </net>
+      <net>
+         <source obj="playback" outlet="note"/>
+         <dest obj="playback output" inlet="note"/>
+      </net>
+      <net>
+         <source obj="playback" outlet="velo"/>
+         <dest obj="playback output" inlet="velo"/>
+      </net>
+      <net>
+         <source obj="playback" outlet="trig"/>
+         <dest obj="playback output" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="record" outlet="note"/>
+         <dest obj="record output" inlet="note"/>
+         <dest obj="dial_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="record" outlet="vel"/>
+         <dest obj="record output" inlet="velo"/>
+      </net>
+      <net>
+         <source obj="record" outlet="trig"/>
+         <dest obj="record output" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="ibar_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="patcher_1" outlet="outlet_1"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>494</x>
+      <y>66</y>
+      <width>923</width>
+      <height>701</height>
+   </windowPos>
+</patch-1.0>

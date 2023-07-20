@@ -1,0 +1,303 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="28" y="28" text="Pitch"/>
+   <comment type="patch/comment" x="140" y="28" text="Various signaøl sources"/>
+   <comment type="patch/comment" x="364" y="28" text="Pre filter"/>
+   <comment type="patch/comment" x="588" y="28" text="Sign wave generator"/>
+   <comment type="patch/comment" x="728" y="28" text="Post  filter"/>
+   <comment type="patch/comment" x="854" y="28" text="Square output (Sign wave)"/>
+   <comment type="patch/comment" x="1008" y="28" text="Post filtered square"/>
+   <comment type="patch/comment" x="1162" y="28" text="Sine output"/>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_1" x="28" y="42">
+      <params>
+         <frac32.s.map name="value" value="22.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="140" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 4" uuid="e511105cf5630d1a0b4a144dc3fabb3cc7c07bd" name="mux_1" x="266" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="filter/lp m" uuid="1aa1bc51da479ed92429af700591f9d7b9f45f22" name="lp_2" x="364" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.u.map name="reso" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mux/mux 2" uuid="539c246f4c360ac476e128cfbfa84348fb7f7e73" name="mux_2" x="490" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="03813e1c-93bd-4f48-a30b-672616b3d861" name="sign_wave_1" x="588" y="42">
+      <params>
+         <bool32.tgl name="overshoot" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="03813e1c-93bd-4f48-a30b-672616b3d861">
+         <sDescription>Detects zero crossings and generates a square wave and sine wave from that.</sDescription>
+         <author>Are Leistad</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32buffer.bipolar name="in" description="Audio input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer.bipolar name="sqr" description="Square output"/>
+            <frac32buffer.bipolar name="sin" description="Sine output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.tgl name="overshoot"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[//#define ONLY_SQUARE_OUTPUT
+
+#ifndef ONLY_SQUARE_OUTPUT
+      int32_t  old_in;
+      int32_t  pos_counter;
+      int32_t  neg_counter;
+      int32_t  pos_period;
+      int32_t  neg_period;
+      uint32_t phase;
+      uint32_t pinc;
+      int32_t  sin_output;
+#endif]]></code.declaration>
+         <code.init><![CDATA[#ifndef ONLY_SQUARE_OUTPUT
+      old_in      = 0;
+      pos_counter = 0;
+      neg_counter = 0;
+      pos_period  = 0;
+      neg_period  = 0;
+      phase       = 0;
+      pinc        = 0;
+      sin_output  = 0;
+#endif]]></code.init>
+         <code.srate><![CDATA[#ifdef ONLY_SQUARE_OUTPUT
+
+      // Simple square sign output
+
+      if( inlet_in >= 0 )
+        {
+          outlet_sqr = (1<<27)-1;
+        }
+      else
+        {
+          outlet_sqr = -(1<<27);
+        }
+#else
+
+      // Half period detector and square + sine output
+
+      if( old_in < 0 && inlet_in >= 0 )
+        {
+          pos_counter = 0;
+          neg_period  = neg_counter;
+          pinc        = 0x7FFFFFFF / pos_period; // Complement may be faster here
+          phase       = 0;
+        }
+      else if( inlet_in < 0 && old_in >= 0 )
+        {
+          neg_counter = 0;
+          pos_period  = pos_counter;
+          pinc       = 0x7FFFFFFF / neg_period;
+          phase      = (1<<31);
+        }
+
+      phase += pinc;
+      int32_t sine;
+      SINE2TINTERP(phase,sine)
+      sine = sine>>4;
+
+      if( inlet_in >= 0 )
+        {
+          if( !param_overshoot && sine < 0 )  // Avoid overshoot for positive half
+            sin_output = 0;
+          else
+            sin_output = sine;
+
+          outlet_sqr = (1<<27)-1;
+          pos_counter++;
+        }
+      else
+        {
+          if( !param_overshoot && sine >= 0 ) // Avoid overshoot for negative half
+            sin_output = 0;
+          else
+            sin_output = sine;
+
+          outlet_sqr = -(1<<27);
+          neg_counter++;
+        }
+
+      outlet_sin = sin_output;
+      old_in     = inlet_in;
+#endif]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="filter/lp m" uuid="1aa1bc51da479ed92429af700591f9d7b9f45f22" name="lp_1" x="728" y="42">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.u.map name="reso" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_1" x="854" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_2" x="1008" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_3" x="1162" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="28" y="140" text="Source shape"/>
+   <obj type="ctrl/dial b" uuid="862e7d7f29093cb1ce4aed72244d118ad4d46692" name="dial_2" x="28" y="154">
+      <params>
+         <frac32.s.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/pwm" uuid="a6b40ff63f161d8bac8ea2eba5b0dbffcf49b472" name="pwm_1" x="140" y="154">
+      <params>
+         <frac32.s.map name="pitch" value="3.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="728" y="182" text="DC blocker"/>
+   <obj type="filter/hp" uuid="7829b56456e975f1d89bda2ad1c7ad678080a73b" name="hp_1" x="728" y="196">
+      <params>
+         <frac32.s.map name="pitch" value="-64.0"/>
+         <frac32.u.map name="reso" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="28" y="252" text="Source selector"/>
+   <obj type="osc/brds/buzz" uuid="c7388474-f6e0-45bb-9dca-fe7c9303d725" name="buzz_1" x="140" y="252">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.u.map name="timbre" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="28" y="266">
+      <params>
+         <int32 name="value" value="3"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="854" y="322" text="Source signal"/>
+   <comment type="patch/comment" x="1008" y="322" text="Pre filtered source signal"/>
+   <comment type="patch/comment" x="28" y="336" text="Pre filter"/>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_4" x="854" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_5" x="1008" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="28" y="350">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/brds/feedbackfm" uuid="8af83504-f920-4363-8552-efe8fffc0287" name="feedbackfm_1" x="140" y="378">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+         <frac32.u.map name="timbre" value="32.0"/>
+         <frac32.u.map name="color" value="32.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="sine_1" inlet="pitch"/>
+         <dest obj="buzz_1" inlet="pitch"/>
+         <dest obj="feedbackfm_1" inlet="pitch"/>
+         <dest obj="pwm_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="sign_wave_1" outlet="sqr"/>
+         <dest obj="lp_1" inlet="in"/>
+         <dest obj="scope_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sign_wave_1" outlet="sin"/>
+         <dest obj="scope_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mux_1" outlet="o"/>
+         <dest obj="scope_4" inlet="in"/>
+         <dest obj="mux_2" inlet="i1"/>
+         <dest obj="lp_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="mux_1" inlet="i0"/>
+      </net>
+      <net>
+         <source obj="buzz_1" outlet="wave"/>
+         <dest obj="mux_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="feedbackfm_1" outlet="wave"/>
+         <dest obj="mux_1" inlet="i3"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="mux_1" inlet="s"/>
+      </net>
+      <net>
+         <source obj="pwm_1" outlet="wave"/>
+         <dest obj="mux_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="pwm_1" inlet="pw"/>
+         <dest obj="buzz_1" inlet="timbre"/>
+         <dest obj="feedbackfm_1" inlet="timbre"/>
+      </net>
+      <net>
+         <source obj="lp_2" outlet="out"/>
+         <dest obj="scope_5" inlet="in"/>
+         <dest obj="mux_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="lp_1" outlet="out"/>
+         <dest obj="hp_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mux_2" outlet="o"/>
+         <dest obj="sign_wave_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="mux_2" inlet="s"/>
+      </net>
+      <net>
+         <source obj="hp_1" outlet="out"/>
+         <dest obj="scope_2" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>262</x>
+      <y>106</y>
+      <width>1390</width>
+      <height>731</height>
+   </windowPos>
+</patch-1.0>

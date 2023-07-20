@@ -1,0 +1,154 @@
+<patch-1.0 appVersion="1.0.11">
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="play" x="0" y="14">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/toggle" uuid="f42f0d3aab552c17bc78b9e65f85dc24f977503d" name="toggle_2" x="84" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="a751ad9b-9f70-499e-a2c8-31fdd24c6d38" name="play_1" x="266" y="14">
+      <params/>
+      <attribs>
+         <file attributeName="fn" file="../../../hd-recording/axoloti-test/steps1 48k16 2.pcm"/>
+      </attribs>
+      <object id="patch/object" uuid="a751ad9b-9f70-499e-a2c8-31fdd24c6d38">
+         <sDescription>streaming playback of a stereo .wav file from sdcard (testing)
+with donePlaying flag</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32 name="pos" description="position"/>
+            <bool32.rising name="start" description="trigger"/>
+            <bool32.rising name="stop" description="trigger"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="outl" description="output left"/>
+            <frac32buffer name="outr" description="output right"/>
+            <bool32 name="donePlaying" description="stop trigger"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <file name="fn"/>
+         </attribs>
+         <includes>
+            <include>chibios/ext/fatfs/src/ff.h</include>
+            <include>./streamer.h</include>
+         </includes>
+         <code.declaration><![CDATA[WORKING_AREA(waThreadSD, 720);
+   sdReadFilePingpong *stream;
+   int starttrig;
+   int stoptrig;
+   int donePlaying;
+   char c[64];]]></code.declaration>
+         <code.init><![CDATA[static sdReadFilePingpong s[attr_poly] __attribute__ ((section (".data")));
+// unmap from aliased memory for DMA
+stream = (sdReadFilePingpong *)(0x20000000 | (int)&s[parent->polyIndex]);
+stream->pingpong = CLOSED;
+stream->doSeek = 0;
+stream->offset = -1;
+starttrig = 0;
+stoptrig = 0;
+donePlaying = 0;
+strcpy(&c[0],"attr_fn");
+stream->pThreadSD = chThdCreateStatic(waThreadSD, sizeof(waThreadSD),
+                    HIGHPRIO, ThreadSD, (void *)stream);]]></code.init>
+         <code.dispose><![CDATA[sdStopStreamer(stream);]]></code.dispose>
+         <code.krate><![CDATA[int32_t i;
+     if ((inlet_start>0) && !starttrig) {
+        sdOpenStream(stream,&c[0]);
+        sdSeekStream(stream,((inlet_pos)>>4)<<2);
+        starttrig=1;
+        donePlaying = 0;
+     } else if ((!(inlet_start>0)) && starttrig) {        starttrig=0;
+     }
+     if ((inlet_stop>0) && !stoptrig) {
+        sdCloseStream(stream);
+        stoptrig=1;
+     } else if ((!(inlet_stop>0)) && stoptrig) {        stoptrig=0;
+     }
+     int16_t *p = 0;
+     int16_t *q = 0;
+     p=sdReadStream(stream);
+     q=sdReadStream(stream);
+     if (p && q) {
+        for(i=0;i<BUFSIZE/2;i++){
+           outlet_outl[i] = (*(p++))<<10;
+           outlet_outr[i] = (*(p++))<<10;
+        }
+        for(;i<BUFSIZE;i++){
+           outlet_outl[i] = (*(q++))<<10;
+           outlet_outr[i] = (*(q++))<<10;
+        }
+     }
+     else {
+     	donePlaying = 1;
+        for(i=0;i<BUFSIZE;i++) outlet_outl[i] = outlet_outr[i]= 0;
+     }]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="560" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="672" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_2" x="560" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="322" y="126" text="select the file from the harddisk"/>
+   <comment type="patch/comment" x="322" y="140" text="it&apos;ll be then uploaded"/>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="gain" x="476" y="154">
+      <params>
+         <frac32.u.map name="value" value="20.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="280" y="252">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="play" outlet="o"/>
+         <dest obj="toggle_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="gain" outlet="out"/>
+         <dest obj="vca_1" inlet="v"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="play_1" inlet="start"/>
+      </net>
+      <net>
+         <source obj="play_1" outlet="donePlaying"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>243</x>
+      <y>374</y>
+      <width>881</width>
+      <height>723</height>
+   </windowPos>
+</patch-1.0>

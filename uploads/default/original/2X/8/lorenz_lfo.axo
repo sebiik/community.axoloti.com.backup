@@ -1,0 +1,62 @@
+<objdefs appVersion="1.0.10">
+   <obj.normal id="lorenz_lfo" uuid="30001ff03753539d9028888689654235fa199936">
+      <sDescription>Lorenz chaotic attractor clocked lfo</sDescription>
+      <author>JLS</author>
+      <license>BSD</license>
+      <helpPatch>lorenz_lfo.axh</helpPatch>
+      <inlets>
+         <bool32.rising name="trig" description="trigger"/>
+      </inlets>
+      <outlets>
+         <frac32.bipolar name="x" description="x"/>
+         <frac32.bipolar name="y" description="y"/>
+         <frac32.bipolar name="z" description="z"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs/>
+      <code.declaration><![CDATA[float x;
+float tx;
+float y;
+float ty;
+float z;
+float tz;
+float s;
+float r;
+float b;
+float dt;
+
+int gate;]]></code.declaration>
+      <code.init><![CDATA[x = 0.1;
+y = 0.1;
+z = 0.1;
+s = 10.0;
+r = 28.0;
+b = 2.66;
+dt = 0.005;
+gate = 0;]]></code.init>
+      <code.krate><![CDATA[{
+
+if ((inlet_trig>0) && !gate) {
+
+	tx = s * (y - x);
+	ty = (r * x) - y - (x * z);
+	tz = (x * y) - (b * z);
+
+	x = x + tx * dt;
+	y = y + ty * dt;
+	z = z + tz * dt;
+
+	gate = 1;
+
+}
+
+else if (!(inlet_trig>0)) gate = 0;
+
+outlet_x = x * (1<<22);
+outlet_y = y * (1<<22);
+outlet_z = z * (1<<21);
+
+}]]></code.krate>
+   </obj.normal>
+</objdefs>

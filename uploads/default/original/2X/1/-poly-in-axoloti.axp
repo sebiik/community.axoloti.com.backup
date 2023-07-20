@@ -1,0 +1,189 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="14" y="28">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="84" y="70" text="&lt;- trigger a new random note"/>
+   <obj type="rand/uniform f trig" uuid="223873125a332e3b8a82795a3eef167993adb086" name="uniform_3" x="84" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/bipolar2unipolar" uuid="f6f63d71053d572d3c795f83c7ec11dfbbce82dd" name="bipolar2unipolar_1" x="196" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial p" uuid="44fd18b562e434b3230441681132dbeabb15cdc5" name="dial_1" x="322" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="main gain" x="504" y="112">
+      <params>
+         <frac32.u.map name="value" value="2.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="602" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="dac_1" x="742" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_2" x="252" y="182">
+      <params>
+         <frac32.u.map name="value" value="30.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="midi/intern/note" uuid="8181e221d6ee6b2c63e7dbdbf20f69de43c232bf" name="note_1" x="336" y="182">
+      <params/>
+      <attribs>
+         <spinner attributeName="channel" value="1"/>
+      </attribs>
+   </obj>
+   <patcher type="patch/patcher" uuid="4fb3269e-3731-47a9-a366-66a4e196c4d2" name="simple-synth" x="462" y="252">
+      <params>
+         <frac32.s.map name="envf:a" value="-17.0"/>
+         <frac32.s.map name="envf:d" value="19.0"/>
+         <frac32.u.map name="envf:s" value="21.5"/>
+         <frac32.s.map name="envf:r" value="17.0"/>
+      </params>
+      <attribs>
+         <combo attributeName="poly" selection="4"/>
+         <combo attributeName="midichannel" selection="inherit"/>
+         <combo attributeName="mididevice" selection="internal"/>
+         <combo attributeName="midiport" selection="omni"/>
+      </attribs>
+      <subpatch appVersion="1.0.12">
+         <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb1" x="56" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="434" y="98" text="Patch Settings (Cmd-I when no object is selected):"/>
+         <obj type="env/adsr" uuid="d1dbcc5fa6f87b98a6a91c87fd44acee5e690bac" name="envf" x="224" y="112">
+            <params>
+               <frac32.s.map name="a" onParent="true" value="0.0"/>
+               <frac32.s.map name="d" onParent="true" value="0.0"/>
+               <frac32.u.map name="s" onParent="true" value="0.0"/>
+               <frac32.s.map name="r" onParent="true" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <comment type="patch/comment" x="448" y="112" text="Subpatch Mode: Polyphonic"/>
+         <comment type="patch/comment" x="448" y="126" text="Toggle On &quot;Has MIDI Selector&quot; so see the MIDI options in the parent patch"/>
+         <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_1" x="378" y="322">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="gain/vca" uuid="a9f2dcd18043e2f47364e45cb8814f63c2a37c0d" name="vca_1" x="462" y="434">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="outlet_1" x="532" y="434">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="osc/saw" uuid="739ecc36017ef3249479b8f01716b8bbfba9abc1" name="saw_1" x="224" y="462">
+            <params>
+               <frac32.s.map name="pitch" value="0.0"/>
+            </params>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="keyb1" outlet="gate"/>
+               <dest obj="envf" inlet="gate"/>
+            </net>
+            <net>
+               <source obj="vca_1" outlet="o"/>
+               <dest obj="outlet_1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="note"/>
+               <dest obj="saw_1" inlet="pitch"/>
+            </net>
+            <net>
+               <source obj="saw_1" outlet="wave"/>
+               <dest obj="vca_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="envf" outlet="env"/>
+               <dest obj="*_1" inlet="a"/>
+            </net>
+            <net>
+               <source obj="keyb1" outlet="velocity"/>
+               <dest obj="*_1" inlet="b"/>
+            </net>
+            <net>
+               <source obj="*_1" outlet="result"/>
+               <dest obj="vca_1" inlet="v"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>polyphonic</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <HasMidiChannelSelector>true</HasMidiChannelSelector>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>4</NModulationSources>
+            <NModulationTargetsPerSource>4</NModulationTargetsPerSource>
+            <Author></Author>
+            <Saturate>false</Saturate>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>23</y>
+            <width>925</width>
+            <height>737</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <comment type="patch/comment" x="574" y="322" text="&lt;- choose internal to avoid triggering from external midi"/>
+   <nets>
+      <net>
+         <source obj="simple-synth" outlet="outlet_1"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="dac_1" inlet="left"/>
+         <dest obj="dac_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="main gain" outlet="out"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="note_1" inlet="trig"/>
+         <dest obj="uniform_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="uniform_3" outlet="rand"/>
+         <dest obj="bipolar2unipolar_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="bipolar2unipolar_1" outlet="o"/>
+         <dest obj="dial_1" inlet="in"/>
+         <dest obj="note_1" inlet="note"/>
+      </net>
+      <net>
+         <source obj="dial_2" outlet="out"/>
+         <dest obj="note_1" inlet="velo"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>288</x>
+      <y>40</y>
+      <width>924</width>
+      <height>743</height>
+   </windowPos>
+</patch-1.0>

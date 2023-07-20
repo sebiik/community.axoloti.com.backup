@@ -1,0 +1,142 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="phi/prob/%rand i" uuid="03fd92b7-8321-4175-a198-14ab3r3fe273" name="%rand_2" x="252" y="0">
+      <params>
+         <frac32.s.map name="prob" value="42.0"/>
+         <int32 name="value" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="const/i" uuid="e202f44b2df17ae0b3e663b98ea6b14c8ff00408" name="i_4" x="546" y="0">
+      <params/>
+      <attribs>
+         <spinner attributeName="value" value="337"/>
+      </attribs>
+   </obj>
+   <obj type="a773/quantizer" uuid="4720391c-8f92-430f-bfde-f9168fd622cf" name="quantizer_2" x="364" y="14">
+      <params>
+         <bin12 name="b12" value="2189"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="28" y="56">
+      <params>
+         <frac32.s.map name="pitch" value="7.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="3b9d6596-1eeb-408c-8fd9-e0f77326d8cb" name="note_1" x="616" y="56">
+      <params>
+         <int32 name="channel" value="1"/>
+      </params>
+      <attribs>
+         <combo attributeName="device" selection="din"/>
+      </attribs>
+      <object id="patch/object" uuid="3b9d6596-1eeb-408c-8fd9-e0f77326d8cb">
+         <sDescription>Midi note output</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_out.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="note" description="note (-64..63)"/>
+            <frac32.positive name="velo" description="velocity"/>
+            <bool32.rising name="trig" description="trigger"/>
+            <int32 name="channel" description="channel"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params>
+            <int32 name="channel" description="channel">
+               <MinValue i="1"/>
+               <MaxValue i="16"/>
+            </int32>
+         </params>
+         <attribs>
+            <combo name="device">
+               <MenuEntries>
+                  <string>din</string>
+                  <string>usb host port 1</string>
+                  <string>usb host port 2</string>
+                  <string>usb host port 3</string>
+                  <string>usb host port 4</string>
+                  <string>internal port 1</string>
+                  <string>internal port 2</string>
+                  <string>usb device port 1</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>MIDI_DEVICE_DIN, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 1</string>
+                  <string>MIDI_DEVICE_USB_HOST, 2</string>
+                  <string>MIDI_DEVICE_USB_HOST, 3</string>
+                  <string>MIDI_DEVICE_USB_HOST, 4</string>
+                  <string>MIDI_DEVICE_INTERNAL, 1</string>
+                  <string>MIDI_DEVICE_INTERNAL, 2</string>
+                  <string>MIDI_DEVICE_USB_DEVICE, 1</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+int lastnote;]]></code.declaration>
+         <code.init><![CDATA[ntrig=0;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig>0) && !ntrig) {
+lastnote = (64+(inlet_note>>21))&0x7F;
+MidiSend3((midi_device_t) attr_device, MIDI_NOTE_ON + (param_channel-1),lastnote,inlet_velo>>20);  ntrig=1;
+}
+if (!(inlet_trig>0) && ntrig) {MidiSend3((midi_device_t) attr_device, MIDI_NOTE_OFF + (param_channel-1),lastnote,__USAT(inlet_velo>>20,7)); ntrig=0;}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="gpio/in/analog" uuid="1c0c845ed2d7e06ae5f377ba13d9d09f4747ac87" name="analog_3" x="140" y="98">
+      <params/>
+      <attribs>
+         <combo attributeName="channel" selection="PC0 (ADC1_IN10)"/>
+      </attribs>
+   </obj>
+   <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_3" x="280" y="112">
+      <params>
+         <frac32.u.map name="amp" value="4.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_7" x="406" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="analog_3" outlet="out"/>
+         <dest obj="*c_3" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_3" outlet="out"/>
+         <dest obj="i_7" inlet="in"/>
+         <dest obj="note_1" inlet="channel"/>
+      </net>
+      <net>
+         <source obj="%rand_2" outlet="o"/>
+         <dest obj="quantizer_2" inlet="note"/>
+      </net>
+      <net>
+         <source obj="quantizer_2" outlet="note"/>
+         <dest obj="note_1" inlet="note"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="%rand_2" inlet="trig"/>
+         <dest obj="note_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="i_4" outlet="out"/>
+         <dest obj="note_1" inlet="velo"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-1054</x>
+      <y>121</y>
+      <width>903</width>
+      <height>400</height>
+   </windowPos>
+</patch-1.0>

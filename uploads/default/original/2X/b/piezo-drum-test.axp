@@ -1,0 +1,151 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="sample0" x="112" y="14">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="131072"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="308" y="28">
+      <params>
+         <int32 name="maximum" value="5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="b94a9b8e9adcb7d18868c0ee808a9b211b65578d" name="+_1" x="448" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_1" x="518" y="28">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="602" y="28">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="sample0"/>
+      </attribs>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="546" y="70">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="gpio/in/button1" uuid="2f4fbacf3969a3a1ff9d23899566430051cb01f" name="button1_1" x="140" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="392" y="112">
+      <params>
+         <int32 name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="string/indexed" uuid="a28740deef67c39ffc65bd0f341a47c9b196f46" name="indexed_1" x="602" y="154">
+      <params/>
+      <attribs>
+         <table attributeName="prefix" table=""/>
+         <table attributeName="suffix" table=".raw"/>
+      </attribs>
+   </obj>
+   <obj type="gpio/in/button2" uuid="e844813dc6e022223cd10d8beb29b62732231867" name="button2_1" x="224" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="5f1ad958-e4d9-43da-8e7a-10b2a944d873" name="voice" x="350" y="210">
+      <params/>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="table/play" uuid="53c499b6f6fbdcc25b48906393123ca10030ed45" name="play_2" x="308" y="84">
+            <params/>
+            <attribs>
+               <objref attributeName="table" obj="../sample0"/>
+            </attribs>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="inlet_1" x="126" y="98">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet a" uuid="abd8c5fd3b0524a6630f65cad6dc27f6c58e2a3e" name="OUT" x="490" y="126">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="inlet_1" outlet="inlet"/>
+               <dest obj="play_2" inlet="start"/>
+            </net>
+            <net>
+               <source obj="play_2" outlet="wave"/>
+               <dest obj="OUT" inlet="outlet"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>normal</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <NPresets>8</NPresets>
+            <NPresetEntries>32</NPresetEntries>
+            <NModulationSources>8</NModulationSources>
+            <NModulationTargetsPerSource>8</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>91</y>
+            <width>1366</width>
+            <height>665</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="462" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="indexed_1" outlet="out"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="change_1" outlet="trig"/>
+         <dest obj="load_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="indexed_1" inlet="index"/>
+         <dest obj="change_1" inlet="in"/>
+         <dest obj="i_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="button1_1" outlet="out"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="button2_1" outlet="out"/>
+         <dest obj="voice" inlet="inlet_1"/>
+      </net>
+      <net>
+         <source obj="voice" outlet="OUT"/>
+         <dest obj="out_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>23</y>
+      <width>1366</width>
+      <height>741</height>
+   </windowPos>
+</patch-1.0>
