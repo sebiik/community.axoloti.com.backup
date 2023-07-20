@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>I2c connectivity - could you clarify</title>
+    <link>http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561</link>
+    <description>Hi guys,
+
+First of all apologies if this question has been answered before, I tried searching the forum but didn&#39;t find a clear answer. I am new to axoloti but I am experienced with electronics, Pure Data and C coding, Arduino etc. so this questions is more about specific Axoloti implementation.
+
+I am connecting 8 buttons and 8 LEDs to axoloti via i2c, using the MCP23017-E/SP chip. I have used this setup plenty of times with arduino and I am confident about the hardware side of things.
+
+I am having difficulty figuring out how to setup Axoloti on the software side. I added the i2c config object and I hooked up the chip to PB8 and PB9 pins. I&#39;d like to get 8 boolean outputs (from the switches) and 8 boolean inputs (for the LEDs). What script code should I use to communicate with the chip? Basically, how to setup GPA ports to read and GPB ports to write and how to read/send data between them and axoloti?
+
+I am also using two MCP3208 chips to read 16 pots and the setup was quite straightforward, I just modified the example code from the forum. So if you could point me in the right direction regarding the i2c communication with the MCP23017 that would be fantastic.
+
+Thank you.</description>
+    
+    <lastBuildDate>Tue, 02 Oct 2018 16:52:30 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>I2c connectivity - could you clarify</title>
+        <dc:creator><![CDATA[@soren1 soren]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/soren1">@soren1</a> wrote:</p>
+          <blockquote>
+              <p><a class="mention" href="/u/pawelgrudzien">@pawelgrudzien</a>  ondering if you managed to get the mcp20317 working with the axoloti? Am considering buying an axolotiy, but i need to know if I can get the mcp hooked up or not. otherwise I won't have enough pins for my project <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/4</link>
+        <pubDate>Tue, 02 Oct 2018 16:52:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2561-4</guid>
+        <source url="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561.rss">I2c connectivity - could you clarify</source>
+      </item>
+      <item>
+        <title>I2c connectivity - could you clarify</title>
+        <dc:creator><![CDATA[@pawelgrudzien]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/pawelgrudzien">@pawelgrudzien</a> wrote:</p>
+          <blockquote>
+              <p>Thank you, this clarifies things. If I understand correctly, I have to implement the specific protocol my I2C chip is using.</p>
+
+<p>On Arduino there is a library called Wire which works with MCP23017 out of the box. I might port specific functions to my script (configuring the pull up on specific pin, setting pins as IN/OUT - there are a few more functions available). I will update this thread if I get it working.</p>
+
+<p>I think it will be worthwhile getting the MCP23017 working with Axoloti as it is a fantastic chip - it has 16 individually configurable IN/OUT pins with built in pull up resistor (configurable per pin as well). More than one can be used with the same 2 pins on Axoloti. As it is I2C it can be used for less time demanding functions, like reading buttons, toggle switches, controlling LEDs etc. That frees up the SPI bus for reading pots and similar.</p>
+
+<p>Thank you again for your help.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/3</link>
+        <pubDate>Wed, 23 Nov 2016 16:14:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2561-3</guid>
+        <source url="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561.rss">I2c connectivity - could you clarify</source>
+      </item>
+      <item>
+        <title>I2c connectivity - could you clarify</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>I have no code available for the MCP23017, but here's a quick outline:</p>
+
+<p>The I2C communication needs to happen outside the audio processing workload, otherwise buffer underruns will occur cause by waiting time for communication to complete (or fail), to do this we need a "thread". The "script/script2" object shows how to do this, but does not provide the inlets/outlets you want for this application, so we need to customize it.</p>
+
+<ul>
+<li>create a "script/script2" object in a patch, and in the object popup menu, select "embed as patch/object"</li>
+<li>in the object popup menu of the resulting "patch/object", select "edit". </li>
+<li>in the <em>inlets</em> tab, create 8 inlets of the "bool32" type (in1, in2,...in8)</li>
+<li>in the <em>outlets</em> tab, create 8 outlets of the "bool32" type (out1, out2,...out8)</li>
+<li>in the <em>local data</em> tab, replace the declaration of in1, in2, out1, out2 with 8 booleans for input and 8 booleans for output<br><code>bool in1, in2, in3, in4, in5, in6, in7, in8;<br>bool out1, out2, out3, out4, out5, out6, out7, out8;</code><br>leave the rest of the <em>local data</em> code untouched, this sets up a thread</li>
+<li>in the <em>k-rate</em> tab, all inlet values need to be copied to the local data, and all output local data needs to be copied to the respective outlets:<br><code>outlet_out1 = this-&gt;out1;</code><br><code>this-&gt;in1 = inlet_in1;</code><br>etc.</li>
+<li>close the object editor, you'll see the inlets/outlets in the "patch/object"</li>
+<li>in the object, click the *script edit" button, a text editor window pops open</li>
+<li>in that script you'll need something like:<br><code>void setup(void){<br>}<br>void loop(void){<br>}<br></code>arduino style...</li>
+<li>For interacting with I2C, use the Chibios I2C Driver : <a href="http://chibios.sourceforge.net/html/group___i2_c.html">documentation</a>, use <code>&amp;I2CD1</code> for I2CDriver. Most relevant calls are <code>i2cMasterTransmitTimeout()</code> and <code>i2cMasterReceiveTimeout()</code>. <br>I do recommend to use a sensible timeout value (can be obtained by the macro <code>MS2ST(milliseconds)</code>, and avoid making a loop inside the <code>void loop(void)...</code> code that does not terminate unconditionally, otherwise you may get a "zombie" thread.<br>To configure the I2C driver and GPIO pins, you can use the <code>gpio/i2c/config</code> object. </li>
+<li>GPIOB,8 is SCL, GPIOB,9 is SDA. Changing the I/O pins to different ones will not work.</li>
+<li>
+<strong>important:</strong> the I2C driver uses DMA (direct memory access) to relieve the processor from copying bytes, but this only works for data that is in suitable memory, which can be declared like this:<br><code>static uint8_t txbuf[8] __attribute__ ((section (".sram2")));<br>static uint8_t rxbuf[8] __attribute__ ((section (".sram2")));</code>
+</li>
+<li>for debugging, the LogTextMessage() call is useful, works like printf(), but too intensive logging can disrupt communications.</li>
+</ul>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/2</link>
+        <pubDate>Wed, 23 Nov 2016 12:53:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2561-2</guid>
+        <source url="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561.rss">I2c connectivity - could you clarify</source>
+      </item>
+      <item>
+        <title>I2c connectivity - could you clarify</title>
+        <dc:creator><![CDATA[@pawelgrudzien]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/pawelgrudzien">@pawelgrudzien</a> wrote:</p>
+          <blockquote>
+              <p>Hi guys,</p>
+
+<p>First of all apologies if this question has been answered before, I tried searching the forum but didn't find a clear answer. I am new to axoloti but I am experienced with electronics, Pure Data and C coding, Arduino etc. so this questions is more about specific Axoloti implementation.</p>
+
+<p>I am connecting 8 buttons and 8 LEDs to axoloti via i2c, using the MCP23017-E/SP chip. I have used this setup plenty of times with arduino and I am confident about the hardware side of things.</p>
+
+<p>I am having difficulty figuring out how to setup Axoloti on the software side. I added the i2c config object and I hooked up the chip to PB8 and PB9 pins. I'd like to get 8 boolean outputs (from the switches) and 8 boolean inputs (for the LEDs). What script code should I use to communicate with the chip? Basically, how to setup GPA ports to read and GPB ports to write and how to read/send data between them and axoloti?</p>
+
+<p>I am also using two MCP3208 chips to read 16 pots and the setup was quite straightforward, I just modified the example code from the forum. So if you could point me in the right direction regarding the i2c communication with the MCP23017 that would be fantastic.</p>
+
+<p>Thank you.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561/1</link>
+        <pubDate>Wed, 23 Nov 2016 11:28:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2561-1</guid>
+        <source url="http://community.axoloti.com/t/i2c-connectivity-could-you-clarify/2561.rss">I2c connectivity - could you clarify</source>
+      </item>
+  </channel>
+</rss>

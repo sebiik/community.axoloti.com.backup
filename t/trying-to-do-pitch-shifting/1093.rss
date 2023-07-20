@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Trying to do pitch shifting</title>
+    <link>http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093</link>
+    <description>First attempt at doing a pitch shifting feedback delay, somewhere between MakeNoise Echophon and my old Boss PS-2 pedal 
+
+https://www.youtube.com/watch?v=lhx-O6MQIug
+
+Throwing random bleeps and samples from The Archers into it...</description>
+    
+    <lastBuildDate>Sun, 28 Feb 2016 00:10:49 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Trying to do pitch shifting</title>
+        <dc:creator><![CDATA[@workerparasite303]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/workerparasite303">@workerparasite303</a> wrote:</p>
+          <blockquote>
+              <p>thanks for sharing this...i took this apart and put it in my own patch (just changed it to take my MIDI input) in order to try and learn more about delays in the Axoloti...</p>
+
+<p>one question regarding your patch, though: there's an conv/interp object w/o any signals leaving it - </p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/f/f29299bc1c9873eb640230eeba12aee7537eebfc.png" width="175" height="121"></p>
+
+<p>do you remember what your thinking was behind this? no worries if not, lovely patch btw!</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/3/3c4b1c47a7b56c911ebd0c17c5af5bd2be10a5c6.axp">22716_newpatch.axp</a> (11.7 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/4</link>
+        <pubDate>Sun, 28 Feb 2016 00:10:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1093-4</guid>
+        <source url="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093.rss">Trying to do pitch shifting</source>
+      </item>
+      <item>
+        <title>Trying to do pitch shifting</title>
+        <dc:creator><![CDATA[@Tombola Tom Whitwell]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tombola">@Tombola</a> wrote:</p>
+          <blockquote>
+              <p>It's very crude, did a clone of the delay playback module and added a multiplier to the read position. </p>
+
+<p>You'll need to tweak the patch to point at an audio file on your SD card + it's rather optimised for the buttons/pots on my shield. </p>
+
+<pre><code>`&lt;objdefs&gt;
+   &lt;obj.normal id="read interp" uuid="e3d8b8823ab551c588659520bf6cc25c630466c7" sha="6fda3a4b04cc8fc49e63240c2fff115695ec7a7"&gt;
+      &lt;upgradeSha&gt;662b8465d8501bb6fed30d7d616d0656a03f59fd&lt;/upgradeSha&gt;
+      &lt;sDescription&gt;delay read, linear interpolated&lt;/sDescription&gt;
+      &lt;author&gt;Johannes Taelman&lt;/author&gt;
+      &lt;license&gt;BSD&lt;/license&gt;
+      &lt;helpPatch&gt;delay.axh&lt;/helpPatch&gt;
+      &lt;inlets&gt;
+         &lt;frac32buffer name="time" description="delay time (fraction of total delayline size)"/&gt;
+                  &lt;int32 name="speed" description="speed"/&gt;
+
+      &lt;/inlets&gt;
+      &lt;outlets&gt;
+         &lt;frac32buffer name="out" description="wave"/&gt;
+      &lt;/outlets&gt;
+      &lt;displays/&gt;
+      &lt;params&gt;
+         &lt;frac32.u.map name="time" noLabel="true"/&gt;
+      &lt;/params&gt;
+      &lt;attribs&gt;
+         &lt;objref name="delayname"/&gt;
+      &lt;/attribs&gt;
+      &lt;code.srate&gt;&lt;![CDATA[      
+            int8_t tmp_multiplier = inlet_speed + 68;
+            uint32_t tmp_position = (attr_delayname.writepos * tmp_multiplier) /100;
+
+      uint32_t tmp_d =  __USAT(param_time + inlet_time,27);
+      uint32_t tmp_di = tmp_position - (tmp_d&gt;&gt;(27-attr_delayname.LENGTHPOW)) - BUFSIZE + buffer_index -1;
+      uint32_t tmp_w1 = (tmp_d&lt;&lt;(attr_delayname.LENGTHPOW+3)) &amp; 0x3FFFFFFF;
+      uint32_t tmp_w2 = (1&lt;&lt;30) - tmp_w1;
+      int32_t tmp_a1 = attr_delayname.array[tmp_di&amp;attr_delayname.LENGTHMASK]&lt;&lt;16;
+      int32_t tmp_a2 = attr_delayname.array[(tmp_di+1)&amp;attr_delayname.LENGTHMASK]&lt;&lt;16;
+      int32_t tmp_r = ___SMMUL(tmp_a1,tmp_w1);
+      tmp_r = ___SMMLA(tmp_a2,tmp_w2,tmp_r);
+      outlet_out= tmp_r;
+]]&gt;&lt;/code.srate&gt;
+   &lt;/obj.normal&gt;
+&lt;/objdefs&gt;`</code></pre>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/d/d970acb144e6684c4dbea442c4731e94dbb332f3.axp">smooth_delay.axp</a> (17.4 KB)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/4/401937236266ebac7c447a02ff2ee3f2286466f6.axo">read interp_slow.axo</a> (1.6 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/3</link>
+        <pubDate>Sun, 21 Feb 2016 14:17:40 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1093-3</guid>
+        <source url="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093.rss">Trying to do pitch shifting</source>
+      </item>
+      <item>
+        <title>Trying to do pitch shifting</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>nice.... is this based on the add overlap method, and did you manage to tune the delay?</p>
+
+<p>I've been looking into tuning the pitch shifting, but not had time to due to work I've been doing on 1.0.8,  so id love to see the patch your using, if your willing to share <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/2</link>
+        <pubDate>Sun, 21 Feb 2016 14:09:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1093-2</guid>
+        <source url="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093.rss">Trying to do pitch shifting</source>
+      </item>
+      <item>
+        <title>Trying to do pitch shifting</title>
+        <dc:creator><![CDATA[@Tombola Tom Whitwell]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tombola">@Tombola</a> wrote:</p>
+          <blockquote>
+              <p>First attempt at doing a pitch shifting feedback delay, somewhere between MakeNoise Echophon and my old Boss PS-2 pedal </p>
+
+<div class="lazyYT" data-youtube-id="lhx-O6MQIug" data-youtube-title="Aloxloti delay test" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+
+<p>Throwing random bleeps and samples from The Archers into it...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093/1</link>
+        <pubDate>Sun, 21 Feb 2016 11:12:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-1093-1</guid>
+        <source url="http://community.axoloti.com/t/trying-to-do-pitch-shifting/1093.rss">Trying to do pitch shifting</source>
+      </item>
+  </channel>
+</rss>

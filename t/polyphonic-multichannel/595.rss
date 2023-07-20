@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Polyphonic Multichannel</title>
+    <link>http://community.axoloti.com/t/polyphonic-multichannel/595</link>
+    <description>Some head scratching around how to, achieve Polyphonic Multichannel, could not found any reference, but got it in the end
+
+&lt;img src=&quot;/uploads/default/original/1X/c6d1f32d466ba814319e65fa9814db0ae111ea7f.png&quot; width=&quot;404&quot; height=&quot;83&quot;&gt;
+
+There is also a typo ;-) (attribute?)  
+
+So to work: subpatch  set to (View-Settings) Polyphonic Multichannel - tick - Has MIDI channel attribute to get this
+&lt;img src=&quot;/uploads/default/original/1X/3a1f7b12b147e249bf34a3152936d19b2a9bfd19.png&quot; width=&quot;115&quot; height=&quot;103&quot;&gt;
+
+if not, its only Polyphonic&lt;img src=&quot;/uploads/default/original/1X/303be41b4f95f66606c36b9531a8085531f8f6a9.png&quot; width=&quot;120&quot; height=&quot;88&quot;&gt;
+
+nice;-)
+
+Haken Continuum still has no mpe specs; going thru EigenD?… next step</description>
+    
+    <lastBuildDate>Sun, 10 Apr 2016 13:14:34 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/polyphonic-multichannel/595.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="15" data-topic="595"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/alexk/40/45_1.png" class="avatar">alexk:</div>
+<blockquote><p>I think i can just do a mix of velocity and pressure via patch..i dont know yet, but will figure it out!</p></blockquote></aside>
+
+<p>yeah, that really patch/sound design<br>please share what you come up with, I've not had alot of time recently for this, but do intend to do some patch design in this area... axoloti is fairly unique in this area, and I think we could create some really fantastic patches for mpe controllers.</p>
+
+<p>btw, another tip, Ive found mpe controllers vary quite a bit in their scaling/curves of Y and Z... this is actually quite fun, as patches react differently on say the eigenharp/soundplane/continuum  ... but you might want to allow some tuning on these parameters if you want to share them</p>
+
+<p>anyway, have fun</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/16</link>
+        <pubDate>Sun, 10 Apr 2016 13:14:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-16</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@alexk alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alexk">@alexk</a> wrote:</p>
+          <blockquote>
+              <p>I think i can just do a mix of velocity and pressure via patch..i dont know yet, but will figure it out!<br>thanks.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/15</link>
+        <pubDate>Sun, 10 Apr 2016 13:04:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-15</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ok, velocities are now fixed in 1.0.8 and 1.0.9 (sync libraries to pick up) </p>
+
+<p>pressure, this is probably a corner case of MPE 'standard'<br>how I handle pressure is...</p>
+
+<p>I only take pressure from a controller that is explicitly sent as channel pressure (per mpe spec)<br>one thing i do however do is set pressure to zero on note off, even it its not sent.</p>
+
+<p>as I believe, personally, if its a note off, then you have removed your finger, so you can't be applying pressure BUT i know some controllers don't send this (a bug in my opinion) ... and this makes patching more difficult (i.e you have to work with both gate and pressure, rather than sometimes just rely on pressure.</p>
+
+<p>so what this means...<br>is although I dont set pressure explicitly to zero at note on, it will be zero until the first pressure is received.</p>
+
+<p>why not just use the note on data 2 value for pressure.... because velocity is NOT pressure, they are two different metrics and as such are unrelated... i.e. you should be able to strike a note fast (velocity = 127) but it still be a light pressure (say 30) <br>velocity should be calculated as dP/dT , for a defined set of samples... where pressure is P</p>
+
+<p>I also assume (/expect) a controller not to send pressure before the note_on, as you would not know what pitch to apply (if relevant e.g. because your activating a oscillator attached to a VCA controlled directly by pressure) </p>
+
+<p>soo... it could be the linnstrument, may have different assumptions (and unfortunately at the moment with the MPE spec, thats pretty much all it is... its still quite loose in some areas)  OR... it could be as you say, something to do with the messages not getting thru. (the note_on should be followed almost immediately by the first channel message in my opinion)</p>
+
+<p>yeah not much I can do about the USB thing... if its an interrupt storm then its really in johannes area, and given neither of us have a linnstrument, I'm not sure we can do much about it.</p>
+
+<p>what i will point out though, is for me, the eigenharp and soundplane both work, it I host them on the a PC, and then send them to axoloti that way.<br>(my current project is to change this, so that they are hosted on a Beaglebone black/RaspPI2, so again the data will come via the device port, rather than being hosted)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/14</link>
+        <pubDate>Sun, 10 Apr 2016 13:02:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-14</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@alexk alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alexk">@alexk</a> wrote:</p>
+          <blockquote>
+              <p>man this is so cool <img src="/images/emoji/emoji_one/laughing.png?v=0" title=":laughing:" class="emoji" alt=":laughing:"></p>
+
+<p>i do have some issues with the way pressure works (striking keys seems to communicate that there is 0 pressure). might be the code might be the speed of the messages..not sure.</p>
+
+<p>I am using DIN midi btw..not sure whatsup with usb acting funny on the axo but not really important right now in my adventure.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/13</link>
+        <pubDate>Sun, 10 Apr 2016 11:52:22 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-13</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="11" data-topic="595"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/alexk/40/45_1.png" class="avatar">alexk:</div>
+<blockquote><p>I just looked at KEYB.axo and saw that it is a tad different with _velo and _rvelo compared to MPE.axo</p></blockquote></aside>
+
+<p>ah, sorry, the code was the same original, and id assumed it had stayed that way, could be a fix was applied to keyb that didnt make it to mpe, I'll take a look... </p>
+
+<p>(nice thing is with the libraries (1.0.8/9) , I can now push changes to fix objects mid release cycle <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> )</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/12</link>
+        <pubDate>Sun, 10 Apr 2016 11:35:57 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-12</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@alexk alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alexk">@alexk</a> wrote:</p>
+          <blockquote>
+              <p>Hi Mark! Just realized who you are <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> . Anyway, I just looked at KEYB.axo and saw that it is a tad different with _velo and _rvelo compared to MPE.axo . I've changed the values for the outlets to be defined in the krate and it seems to work fine over here now - double checked and velocity wasnt working correctly with the linnstrument with MPE.axo when compared to the version that had these adjustments.<br>So in the midihandler if statement, _velo and _revelo are just <code>data2</code> now, and in the code.krate section i put the <code>data2&lt;&lt;20</code> part.</p>
+
+<p>hopefully pressure still works hehe, will check.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/11</link>
+        <pubDate>Sun, 10 Apr 2016 11:26:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-11</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@alexk alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alexk">@alexk</a> wrote:</p>
+          <blockquote>
+              <p>thanks for the response. was just playing with pitch and the gate connected and that was already pretty fun. more tests tomorrow!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/10</link>
+        <pubDate>Wed, 06 Apr 2016 22:53:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-10</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>sure, as far as i know velocity is working with the mpe objects...<br>I just happen to code up the mpe synths using pressure as gain, as its my preferred approach, I like to play the envelope <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<p>someone else has issues with the linnstrument and the usb, but unfortunately, there is just no way for me to test it... so I cant really think why it would be an issue. <br>(as far as I could tell, the usb host port was just not getting complete messages) </p>
+
+<p>perhaps axoloti is not able to process the usb messages fast enough, but thats a a big assumption.  I think <a class="mention" href="/users/johannes">@johannes</a> was talking about a possible interrupt storm, but Ive no idea how to prove this, or fix it.</p>
+
+<p>the odd thing about all of this, is when I connect my soundplane and eigenharp to the computer and send the data via the device port, i don't have any issues with data rate (I'm sending data at about 500hz). <br>so it does seem like this is an issue that is specific to the usb host port </p>
+
+<aside class="quote" data-post="8" data-topic="595"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/alexk/40/45_1.png" class="avatar">alexk:</div>
+<blockquote><p>if i strike keys, then you get some glitching with the pressure opening up the envelope - I assume because pressure is calculated over longer time than velocity.</p></blockquote></aside>
+
+<p>its more likely, that the quantity of messages over the DIN is just too much, so its possibly jumping between values. over DIN you would likely have to throttle the data rate on the linnstrument end.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/9</link>
+        <pubDate>Wed, 06 Apr 2016 21:54:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-9</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@alexk alex]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/alexk">@alexk</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for taking the time with mpe <a class="mention" href="/users/thetechnobear">@thetechnobear</a> - just got into it myself an facing some challenges with the linnstrument.</p>
+
+<p>Is velocity not recognized by the axoloti object? I still would prefer to strike the keys to open an adsr and have the velocity set the gain of the sound and then perhaps use the pressure for some vibrato or something.<br>I think there is some issues with the USB datarate on the linn and axo, so I am just using the DIN midi and that might be too slow for pressure heh - if i strike keys, then you get some glitching with the pressure opening up the envelope - I assume because pressure is calculated over longer time than velocity.<br>As for the rest of the stuff, it seems to work OK.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/8</link>
+        <pubDate>Wed, 06 Apr 2016 21:13:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-8</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@keyman Antonio Machado]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/keyman">@keyman</a> wrote:</p>
+          <blockquote>
+              <p>Had this written but somehow did not press send…</p>
+
+<p>Yeah have discoverd that also even cpu usage, and what about  modulation targets and sources??.</p>
+
+<p>Presets are very handy (remember I have this on G2 <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> with some patches just two with others more, maybe 4 is average. "User" has just one more thing to "gamble" with.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/7</link>
+        <pubDate>Thu, 29 Oct 2015 00:32:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-7</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Cool</p>
+
+<p>No removing presets is not related </p>
+
+<p>However, I'm now doing this out of habit, as it can significantly reduce memory use in larger patches, and it's easier to remember to do when you create the patch than going through the all later. </p>
+
+<p>I even think we should have this as the default, so you have to explicitly size the presets when you need them. But not sure <a class="mention" href="/users/johannes">@johannes</a> will agree as potentially the user will forget. <br>Ideally the UI would be dynamic , such that the user could easily see if (and how many) presets were available.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/6</link>
+        <pubDate>Tue, 27 Oct 2015 10:10:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-6</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@keyman Antonio Machado]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/keyman">@keyman</a> wrote:</p>
+          <blockquote>
+              <p>What else to add; works nicely <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>There is lots to grasp (and this is leaving EigenD/mpe out of equation) this one more example is very welcome.</p>
+
+<p>Notice you removed all other options ?<br>Number of presets/Entries per preset … etc. unrelated</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/5</link>
+        <pubDate>Tue, 27 Oct 2015 09:58:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-5</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@keyman Antonio Machado]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/keyman">@keyman</a> wrote:</p>
+          <blockquote>
+              <p>Great <a class="mention" href="/users/thetechnobear">@thetechnobear</a> !! Will dive in later tonight (all week at the Theathre new show on the weekend)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/4</link>
+        <pubDate>Mon, 26 Oct 2015 13:37:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-4</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ok, just check, and its working as expected, i.e. you do not need attribute.</p>
+
+<p>here is a simple working example <br>(you'll note I use patch/patcher so I can embed the voice in the patch... makes editing much easier... but it works identically to subpatches... i.e. this is not the reason it works)</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/aec225fcc38da1ffcaa4fd7e9aed37b60ca7a3eb" href="//community.axoloti.com/uploads/default/original/1X/aec225fcc38da1ffcaa4fd7e9aed37b60ca7a3eb.png" class="lightbox" title="Screen Shot 2015-10-26 at 13.04.53.png"><img src="//community.axoloti.com/uploads/default/optimized/1X/aec225fcc38da1ffcaa4fd7e9aed37b60ca7a3eb_1_663x500.png" width="663" height="500"><div class="meta">
+<span class="filename">Screen Shot 2015-10-26 at 13.04.53.png</span><span class="informations">1426x1075 804 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/5111303f1a8743197af5f66dbb216e2eaa81f175.axp">vpcexample.axp</a> (7.4 KB)</p>
+
+<p>notes:</p>
+
+<ul>
+<li>this is voice per channel (note mpe, which has explicit support in midi/ctrl/mpe)  (see library/demos/synth/mpe/simple for an example of mpe)</li>
+<li>uses MW (CC 1) for timbre/Y , PB for X and channel pressure for Z ... this can easily be changed</li>
+<li>pitchbend range is defaulted to 48, but you can increase up to 64, <br>above 64 you have to take a slightly different approach due to dials only going to 64.  (you would also want to probably use the continuums hi-res X cc, to avoid stepping)</li>
+</ul>
+
+<p>(oops, screenshot shows voice named patcher_1, because i forgot to reopen it after renaming it to voice in the main patch, sorry for any confusion)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/3</link>
+        <pubDate>Mon, 26 Oct 2015 12:02:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-3</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>Ok, so this is voice per channel ( poly multichannel)</p>
+
+<p>If you don't have midi attribute checked it should be 1-16 ( actually based off midi channel in patch settings)</p>
+
+<p>Is it not working like this?<br>(I've not checked yet)</p>
+
+<p>MPE is enabled by using polyphonic expression.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/2</link>
+        <pubDate>Mon, 26 Oct 2015 10:04:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-2</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+      <item>
+        <title>Polyphonic Multichannel</title>
+        <dc:creator><![CDATA[@keyman Antonio Machado]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/keyman">@keyman</a> wrote:</p>
+          <blockquote>
+              <p>Some head scratching around how to, achieve Polyphonic Multichannel, could not found any reference, but got it in the end</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/1X/c6d1f32d466ba814319e65fa9814db0ae111ea7f.png" width="404" height="83"></p>
+
+<p>There is also a typo <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"> (attribute?)  </p>
+
+<p>So to work: subpatch  set to (View-Settings) Polyphonic Multichannel - tick - Has MIDI channel attribute to get this<br><img src="//community.axoloti.com/uploads/default/original/1X/3a1f7b12b147e249bf34a3152936d19b2a9bfd19.png" width="115" height="103"></p>
+
+<p>if not, its only Polyphonic<img src="//community.axoloti.com/uploads/default/original/1X/303be41b4f95f66606c36b9531a8085531f8f6a9.png" width="120" height="88"></p>
+
+<p>nice;-)</p>
+
+<p>Haken Continuum still has no mpe specs; going thru EigenD?… next step</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyphonic-multichannel/595/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyphonic-multichannel/595/1</link>
+        <pubDate>Mon, 26 Oct 2015 04:11:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-595-1</guid>
+        <source url="http://community.axoloti.com/t/polyphonic-multichannel/595.rss">Polyphonic Multichannel</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>PWM Based modulation from a microcontroller</title>
+    <link>http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196</link>
+    <description>I can&#39;t find anything online that is related to this, figured I would ask here first. In fact, as I&#39;m typing this out I&#39;m realizing that this is probably quite common in the eurorack format  (something I&#39;m unfamiliar with).
+
+In an attempt to offload resources from the Axoloti, I had the idea to send LFOs and envelopes to the Axoloti&#39;s analog inputs from the microcontroller I&#39;ve been using to control the Axoloti by MIDI. Since the ADC receives higher resolution than the 7 bit MIDI signals, is it possible to send information from the PWM out of a Teensy into the analog ins of the Axoloti? 
+
+If so, it means that I would have to make the Teensy the MIDI handler, so that the note messages are sent at the same time as the envelope. Alternately, I could use the Axo as a MIDI thru to send messages from the Axo MIDI inputs to the Teensy, then back out to the Axoloti, but I&#39;m worried about latency, unless the latency would be negligible. 
+
+Does anybody have any experience doing something similar? These are all things that I can figure out by myself, but I figured I would ask here first in case it saves a few hours of trial and error! Thanks!</description>
+    
+    <lastBuildDate>Mon, 17 May 2021 16:30:56 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>PWM Based modulation from a microcontroller</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>Oh that's really good to know. Showing my lack of knowledge here, but does the Axoloti's DAC route to the analog out pins? If that's the case, I have the Teensy audio shield as well, but I'll have to look and see if using pins on the audio shield for modulation means sacrificing the audio outs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/5</link>
+        <pubDate>Mon, 17 May 2021 16:30:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7196-5</guid>
+        <source url="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196.rss">PWM Based modulation from a microcontroller</source>
+      </item>
+      <item>
+        <title>PWM Based modulation from a microcontroller</title>
+        <dc:creator><![CDATA[@borututuforte]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/borututuforte">@borututuforte</a> wrote:</p>
+          <blockquote>
+              <p>The Axoloti GPIO pin outputs the LFO as a voltage, not as a PWM signal, so no lowpass filter is required. The signal received from the Teensys PWM output filtered by the simple rc circuit will probably give you much worse results, but it may also be interesting and good enough for modulation.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/4</link>
+        <pubDate>Mon, 17 May 2021 11:59:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7196-4</guid>
+        <source url="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196.rss">PWM Based modulation from a microcontroller</source>
+      </item>
+      <item>
+        <title>PWM Based modulation from a microcontroller</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>Little update on this, in case anybody finds it useful. </p>
+
+<p>Tonight was the first real effort to receive modulation from a microcontroller. The cool part is how easy it was because the microcontroller sending the modulation to the Axoloti, was the Axoloti itself! </p>
+
+<p>I've been told that a microcontroller's analog outs can be wired back into their analog ins directly, so the schematic for this was literally PA4 -&gt; PC0. </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/0b5ae624bbd07d997445f6e5222a73b67988f725" href="//community.axoloti.com/uploads/default/original/2X/0/0b5ae624bbd07d997445f6e5222a73b67988f725.jpg" class="lightbox" title="20210516_225757.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/0/0b5ae624bbd07d997445f6e5222a73b67988f725_1_690x387.jpg" width="690" height="387"><div class="meta">
+<span class="filename">20210516_225757.jpg</span><span class="informations">2851x1603 2.04 MB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>The PWM documentation from the Teensy page in my previous post above recommends using a hardware low-pass filter to smooth some of the 'stepping' from the digital signal, which I tried at first using a 1uf capacitor and 1k resistor. It ended up slowing (softening?) the signal quite significantly. Then I tried it without using the low-pass filter at all, and the results exceeded expectations. </p>
+
+<p>A sine wave LFO was used to individually modulate the volume and pitch of the oscillator in the patch pictured here. You can see a slight inconsistency from the received signal on the right, but there were no audible artifacts. The modulation sounded the same as if the control came from the LFO itself. Perhaps if I used something other than an MI CSAW the minutiae would be more detectable <img src="//community.axoloti.com/images/emoji/twitter/sweat_smile.png?v=5" title=":sweat_smile:" class="emoji" alt=":sweat_smile:"></p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/1551501a3a04064392e5a4ec2887ff1f8dc83a0a" href="//community.axoloti.com/uploads/default/original/2X/1/1551501a3a04064392e5a4ec2887ff1f8dc83a0a.png" class="lightbox" title="Screen Shot 2021-05-16 at 10.57.12 PM.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/1/1551501a3a04064392e5a4ec2887ff1f8dc83a0a_1_690x332.png" width="690" height="332"><div class="meta">
+<span class="filename">Screen Shot 2021-05-16 at 10.57.12 PM.png</span><span class="informations">1459x703 41.4 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>Hopefully the next update will be modulation sent from the Teensy to the Axoloti, and hopefully that will be sooner than a few months from now!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/3</link>
+        <pubDate>Mon, 17 May 2021 03:12:42 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7196-3</guid>
+        <source url="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196.rss">PWM Based modulation from a microcontroller</source>
+      </item>
+      <item>
+        <title>PWM Based modulation from a microcontroller</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>Found it.</p>
+
+<p>Seems like just about every time I have a question about a digital-to-analog solution or vice versa, there's a page on the Teensy site dedicated entirely, and exhaustively, to that one specific thing. Here it is if anybody is interested.</p>
+
+<p>Turns out that it's entirely possible, but it requires a small additional low pass filter circuit in order to work. </p>
+
+<p><a href="https://www.pjrc.com/teensy/td_pulse.html" class="onebox" target="_blank" rel="nofollow noopener">https://www.pjrc.com/teensy/td_pulse.html</a></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/2</link>
+        <pubDate>Tue, 09 Mar 2021 20:16:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7196-2</guid>
+        <source url="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196.rss">PWM Based modulation from a microcontroller</source>
+      </item>
+      <item>
+        <title>PWM Based modulation from a microcontroller</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>I can't find anything online that is related to this, figured I would ask here first. In fact, as I'm typing this out I'm realizing that this is probably quite common in the eurorack format  (something I'm unfamiliar with).</p>
+
+<p>In an attempt to offload resources from the Axoloti, I had the idea to send LFOs and envelopes to the Axoloti's analog inputs from the microcontroller I've been using to control the Axoloti by MIDI. Since the ADC receives higher resolution than the 7 bit MIDI signals, is it possible to send information from the PWM out of a Teensy into the analog ins of the Axoloti? </p>
+
+<p>If so, it means that I would have to make the Teensy the MIDI handler, so that the note messages are sent at the same time as the envelope. Alternately, I could use the Axo as a MIDI thru to send messages from the Axo MIDI inputs to the Teensy, then back out to the Axoloti, but I'm worried about latency, unless the latency would be negligible. </p>
+
+<p>Does anybody have any experience doing something similar? These are all things that I can figure out by myself, but I figured I would ask here first in case it saves a few hours of trial and error! Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196/1</link>
+        <pubDate>Sun, 07 Mar 2021 19:36:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7196-1</guid>
+        <source url="http://community.axoloti.com/t/pwm-based-modulation-from-a-microcontroller/7196.rss">PWM Based modulation from a microcontroller</source>
+      </item>
+  </channel>
+</rss>

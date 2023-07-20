@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Connecting arduino midi keyboard to Axoloti</title>
+    <link>http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567</link>
+    <description>Hello there,
+
+I was wondering if someone could help me with this:
+I am trying to connect a salvaged midi keyboard to axoloti over PA3 input with Hugo&#39;s extra midi I/O script. I thought I&#39;d just use an arduino uno that I had laying around and used a script I found online. I managed to get the keyboard responding on the arduino (I see the TX light flickering and get integers as outputs on the serial monitor) but when I connect it to axoloti, I don&#39;t seem to get any response..
+This is how I connected everything : 
+&lt;img src=&quot;/uploads/default/original/2X/3/388beaea819fbf0e4e75088847828a2d47ba969e.png&quot; width=&quot;327&quot; height=&quot;500&quot;&gt; 
+And this is the code I used for the arduino : 
+// Pin Definitions
+// Rows are connected to
+const int row1 = 5;
+const int row2 = 6;
+const int row3 = 7;
+const int row4 = 8;
+
+// The 74HC595 uses a serial communication
+// link which has three pins
+const int clock = 9;
+const int latch = 10;
+const int data = 11;
+
+
+uint8_t keyToMidiMap[32];
+
+boolean keyPressed[32];
+
+int noteVelocity = 127;
+
+
+// use prepared bit vectors instead of shifting bit left everytime
+int bits[] = { B00000001, B00000010, B00000100, B00001000, B00010000, B00100000, B01000000, B10000000 };
+
+
+// 74HC595 shift to next column
+void scanColumn(int value) {
+  digitalWrite(latch, LOW); //Pulls the chips latch low
+  shiftOut(data, clock, MSBFIRST, value); //Shifts out the 8 bits to the shift register
+  digitalWrite(latch, HIGH); //Pulls the latch high displaying the data
+}
+
+void setup() {
+ 
+  // Map scan matrix buttons/keys to actual Midi note number. Lowest num 44 corresponds to C MIDI note.
+keyToMidiMap[0] = 44;
+  keyToMidiMap[1] = 45;
+  keyToMidiMap[2] = 46;
+  keyToMidiMap[3] = 47;
+  keyToMidiMap[4] = 48;
+  keyToMidiMap[5] = 49;
+  keyToMidiMap[6] = 50;
+  keyToMidiMap[7] = 51;
+
+  keyToMidiMap[8] = 52;
+  keyToMidiMap[1 + 8] = 53;
+  keyToMidiMap[2 + 8] = 54;
+  keyToMidiMap[3 + 8] = 55;
+  keyToMidiMap[4 + 8] = 56;
+  keyToMidiMap[5 + 8] = 57;
+  keyToMidiMap[6 + 8] = 58;
+  keyToMidiMap[7 + 8] = 59;
+
+  keyToMidiMap[16] = 60;
+  keyToMidiMap[1 + 16] = 61;
+  keyToMidiMap[2 + 16] = 62;
+  keyToMidiMap[3 + 16] = 63;
+  keyToMidiMap[4 + 16] = 64;
+  keyToMidiMap[5 + 16] = 65;
+  keyToMidiMap[6 + 16] = 66;
+  keyToMidiMap[7 + 16] = 67;
+
+  keyToMidiMap[24] = 68;
+  keyToMidiMap[1 + 24] = 69;
+  keyToMidiMap[2 + 24] = 70;
+  keyToMidiMap[3 + 24] = 71;
+  keyToMidiMap[4 + 24] = 72;
+  keyToMidiMap[5 + 24] = 73;
+  keyToMidiMap[6 + 24] = 74;
+  keyToMidiMap[7 + 24] = 75;
+
+  // setup pins output/input mode
+  pinMode(data, OUTPUT);
+  pinMode(clock, OUTPUT);
+  pinMode(latch, OUTPUT);
+
+  pinMode(row1, INPUT);
+  pinMode(row2, INPUT);
+  pinMode(row3, INPUT);
+  pinMode(row4, INPUT);
+
+    Serial.begin(31250);
+
+  delay(1000);
+
+}
+
+void loop() {
+
+  for (int col = 0; col &lt; 8; col++) {
+   
+    // shift scan matrix to following column
+    scanColumn(bits[col]);
+
+    // check if any keys were pressed - rows will have HIGH output in this case corresponding
+    int groupValue1 = digitalRead(row1);
+    int groupValue2 = digitalRead(row2);
+    int groupValue3 = digitalRead(row3);
+    int groupValue4 = digitalRead(row4);
+
+    // process if any combination of keys pressed
+    if (groupValue1 != 0 || groupValue2 != 0 || groupValue3 != 0
+        || groupValue4 != 0) {
+
+      if (groupValue1 != 0 &amp;&amp; !keyPressed[col]) {
+        keyPressed[col] = true;
+        noteOn(0x91, keyToMidiMap[col], noteVelocity);
+      }
+
+      if (groupValue2 != 0 &amp;&amp; !keyPressed[col + 8]) {
+        keyPressed[col + 8] = true;
+        noteOn(0x91, keyToMidiMap[col + 8], noteVelocity);
+      }
+
+      if (groupValue3 != 0 &amp;&amp; !keyPressed[col + 16]) {
+        keyPressed[col + 16] = true;
+        noteOn(0x91, keyToMidiMap[col + 16], noteVelocity);
+      }
+
+      if (groupValue4 != 0 &amp;&amp; !keyPressed[col + 24]) {
+        keyPressed[col + 24] = true;
+        noteOn(0x91, keyToMidiMap[col + 24], noteVelocity);
+      }
+
+    }
+
+    //  process if any combination of keys released
+    if (groupValue1 == 0 &amp;&amp; keyPressed[col]) {
+      keyPressed[col] = false;
+      noteOn(0x91, keyToMidiMap[col], 0);
+    }
+
+    if (groupValue2 == 0 &amp;&amp; keyPressed[col + 8]) {
+      keyPressed[col + 8] = false;
+      noteOn(0x91, keyToMidiMap[col + 8], 0);
+    }
+
+    if (groupValue3 == 0 &amp;&amp; keyPressed[col + 16]) {
+      keyPressed[col + 16] = false;
+      noteOn(0x91, keyToMidiMap[col + 16], 0);
+    }
+
+    if (groupValue4 == 0 &amp;&amp; keyPressed[col + 24]) {
+      keyPressed[col + 24] = false;
+      noteOn(0x91, keyToMidiMap[col + 24], 0);
+    }
+
+  }
+
+}
+
+
+void noteOn(int cmd, int pitch, int velocity) {
+    Serial.write(cmd);
+  Serial.write(pitch);
+  Serial.write(velocity);
+}
+
+Am I overseeing something? Should I change something in Hugo&#39;s script? 
+
+
+Thanks!!</description>
+    
+    <lastBuildDate>Thu, 16 Apr 2020 18:34:21 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Connecting arduino midi keyboard to Axoloti</title>
+        <dc:creator><![CDATA[@howdoidodis Thibaut Talpe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/howdoidodis">@howdoidodis</a> wrote:</p>
+          <blockquote>
+              <p>Hey Willem,</p>
+
+<p>Thank you for responding to this!<br>I connected both the axoloti and the arduino to my computer for power.<br>In the future I would like to power te arduino from the axoloti.<br>Would be great to see how you did it!</p>
+
+<p>Thibaut</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567/3</link>
+        <pubDate>Thu, 16 Apr 2020 18:34:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6567-3</guid>
+        <source url="http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567.rss">Connecting arduino midi keyboard to Axoloti</source>
+      </item>
+      <item>
+        <title>Connecting arduino midi keyboard to Axoloti</title>
+        <dc:creator><![CDATA[@Willem Willem Smith]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/willem">@Willem</a> wrote:</p>
+          <blockquote>
+              <p>Hello,</p>
+
+<p>How did you connect the power to the Arduino and the Axoloti?<br>Do they share a common ground? (run from the same powersupply)<br>In your schematic I see only 1 wire going from the Arduino to the Axoloti.</p>
+
+<p>Hope this helps. <br>I built a Arduino Midi-controller and connected it with succes to an Axolotiand can show you my schematic and/or code.</p>
+
+<p>Greetings,</p>
+
+<p>Willem</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567/2</link>
+        <pubDate>Thu, 16 Apr 2020 16:44:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6567-2</guid>
+        <source url="http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567.rss">Connecting arduino midi keyboard to Axoloti</source>
+      </item>
+      <item>
+        <title>Connecting arduino midi keyboard to Axoloti</title>
+        <dc:creator><![CDATA[@howdoidodis Thibaut Talpe]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/howdoidodis">@howdoidodis</a> wrote:</p>
+          <blockquote>
+              <p>Hello there,</p>
+
+<p>I was wondering if someone could help me with this:<br>I am trying to connect a salvaged midi keyboard to axoloti over PA3 input with Hugo's extra midi I/O script. I thought I'd just use an arduino uno that I had laying around and used a script I found online. I managed to get the keyboard responding on the arduino (I see the TX light flickering and get integers as outputs on the serial monitor) but when I connect it to axoloti, I don't seem to get any response..<br>This is how I connected everything : <br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/388beaea819fbf0e4e75088847828a2d47ba969e" href="//community.axoloti.com/uploads/default/original/2X/3/388beaea819fbf0e4e75088847828a2d47ba969e.png" class="lightbox" title="Screen Shot 2020-04-16 at 12.37.55.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/3/388beaea819fbf0e4e75088847828a2d47ba969e_1_327x500.png" width="327" height="500"><div class="meta">
+<span class="filename">Screen Shot 2020-04-16 at 12.37.55.png</span><span class="informations">585x893 372 KB</span><span class="expand"></span>
+</div></a></div> <br>And this is the code I used for the arduino : <br>// Pin Definitions<br>// Rows are connected to<br>const int row1 = 5;<br>const int row2 = 6;<br>const int row3 = 7;<br>const int row4 = 8;</p>
+
+<p>// The 74HC595 uses a serial communication<br>// link which has three pins<br>const int clock = 9;<br>const int latch = 10;<br>const int data = 11;</p>
+
+<p>uint8_t keyToMidiMap[32];</p>
+
+<p>boolean keyPressed[32];</p>
+
+<p>int noteVelocity = 127;</p>
+
+<p>// use prepared bit vectors instead of shifting bit left everytime<br>int bits[] = { B00000001, B00000010, B00000100, B00001000, B00010000, B00100000, B01000000, B10000000 };</p>
+
+<p>// 74HC595 shift to next column<br>void scanColumn(int value) {<br>  digitalWrite(latch, LOW); //Pulls the chips latch low<br>  shiftOut(data, clock, MSBFIRST, value); //Shifts out the 8 bits to the shift register<br>  digitalWrite(latch, HIGH); //Pulls the latch high displaying the data<br>}</p>
+
+<p>void setup() {</p>
+
+<p>  // Map scan matrix buttons/keys to actual Midi note number. Lowest num 44 corresponds to C MIDI note.<br>keyToMidiMap[0] = 44;<br>  keyToMidiMap[1] = 45;<br>  keyToMidiMap[2] = 46;<br>  keyToMidiMap[3] = 47;<br>  keyToMidiMap[4] = 48;<br>  keyToMidiMap[5] = 49;<br>  keyToMidiMap[6] = 50;<br>  keyToMidiMap[7] = 51;</p>
+
+<p>  keyToMidiMap[8] = 52;<br>  keyToMidiMap[1 + 8] = 53;<br>  keyToMidiMap[2 + 8] = 54;<br>  keyToMidiMap[3 + 8] = 55;<br>  keyToMidiMap[4 + 8] = 56;<br>  keyToMidiMap[5 + 8] = 57;<br>  keyToMidiMap[6 + 8] = 58;<br>  keyToMidiMap[7 + 8] = 59;</p>
+
+<p>  keyToMidiMap[16] = 60;<br>  keyToMidiMap[1 + 16] = 61;<br>  keyToMidiMap[2 + 16] = 62;<br>  keyToMidiMap[3 + 16] = 63;<br>  keyToMidiMap[4 + 16] = 64;<br>  keyToMidiMap[5 + 16] = 65;<br>  keyToMidiMap[6 + 16] = 66;<br>  keyToMidiMap[7 + 16] = 67;</p>
+
+<p>  keyToMidiMap[24] = 68;<br>  keyToMidiMap[1 + 24] = 69;<br>  keyToMidiMap[2 + 24] = 70;<br>  keyToMidiMap[3 + 24] = 71;<br>  keyToMidiMap[4 + 24] = 72;<br>  keyToMidiMap[5 + 24] = 73;<br>  keyToMidiMap[6 + 24] = 74;<br>  keyToMidiMap[7 + 24] = 75;</p>
+
+<p>  // setup pins output/input mode<br>  pinMode(data, OUTPUT);<br>  pinMode(clock, OUTPUT);<br>  pinMode(latch, OUTPUT);</p>
+
+<p>  pinMode(row1, INPUT);<br>  pinMode(row2, INPUT);<br>  pinMode(row3, INPUT);<br>  pinMode(row4, INPUT);</p>
+
+<pre><code>Serial.begin(31250);</code></pre>
+
+<p>  delay(1000);</p>
+
+<p>}</p>
+
+<p>void loop() {</p>
+
+<p>  for (int col = 0; col &lt; 8; col++) {</p>
+
+<pre><code>// shift scan matrix to following column
+scanColumn(bits[col]);
+
+// check if any keys were pressed - rows will have HIGH output in this case corresponding
+int groupValue1 = digitalRead(row1);
+int groupValue2 = digitalRead(row2);
+int groupValue3 = digitalRead(row3);
+int groupValue4 = digitalRead(row4);
+
+// process if any combination of keys pressed
+if (groupValue1 != 0 || groupValue2 != 0 || groupValue3 != 0
+    || groupValue4 != 0) {
+
+  if (groupValue1 != 0 &amp;&amp; !keyPressed[col]) {
+    keyPressed[col] = true;
+    noteOn(0x91, keyToMidiMap[col], noteVelocity);
+  }
+
+  if (groupValue2 != 0 &amp;&amp; !keyPressed[col + 8]) {
+    keyPressed[col + 8] = true;
+    noteOn(0x91, keyToMidiMap[col + 8], noteVelocity);
+  }
+
+  if (groupValue3 != 0 &amp;&amp; !keyPressed[col + 16]) {
+    keyPressed[col + 16] = true;
+    noteOn(0x91, keyToMidiMap[col + 16], noteVelocity);
+  }
+
+  if (groupValue4 != 0 &amp;&amp; !keyPressed[col + 24]) {
+    keyPressed[col + 24] = true;
+    noteOn(0x91, keyToMidiMap[col + 24], noteVelocity);
+  }
+
+}
+
+//  process if any combination of keys released
+if (groupValue1 == 0 &amp;&amp; keyPressed[col]) {
+  keyPressed[col] = false;
+  noteOn(0x91, keyToMidiMap[col], 0);
+}
+
+if (groupValue2 == 0 &amp;&amp; keyPressed[col + 8]) {
+  keyPressed[col + 8] = false;
+  noteOn(0x91, keyToMidiMap[col + 8], 0);
+}
+
+if (groupValue3 == 0 &amp;&amp; keyPressed[col + 16]) {
+  keyPressed[col + 16] = false;
+  noteOn(0x91, keyToMidiMap[col + 16], 0);
+}
+
+if (groupValue4 == 0 &amp;&amp; keyPressed[col + 24]) {
+  keyPressed[col + 24] = false;
+  noteOn(0x91, keyToMidiMap[col + 24], 0);
+}</code></pre>
+
+<p>  }</p>
+
+<p>}</p>
+
+<p>void noteOn(int cmd, int pitch, int velocity) {<br>    Serial.write(cmd);<br>  Serial.write(pitch);<br>  Serial.write(velocity);<br>}</p>
+
+<p>Am I overseeing something? Should I change something in Hugo's script? </p>
+
+<p>Thanks!!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567/1</link>
+        <pubDate>Thu, 16 Apr 2020 10:46:45 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6567-1</guid>
+        <source url="http://community.axoloti.com/t/connecting-arduino-midi-keyboard-to-axoloti/6567.rss">Connecting arduino midi keyboard to Axoloti</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Sending long SYSEX message to hardware</title>
+    <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746</link>
+    <description>Hi folks,
+
+I would like to send a long SYSEX message to a USB controller. 
+The array is 451 characters long. If I send it in one shot, I obviously get a 
+&quot;usb host midi output ringbuffer overflow&quot;
+
+Do you know a simple way to &quot;split&quot; it in some way.
+
+I&#39;m not a big C coder so I just tested by splitting the entire array manually with multiples arrays of 20 with a 10 ms pause between each send. It works but it&#39;s too long to code.
+
+Is there a way I can code a pause every 20 characters of the array basically?
+
+Thanks for your help.</description>
+    
+    <lastBuildDate>Mon, 27 Jul 2020 17:52:36 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>I wonder whether we can simply change <code>USBH_MIDI_EPS_OUT_SIZE</code> in the firmware, what would the consequences be. Is it a hardware limitation?<br>It's a bit of uncharted territory for me.</p>
+
+<p>My own first goal ist just to write something like a patch editor where you only send short messages for indivdual synth-parameters, for that the current size limit is not a problem.<br>Sending longer patches would be a nice cherry to have on top. <br>Given that even receiving sysex is not easily done either, being only able to send long patches without receiving them seems not even that useful to me.<br>It would be cool to have the Axoloti be a sysex librarian though, I have several devices that couldbenefit from it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/18">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/18</link>
+        <pubDate>Mon, 27 Jul 2020 17:34:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-18</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@Yot]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/yot">@Yot</a> wrote:</p>
+          <blockquote>
+              <p>Thanks ivofx. That's good to know.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/17">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/17</link>
+        <pubDate>Mon, 27 Jul 2020 17:21:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-17</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>(I wrote something here, which I now think is wrong, but a correct answer needs more study than I can do right now)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/16">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/16</link>
+        <pubDate>Mon, 27 Jul 2020 14:59:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-16</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>The output-buffer size USBH_MIDI_EPS_OUT_SIZE is defined as 64, but calling <code>MidiGetOutputBufferAvailable</code> will return 63 if nothing has been sent yet.</p>
+
+<p>However, I can send more than that without getting the <code>usb host midi output ringbuffer overflow</code> error.</p>
+
+<p>From observation, the maximum of sysex bytes that I was able to send without getting the error and nothing else going on was 185. 186 would error.</p>
+
+<pre><code>int available = MidiGetOutputBufferAvailable(MIDI_DEVICE_USB_HOST);
+int pending = MidiGetOutputBufferPending(MIDI_DEVICE_USB_HOST);</code></pre>
+
+<p>EDIT:<br>Oh, I get it. The buffer might be for 3-byte messages. If we subtract one, we get 62*3=186 (?)<br>In fact, if I send a note-on and then call <code>MidiGetOutputBufferAvailable</code>, it returns 62.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/15</link>
+        <pubDate>Sun, 26 Jul 2020 07:19:50 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-15</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>OK I give up then. Hopefully the USB buffer size will be large enough for my needs, I think I will be fine.<br>I made the ring buffer because I want to allow my code to queue multiple messages at once and not be limited to one at a time.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/14</link>
+        <pubDate>Sat, 25 Jul 2020 13:38:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-14</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Assuming MidiGetOutputBufferPending() returns the number of bytes currently in the buffer, and goes down as bytes actually go out on the wire, your wouldn't want to erase pending bytes. Just let them fly.</p>
+
+<p>Yes, up at the object level, blocking MIDI sends while a SYSEX message is in progress would require cooperation between objects used for sending normal MIDI and objects used for sending SYSEX. Sending long messages should really be handled in the firmware.</p>
+
+<p>A ringbuffer is useful for queuing multiple messages. Not needed when your code is handling one message at a time. That's why the output buffer is implemented as a ringbuffer. At the level of your objects, you can send MIDI events asynchronously, without concern about other messages 'in flight'.</p>
+
+<p>All of this stuff is very common in data communications software and  file system software.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/13</link>
+        <pubDate>Sat, 25 Jul 2020 13:31:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-13</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>True, I did not think of these aspects <img src="//community.axoloti.com/images/emoji/twitter/frowning.png?v=5" title=":frowning:" class="emoji" alt=":frowning:"><br>The code is not keeping track of the individual message lengths as of yet.<br>I seems quite tricky to ensure no other midi is transmitted when sending sysex in split chunks, I have no idea for that.<br>Still, a ringbuffer seems handy for storing and keeping track of the chunks.</p>
+
+<p>Theoretically speaking, if it would be possible to grab data from <code>MidiGetOutputBufferPending</code> end erase the pending buffer somehow to resend it later, that would help.</p>
+
+<p>Actually, the buffer appears to be exposed in the <code>_MIDI_Process</code> struct (looking at the USB one)</p>
+
+<pre><code>  uint8_t buff_in[USBH_MIDI_EPS_IN_SIZE];
+  uint8_t buff_out[USBH_MIDI_EPS_OUT_SIZE];
+  uint8_t buff_out_len;</code></pre>
+
+<p>Still, one does not know where in the order of objects the own call happens, probably in the middle, so no certainty gained.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/12</link>
+        <pubDate>Sat, 25 Jul 2020 13:03:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-12</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>A ring buffer doesn't solve the problem of output buffer overrun, that is solved by  checking the amount of space in the ring buffer before doing a send. </p>
+
+<p>Agreed, for a long sysex message, you'll need to do it over several  control-rate calls to your object. BUT, while you have a sysex message in progress, you also need to stop sending any other MIDI. For instance, if you send a NOTE ON or NOTE OFF, while your sysex is only partially complete, the sysex message will be corrupted.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/11</link>
+        <pubDate>Sat, 25 Jul 2020 12:59:00 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-11</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>I turned it into an work-in-progress axo object. The only problem is defining the sysex strings conveniently in the UI.<br>Because strings are null-terminated and you cannot enter hex-values in the GUI widgets.</p>
+
+<p><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://github.com/ivogrig/axoloti-contrib/tree/1.0.12/objects/ivofx" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://avatars1.githubusercontent.com/u/10848442?s=400&amp;v=4" width="" height="" class="thumbnail">
+
+<h3><a href="https://github.com/ivogrig/axoloti-contrib/tree/1.0.12/objects/ivofx" target="_blank" rel="nofollow noopener">ivogrig/axoloti-contrib</a></h3>
+
+<p>User contributed objects and patches for Axoloti. Contribute to ivogrig/axoloti-contrib development by creating an account on GitHub.</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>You load the sysexbuffer object, then you can right-click and select "Help" to load the help-patch.</p>
+
+<p>At the moment you need to define the sysex-data inside the code.</p>
+
+<p>I have a vision to make defining the data more user-friendly.<br>You would save each sysex-string as a file in a certain directory and prefix the file with a number.<br>The object would load all files from the directory into a table and keep track of the start-offsets.<br>You would have an inlet to choose the sysex-string by index and an inlet to trigger the transmission.<br>On top of that one could setup a substitution-syntax to replace certain bytes with a variable value.<br>However, I have different plans for the weekend so it will take some more time.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/10</link>
+        <pubDate>Sat, 25 Jul 2020 12:36:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-10</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>I was reading about ring-buffers and made a python prototype that could be translated to c/c++ (disclaimer, the implementation might be naive/messy).<br>I saw that the Axoloti delay objects brilliantly use bit-masking to make the indexing wrap around sizes multiples of two and adapted that. So if you want the size to be 4kb you would set it to 1 &lt;&lt; 12 for example.<br>If / when I create an axo object, I would allocate an sdram-table for the storage inside the object.<br>Then, in every 50th control-rate call or so I would read say 32 bytes and send them as a sysex message. I assume sending a single sysex message in multiple chunks is possible (?)</p>
+
+<pre><code># Python 2.7
+class ByteRingBuffer(object):
+    head = 0
+    tail = 0
+    size = 1 &lt;&lt; 12
+    mask = size-1
+    length = 0
+    full = False
+
+    def __init__(self):
+        self.buffer = [0] * self.size
+
+    def write(self, value):
+        if self.length &gt; self.mask:
+            self.full = True
+            print "FULL!"
+            return
+        self.buffer[self.tail] = value
+        self.tail = (self.tail + 1) &amp; self.mask
+        self.length += 1
+
+    def read(self):
+        if self.empty():
+            return -1
+        result = self.buffer[self.head]
+        self.head = (self.head + 1) &amp; self.mask
+        self.length = max(self.length-1, 0)
+        self.full = False
+        return result
+
+    def empty(self):
+        return self.length &lt;= 0
+
+    def full(self):
+        return self.full</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/9</link>
+        <pubDate>Sat, 25 Jul 2020 07:23:41 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-9</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>There isn't any need to break the data into multiple arrays.<br>You use variables to store your position in the array, and the number of bytes remaining. That's simple.</p>
+
+<p>What isn't clear , does Axoloti firmware provide a mechanism for querying the amount of space in the send buffer? Without that, you'll only be quessing how many bytes to send, and when, which wil be different for DIN MIDI, and USB MIDI.</p>
+
+<p>Added later:<br>This might be useful:<br>int MidiGetOutputBufferPending(midi_device_t dev);<br>And this, but it's only implemented for MIDI_DEVICE_USB_HOST:<br>int MidiGetOutputBufferAvailable</p>
+
+<p>For more details, look in firmware/midi.c (after downloading the Axoloti source code)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/8</link>
+        <pubDate>Fri, 24 Jul 2020 01:22:37 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-8</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@Yot]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/yot">@Yot</a> wrote:</p>
+          <blockquote>
+              <p>It works also for a USB controller.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/7</link>
+        <pubDate>Thu, 23 Jul 2020 23:15:15 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-7</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>Was that code sending to a USB controller? Maybe I’m mistaken, but isn’t sdWrite for serial device? Or also for USB?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/6</link>
+        <pubDate>Thu, 23 Jul 2020 18:14:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-6</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>I had success sending shorter strings to Blofeld, like parameter systes strings.</p>
+
+<p>But when I tried to send sound dumos, which is longer strings, it failed on me. So very interested in seeing that you have something working for longer strings <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/5</link>
+        <pubDate>Thu, 23 Jul 2020 07:56:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-5</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@ivofx Ivo Grigull]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ivofx">@ivofx</a> wrote:</p>
+          <blockquote>
+              <p>I was thinking about this problem yesterday, as I want to program my Novation Zero SL MK2.<br>Calling sleep is likely to cause audio dropouts.<br>I think what we need is some kind of ringbuffer that stores the individual bytes and in the control-rate call you would only send byte-chunks of a fixed size at a fixed rate (probably on every 50th out of the 3000 times per second or so).<br>I did not implement any of this yet and am wondering whether we can simply reuse an existing ring-buffer code from some existing object, like a delay.<br>The method could also be applied to regular midi messages or NRPNs (as when controlling many LEDs)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/4</link>
+        <pubDate>Thu, 23 Jul 2020 06:50:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-4</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@Yot]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/yot">@Yot</a> wrote:</p>
+          <blockquote>
+              <p>What do you mean? Here's my very "dirty" piece of code ...<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/afdf864edcea54a73011c9378c5cc44d4f0ddfff" href="//community.axoloti.com/uploads/default/original/2X/a/afdf864edcea54a73011c9378c5cc44d4f0ddfff.png" class="lightbox" title="Screen Shot 2020-07-22 at 4.48.45 PM.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/a/afdf864edcea54a73011c9378c5cc44d4f0ddfff_1_591x500.png" width="591" height="500"><div class="meta">
+<span class="filename">Screen Shot 2020-07-22 at 4.48.45 PM.png</span><span class="informations">1986x1680 595 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/3</link>
+        <pubDate>Wed, 22 Jul 2020 23:42:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-3</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@tele_player]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/tele_player">@tele_player</a> wrote:</p>
+          <blockquote>
+              <p>What have you got so far?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/2</link>
+        <pubDate>Wed, 22 Jul 2020 23:15:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-2</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+      <item>
+        <title>Sending long SYSEX message to hardware</title>
+        <dc:creator><![CDATA[@Yot]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/yot">@Yot</a> wrote:</p>
+          <blockquote>
+              <p>Hi folks,</p>
+
+<p>I would like to send a long SYSEX message to a USB controller. <br>The array is 451 characters long. If I send it in one shot, I obviously get a <br>"usb host midi output ringbuffer overflow"</p>
+
+<p>Do you know a simple way to "split" it in some way.</p>
+
+<p>I'm not a big C coder so I just tested by splitting the entire array manually with multiples arrays of 20 with a 10 ms pause between each send. It works but it's too long to code.</p>
+
+<p>Is there a way I can code a pause every 20 characters of the array basically?</p>
+
+<p>Thanks for your help.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746/1</link>
+        <pubDate>Wed, 22 Jul 2020 21:33:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6746-1</guid>
+        <source url="http://community.axoloti.com/t/sending-long-sysex-message-to-hardware/6746.rss">Sending long SYSEX message to hardware</source>
+      </item>
+  </channel>
+</rss>

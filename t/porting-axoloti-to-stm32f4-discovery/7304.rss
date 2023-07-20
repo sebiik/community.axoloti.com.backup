@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Porting Axoloti to STM32F4 Discovery</title>
+    <link>http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304</link>
+    <description>Hi,
+
+I wonder if it is &quot;possible&quot; (I know, possible is everything, but with only a few know how on STM32 development) to port to STM32 F4 Discovery. I don&#39;t mean the STM32F401 board, but the one with the STM32F469 and the TFT display.
+
+I would like to have the display and touchscreen. So maybe later I can add some litte GUI for loading patches.
+
+The board has all you need, except MIDI sockets:
+
+180MHz STM32F469
+16MByte SD RAM (!)
+Audio CODEC, even three MEMS microphones
+SD card slot
+4&quot; TFT touchscreen
+
+So it should be possible to run Axomoti without additional hardware. I have knowledge programming Mikrocontrollers, mainly in C, some C++. But I only did one SMALL project on STM32. So if there is someone out there who would like to assist, it would be much appreciated.
+
+BTW.: I am planning to build a standalone Synth, with many knobs and switches and therefor a display would be nice. I am NOT a musician, I cannot play a Synth. But I like to build software and hardware and in this case my first goal is, to build a nice case. But it should also befunctional, so my brother can play on it. And maybe I can learn some playing, too. :slight_smile:</description>
+    
+    <lastBuildDate>Sat, 22 May 2021 04:00:12 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Porting Axoloti to STM32F4 Discovery</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <p>This is even older, but a while ago (it looks like 5 years by now; how time flies), I ported the Axoloti to run on the Audiothingies P6 (<a href="https://www.audiothingies.com/p6/" rel="nofollow noopener">https://www.audiothingies.com/p6/</a>)  which uses an STM32F405:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://github.com/polluxsynth/axoloti/tree/p6" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://opengraph.githubassets.com/faea320f398bf72fb7efcaf8992b1c4cae361459948fc474a5c4f7738752f5d4/polluxsynth/axoloti" width="695" height="347" class="thumbnail">
+
+<h3><a href="https://github.com/polluxsynth/axoloti/tree/p6" target="_blank" rel="nofollow noopener">polluxsynth/axoloti</a></h3>
+
+<p>Sketching embedded digital audio. Contribute to polluxsynth/axoloti development by creating an account on GitHub.</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>my point being that I've tried to document fairly well what changes were needed, which might be helpful if you want to port it to something else. </p>
+
+<p>Indeed, I think the Axoloti started its life running on the STM32F407-based Disccovery board from ST, and at least when I was working on it there was some (disabled) code left from that era, which might also be helpful.</p>
+
+<p>Looking at the git history, the main points in the port were:</p>
+
+<ul>
+<li>Pin allocation. Allocating relevant hardware functions in the STM to the actual pins used in the board design. For instance, the pins used for the Axoloti status LED, or the pins used for the audio codec.</li>
+<li>Different hardware. For instance, different audio codecs. The P6 also has no SDRAM, and no A/D converter.</li>
+<li>Different crystal frequencies; the Axoloti has an 8 MHz clock, the P6 12 MHz.</li>
+<li>Availability of hardware blocks. The STM32F427 used in the Axoloti has the well-equipped serial SAI interface used for the codec, which the STM32405 does not have, which among other things required some bit manipulation when communicating with the codec to get the audio right.</li>
+<li>Support for  specific board hardware like the 24x2 character LCD and on-board EEPROM for patch storage on the P6 board.</li>
+</ul>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304/3</link>
+        <pubDate>Sat, 22 May 2021 04:00:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7304-3</guid>
+        <source url="http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304.rss">Porting Axoloti to STM32F4 Discovery</source>
+      </item>
+      <item>
+        <title>Porting Axoloti to STM32F4 Discovery</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>This may be helpful. Good luck. Wish I could help but I've never worked with chibios or any embedded outside the Arduino or Axoloti environment. </p>
+
+<aside class="quote" data-topic="564" data-slug="since-the-units-are-scarce-how-to-load-axoloti-on-stm32f4-discovery" data-post="13"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/r/82dd89/40.png" class="avatar"><a href="//community.axoloti.com/t/since-the-units-are-scarce-how-to-load-axoloti-on-stm32f4-discovery/564/13" rel="nofollow noopener">Since the units are scarce, how to load Axoloti on STM32F4 Discovery?</a>
+</div>
+<blockquote><p>Saw this github a while back, it was last updated in October 2020, <a href="https://github.com/sebiik/axo-on-discovery-board" rel="nofollow noopener"></a><a href="https://github.com/sebiik/axo-on-discovery-board" rel="nofollow noopener">https://github.com/sebiik/axo-on-discovery-board</a> though it’s not documented anywhere that I can see.</p></blockquote></aside>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304/2</link>
+        <pubDate>Fri, 21 May 2021 15:00:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7304-2</guid>
+        <source url="http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304.rss">Porting Axoloti to STM32F4 Discovery</source>
+      </item>
+      <item>
+        <title>Porting Axoloti to STM32F4 Discovery</title>
+        <dc:creator><![CDATA[@Bluescreen Thorsten]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/bluescreen">@Bluescreen</a> wrote:</p>
+          <blockquote>
+              <p>Hi,</p>
+
+<p>I wonder if it is "possible" (I know, possible is everything, but with only a few know how on STM32 development) to port to STM32 F4 Discovery. I don't mean the STM32F401 board, but the one with the STM32F469 and the TFT display.</p>
+
+<p>I would like to have the display and touchscreen. So maybe later I can add some litte GUI for loading patches.</p>
+
+<p>The board has all you need, except MIDI sockets:</p>
+
+<p>180MHz STM32F469<br>16MByte SD RAM (!)<br>Audio CODEC, even three MEMS microphones<br>SD card slot<br>4" TFT touchscreen</p>
+
+<p>So it should be possible to run Axomoti without additional hardware. I have knowledge programming Mikrocontrollers, mainly in C, some C++. But I only did one SMALL project on STM32. So if there is someone out there who would like to assist, it would be much appreciated.</p>
+
+<p>BTW.: I am planning to build a standalone Synth, with many knobs and switches and therefor a display would be nice. I am NOT a musician, I cannot play a Synth. But I like to build software and hardware and in this case my first goal is, to build a nice case. But it should also befunctional, so my brother can play on it. And maybe I can learn some playing, too. <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304/1</link>
+        <pubDate>Fri, 21 May 2021 14:48:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7304-1</guid>
+        <source url="http://community.axoloti.com/t/porting-axoloti-to-stm32f4-discovery/7304.rss">Porting Axoloti to STM32F4 Discovery</source>
+      </item>
+  </channel>
+</rss>

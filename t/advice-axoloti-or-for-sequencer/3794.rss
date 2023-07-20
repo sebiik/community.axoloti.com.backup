@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Advice: Axoloti or.... for sequencer?</title>
+    <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794</link>
+    <description>Hi everyone! Forgive me if all the following is obvious stuff, but I&#39;m completely new to this.
+
+I&#39;d like to start a project which would be a step sequencer with 6 CV outputs &amp; 4 CV inputs along with MIDI I/O. I won&#39;t require any audio functions. The interface would feature the following (more or less):
+
+18 x rotary encoders
+26 x LED
+20 x push buttons
+16 x FSR pads
+1 x LCD or something display
+
+How doable is this on Axoloti? I understand the CV aspect would require its own circuit, but what about I/O for all the pots, LEDs etc? Could someone point me in the right direction of the full tech specs of the core? Other than what is on the website.
+
+I&#39;m a complete beginner, but more than willing to get my hands dirty, and I&#39;m just beginning to learn about electronics. Although I have done some soldering, built a couple of module kits and fixed bits of my own gear. What attracts me to Axoloti is that it&#39;s very similar to max/msp, which I had a fair bit of experience with years ago, plus programming in that environment looks fun.
+
+Considering all this, would Axoloti be the best option for such a project and my skills? Or would I be best going for something like Teensy?
+
+How have people found sequencing on the Axoloti? More specifically how tight is the clock when you have a fair amount of modulation on the go?
+
+Thanks in advance!</description>
+    
+    <lastBuildDate>Wed, 04 Oct 2017 10:55:18 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Jay]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jay">@Jay</a> wrote:</p>
+          <blockquote>
+              <p>Wow! Thanks for all the great replies. There's lots to get into here. I'm gonna go with Axoloti since above all else it would seem like I would genuinely 'enjoy' the platform and process, rather than it be a means to an end. </p>
+
+<p>....Just need to wait until they are in so I can place an order.</p>
+
+<p>I think my only concern with MIDI might be the resolution. Plus I would like to have both CV and MIDI available at the same time.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/15</link>
+        <pubDate>Wed, 04 Oct 2017 10:55:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-15</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@rsdio Brian Willoughby]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/rsdio">@rsdio</a> wrote:</p>
+          <blockquote>
+              <p>Lots of good information so far.</p>
+
+<p>The Raspberry Pi is complete overkill for your sequencer. Although its price is lower, the processor that it's based on is designed for running full-blown GUI Applications that run on top of Linux. That's going to add a layer between your code and the hardware that will reduce performance (timing tightness) unless you'll willing to learn Linux device driver development.</p>
+
+<p>In truth, something as lowly as the 8-bit PIC processor would be more than powerful enough to develop a very high performance sequencer that is as tight as any music hardware you might compare it to. Remember that devices like the venerable TR-808 were designed around an 8-bit processor that only clocked at a few megahertz. A PIC probably has about 10 times that processing power.</p>
+
+<p>There are some options out there like the MIDIbox, It is open source and even has a sequencer.</p>
+
+<p>However, I think you're right that the building-block environment of the axoloti is offering something that other systems do not have. You might be able to find a unique way to take advantage of it. The axoloti is slight overkill, but it will probably be way more enjoyable than rolling your own PIC-based sequencer.</p>
+
+<aside class="quote" data-post="8" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/ed8c4c/40.png" class="avatar">Jay:</div>
+<blockquote><p>Like I say I'm new to this so I don't fully understand yet, but one thing I saw when looking at Teensy is that it has separate interval timers which can be used in conjunction with a FrequencerTimer library, so that you can have "zero jitter frequency output, and run your own function on each period." I presume this is going to be vital when doing sequencing and you have lots of knobs and interactions happening?</p></blockquote></aside>
+
+<p>Here you're getting at the power of embedded programming. Those Timer peripherals are where all the magic happens. You might even want to dig deeper than the Teensy FrequencyTimer library and code directly to the hardware for minimal latency (then again, constant latency isn't so bad if you're playing from a pre-recorded sequence).</p>
+
+<p>Here is where you want to avoid Linux and instead work with the Timer peripherals directly. You can either do bare-metal coding or use a RTOS. I'm not totally familiar with whether the axoloti library allows access to the Timer hardware (like Teensy FrequencyTimer), so I'll let others speak to that. Usually, the operating system scheduler clock runs at 1 ms per tick accuracy, where the Timer hardware can operate down to nanoseconds if you need that accuracy. I've implemented 512-level resolution LED brightness PWM with Timer interrupts in the nanosecond range and it is rock solid.</p>
+
+<p>Brian</p>
+
+<p>p.s. I agree that sticking with MIDI coding and buying a finished product to add MIDI-to-CV would give you the most bang per buck, both in terms of dollars and in terms of development effort.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/14</link>
+        <pubDate>Wed, 04 Oct 2017 05:51:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-14</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@awolch Alex Walchester]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/awolch">@awolch</a> wrote:</p>
+          <blockquote>
+              <p>Yeah as has already been said you'll probably have a much better time using midi output &amp; using a midi to cv converter that has the ability to change its scaling. A quick google showed this as a cheap solution: <a href="https://midisizer.com/midi2cv-mk2/" rel="nofollow noopener">https://midisizer.com/midi2cv-mk2/</a><br>I can't vouch for its accuracy having never used it but I feel like it's probably more accurate than trying to DIY something with little experience.</p>
+
+<p>I'm definitely in the camp that says it's not a waste to use it for sequencing. As others have said the openness of the environment means that you can explore novel ideas &amp; develop your sequencer in an exploratory manner.<br>I do think that if you're just looking for basic standalone sequencing duties then something like the Zaquencer might fulfil your needs better.<br></p><div class="lazyYT" data-youtube-id="EuwrqdzXwcY" data-youtube-title="Zaquencer Intro - standalone MIDI Step Sequencer" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+
+<p>The Bcr200 &amp; similar are decent just as controllers as well; whether you're using it for input or output midi is your friend! You can save a lot of headaches by utilising preexisting hardware &amp; saving the work for exploring the ideas you wanted to explore in the first place rather than getting bogged down on the way!</p>
+
+<p>edit: forgot to mention that there's a lot of things out there for just midi to gate too, whether it's something like the midiwidget that gives you 24 gate outs or integrated into a scalable midi to cv converter like the cv.ocd<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="http://www.midiwidget.com/" target="_blank" rel="nofollow noopener">midiwidget.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://res.cloudinary.com/hrscywv4p/image/upload/c_fill,g_faces:center,h_300,q_90,w_300/v1/223027/MIDIWidget200_jpcqtk.png" width="" height="" class="thumbnail">
+
+<h3><a href="http://www.midiwidget.com/" target="_blank" rel="nofollow noopener">MIDIWidget Universal MIDI Decoder</a></h3>
+
+<p>The MIDI Widget universal MIDI decoder accepts MIDI or USB-MIDI input and generates logic output to control anything you can imagine.</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.tindie.com/products/hotchk155/cvocd-a-super-flexible-midi-to-cv-box/" target="_blank" rel="nofollow noopener">tindie.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://d3s5r33r268y59.cloudfront.net/6184/products/thumbs/2016-10-14T15:58:27.181Z-DSC04215.JPG.2560x2560_q85.jpg" width="" height="" class="thumbnail">
+
+<h3><a href="https://www.tindie.com/products/hotchk155/cvocd-a-super-flexible-midi-to-cv-box/" target="_blank" rel="nofollow noopener">CV.OCD - A super flexible MIDI to CV box by Hotchk155 on Tindie</a></h3>
+
+<p>Four analog CV outputs, Twelve gate outputs, a wide range of MIDI to CV mapping options at a budget price!</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/13</link>
+        <pubDate>Sun, 01 Oct 2017 22:18:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-13</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@ricard Ricard Wanderlof]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ricard">@ricard</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="3794" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/ed8c4c/40.png" class="avatar">Jay:</div>
+<blockquote>
+<p>Thanks for the replies.</p>
+<p>I thought it might be overkill. I was just very enthused by the graphical programming environment of Axoloti.</p>
+</blockquote></aside>
+
+<p>At the risk of reiterating what has been said above: I wouldn't consider not using the DSP aspect of the Axoloti overkill. The hardware is purpose designed for musical applications with its MIDI and USB connections in a way that few other systems are. And thanks to the DSP oriented software environment, you have very precise timing, great for sequencer work. And as you say the graphical programming environment is a large boon. Now, if it cost €399,- we could start worrying about overkill, but at €65,- especially considering all music oriented hardware is on the board, I'd say go for it. </p>
+
+<p>In fact, the MPU used in the Axoloti is not really a DSP anyway, it's a fast microcontroller which these days means that it is fast enough to do audio processing; it's still no speed daemon and will be easily outclassed by any modern PC when it comes to processing capability.</p>
+
+<p>The whole point of the Axoloti is that it is a self contained system with music oriented I/O and a very capable graphic programming environment. So I'd say go for it.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/12</link>
+        <pubDate>Sun, 01 Oct 2017 21:07:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-12</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Ersatzplanet James Husted]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ersatzplanet">@Ersatzplanet</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="10" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/ed8c4c/40.png" class="avatar">Jay:</div>
+<blockquote><p>I would like to have the option to sequence eurorack and Buchla. So some kind of voltage switch/jumper for the different ranges would be ideal. Also, I'd like to use it with some desktop synths I have, but that would be via MIDI, so a lot more straightforward.<br>I suppose the easiest way would be to just use a MIDI to CV converter after the Axo, but I'd like to have MIDI and CV all coming out of Axo. Would be a great way to learn more.</p></blockquote></aside>
+
+<p>Using the MIDI out of the Axo would solve many problems. The MIDI&gt;CV converter would do all the quantizing for you and depending on the unit bough, offer lots of other extras like MIDI clock and sync'd LFOs and Aux CV outs. There are many MIDI&gt;CV converters with built in scaling to drive Buchla and Hz/Oct synths so that would make things simpler too. </p>
+
+<aside class="quote" data-post="10" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/ed8c4c/40.png" class="avatar">Jay:</div>
+<blockquote><p>Hmmm, something to think about there. I was just thinking a quantized pitch sequencer where you could select the key and mode you want to use. I thought with a rotary encoder it would be stable, the problems would happen with the DAC conversion?</p></blockquote></aside>
+
+<p>If you use MIDI od the internal DAC the stability is not that much of a problem. I was talking about making a classic "row of knobs" sequencer in the Axo. Which one of those the scaling of the knob - how much CV (pitch) is produced in the turning range of the knob could be sensitive or not depending on the way the sequencer was constructed. </p>
+
+<p>The main concern is that, say you make a sequencer in the Axo that is set up with notes in mind - dialing notes and not arbitrary voltages with the interface - then the scaling of the output DC voltages from the Axo has to be perfect for those notes to actually match on the external synth. When you dial up an octave change on the Axo, the DC voltage out of the Axo has to go up exactly one volt (or 1.2V for the Buchla). This is where you have to make accurate circuitry. If you use the Axo's raw digital outs, then you have to make or use an accurate DAC for the conversion to CV for the synth. If you use MIDI as an out, then all that is done in the MIDI &gt;CV converter and there are MANY ones out there you choose from, some like embedded ones (used to add MIDI to old Synthesizers) like the MIDImplant PCB can be very cheap. You can drive many voices easily by assigning MIDI channels to each one too. I have 5 MIDI&gt;CV converters in my rig for example.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/11</link>
+        <pubDate>Sat, 30 Sep 2017 18:24:07 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-11</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Jay]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jay">@Jay</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="9" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ersatzplanet/40/3831_1.png" class="avatar">Ersatzplanet:</div>
+<blockquote><p>I also don't know what type of synth you plan on driving with the Axo. If it is a Eurorack modular, there are plenty of inexpensive Quantizer modules out there to choose from.....but your original post suggest you already had the external gear and only wanted to control it with CVs from the Axo</p></blockquote></aside>
+
+<p>I would like to have the option to sequence eurorack and Buchla. So some kind of voltage switch/jumper for the different ranges would be ideal. Also, I'd like to use it with some desktop synths I have, but that would be via MIDI, so a lot more straightforward.<br>I suppose the easiest way would be to just use a MIDI to CV converter after the Axo, but I'd like to have MIDI and CV all coming out of Axo. Would be a great way to learn more. </p>
+
+<aside class="quote" data-post="9" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ersatzplanet/40/3831_1.png" class="avatar">Ersatzplanet:</div>
+<blockquote><p>A quantizer wouldn't be needed if you don't mind what might be very sensitive front panel tuning controls on the Axo. It all depends on how you build the sequencer in the Axo to drive the external VCOs</p></blockquote></aside>
+
+<p>Hmmm, something to think about there. I was just thinking a quantized pitch sequencer where you could select the key and mode you want to use. I thought with a rotary encoder it would be stable, the problems would happen with the DAC conversion?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/10</link>
+        <pubDate>Fri, 29 Sep 2017 12:53:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-10</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Ersatzplanet James Husted]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ersatzplanet">@Ersatzplanet</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="8" data-topic="3794" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/ed8c4c/40.png" class="avatar">Jay:</div>
+<blockquote><p>Are you talking about creating a separate circuit outside of the AXO for quantizing CV?</p></blockquote></aside>
+
+<p>Yes, it would have to be outside the Axo to compensate for any scaling problems in the Axo's output. The typical 1v/oct scaling of pitch CVs can be tricky to keep scaled and controlled. A quantizer wouldn't be needed if you don't mind what might be very sensitive front panel tuning controls on the Axo. It all depends on how you build the sequencer in the Axo to drive the external VCOs. I also don't know what type of synth you plan on driving with the Axo. If it is a Eurorack modular, there are plenty of inexpensive Quantizer modules out there to choose from.</p>
+
+<aside class="quote" data-post="8" data-topic="3794" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/ed8c4c/40.png" class="avatar">Jay:</div>
+<blockquote><p>Not sure I understand, do you mean using the AXO as an oscillator or something else?</p></blockquote></aside>
+
+<p>Yes. The pitch stability of the Axo is much better than many analog VCOs out there so using the Axo as a digital VCO is a good option. The Axo only has two audio outs though which would be the main limitation. The idea is that the Axo can easily make gates. A very simple transistor/resistor circuit can turn the 3v digital outs of the Axo into 5V or 10V gates needed by external gear. Then you keep the pitch part of the sequencer in the Axo and put the VCF, VCA, EGs and other modifiers out in the live modular space. That way you can have all the live tweaking needed without the 15-pot limitation of the Axo's I/O. You can then devote the knobs on the Axo for pitch (overall pitch and the steps of the sequencer) and waveform selection/waveshaping, You can have some very complicated waveforms or even use samples played off the Axo. </p>
+
+<p>To me the "character" of a synthesizer is all in the filters and circuits beyond the VCO in the signal flow. A well formed sawtooth has the same harmonics as any other sawtooth. The "fatness" and other terms used to describe a synth's sound all reside in the circuits that follow the VCO. </p>
+
+<p>Now of course this means a more substantial investment in external synth gear than what you would need if you did it ALL inside the Axo, but you original post suggest you already had the external gear and only wanted to control it with CVs from the Axo. Using the VCOs in the Axo saves you the money and extra circuitry needed to use external VCOs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/9</link>
+        <pubDate>Thu, 28 Sep 2017 16:23:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-9</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Jay]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jay">@Jay</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for the great replies. Giving me a lot to think about.</p>
+
+<aside class="quote" data-post="6" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>Axoloti, doesn't really distinguish audio processing, don't do audio , you have the full CPU but scheduled to a clock<br>the timing can be very tight, because its using a realtime OS, unlike most PI systems</p></blockquote></aside>
+
+<p>Like I say I'm new to this so I don't fully understand yet, but one thing I saw when looking at Teensy is that it has separate interval timers which can be used in conjunction with a FrequencerTimer library, so that you can have "zero jitter frequency output, and run your own function on each period." I presume this is going to be vital when doing sequencing and you have lots of knobs and interactions happening?</p>
+
+<aside class="quote" data-post="6" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>if it was a commercial project, that would be different, where saving cents matters</p></blockquote></aside>
+
+<p> <br>It would be nice to eventually get it to a stage where I could build a few for people if they were interested, but I have a lot to learn before getting there. Although Axo costs that bit more than others, I think one advantage it would have for people looking to buy a built 'box' would be that it is more appealing to people who are 'non-programmers'.  They would be more likely to dive in and change the patches etc than they would with something that is written in C. That's if you wanted it to be completely 'open' to people.</p>
+
+<aside class="quote" data-post="7" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ersatzplanet/40/3831_1.png" class="avatar">Ersatzplanet:</div>
+<blockquote><p>I guess this could be handled by using a quantizer before the receiving VCO...</p></blockquote></aside>
+
+<p>Are you talking about creating a separate circuit outside of the AXO for quantizing CV?</p>
+
+<aside class="quote" data-post="7" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ersatzplanet/40/3831_1.png" class="avatar">Ersatzplanet:</div>
+<blockquote><p>For me the solution would be to do the pitch sequencing in the Axo and output the audio plus gates to the synth and use an external audio modification pathway.</p></blockquote></aside>
+
+<p>Not sure I understand, do you mean using the AXO as an oscillator or something else?</p>
+
+<p>On a related point, I was looking around for ideas and I found something called <a href="http://ornament-and-cri.me" rel="nofollow noopener">Ornament &amp; Crime</a>. Obviously, the format and physical interface aren't what I'm after but aspects of the firmware and hardware are, and it's run on a Teensy along with their own PCB with separate DAC for CV. So, might be something to learn from if I go down the Teensy route.</p>
+
+<p>However, I'm still on the fence...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/8</link>
+        <pubDate>Thu, 28 Sep 2017 12:08:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-8</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Ersatzplanet James Husted]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ersatzplanet">@Ersatzplanet</a> wrote:</p>
+          <blockquote>
+              <p>The main hurdle of using the Axo as a a sequencer for me is the tuning and scaling of it's outputs to be a useful 1V/oct. I guess this could be handled by using a quantizer before the receiving VCO or if the Axo outputted to a dedicated DAC that was scaled correctly. I have thought of using the Axo's digital outs for rhythmic and exotic clocking duties since the conversion of the AXO's 3v digital levels to the levels useful to a synth would be easy to do. </p>
+
+<p>For me the solution would be to do the pitch sequencing in the Axo and output the audio plus gates to the synth and use an external audio modification pathway. This would give you the flexibility of live sound modification and re-patching but retain the pitch stability of the Axo. I currently do something like this with older rack MIDI synth modules that have multiple audio outputs. I create very basic patches on them and essentially use them as digital VCOs.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/7</link>
+        <pubDate>Wed, 27 Sep 2017 17:25:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-7</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="3794"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ersatzplanet/40/3831_1.png" class="avatar">Ersatzplanet:</div>
+<blockquote><p>Just using a Axo for sequencing alone and not making any sound seems like a waste to me.</p></blockquote></aside>
+
+<p>first glance, id agree with you ... but then a few things came to mind...</p>
+
+<ul>
+<li>rpi don't have analog inputs, so that's extra effort, for analog input (teensy, is good though)</li>
+<li>Axoloti, doesn't really distinguish audio processing, don't do audio , you have the full CPU but scheduled to a clock</li>
+<li>the timing can be very tight, because its using a realtime OS, unlike most PI systems</li>
+<li>its got midi din (and usb device and host support)</li>
+<li>a purpose built patching environment, lots of objects to use, ability to create your own objects</li>
+</ul>
+
+<p>so sure, your not using everything the Axoloti can do, but for 65 euro are you getting enough?<br>I think it comes down to how much you want to do yourself, electronics/adding bits/software.. I'm sure you can do for (slightly) cheaper in other ways, but there is not going to be a lot in it.(and frankly by the time the case/pots/knobs/fsrs are all taken into account ... its going to be a small part of the project cost.<br>(if it was a commercial project, that would be different, where saving cents matters)</p>
+
+<p>I think, the thing other boards might have is a bit more IO, useful as you have a lot of inputs, and leds, but if these are fixed, I think its inevitable you are going to need to use muxes.. at which point if your using 1 or 4 muxes its not much different <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>(I'm quite impressed with teensy at the moment, I think partnering these up with Axoloti for extra I/O is an interesting proposition)</p>
+
+<p>and of course if one day, you think, id like to sequence audio clips, axo can do that too <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/6</link>
+        <pubDate>Wed, 27 Sep 2017 12:01:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-6</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>Actually one thing to think about here with the Axoloti, without DSP, you will free up a lot of processing resources, so you could use Axoloti as a sequencing device, the advantage here is, like you said the graphic environment could be asset, and with the extra processing resource, you would be quite free to delve into some very complex sequencing concepts, the kind that would be far more complicated without a graphical environment, sure you could use a PC or RPI with a graphical environment, but this would be standalone. You could use the GPIO's as a means of triggering inputs or outputs to compliment the sequencing. And you still have access to oscillators etc on the Axoloti if needed.</p>
+
+<p>Something to think about...<br><img src="//community.axoloti.com/images/emoji/twitter/grinning.png?v=5" title=":grinning:" class="emoji" alt=":grinning:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/5</link>
+        <pubDate>Tue, 26 Sep 2017 22:30:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-5</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Jay]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jay">@Jay</a> wrote:</p>
+          <blockquote>
+              <p>Thanks for the replies.</p>
+
+<p>I thought it might be overkill. I was just very enthused by the graphical programming environment of Axoloti.</p>
+
+<p>The division 6 boards, hadn't seen those before,  I think look too simple for what I'm after. I'd actually like to have 4 x 16 step sequencers via the interface. Plus I'm looking to adapt and create my own sequencers that go a bit beyond just pitch and gate. </p>
+
+<p>So, yeah probably teensy, arduino, pi. Any other board suggestions?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/4</link>
+        <pubDate>Tue, 26 Sep 2017 20:07:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-4</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Ersatzplanet James Husted]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ersatzplanet">@Ersatzplanet</a> wrote:</p>
+          <blockquote>
+              <p>Just using a Axo for sequencing alone and not making any sound seems like a waste to me. As jfcharles says, it would be easier to make one with a Arduino or Raspberry Pi. or just buy some of the great kits that are already out there (the Division6 business card sequencer or Dual /sequencer are good choices).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/3</link>
+        <pubDate>Tue, 26 Sep 2017 19:31:33 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-3</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@jfcharles Jean-Francois Charles]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jfcharles">@jfcharles</a> wrote:</p>
+          <blockquote>
+              <p>With axoloti, you get a maximum of 15 analog inputs (pots or rotary encoders), so you would need an analog multiplexer.<br>It looks like overkill to use an axoloti without any DSP, so you might be better served with a variation on an Arduino (you might still need multiplexing your analog inputs...)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/2</link>
+        <pubDate>Tue, 26 Sep 2017 18:46:44 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-2</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+      <item>
+        <title>Advice: Axoloti or.... for sequencer?</title>
+        <dc:creator><![CDATA[@Jay]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jay">@Jay</a> wrote:</p>
+          <blockquote>
+              <p>Hi everyone! Forgive me if all the following is obvious stuff, but I'm completely new to this.</p>
+
+<p>I'd like to start a project which would be a step sequencer with 6 CV outputs &amp; 4 CV inputs along with MIDI I/O. I won't require any audio functions. The interface would feature the following (more or less):</p>
+
+<p>18 x rotary encoders<br>26 x LED<br>20 x push buttons<br>16 x FSR pads<br>1 x LCD or something display</p>
+
+<p>How doable is this on Axoloti? I understand the CV aspect would require its own circuit, but what about I/O for all the pots, LEDs etc? Could someone point me in the right direction of the full tech specs of the core? Other than what is on the website.</p>
+
+<p>I'm a complete beginner, but more than willing to get my hands dirty, and I'm just beginning to learn about electronics. Although I have done some soldering, built a couple of module kits and fixed bits of my own gear. What attracts me to Axoloti is that it's very similar to max/msp, which I had a fair bit of experience with years ago, plus programming in that environment looks fun.</p>
+
+<p>Considering all this, would Axoloti be the best option for such a project and my skills? Or would I be best going for something like Teensy?</p>
+
+<p>How have people found sequencing on the Axoloti? More specifically how tight is the clock when you have a fair amount of modulation on the go?</p>
+
+<p>Thanks in advance!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794/1</link>
+        <pubDate>Tue, 26 Sep 2017 17:29:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3794-1</guid>
+        <source url="http://community.axoloti.com/t/advice-axoloti-or-for-sequencer/3794.rss">Advice: Axoloti or.... for sequencer?</source>
+      </item>
+  </channel>
+</rss>

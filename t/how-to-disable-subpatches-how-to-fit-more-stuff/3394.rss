@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>How to disable subpatches (how to fit more stuff)</title>
+    <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394</link>
+    <description>Hello,
+
+I&#39;m working on a sound installation. I want to have multiple &quot;sound sources&quot; that go into a common reverb. Only one of these &quot;sources&quot; produces sound at any given time. I&#39;m looking for a way to disable all inactive &quot;sources&quot; so that they don&#39;t consume my precious CPU cycles.
+
+I was thinking about using a different patch for each sound source and switching between them, but then the reverb would cut off on a patch change and that is completely inacceptable for the project I&#39;m working on. So instead I though about putting each sound source in a separate subpatch and somehow disableing the subpatches for the inactive sound sources.
+
+I know I can always right-click on a sub patch and embed it, and then edit a `if(disabled) { /* fill buffers with 0s */ return; }` statement into the k-rate block. But then, I can&#39;t open the subpatch in the patcher anymore.
+
+So what could I do then? Any thoughts on this? 
+
+Thanks!</description>
+    
+    <lastBuildDate>Tue, 13 Jun 2017 14:56:05 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="11" data-topic="3394"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/90db22/40.png" class="avatar">TheSlowGrowth:</div>
+<blockquote><p>I indeed have more problems with the SRAM than anything else. It seems that a single "wave/play" object wants at least 2.5kB of SRAM (what is all of that for?!). In addition to the control stuff (reading pots, sending out some MIDI, etc.) and the FX I can only barely fit three wave/play fn objects. With the fourth included, my SRAM overflows by 2.5kB.</p></blockquote></aside>
+
+<p>Yes me to. Well these days I find ways to use SD-card for all the "boring stuff" that just needs to be there, like scales and random patterns. For example having a scalebank for notes, which consists of numbers in an array, with 128 scales of 12 notes each, that is 1536 samples(8bit) which is taken from the SRAM........ Then if you have 3-4-5 of these... Well you are out of SRAM very quickly.  </p>
+
+<p>BUT If you store the scales on SD-card in a single file and play it from there, using tables, it doesnt use the SRAM. I can call the scales from SD-card from as many objects i like, I only need to load ONE table with the numbers in and call all the numbers from there.. Instead of having those 4 or 5 objects that all has the numbers in each of them.</p>
+
+<p>Anyway, my point is, if possible use tables and SD-card when possible to offload SRAM. I can confirm that this WILL give you more SRAM headroom. Since I started doing this I can squeeze in some extras <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/15">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/15</link>
+        <pubDate>Tue, 13 Jun 2017 14:56:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-15</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="13" data-topic="3394"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/90db22/40.png" class="avatar">TheSlowGrowth:</div>
+<blockquote><p>I can't edit the WORKING_AREA macro without deeper modifications</p></blockquote></aside>
+
+<p>that's not really the issue.... (and that macro is part of chibios, so cant be touched <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) </p>
+
+<p>the real issue is how much data is placed on the stack, and in particular, its the 'pingpong buffer', if this was moved then less stack space would be required. so you called macro with a smaller number.</p>
+
+<p>this is not hard to do, but would need a number of changes, and also it would need to be checked that SDRAM is suitable for the purpose (given its slower than SRAM)... and that's the issue, I don't really have time at the moment , to make the changes and then test it thoroughly... and without that testing I could break it for others. ( and I don't release code, I haven't test thoroughly anyway <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/14</link>
+        <pubDate>Tue, 13 Jun 2017 11:16:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-14</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>Yes, I tried embedding the <code>wave/play fn</code> objects into the patch to shift some of the stuff to SDRAM. But: there's not much to do here:</p>
+
+<pre><code>WORKING_AREA(waThreadSD, 800);
+sdReadFilePingpong *stream;
+int starttrig;
+int stoptrig;
+char c[64];</code></pre>
+
+<p>I can't edit the WORKING_AREA macro without deeper modifications. And the rest is just a total of 76 bytes. I'm guessing the 2.5kB are coming from initializing a new thread with its own stack etc.<br>Maybe lowering the stack size for the thread could be a quick fix? I'm not sure how the streaming works now, but maybe all streams could be shifted to a single common thread (bottleneck will be IO anyway).</p>
+
+<p>I already got rid of the subpatches. I was thinking, if I load everything from samples anyway, I could just have samples called <code>eng1-1.raw</code>, <code>eng2-1.raw</code>, etc. so I could select my "sound engines" by assembling a prefix to the names of the samples. Still, just three samples is simply not enough.</p>
+
+<p>Okay, so it seems my last chance to make this work is to limit myself to less than 83 seconds of samples and shift them all in SDRAM. Sigh.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/13</link>
+        <pubDate>Tue, 13 Jun 2017 10:23:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-13</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>a quick look at wave/play code shows that's its allocating a few things to SRAM that could probably be shifted to SDRAM. so I think this could be improved.</p>
+
+<p>streaming many samples at one time could be problematic, as a thread is allocated for each sample, so this is not particularly efficient (though I suppose they will start being io bound, so perhaps not too bad if card is fast enough).</p>
+
+<p>if, however, the multiple wave/plays are due to the multiple subpatches, as per OP, then yeah, this is the kind of issue I expected... SRAM is in short supply, you will still start hitting many limits. on this kind of platform I think it would be more desirable for 'fast loading' of alternative patches, rather than having multiple loaded (and yeah, I recognise the issue with reverb tails etc)</p>
+
+<p>as for immediate tips, review the 'precious resources thread' , making sure preset/mod source allocations and alike on patch settings can help save a few bytes.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/12</link>
+        <pubDate>Tue, 13 Jun 2017 10:07:14 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-12</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>I decided to generate the bulk of the sounds by reading samples from an SD card, in the hope that this might make it easier to fit more stuff in. Unfortunately it seems that my plan doesn't work out.</p>
+
+<p>I indeed have more problems with the SRAM than anything else. It seems that a single "wave/play" object wants at least 2.5kB of SRAM (what is all of that for?!). In addition to the control stuff (reading pots, sending out some MIDI, etc.) and the FX I can only barely fit three <code>wave/play fn</code> objects. With the fourth included, my SRAM overflows by 2.5kB. </p>
+
+<p>To get the most out of the patch, I made sure pretty much all wires go only from top&gt;bottom, left&gt;right. I don't use any SRAM delays, etc. I'm out of ideas how to make this work. I guess as a last resort, I can always switch to a raspberrypi with puredata on it, but I'd rather use the axoloti for this project.</p>
+
+<p>Can anyone shed some light on good techniques to play many samples in a patch?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/11</link>
+        <pubDate>Tue, 13 Jun 2017 09:25:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-11</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Yeah, I was trying to make a bunch of effect objects. And then only have the ones used turned on. But the code trick didnt give me anymore headroom on the memory side and didnt let me load more objects, so I gave up on that again. But was kind of extreme test. Maybe in small scale it can do some good :=)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/10</link>
+        <pubDate>Fri, 09 Jun 2017 09:36:23 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-10</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="7" data-topic="3394"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>the different memory types, CCMSRAM, SRAM....., which you WILL hit the limit off WAY before you hit the DSP limit...</p></blockquote></aside>
+
+<p>That is a good catch - but I suspect it won't be the primary problem for me (it's not my first patch on axoloti and I know the difference between the memory types). I'm going to use a lot of raw oscillators and filters, not much sampling, delays, allpasses, combs, etc. </p>
+
+<aside class="quote" data-post="7" data-topic="3394"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>SO dont expect your Axoloti suddenly to be able to perform a lot better because you bypass some code...</p></blockquote></aside>
+
+<p>I'm not talking about bypassing some small portions of code. I want to have different sound engines feeding the same FX chain.</p>
+
+<p>I can totally understand the concerns about the unpredictability of conditional dsp code. I guess I'll see if I can make it work without conditional execution. Maybe I'll re-use the same audio generating elements for the different sound engines (e.g. they will all have some sort of bass synth voice in them. Maybe I can use the same oscillator/filter/env  for each engine and just feed different control signals).</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/9</link>
+        <pubDate>Fri, 09 Jun 2017 09:33:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-9</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>But still waiting for the memory use to be exposed to the users. Would love to have a meter next to the DSP meter, so we can see how much we use... This has been mentioned many times and would be a SUPER upgrade. Hoping <a class="mention" href="/users/johannes">@johannes</a> implements this in one of the future updates.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/8</link>
+        <pubDate>Fri, 09 Jun 2017 07:00:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-8</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>If you do this to save resources, to be honest I dont think you will gain much.</p>
+
+<p>I tried making some filter a long time ago, where i turn some objects code on/off. I could see that DSP load will drop when off..... and When on it rises again.</p>
+
+<p>BUT BUT BUT... That is just the DSPs.... Dont forget and bout the different memory types, CCMSRAM, SRAM....., which you WILL hit the limit off WAY before you hit the DSP limit... Atleast that is my experience.</p>
+
+<p>And I noticed that when I did a test with some filters I had made, where I turn off the code in each object... I would see the DSP drop when turning the signals off...</p>
+
+<p>BUT there was no reduction in how much of the RAM types was used only difference in the DSP load I could NOT load more instances........... SO dont expect your Axoloti suddenly to be able to perform a lot better because you bypass some code... The memory that each of the objects uses will still be used... Only DSP drops.  That is my experience.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/7</link>
+        <pubDate>Fri, 09 Jun 2017 06:58:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-7</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="5" data-topic="3394"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>The disadvantage to making subpatches switchable is that you break the real-time determinism of the model, resulting a higher risk of accidentally running out of CPU time.</p></blockquote></aside>
+
+<p>exactly.<br>the thing is one of hardware's advantages over software, is the reliability of the audio (and timing), you kind of expect it... if you start making large changes to cpu load, then this goes out the window.<br>Id fear if this became the norm, this might potentially damage Axolotis reputation, with users starting to get glitchy audio, and complaining this is a bug... when its really just a limitation.</p>
+
+<p>lets also remember that Axoloti does have some pretty limited resources, in cpu, but also ram available for patch code... so this kind of inactive sound source might be limited.</p>
+
+<p>if you don't need this hard real-time nature, id perhaps argue a PI3/Bela might be better, as this has more raw power.</p>
+
+<p>also, given Axoloti is 65 euro (lets say 100 including shipping etc) , arguably multiple might be more flexible/reliable... after all you'll pay that for one VST!<br>you can only squeeze so much juice out of one lemon <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/6</link>
+        <pubDate>Thu, 08 Jun 2017 09:57:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-6</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@lis0r]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lis0r">@lis0r</a> wrote:</p>
+          <blockquote>
+              <p>It seems like it might be beneficial to tweak the architecture in the direction of the Nord Modular, with the separation between the synthesis chain, and the global fx chain? That way you could simply change patch on the synthesis half, while leaving the fx in place to smooth the transition.</p>
+
+<p>The disadvantage to making subpatches switchable is that you break the real-time determinism of the model, resulting a higher risk of accidentally running out of CPU time.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/5</link>
+        <pubDate>Thu, 08 Jun 2017 08:54:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-5</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>Thank you for the answers! I'll see what I can do to make the patches more efficient and try to avoid the problem alltogether. Maybe I can make it less CPU hungry by using samples.</p>
+
+<p>It would be neat to have an option for subpatches to be disabled by an additional boolean input. We can make subpatches polyphonic already etc. - so the main work (creating a GUI dialog for those settings, making code generation dependent on those settings) is already done and it's just a matter of integrating another option in there. </p>
+
+<p>Unfortunately my project needs to be done quickly (will be installed at a festival in 2 weeks) so I can't invest the time myself right now. But I'll see what I can do after the festival.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/4</link>
+        <pubDate>Wed, 07 Jun 2017 22:28:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-4</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>You could use another Axoloti ...</p>
+
+<p><a class="mention" href="/users/theslowgrowth">@TheSlowGrowth</a> , no... the only thing I can think of is to edit the patch generation code ( Axoloti is open source) , to make this an option for sub patches<br>But you'll need to dig around in the source to work out how.  </p>
+
+<p>you can't really do in objects or patches since what you need to do is to avoid the dsp function being called, which is done in the Java generator code.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/3</link>
+        <pubDate>Wed, 07 Jun 2017 21:53:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-3</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>think outside the box <img src="//community.axoloti.com/images/emoji/emoji_one/slight_smile.png?v=3" title=":slight_smile:" class="emoji" alt=":slight_smile:"> get an external reverb (guitar pedal for example) and route the axoloti in there.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/2</link>
+        <pubDate>Wed, 07 Jun 2017 21:37:51 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-2</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+      <item>
+        <title>How to disable subpatches (how to fit more stuff)</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>Hello,</p>
+
+<p>I'm working on a sound installation. I want to have multiple "sound sources" that go into a common reverb. Only one of these "sources" produces sound at any given time. I'm looking for a way to disable all inactive "sources" so that they don't consume my precious CPU cycles.</p>
+
+<p>I was thinking about using a different patch for each sound source and switching between them, but then the reverb would cut off on a patch change and that is completely inacceptable for the project I'm working on. So instead I though about putting each sound source in a separate subpatch and somehow disableing the subpatches for the inactive sound sources.</p>
+
+<p>I know I can always right-click on a sub patch and embed it, and then edit a <code>if(disabled) { /* fill buffers with 0s */ return; }</code> statement into the k-rate block. But then, I can't open the subpatch in the patcher anymore.</p>
+
+<p>So what could I do then? Any thoughts on this? </p>
+
+<p>Thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394/1</link>
+        <pubDate>Wed, 07 Jun 2017 21:32:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3394-1</guid>
+        <source url="http://community.axoloti.com/t/how-to-disable-subpatches-how-to-fit-more-stuff/3394.rss">How to disable subpatches (how to fit more stuff)</source>
+      </item>
+  </channel>
+</rss>

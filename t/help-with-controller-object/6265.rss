@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Help with controller object</title>
+    <link>http://community.axoloti.com/t/help-with-controller-object/6265</link>
+    <description>Hi. I know it has been dealt with many times but after having read through the relevant threads I&#39;m still unsure about how to reference the controller objects. I&#39;m even unsure as to whether controllers can be used this way.
+
+Here is what I want to do:
+
+-I want a selectable oscillator bank subpatch, so I can change oscillator types in my synth without having to load an entire new project. 
+-my synth has three oscillators, so I would like the bank to be available to each one. 
+-I want to control it by midi, allowing to scroll through the different oscillator types.
+-I created this folder: Users/me/axoloti/controllers/oscillators and added it to my preferences.
+-then the idea is to have a different subpatch, one for each oscillator type, and when I press a button on my controller the oscillator type changes. 
+
+Will this work or am i just wasting my time? 
+
+am I correct to understand that there can only be one controller object per project?
+I would like at least three different live-selectable subpatches, one for each oscillator. 
+
+
+If it is possible: What should my file structure look like? 
+
+I think I would need three controllers: OSC1.axp, OSC2.xp, OSC3.axp. 
+each of these would reference the same &quot;oscillatorbank&quot; folder of subpatches. 
+
+It is really abstract for me, sorry... I can&#39;t yet wrap my head around it. Sorry if I am completely off...
+
+Thanks you are so helpful!</description>
+    
+    <lastBuildDate>Tue, 31 Dec 2019 11:12:10 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/help-with-controller-object/6265.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>totally depends on what you look for. I always try to minimise cpu usage, but some things just take up cpu to do.<br>Some are designed to just do crazy things that would normally take quite a set of modules to do (or are impossible to do with modules due to the audio-buffer-&gt;calculating 16 samples a time for each module and then passing on the audio to the next module, making it impossible to have a direct feedback). Those are best used as monophonic audio effects.<br>But there are also some that have quite a low cpu use with very basic modulations. My blep oscillators probably use a bit more then the factory ones, but in my case you can load 4 oscillators that each can choose any of the waveforms, without the need of loading 16 of the factory modules into your patch to be able to do that.</p>
+
+<p>If it's the case you still have memory left, but no cpu, you can "silence" the code by adding a mute/on-pin (eg. inlet_on) and add to the code:<br>outlet_out=0;<br>if(inlet_on&gt;0){<br>....your oscillator code...<br>outlet_out= "the output of your oscillator code"<br>}</p>
+
+<p>when the "on" pin is low, the oscillator code won't be played, saving you cpu use.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/14">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/14</link>
+        <pubDate>Tue, 31 Dec 2019 11:12:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-14</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="12" data-topic="6265"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/sirsicksik/40/5014_1.png" class="avatar">SirSickSik:</div>
+<blockquote><p>I've got quite a large set of oscillators,</p></blockquote></aside>
+
+<p>Thanks! I will totally check them out. This is my first axo project and I'm almost finished the architecture for it. I now plan on trying out this basic architecture with various kinds of signal sources so I'll definitely try these in there. </p>
+
+<p>How are they efficiency-wise?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/13">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/13</link>
+        <pubDate>Tue, 17 Dec 2019 17:26:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-13</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@SirSickSik Remco]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sirsicksik">@SirSickSik</a> wrote:</p>
+          <blockquote>
+              <p>I've got quite a large set of oscillators, each having their own way of providing you with different waveforms.<br>The "blep" oscillators are based on the factory oscillators, but they use a seperate module to contain the functions for these. The second "blep" version also has some extra oscillator functions that I made up myself.<br>So you can load a couple of these oscillators and choose which waveform you want to use for each seperately.</p>
+
+<p>But I also have a lot of oscillators that build up their waveform in a different way.<br>Some are wavetable based (several types of modules to build your own set of wavetables, generated in different ways), able to morph through these tables in 1D, 2D or 3D or as a wavetrain.<br>Others are build around different types of synthesis.<br>-complex oscs (like the blep osc, but multiple mixable waveform types)<br>-fm type for bell-type sounds<br>-ringmod<br>-synced for nasty basses<br>-self-modulation (eg classic osc), allowing to morph the sine into other waveforms<br>-harmonic morphing oscillators (very nice as modulation source)<br>-some are a combination of two or more of these</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/12">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/12</link>
+        <pubDate>Tue, 17 Dec 2019 16:26:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-12</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="10" data-topic="6265"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>What do you think?</p></blockquote></aside>
+
+<p>Yeah that could probably work. Make the set ups you want and then use a controller object to change between the patches, with the different setups. Yeah that would work <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/11</link>
+        <pubDate>Tue, 17 Dec 2019 12:50:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-11</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Hi again...</p>
+
+<aside class="quote" data-post="7" data-topic="6265" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/jaffasplaffa/40/5808_1.png" class="avatar">jaffasplaffa:</div>
+<blockquote>
+<p>Yes if you load 4 oscillators for 3 banks, you would have 12 osc's loaded at all times. </p>
+<p>If you want to do other stuff too, I would save all that memory form the 12 osc's by using tables instead.</p>
+<p>Maybe other users in here has other suggestions. This is the best I can come up with atm.</p>
+</blockquote></aside>
+
+<p>I was thinking: maybe a work around would just be to make a bunch of copies of my synth, but each with a different set of oscillators types, and then use the controller object to switch between them. It wouldn't be as convenient, but i guess it would get to similar functionality as what i was thinking. </p>
+
+<p>What do you think?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/10</link>
+        <pubDate>Tue, 17 Dec 2019 12:21:32 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-10</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>BTW there are "multiwave oscillators" in the community library, that offers the 4 basic waveforms in a single object They are probably cheaper than loading 4 separate objects. Check <a class="mention" href="/u/sirsicksik">@SirSickSik</a>'s oscillator folder, for example sss/osc/blepped2.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/9</link>
+        <pubDate>Mon, 16 Dec 2019 22:21:24 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-9</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="6" data-topic="6265"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>ok back to the drawing board i guess...</p></blockquote></aside>
+
+<p>If you are not 100% sure what to do, just try to build something that you think will work, even though it uses a lot of ram and cpu. And then you can always optimise it as you learn more <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/8</link>
+        <pubDate>Mon, 16 Dec 2019 16:38:52 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-8</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Yes if you load 4 oscillators for 3 banks, you would have 12 osc's loaded at all times. </p>
+
+<p>If you want to do other stuff too, I would save all that memory form the 12 osc's by using tables instead.</p>
+
+<p>Maybe other users in here has other suggestions. This is the best I can come up with atm.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/7</link>
+        <pubDate>Mon, 16 Dec 2019 16:30:08 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-7</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="4" data-topic="6265"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/jaffasplaffa/40/5808_1.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>As far as I know, you cannot load subpatches dynamically. The code for each oscillator would have to be loaded into the ram at start up, so it will use the memory that each osc takes, even if the oscillators are not "active".</p></blockquote></aside>
+
+<p>So it would be equivalent to having tons of voices in a polyphonic patch? Damn... </p>
+
+<p>ok back to the drawing board i guess...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/6</link>
+        <pubDate>Mon, 16 Dec 2019 16:27:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-6</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Here is a link to the 4 waveforms, saw, sine, triangle and square, made ready for Axoloti, if you want to try. 4 waves of 2048 samples each = 8192 samples in all. The patch above has the right settings to get it working.</p>
+
+<p>Use the raw file. You need to change the name of the file, as Axoloti doesn't accept spaces in names.</p>
+
+<aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://wetransfer.com/downloads/56797845567c8a9168ad9a97bc06318820191216162604/0552838e1f76ff6237e99b16d97bc32e20191216162604/46a590" target="_blank" rel="nofollow noopener">wetransfer.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://prod-cdn.wetransfer.net/assets/wt-facebook-568be8def5a86a09cedeb21b8f24cb208e86515a552bd07d856c7d5dfc6a23df.png" width="" height="" class="thumbnail">
+
+<h3><a href="https://wetransfer.com/downloads/56797845567c8a9168ad9a97bc06318820191216162604/0552838e1f76ff6237e99b16d97bc32e20191216162604/46a590" target="_blank" rel="nofollow noopener">4 Waveforms.zip</a></h3>
+
+<p>1 file sent via WeTransfer, the simplest way to send your files around the world</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/5</link>
+        <pubDate>Mon, 16 Dec 2019 16:19:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-5</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="3" data-topic="6265"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>Hi. Yes that is one approach but when I say different oscillator types, i mean one type could be an fm oscillator core, another would be an wave table, and another a subtractive synth oscillator... for example.</p></blockquote></aside>
+
+<p>Ahh yes, I see that is a different setup overall.</p>
+
+<aside class="quote" data-post="3" data-topic="6265"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>Since I don't want all of them to be loaded at the same time, I would like to be able to load the subpatches dynamically.</p></blockquote></aside>
+
+<p>As far as I know, you cannot load subpatches dynamically. The code for each oscillator would have to be loaded into the ram at start up, so it will use the memory that each osc takes, even if the oscillators are not "active".</p>
+
+<aside class="quote" data-post="3" data-topic="6265"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/k/e5b9ba/40.png" class="avatar">Ke10g:</div>
+<blockquote><p>do you think this would not be feasible with controller objects?</p></blockquote></aside>
+
+<p>So no, I don't think it is feasible.</p>
+
+<p>For the setup you are talking about I think I would still use tables for the waveforms as it would use a lot less SRAM, which we don't have a lot of. There are tables that uses SDRAM, which we have a lot more of, so load the waveforms into SDRAM tables, as the one in the patch I posted above and then you would still have more memory to do the fm/additive stuff you mentioned. You can do additive/fm on the table too <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/4</link>
+        <pubDate>Mon, 16 Dec 2019 16:09:46 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-4</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Hi. Yes that is one approach but when I say different oscillator types, i mean one type could be an fm oscillator core, another would be an wave table, and another a subtractive synth oscillator... for example. </p>
+
+<p>Since I don't want all of them to be loaded at the same time, I would like to be able to load the subpatches dynamically. </p>
+
+<p>I mostly see people using controllers to load different projects altogether... I want my synth to just have one biasic architecture, but radically different signal sources and oscillator techniques... </p>
+
+<p>do you think this would not be feasible with controller objects?</p>
+
+<p>thanks!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/3</link>
+        <pubDate>Mon, 16 Dec 2019 16:04:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-3</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>I don't think you need to use controller object for this. </p>
+
+<p>If you want to do it the smart way and save dsp and memory, I would say the best way would be making a wavetable with the osc types you need and then load them into a table. </p>
+
+<p>Let's say you want saw, sine, square and triangle. You can create those 4 waveforms in Audacity, lets say you want each waveform to be 2048 samples long. Once you made the waveforms, you cut them so you only have ONE cycle of each. Once you done that you change each of the waveforms size so they are 2048 samples long. You do that by using the effect called "change speed". You can set the length of the waveforms with sample precision, so you set it to 2048, if that is the size you want. </p>
+
+<p>Then you copy the 4 waveforms, which are now all 2048 samples into the same wavefile, so you end up with a file/wavetable with the 4 waveforms that are 8192 samples long. Then export the file in .raw format, so they can be loaded in Axoloti.</p>
+
+<p>Then load the wavefile into a table and then you can use those waveforms for all 3 oscillator banks that you want in your patch. You will save alot of memory this way, cause you dont have to have 3 X saw, square, sine triangle oscillators loaded(12 oscs loaded at all times is a lot), you have just one single table, with the 4 waveforms in and then the 3 oscillator banks share the same waveforms.</p>
+
+<p>To load the wavetable that you create in Audacity, you can do something like this:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/b30118bfa96f9fd24fabea2d097a351c19e0083b" href="//community.axoloti.com/uploads/default/original/2X/b/b30118bfa96f9fd24fabea2d097a351c19e0083b.png" class="lightbox" title="Screen Shot 2019-12-16 at 16.56.37.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/b/b30118bfa96f9fd24fabea2d097a351c19e0083b_1_629x500.png" width="629" height="500"><div class="meta">
+<span class="filename">Screen Shot 2019-12-16 at 16.56.37.png</span><span class="informations">836x664 47.3 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>The patch:<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/d/d36aea0cb58a7b174e0b6ff8cd60e22a712e2479.axp">Waveforms 1.0 .axp</a> (4.0 KB)</p>
+
+<p>That is the basic playback setup. You want to add envelope, filter and so on. If you need it of course.</p>
+
+<p>So you basically only need to get that wavetable with the waveforms created in Audacity. But yeah if you haven't tried that before, it might be a bit of work.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/2</link>
+        <pubDate>Mon, 16 Dec 2019 15:57:25 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-2</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+      <item>
+        <title>Help with controller object</title>
+        <dc:creator><![CDATA[@Ke10g]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ke10g">@Ke10g</a> wrote:</p>
+          <blockquote>
+              <p>Hi. I know it has been dealt with many times but after having read through the relevant threads I'm still unsure about how to reference the controller objects. I'm even unsure as to whether controllers can be used this way.</p>
+
+<p>Here is what I want to do:</p>
+
+<p>-I want a selectable oscillator bank subpatch, so I can change oscillator types in my synth without having to load an entire new project. <br>-my synth has three oscillators, so I would like the bank to be available to each one. <br>-I want to control it by midi, allowing to scroll through the different oscillator types.<br>-I created this folder: Users/me/axoloti/controllers/oscillators and added it to my preferences.<br>-then the idea is to have a different subpatch, one for each oscillator type, and when I press a button on my controller the oscillator type changes. </p>
+
+<p>Will this work or am i just wasting my time? </p>
+
+<p>am I correct to understand that there can only be one controller object per project?<br>I would like at least three different live-selectable subpatches, one for each oscillator. </p>
+
+<p>If it is possible: What should my file structure look like? </p>
+
+<p>I think I would need three controllers: OSC1.axp, OSC2.xp, OSC3.axp. <br>each of these would reference the same "oscillatorbank" folder of subpatches. </p>
+
+<p>It is really abstract for me, sorry... I can't yet wrap my head around it. Sorry if I am completely off...</p>
+
+<p>Thanks you are so helpful!</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-controller-object/6265/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-controller-object/6265/1</link>
+        <pubDate>Mon, 16 Dec 2019 14:44:16 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6265-1</guid>
+        <source url="http://community.axoloti.com/t/help-with-controller-object/6265.rss">Help with controller object</source>
+      </item>
+  </channel>
+</rss>

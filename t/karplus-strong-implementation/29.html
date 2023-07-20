@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<!-- Mirrored from community.axoloti.com/t/karplus-strong-implementation/29 by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 16 Jul 2023 18:39:02 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="utf-8">
+    <title>Karplus Strong implementation - Patching - Axoloti Community</title>
+    <meta name="description" content="Im looking at implementing Karplus Strong on Axoloti, and thought it might be interesting to discuss it here to learn a bit more about patching axoloti. 
+
+so the basic algorithm is described well here: https://en.wikiped&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="29.html" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="../../opensearch.xml" title="Axoloti Community Search">
+
+        <link href="../../stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c8e0b.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','http://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Karplus Strong implementation&#39;" href="29.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/karplus-strong-implementation/29" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/karplus-strong-implementation/29" />
+<meta property="og:title" content="Karplus Strong implementation" />
+<meta name="twitter:title" content="Karplus Strong implementation" />
+<meta property="og:description" content="Im looking at implementing Karplus Strong on Axoloti, and thought it might be interesting to discuss it here to learn a bit more about patching axoloti.   so the basic algorithm is described well here: https://en.wikipedia.org/wiki/Karplus–Strong_string_synthesis   There is also an implementation in the axoloti tutorials, but Id like to refine this... as it diverges from the above explanation in a couple of ways.   a) the noise burst should theoretically be N samples, i.e. its controlled by the ..." />
+<meta name="twitter:description" content="Im looking at implementing Karplus Strong on Axoloti, and thought it might be interesting to discuss it here to learn a bit more about patching axoloti.   so the basic algorithm is described well here: https://en.wikipedia.org/wiki/Karplus–Strong_string_synthesis   There is also an implementation in the axoloti tutorials, but Id like to refine this... as it diverges from the above explanation in a couple of ways.   a) the noise burst should theoretically be N samples, i.e. its controlled by the ..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="2 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="4 ❤" />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="../../index.html"><img src="http://community.axoloti.com/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="29.html">Karplus Strong implementation</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="../../c/patching.html" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-07-11T13:02:50Z' itemprop='datePublished'>
+             2015-07-11 13:02:50 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Im looking at implementing Karplus Strong on Axoloti, and thought it might be interesting to discuss it here to learn a bit more about patching axoloti.</p>
+
+<p>so the basic algorithm is described well here: <a href="https://en.wikipedia.org/wiki/Karplus–Strong_string_synthesis">https://en.wikipedia.org/wiki/Karplus–Strong_string_synthesis</a></p>
+
+<p>There is also an implementation in the axoloti tutorials, but Id like to refine this... as it diverges from the above explanation in a couple of ways.</p>
+
+<p>a) the noise burst should theoretically be N samples, i.e. its controlled by the pitch. rather than be under users control<br>b) the damping is handed by a 1 pole low pass filter.</p>
+
+<p>but really the main reason I'm doing this is for my own 'education' ... and perhaps others may learn too.</p>
+
+<p>I see this as a two part process<br>a) understanding the tutorial patch fully... and the objects it uses<br>b) creating a new patch, with the changes mentioned above.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-07-11T13:22:26Z' itemprop='datePublished'>
+             2015-07-11 13:22:26 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ok, so first lets dig into the tutorial patch.</p>
+
+<p>basically, it create a noise burst, controlled by a VCA, which writes into the delay buffer, and also out to the output.</p>
+
+<p>the feedback loop is where it gets interesting...<br>working 'backwards' we can see it reads the delay line (using linear interpolation), and thats mixed in, sent to the output, and written back into the buffer.  (hence the feedback loop)</p>
+
+<p>at the start of this chain, we can see that delay/mtod is used to calculate the length of the delay line used (its a % of the buffer size, determined in the write object)... and then uses linear interpolation to go from k-rate to audio rate.</p>
+
+<p>ok, this basically makes sense... but the bits I'm still investigating are:<br>- the mtod tuning reference... my assumption is this has to be configured so that it matches the delay buffer specified in delay write BECAUSE the delay time is a function of frequency but the input for delay read is a % (actually a ratio, but equiv for discussion purposes) of the buffer.  BUT in practice if I tune this with a tuner, I don't see the numbers I expect.<br>- maths/-c not sure what this is for, it could be an offset to allow for feedback sample, but its unclear, and seems to make little difference in practice when i tested with a tuner.<br>- conv/interp is this required?  I think this is only required if the pitch changes over time e.g. a pitch bend? otherwise pitch is constant, so no interp required. or perhaps its just 'tidier' to do this when going from k-rate to s-rate.</p>
+
+<p>the main area of investigation is my understanding of MtoD and the tuning reference and how it relates to the buffer size in write...   and ensuring that the resulting output is correctly tuned <br>(a bit concerning there is a comment that there is a bug in the tuning reference... hopefully if I figure this out, then I can 'fix it' <img src="http://community.axoloti.com/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile" width="20" height="20"> )</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+            <a href="../help-making-a-pitch-shifter/321/5.html">Help making a pitch shifter</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2015-07-12T13:11:10Z' itemprop='datePublished'>
+             2015-07-12 13:11:10 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Basically mtod does not compensate for the one-buffer (16 audio samples) implicit delay caused by the feedback connection. And it cannot do that properly, since the delay line length is selectable in the delay/write object, while the delay time unit of the delay/read object is in fractions of the full delay time. The mtod object does not have a reference to that object.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/johannes.html'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2015-07-13T17:59:15Z' itemprop='datePublished'>
+             2015-07-13 17:59:15 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>So in the Karplus Strong tutorial patch, there is a delay line of 2048 samples allocated.<br>mtod will outlet the relative delay time modulation, but because of the one-buffer delay the effective delay time is 16 samples longer. Doing -0.5(/64) compensates that since 2048*-0.5/64=-16 samples.<br>After this compensation the delay line pitch is chromatic.</p>
+
+<p>Still, the mtod tuning reference is off. That is an easy bugfix.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/thetechnobear.html'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-07-15T10:47:09Z' itemprop='datePublished'>
+             2015-07-15 10:47:09 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="4" data-topic="29"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="http://community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Still, the mtod tuning reference is off. That is an easy bugfix.</p></blockquote></aside>
+
+<p>a bug in the mtod (axo) object?</p>
+
+<p>the -c I had wondered if it was that, forgot that the buffer was 16 samples, but makes perfect sense now <img src="http://community.axoloti.com/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile" width="20" height="20"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/buZz.html'><b itemprop='author'>buZz</b></a>
+           
+           <time datetime='2016-03-30T15:07:23Z' itemprop='datePublished'>
+             2016-03-30 15:07:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="4" data-topic="29"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="http://community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Still, the mtod tuning reference is off. That is an easy bugfix.</p></blockquote></aside>
+
+<p>has this been fixed now?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/ilovedrums247.html'><b itemprop='author'>ilovedrums247</b></a>
+           
+           <time datetime='2016-05-26T17:41:48Z' itemprop='datePublished'>
+             2016-05-26 17:41:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>still sounds a little out of tune on mine, but maybe someone has remedied this by now?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/jfcharles.html'><b itemprop='author'>jfcharles</b></a>
+           
+           <time datetime='2017-10-28T14:02:35Z' itemprop='datePublished'>
+             2017-10-28 14:02:35 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Reviving this conversation since it doesn't look to be over; the tutorial still mentions a potential bug. Here is my take on this problem.<br>The tuning reference also depends on the length of the delay line: correct scaling is "662.65194 divided by the number of samples in the delay line".<br>Here is a version of the patch with the correct scaling, as well as an object that takes the length of the delay line as an attribute. If the idea of "delay/mtod" is to include the scaling inside the object, then maybe this is a possible implementation.<br>Thanks for any comment on the code, I hope someone with more experience can make it more efficient if possible.<br><a class="attachment" href="../../uploads/default/original/2X/0/20_karplus_strong-jfc-fix.axp">20_karplus_strong-fix.axp</a> (8.3 KB)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/janifr.html'><b itemprop='author'>janifr</b></a>
+           
+           <time datetime='2017-11-04T21:20:25Z' itemprop='datePublished'>
+             2017-11-04 21:20:25 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I think there is still some tuning issues. I just uploaded in contrib my patch based on tutorial, harpsimono. Maybe you could try it out.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/jfcharles.html'><b itemprop='author'>jfcharles</b></a>
+           
+           <time datetime='2017-11-05T17:18:33Z' itemprop='datePublished'>
+             2017-11-05 17:18:33 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks <a class="mention" href="../../u/janifr.html">@janifr</a>!<br>Indeed, it looks like we have to subtract 17 samples, not 16 samples, to account for the feedback loop. This is what you achieve with your additional "-0.03".<br>I updated my code, which is compatible with various delay line lengths:<br><a class="attachment" href="../../uploads/default/original/2X/8/20_karplus_strong-fix-02.axp">20_karplus_strong-fix-02.axp</a> (6.2 KB)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/chrisj.html'><b itemprop='author'>chrisj</b></a>
+           
+           <time datetime='2018-05-11T12:25:22Z' itemprop='datePublished'>
+             2018-05-11 12:25:22 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I was just watching the "Bela" video with its karplus-strong instrument and correctly figured someone was doing it for Axo: right out of the box we have two audio-rate inputs that could drive such an implementation in two voices (or, two trigger sources that could drive X many voices in turn, like the 'Pluck' eurorack module)</p>
+
+<p>It does seem like tuning issues could relate to the sample rate: at high frequencies the tuning granularity would get increasingly worse. Oversampling would help <img src="http://community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/jaffasplaffa.html'><b itemprop='author'>jaffasplaffa</b></a>
+           
+           <time datetime='2018-05-11T15:07:19Z' itemprop='datePublished'>
+             2018-05-11 15:07:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>About the 16 samples issue. I think this can be bypassed by hardcoding everything into the object, no? Feedback created internally in the object should fix the 16 samples issue as far as I know and right tuning should be possible without too much "after math" <img src="http://community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='../../u/jaffasplaffa.html'><b itemprop='author'>jaffasplaffa</b></a>
+           
+           <time datetime='2018-05-11T16:54:01Z' itemprop='datePublished'>
+             2018-05-11 16:54:01 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Couldn't help it <img src="http://community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"> </p>
+
+<p>Here is my version of karplus strong. To me the tuning seems correct for all octaves.<br>I hacked MTOF object instead of using MTOD. I do have to offset the pitch with -4, but after that it seems correct. But I might have missed something, I dunno:</p>
+
+<p><a class="attachment" href="../../uploads/default/original/2X/8/Karplus%201.3%20FOR%20COM%20.axp">Karplus 1.3 FOR COM .axp</a> (12.2 KB)</p>
+
+<p>(Okay, routing is not correct here, but pitch seems to be)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Karplus Strong implementation'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='../../index.html'>Home</a>
+        <a href="../../categories.html">Categories</a>
+        <a href="../../guidelines.html">FAQ/Guidelines</a>
+        <a href="../../tos.html">Terms of Service</a>
+        <a href="../../privacy.html">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org/">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+
+<!-- Mirrored from community.axoloti.com/t/karplus-strong-implementation/29 by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 16 Jul 2023 18:39:08 GMT -->
+</html>

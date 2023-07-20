@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Generating sync signals for brds (csaw sync)</title>
+    <link>http://community.axoloti.com/t/generating-sync-signals-for-brds-csaw-sync/4366</link>
+    <description>&lt;img src=&quot;/uploads/default/original/2X/9/9f161e041f6e0daa99d692c9b45075b74029a970.png&quot; width=&quot;360&quot; height=&quot;500&quot;&gt;
+
+In this setup, I have two csaw sync oscillators. The first one provides the sync signal, the second one provides the audio. I&#39;d like to save on resources and only run enough code to provide the sync signal rather than also producing audio to throw away in the first one. Unfortunately, the brds objects contain almost no code, as all of it is stored in the libraries. Reading the source code for braids, it looks like the sync signal is more involved than a simple saw output:
+https://github.com/axoloti/axoloti-factory/blob/dcdc5f445c9c0a2da0a30ea4e9a5f9fbf77f6546/objects/osc/brds/brds_analog.h#L125
+Anyways, has someone already developed a way to generate sync signals? Or am I going to need to embed some of this code in an object and strip it down myself?</description>
+    
+    <lastBuildDate>Mon, 19 Mar 2018 20:41:53 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/generating-sync-signals-for-brds-csaw-sync/4366.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Generating sync signals for brds (csaw sync)</title>
+        <dc:creator><![CDATA[@Ott]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/ott">@Ott</a> wrote:</p>
+          <blockquote>
+              <p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/9f161e041f6e0daa99d692c9b45075b74029a970" href="//community.axoloti.com/uploads/default/original/2X/9/9f161e041f6e0daa99d692c9b45075b74029a970.png" class="lightbox" title="image.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/9/9f161e041f6e0daa99d692c9b45075b74029a970_1_360x500.png" width="360" height="500"><div class="meta">
+<span class="filename">image.png</span><span class="informations">475x658 32.5 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>In this setup, I have two csaw sync oscillators. The first one provides the sync signal, the second one provides the audio. I'd like to save on resources and only run enough code to provide the sync signal rather than also producing audio to throw away in the first one. Unfortunately, the brds objects contain almost no code, as all of it is stored in the libraries. Reading the source code for braids, it looks like the sync signal is more involved than a simple saw output:<br><aside class="onebox githubblob">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti-factory/blob/dcdc5f445c9c0a2da0a30ea4e9a5f9fbf77f6546/objects/osc/brds/brds_analog.h#L125" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <h4><a href="https://github.com/axoloti/axoloti-factory/blob/dcdc5f445c9c0a2da0a30ea4e9a5f9fbf77f6546/objects/osc/brds/brds_analog.h#L125" target="_blank" rel="nofollow noopener">axoloti/axoloti-factory/blob/dcdc5f445c9c0a2da0a30ea4e9a5f9fbf77f6546/objects/osc/brds/brds_analog.h#L125</a></h4>
+<pre class="onebox"><code class="lang-h"><ol class="start lines" start="115" style="counter-reset: li-counter 114 ;">
+<li>INTERPOLATE_PHASE_INCREMENT</li>
+<li>uint32_t pw = static_cast&lt;uint32_t&gt;(parameter_) * 49152;</li>
+<li>if (pw &lt; 8 * phase_increment) {</li>
+<li>  pw = 8 * phase_increment;</li>
+<li>}</li>
+<li>
+</li>
+<li>int32_t this_sample = next_sample;</li>
+<li>next_sample = 0;</li>
+<li>	if (sync_in) {</li>
+<li>if (*sync_in) {</li>
+<li class="selected">  // sync_in contain the fractional reset time.</li>
+<li>  reset_time = static_cast&lt;uint32_t&gt;(*sync_in - 1) &lt;&lt; 9;</li>
+<li>  uint32_t phase_at_reset = phase_ + \</li>
+<li>      (65535 - reset_time) * (phase_increment &gt;&gt; 16);</li>
+<li>  sync_reset = true;</li>
+<li>  transition_during_reset = false;</li>
+<li>  if (phase_at_reset &lt; phase_ || (!high_ &amp;&amp; phase_at_reset &gt;= pw)) {</li>
+<li>    transition_during_reset = true;</li>
+<li>  }</li>
+<li>  if (phase_ &gt;= pw) {</li>
+<li>    discontinuity_depth_ = -2048 + (aux_parameter_ &gt;&gt; 2);</li>
+</ol></code></pre>
+
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br>Anyways, has someone already developed a way to generate sync signals? Or am I going to need to embed some of this code in an object and strip it down myself?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/generating-sync-signals-for-brds-csaw-sync/4366/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/generating-sync-signals-for-brds-csaw-sync/4366/1</link>
+        <pubDate>Mon, 19 Mar 2018 20:41:53 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4366-1</guid>
+        <source url="http://community.axoloti.com/t/generating-sync-signals-for-brds-csaw-sync/4366.rss">Generating sync signals for brds (csaw sync)</source>
+      </item>
+  </channel>
+</rss>

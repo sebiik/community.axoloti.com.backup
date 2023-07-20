@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Rotary Encoder Increment - GPIO Digital In too slow?</title>
+    <link>http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180</link>
+    <description>Hello everyone!
+
+I&#39;m working on a project where we use this kind of rotary encoder connected to the axoloti:
+https://www.sparkfun.com/products/11102
+
+The sensor has a Z pin that sends a pulse for every rotation. We use this pulse to trigger a musical note in axoloti. The value of the Z pin is captures using GPIO PA0 through the _gpio/in/digital_ object.
+
+This system works well when the rotation is relatively slow (0-5 Hz). But if the rotation gets faster (5+ Hz) , it seems that _gpio/in/digital_ doesn&#39;t always catch the pulses. It randomly catches one in four pulses. My guess is that the pulses get too short for the k-rate. Am I wrong in thinking this?
+
+Would any of you know how to make sure my axoloti patch catches the Z pulses up to 25 Hz or so? In another environment, I would add an _interrupt_ function after the Z changes value, just to be sure it gets caught. Can I do this in axoloti?
+
+Thank you for your help!
+
+Best,
+Dominic</description>
+    
+    <lastBuildDate>Wed, 05 Apr 2017 23:02:04 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Rotary Encoder Increment - GPIO Digital In too slow?</title>
+        <dc:creator><![CDATA[@johannes johannes]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/johannes">@johannes</a> wrote:</p>
+          <blockquote>
+              <p>Nice encoder!</p>
+
+<aside class="quote" data-post="3" data-topic="3180"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/dominicthibault/40/3942_1.png" class="avatar">DominicThibault:</div>
+<blockquote><p>It just seemed odd to me that past 5-10Hz, the axoloti couldn't catch those pulses. I tested and experienced the same problem on 2 rotary encoders of the same model. So I doubt it's a problem with the sensor.</p></blockquote></aside>
+
+<p>That is odd indeed, <code>gpio/in/digital</code> reads them at 3000Hz. If you have access to a "real" oscilloscope, please verify the encoder output waveform. Maybe it needs a pullup resistor or something?</p>
+
+<aside class="quote" data-post="1" data-topic="3180"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/dominicthibault/40/3942_1.png" class="avatar">DominicThibault:</div>
+<blockquote><p>In another environment, I would add an interrupt function after the Z changes value, just to be sure it gets caught. Can I do this in axoloti?</p></blockquote></aside>
+
+<p>GPIO interrupts are not exposed in Axoloti. It could be done but not in an elegant way (far from...). <br>A more elegant way than using interrupts is programming a hardware timer, there is a mode to deal specifically with incremental encoders, refer to chapter "18.3.12 Encoder interface mode" in the "RM0090" STM32F427 reference manual. That should be able to handle 100000 pulses/s and maintain a position counter that does not skip a single step, without causing an interrupt storm.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/6</link>
+        <pubDate>Wed, 05 Apr 2017 23:02:04 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3180-6</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180.rss">Rotary Encoder Increment - GPIO Digital In too slow?</source>
+      </item>
+      <item>
+        <title>Rotary Encoder Increment - GPIO Digital In too slow?</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>Are you able to set it up so the encoder can send a signal to an external scope as well as the scope in a patch, that way you could compare the differences ?<br>Or maybe instead of running the encoder at a certain speed, use it to set the speed and tell an LFO what speed to run at ?<br>I am sure there is a solution, maybe not in the way you originally intended  ..<img src="//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/5</link>
+        <pubDate>Wed, 05 Apr 2017 22:41:29 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3180-5</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180.rss">Rotary Encoder Increment - GPIO Digital In too slow?</source>
+      </item>
+      <item>
+        <title>Rotary Encoder Increment - GPIO Digital In too slow?</title>
+        <dc:creator><![CDATA[@TheSlowGrowth]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/theslowgrowth">@TheSlowGrowth</a> wrote:</p>
+          <blockquote>
+              <p>catching signals like this is tricky from such a high level programming environment. You can try to install your own interrupt for something like this, but it requires some serious hacking and a deeper understanding of the firmware source code to get it done. Though I can definitely see a wider use for a "high speed trigger catch" object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/4</link>
+        <pubDate>Wed, 05 Apr 2017 13:29:10 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3180-4</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180.rss">Rotary Encoder Increment - GPIO Digital In too slow?</source>
+      </item>
+      <item>
+        <title>Rotary Encoder Increment - GPIO Digital In too slow?</title>
+        <dc:creator><![CDATA[@DominicThibault Dominic Thibault]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/dominicthibault">@DominicThibault</a> wrote:</p>
+          <blockquote>
+              <p>Hi Gavin, </p>
+
+<p>thanks for your help. Yes, the encoder also has A &amp; B pins that spit out 1024 pulses per rotation. We use that to control LED strips with a Teensy board (it does wonderfully). For the music, we intended to only use the Z pin, which spits out a single pulse per rotation. Much easier to deal with....<br><aside class="onebox wikipedia">
+  <header class="source">
+    <a href="https://en.wikipedia.org/wiki/Rotary_encoder#Incremental_rotary_encoder" rel="nofollow noopener">en.wikipedia.org</a>
+  </header>
+  <article class="onebox-body">
+    <img src="//upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Gray_code_rotary_encoder_13-track_opened.jpg/220px-Gray_code_rotary_encoder_13-track_opened.jpg" class="thumbnail" width="89" height="170">
+
+<h3><a href="https://en.wikipedia.org/wiki/Rotary_encoder#Incremental_rotary_encoder" rel="nofollow noopener">Rotary encoder | Incremental rotary encoder</a></h3>
+
+<p>An incremental rotary encoder provides cyclical outputs (only) when the encoder is rotated. They can be either mechanical, optical or magnetic. The mechanical type requires debouncing and is typically used as digital potentiometers on equipment including consumer devices. Most modern home and car stereos use mechanical rotary encoders for volume control. Due to the fact the mechanical switches require debouncing, the mechanical type are limited in the rotational speeds they can handle. The increm...</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>It just seemed odd to me that past 5-10Hz, the axoloti couldn't catch those pulses. I tested and experienced the same problem on 2 rotary encoders of the same model. So I doubt it's a problem with the sensor.</p>
+
+<p>I was hoping to maybe find a way of bettering the rate of the gpio digital in. Or, could I use the dc-coupled audio in on the axoloti and therefore sample the sensor at s-rate?</p>
+
+<p>best,</p>
+
+<p>Dom</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/3</link>
+        <pubDate>Wed, 05 Apr 2017 03:36:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3180-3</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180.rss">Rotary Encoder Increment - GPIO Digital In too slow?</source>
+      </item>
+      <item>
+        <title>Rotary Encoder Increment - GPIO Digital In too slow?</title>
+        <dc:creator><![CDATA[@Gavin Gavin]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/gavin">@Gavin</a> wrote:</p>
+          <blockquote>
+              <p>This encoder is very different to the ones I have mentioned in posts.<br>But looking at the specs, it says its maximum is 6000 rpm with 1024 pulses per rotation, I guess if I am doing this right, that comes out at about 102400 pulses per second.<br>But when you read the comments on the Item below, one comment is made about having to use an FPGA at much higher speeds than a normal Arduino etc to read 4 encoders at 50rpm.<br>Not sure if this is the problem though...<br>One thing you could try is the order of the objects in the patch, this can have interesting impacts, also do you have other rotary encoder types to test and see if the same thing happens ? <img src="//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3" title=":grin:" class="emoji" alt=":grin:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/2</link>
+        <pubDate>Wed, 05 Apr 2017 03:04:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3180-2</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180.rss">Rotary Encoder Increment - GPIO Digital In too slow?</source>
+      </item>
+      <item>
+        <title>Rotary Encoder Increment - GPIO Digital In too slow?</title>
+        <dc:creator><![CDATA[@DominicThibault Dominic Thibault]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/dominicthibault">@DominicThibault</a> wrote:</p>
+          <blockquote>
+              <p>Hello everyone!</p>
+
+<p>I'm working on a project where we use this kind of rotary encoder connected to the axoloti:<br><aside class="onebox whitelistedgeneric">
+  <header class="source">
+    <a href="https://www.sparkfun.com/products/11102" rel="nofollow noopener">sparkfun.com</a>
+  </header>
+  <article class="onebox-body">
+    <img src="https://cdn.sparkfun.com/r/92-92/assets/parts/6/5/2/7/11102-01.jpg" width="92" height="92" class="thumbnail">
+
+<h3><a href="https://www.sparkfun.com/products/11102" rel="nofollow noopener">Rotary Encoder - 1024 P/R (Quadrature) - COM-11102 - SparkFun Electronics</a></h3>
+
+<p>COM-11102: This 1024 pulse per rotation rotary encoder outputs [gray code](http://en.wikipedia.org/wiki/Gray_code) which you can interpret using a microcontroller and</p>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>The sensor has a Z pin that sends a pulse for every rotation. We use this pulse to trigger a musical note in axoloti. The value of the Z pin is captures using GPIO PA0 through the <em>gpio/in/digital</em> object.</p>
+
+<p>This system works well when the rotation is relatively slow (0-5 Hz). But if the rotation gets faster (5+ Hz) , it seems that <em>gpio/in/digital</em> doesn't always catch the pulses. It randomly catches one in four pulses. My guess is that the pulses get too short for the k-rate. Am I wrong in thinking this?</p>
+
+<p>Would any of you know how to make sure my axoloti patch catches the Z pulses up to 25 Hz or so? In another environment, I would add an <em>interrupt</em> function after the Z changes value, just to be sure it gets caught. Can I do this in axoloti?</p>
+
+<p>Thank you for your help!</p>
+
+<p>Best,<br>Dominic</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180/1</link>
+        <pubDate>Wed, 05 Apr 2017 02:14:43 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-3180-1</guid>
+        <source url="http://community.axoloti.com/t/rotary-encoder-increment-gpio-digital-in-too-slow/3180.rss">Rotary Encoder Increment - GPIO Digital In too slow?</source>
+      </item>
+  </channel>
+</rss>

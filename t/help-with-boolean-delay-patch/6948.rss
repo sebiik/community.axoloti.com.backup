@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Help With Boolean Delay Patch</title>
+    <link>http://community.axoloti.com/t/help-with-boolean-delay-patch/6948</link>
+    <description>I&#39;m trying to figure out how to take a pulse from a square wave with a boolean output and use SDRAM delay/write and delay/read objects to create a delay between the square wave generator and the output. I don&#39;t really understand how to use these delay objects, much less doing it with boolean signals such as in this patch, so I&#39;d greatly appreciate some help. The following is my attempt:
+
+    &lt;patch-1.0 appVersion=&quot;1.0.12&quot;&gt;
+       &lt;obj type=&quot;lfo/square&quot; uuid=&quot;de6909eb64db13af5b43f979a4c130024b3a4793&quot; name=&quot;square_1&quot; x=&quot;14&quot; y=&quot;14&quot;&gt;
+          &lt;params&gt;
+             &lt;frac32.s.map name=&quot;pitch&quot; value=&quot;-42.0&quot;/&gt;
+          &lt;/params&gt;
+          &lt;attribs/&gt;
+       &lt;/obj&gt;
+       &lt;obj type=&quot;pulse/dirac&quot; uuid=&quot;6ffcf69f4d093d7df59fd18b36d443a8abf043f3&quot; name=&quot;dirac_1&quot; x=&quot;112&quot; y=&quot;14&quot;&gt;
+          &lt;params/&gt;
+          &lt;attribs/&gt;
+       &lt;/obj&gt;
+       &lt;obj type=&quot;delay/write sdram&quot; uuid=&quot;5ae03f8d7b815edcfc40585d8bbac2ed48460fba&quot; name=&quot;delaywrite1&quot; x=&quot;182&quot; y=&quot;14&quot;&gt;
+          &lt;params/&gt;
+          &lt;attribs&gt;
+             &lt;combo attributeName=&quot;size&quot; selection=&quot;1024 (21.33ms)&quot;/&gt;
+          &lt;/attribs&gt;
+       &lt;/obj&gt;
+       &lt;obj type=&quot;delay/read&quot; uuid=&quot;9323a43569373145e559ad309eaf65a47b14cb54&quot; name=&quot;read_1&quot; x=&quot;322&quot; y=&quot;14&quot;&gt;
+          &lt;params&gt;
+             &lt;frac32.u.map name=&quot;time&quot; value=&quot;64.0&quot;/&gt;
+          &lt;/params&gt;
+          &lt;attribs&gt;
+             &lt;objref attributeName=&quot;delayname&quot; obj=&quot;delaywrite1&quot;/&gt;
+          &lt;/attribs&gt;
+       &lt;/obj&gt;
+       &lt;obj type=&quot;env/follower&quot; uuid=&quot;356ce1d18ac6b51704833f94dac5dea823fb8223&quot; name=&quot;follower_1&quot; x=&quot;476&quot; y=&quot;14&quot;&gt;
+          &lt;params/&gt;
+          &lt;attribs&gt;
+             &lt;combo attributeName=&quot;time&quot; selection=&quot;1.3ms&quot;/&gt;
+          &lt;/attribs&gt;
+       &lt;/obj&gt;
+       &lt;obj type=&quot;logic/change speedlim&quot; uuid=&quot;9239a1be592182b71673521e7d7461e6951e8d3b&quot; name=&quot;change_1&quot; x=&quot;546&quot; y=&quot;14&quot;&gt;
+          &lt;params&gt;
+             &lt;frac32.u.map name=&quot;d&quot; value=&quot;63.5&quot;/&gt;
+          &lt;/params&gt;
+          &lt;attribs/&gt;
+       &lt;/obj&gt;
+       &lt;obj type=&quot;disp/bool&quot; uuid=&quot;a0ee71d48208b71752cbb8c05e55145106ef3946&quot; name=&quot;bool_5&quot; x=&quot;672&quot; y=&quot;14&quot;&gt;
+          &lt;params/&gt;
+          &lt;attribs/&gt;
+       &lt;/obj&gt;
+       &lt;obj type=&quot;disp/bool&quot; uuid=&quot;a0ee71d48208b71752cbb8c05e55145106ef3946&quot; name=&quot;bool_4&quot; x=&quot;112&quot; y=&quot;98&quot;&gt;
+          &lt;params/&gt;
+          &lt;attribs/&gt;
+       &lt;/obj&gt;
+       &lt;nets&gt;
+          &lt;net&gt;
+             &lt;source obj=&quot;square_1&quot; outlet=&quot;wave&quot;/&gt;
+             &lt;dest obj=&quot;bool_4&quot; inlet=&quot;in&quot;/&gt;
+             &lt;dest obj=&quot;dirac_1&quot; inlet=&quot;trig&quot;/&gt;
+          &lt;/net&gt;
+          &lt;net&gt;
+             &lt;source obj=&quot;dirac_1&quot; outlet=&quot;out&quot;/&gt;
+             &lt;dest obj=&quot;delaywrite1&quot; inlet=&quot;in&quot;/&gt;
+          &lt;/net&gt;
+          &lt;net&gt;
+             &lt;source obj=&quot;follower_1&quot; outlet=&quot;amp&quot;/&gt;
+             &lt;dest obj=&quot;change_1&quot; inlet=&quot;in&quot;/&gt;
+          &lt;/net&gt;
+          &lt;net&gt;
+             &lt;source obj=&quot;change_1&quot; outlet=&quot;trig&quot;/&gt;
+             &lt;dest obj=&quot;bool_5&quot; inlet=&quot;in&quot;/&gt;
+          &lt;/net&gt;
+          &lt;net&gt;
+             &lt;source obj=&quot;read_1&quot; outlet=&quot;out&quot;/&gt;
+             &lt;dest obj=&quot;follower_1&quot; inlet=&quot;in&quot;/&gt;
+          &lt;/net&gt;
+       &lt;/nets&gt;
+       &lt;settings&gt;
+          &lt;subpatchmode&gt;no&lt;/subpatchmode&gt;
+       &lt;/settings&gt;
+       &lt;notes&gt;&lt;![CDATA[]]&gt;&lt;/notes&gt;
+       &lt;windowPos&gt;
+          &lt;x&gt;2624&lt;/x&gt;
+          &lt;y&gt;129&lt;/y&gt;
+          &lt;width&gt;823&lt;/width&gt;
+          &lt;height&gt;400&lt;/height&gt;
+       &lt;/windowPos&gt;
+    &lt;/patch-1.0&gt;</description>
+    
+    <lastBuildDate>Sun, 22 Nov 2020 01:16:05 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/help-with-boolean-delay-patch/6948.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Help With Boolean Delay Patch</title>
+        <dc:creator><![CDATA[@hitachii Hitachii]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/hitachii">@hitachii</a> wrote:</p>
+          <blockquote>
+              <p>If you're trying to have a square wave determine the playback of your delay, try using table/play instead with a square lfo attached to the play and the stop, using a logic/inv from the lfo to the stop of the play object.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-boolean-delay-patch/6948/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-boolean-delay-patch/6948/2</link>
+        <pubDate>Sun, 22 Nov 2020 01:16:05 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6948-2</guid>
+        <source url="http://community.axoloti.com/t/help-with-boolean-delay-patch/6948.rss">Help With Boolean Delay Patch</source>
+      </item>
+      <item>
+        <title>Help With Boolean Delay Patch</title>
+        <dc:creator><![CDATA[@fas11030 Frank Spigner]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/fas11030">@fas11030</a> wrote:</p>
+          <blockquote>
+              <p>I'm trying to figure out how to take a pulse from a square wave with a boolean output and use SDRAM delay/write and delay/read objects to create a delay between the square wave generator and the output. I don't really understand how to use these delay objects, much less doing it with boolean signals such as in this patch, so I'd greatly appreciate some help. The following is my attempt:</p>
+
+<pre><code>&lt;patch-1.0 appVersion="1.0.12"&gt;
+   &lt;obj type="lfo/square" uuid="de6909eb64db13af5b43f979a4c130024b3a4793" name="square_1" x="14" y="14"&gt;
+      &lt;params&gt;
+         &lt;frac32.s.map name="pitch" value="-42.0"/&gt;
+      &lt;/params&gt;
+      &lt;attribs/&gt;
+   &lt;/obj&gt;
+   &lt;obj type="pulse/dirac" uuid="6ffcf69f4d093d7df59fd18b36d443a8abf043f3" name="dirac_1" x="112" y="14"&gt;
+      &lt;params/&gt;
+      &lt;attribs/&gt;
+   &lt;/obj&gt;
+   &lt;obj type="delay/write sdram" uuid="5ae03f8d7b815edcfc40585d8bbac2ed48460fba" name="delaywrite1" x="182" y="14"&gt;
+      &lt;params/&gt;
+      &lt;attribs&gt;
+         &lt;combo attributeName="size" selection="1024 (21.33ms)"/&gt;
+      &lt;/attribs&gt;
+   &lt;/obj&gt;
+   &lt;obj type="delay/read" uuid="9323a43569373145e559ad309eaf65a47b14cb54" name="read_1" x="322" y="14"&gt;
+      &lt;params&gt;
+         &lt;frac32.u.map name="time" value="64.0"/&gt;
+      &lt;/params&gt;
+      &lt;attribs&gt;
+         &lt;objref attributeName="delayname" obj="delaywrite1"/&gt;
+      &lt;/attribs&gt;
+   &lt;/obj&gt;
+   &lt;obj type="env/follower" uuid="356ce1d18ac6b51704833f94dac5dea823fb8223" name="follower_1" x="476" y="14"&gt;
+      &lt;params/&gt;
+      &lt;attribs&gt;
+         &lt;combo attributeName="time" selection="1.3ms"/&gt;
+      &lt;/attribs&gt;
+   &lt;/obj&gt;
+   &lt;obj type="logic/change speedlim" uuid="9239a1be592182b71673521e7d7461e6951e8d3b" name="change_1" x="546" y="14"&gt;
+      &lt;params&gt;
+         &lt;frac32.u.map name="d" value="63.5"/&gt;
+      &lt;/params&gt;
+      &lt;attribs/&gt;
+   &lt;/obj&gt;
+   &lt;obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_5" x="672" y="14"&gt;
+      &lt;params/&gt;
+      &lt;attribs/&gt;
+   &lt;/obj&gt;
+   &lt;obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_4" x="112" y="98"&gt;
+      &lt;params/&gt;
+      &lt;attribs/&gt;
+   &lt;/obj&gt;
+   &lt;nets&gt;
+      &lt;net&gt;
+         &lt;source obj="square_1" outlet="wave"/&gt;
+         &lt;dest obj="bool_4" inlet="in"/&gt;
+         &lt;dest obj="dirac_1" inlet="trig"/&gt;
+      &lt;/net&gt;
+      &lt;net&gt;
+         &lt;source obj="dirac_1" outlet="out"/&gt;
+         &lt;dest obj="delaywrite1" inlet="in"/&gt;
+      &lt;/net&gt;
+      &lt;net&gt;
+         &lt;source obj="follower_1" outlet="amp"/&gt;
+         &lt;dest obj="change_1" inlet="in"/&gt;
+      &lt;/net&gt;
+      &lt;net&gt;
+         &lt;source obj="change_1" outlet="trig"/&gt;
+         &lt;dest obj="bool_5" inlet="in"/&gt;
+      &lt;/net&gt;
+      &lt;net&gt;
+         &lt;source obj="read_1" outlet="out"/&gt;
+         &lt;dest obj="follower_1" inlet="in"/&gt;
+      &lt;/net&gt;
+   &lt;/nets&gt;
+   &lt;settings&gt;
+      &lt;subpatchmode&gt;no&lt;/subpatchmode&gt;
+   &lt;/settings&gt;
+   &lt;notes&gt;&lt;![CDATA[]]&gt;&lt;/notes&gt;
+   &lt;windowPos&gt;
+      &lt;x&gt;2624&lt;/x&gt;
+      &lt;y&gt;129&lt;/y&gt;
+      &lt;width&gt;823&lt;/width&gt;
+      &lt;height&gt;400&lt;/height&gt;
+   &lt;/windowPos&gt;
+&lt;/patch-1.0&gt;</code></pre>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/help-with-boolean-delay-patch/6948/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/help-with-boolean-delay-patch/6948/1</link>
+        <pubDate>Fri, 20 Nov 2020 04:51:34 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6948-1</guid>
+        <source url="http://community.axoloti.com/t/help-with-boolean-delay-patch/6948.rss">Help With Boolean Delay Patch</source>
+      </item>
+  </channel>
+</rss>

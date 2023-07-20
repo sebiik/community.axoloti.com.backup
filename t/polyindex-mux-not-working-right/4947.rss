@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Polyindex -&gt; mux not working right</title>
+    <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947</link>
+    <description>Hey there I am trying to to get every first, every second, and every third note in my polyphonic subpatch. 
+I tried it with the modulo operator and with the following but it only works sometimes. does anyone know why?
+&lt;img src=&quot;/uploads/default/original/2X/6/6f9bb4f6cfa784aa82d56ba4f8b06660c3ca1e47.png&quot; width=&quot;441&quot; height=&quot;333&quot;&gt;
+thanks in advance,
+Flub</description>
+    
+    <lastBuildDate>Sat, 08 Sep 2018 20:38:27 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>Thank you for helping me.  how can I find out how the object works ? Is there anything else than looking into the edit object dialogs? <br>Regards , Flub</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/11">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/11</link>
+        <pubDate>Sat, 08 Sep 2018 20:38:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-11</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="9" data-topic="4947"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/f/4af34b/40.png" class="avatar">Flub:</div>
+<blockquote><p>EDIT: polyindex to tb/disp/print i does not work. it shows alle indexes once on startup in the console and then does not do anything further when i press keys.</p></blockquote></aside>
+
+<p>I recommend you start to check how things work rather than just declaring them as 'not working', this way you'll be able to use things to help build your understanding, or adapt to your use-case.</p>
+
+<p>print, will only print when a values change - this means you would need to do something like set it back to zero on note-off</p>
+
+<p>(why does print work like this? well remember axoloti is continuously processing objects, so if it didn't it would constantly print sending output to the console)</p>
+
+<aside class="quote" data-post="9" data-topic="4947"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/f/4af34b/40.png" class="avatar">Flub:</div>
+<blockquote><p>Isnt there a way to access data stored in parent patch from subppatch</p></blockquote></aside>
+
+<p>yes, the easiest way is to use a table object, even if its only got one entry.<br>(see table help for example on how to access parent tables)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/10">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/10</link>
+        <pubDate>Sat, 08 Sep 2018 13:26:54 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-10</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>Ah thank you, this might be the key ! that the polyindex depends on the key release not on the key down. <br>I already looked if I can find a print object and I didnt find one. I take a further look and try to solve my problem with that.<br>Thanks. ill come back if I find a solution. If somebody understood my problem and knows the solution already. feel free to share it = )</p>
+
+<p>EDIT: polyindex to tb/disp/print i does not work. it shows alle indexes once on startup in the console and then does not do anything further when i press keys.</p>
+
+<p>Isnt there a way to access data stored in parent patch from subppatch then I could simply use a counter on the parent patch to cycle between 0 1 2  0 1 2 every time a key is pressed?</p>
+
+<p>Or how can I get the number of keys Pressed inside a polyphonic subpatch?<br>SOLUTION:<br>I created a custom object from the paraphonic objekt<br>    </p>
+
+<p></p><pre><code class="lang-auto">int channel = (status &amp; 0xf) + 1;
+int cmd = (status &amp; 0x70) &gt;&gt; 4;
+if ((channel!=attr_MIDIchannel &amp;&amp; attr_MIDIchannel&gt;0)) {
+	return;	
+}
+// some midi devices send note on with velocity 0 instead of note off
+if (cmd==1 &amp;&amp; data2==0) {
+	cmd = 0;
+}
+if (cmd==1 ) {
+	// check if there is a free channel
+	for (chIndex=0; chIndex&lt;MAX_CHANNELS;chIndex++) {
+		if(channels[chIndex] == 0) {
+			channels[chIndex] = data1;
+			break;	
+		}
+	}
+	chIndex++;
+	if (chIndex &gt;= MAX_CHANNELS) {
+		chIndex = 0;
+	}
+}
+else if (cmd==0) {
+	// note off
+	for (chIndex=0; chIndex&lt;MAX_CHANNELS;chIndex++) {
+		if(channels[chIndex] == data1) {
+			channels[chIndex] = 0;
+			break;
+		}
+	}
+}
+if ((cmd == 3)&amp;&amp;(data1 == 123)) { // all notes off message
+	for (int i=0;i&lt;MAX_CHANNELS;i++) {
+		channels[chIndex] = 0;
+	}
+	chIndex = 0;
+}</code></pre>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/a/a84f0266632c4547f9809fc6643f5386bd7ba478.axp">master4.axp</a> (76.4 KB)</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/9</link>
+        <pubDate>Sat, 08 Sep 2018 06:48:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-9</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <aside class="quote" data-post="7" data-topic="4947"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/f/4af34b/40.png" class="avatar">Flub:</div>
+<blockquote><p>where every voice number exists only 1 time. In my case I play a Chord and sometimes two voices/keypresses get the same polyindex.</p></blockquote></aside>
+
+<p>as <a class="mention" href="/u/lokki">@lokki</a> already said...if you using 8 voices, then you are going to have duplicates<br>as essentially your doing 8 % 3.</p>
+
+<p>so there are  N (8 in this case) voices (set in your poly for the subpatch) , and voices are allocated based on the time that voice was used (i.e. oldest is used next), so once you've started playing a few notes, especially chords, the actual voice used will get tricky for you to track, as depends on exactly which order you released keys.</p>
+
+<p>(so it is completely predictable, but easy to lose track of when your playing)</p>
+
+<p>btw: what id recommend you do when your trying to debug these kind of things, is try to print something to the console log, e.g. my print object will help... this way you'll be able to see what polyindex is returning.<br>I think this would show you, you are not getting two voices with the same index <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/8</link>
+        <pubDate>Fri, 07 Sep 2018 20:38:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-8</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>I connected a usb midi keyboard the usb input of the axoloti board.<br>I want to play chords or single notes. I was okay with the order not being fixed from low to high or from high to low.<br>but anyways what I dont understand is that the polyindex must in any case a number between 0 and number of voices-1<br>where every voice number exists only 1 time. In my case I play a Chord and sometimes two voices/keypresses get the same polyindex. I might be a timing issue that the mux gets set to late and still has the inputselect integer from a note before. But I dont know how to affect this...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/7</link>
+        <pubDate>Fri, 07 Sep 2018 13:55:17 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-7</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>ok. how do the midi notes arrive?</p>
+
+<p>do you play one after each other, or do you also play chords?</p>
+
+<p>what sorting do you expect in case of chords? from low to high, high to low?</p>
+
+<p>i am not sure the poly index simply counts through and starts over again. i imagine it is more some sort of notes pool, and the places that are empty can be filled. (so that voice stealing etc. works) but i am not sure about that.</p>
+
+<p>so that might mean, you or somebody else has to write a dedicated object for that.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/6</link>
+        <pubDate>Fri, 07 Sep 2018 11:15:58 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-6</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>But I don’t want to miss the polyphony of 8 or so i just want to seperate The 8 into 3 variations and I wondered why the patch above did not work always but sometimes</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/5</link>
+        <pubDate>Fri, 07 Sep 2018 08:12:30 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-5</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@lokki]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/lokki">@lokki</a> wrote:</p>
+          <blockquote>
+              <p>hmm, then just set the polyphony to 3, no?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/4</link>
+        <pubDate>Fri, 07 Sep 2018 08:01:21 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-4</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>Hey thanks for your reply . But it did not solve the problem . I only need seperate integers . I think sometimes the polyindex counting has jumps in it . But I am not sure if that’s the problem. I just want that if I press 3 keys one of them is voice 1 one is voice 2 and the other is voice 3 the fourth key should be voice 1 again...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/3</link>
+        <pubDate>Fri, 07 Sep 2018 08:00:18 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-3</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@Sebo Sebastian Cordoves]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/sebo">@Sebo</a> wrote:</p>
+          <blockquote>
+              <p>I had a similar question. Look at this post:<br><aside class="quote" data-post="1" data-topic="3500">
+  <div class="title">
+    <div class="quote-controls"></div>
+    <img alt="" width="20" height="20" src="/user_avatar/community.axoloti.com/sebo/40/4466_1.png" class="avatar">
+    <a href="//community.axoloti.com/t/how-can-i-get-the-output-of-individual-voices-out-of-a-polyphonic-subpatch/3500?u=sebo&amp;source_topic_id=4947" rel="nofollow noopener">How can I get the output of individual voices out of a polyphonic subpatch?</a> <a class="badge-wrapper  bullet" href="/c/patching"><span class="badge-category-bg" style="background-color: #AB9364;"></span><span style="color: #FFFFFF;" class="badge-category clear-badge" title="This category is for discussion about patching Axoloti, and sharing patches.">Patching</span></a>
+  </div>
+  <blockquote>
+    Hi I made a polyphonic synth using a polyphonic sub-patch. Now I want to get individual voices out of the sub-patch (as outlets) so I can pan them individually. It is possible to do that? Or is there another method to pan individual voices? 
+
+What I want is to mimic the behaviour of old polysynths that have a stereo out with voices panned left and right. Let´s say I want voices 1, 3 and 5 panned to the left, and voices 2, 4 and 6 panned to the right. 
+
+Thank you.
+  </blockquote>
+</aside>
+</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/2</link>
+        <pubDate>Thu, 06 Sep 2018 23:24:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-2</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+      <item>
+        <title>Polyindex -&gt; mux not working right</title>
+        <dc:creator><![CDATA[@Flub Flo]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/flub">@Flub</a> wrote:</p>
+          <blockquote>
+              <p>Hey there I am trying to to get every first, every second, and every third note in my polyphonic subpatch. <br>I tried it with the modulo operator and with the following but it only works sometimes. does anyone know why?<br><img src="//community.axoloti.com/uploads/default/original/2X/6/6f9bb4f6cfa784aa82d56ba4f8b06660c3ca1e47.png" width="441" height="333"><br>thanks in advance,<br>Flub</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/polyindex-mux-not-working-right/4947/1</link>
+        <pubDate>Thu, 06 Sep 2018 17:35:28 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-4947-1</guid>
+        <source url="http://community.axoloti.com/t/polyindex-mux-not-working-right/4947.rss">Polyindex -&gt; mux not working right</source>
+      </item>
+  </channel>
+</rss>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Patch Launch Control Led with logic counter</title>
+    <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446</link>
+    <description>
+Hello, 
+
+I did this patch,  to use each pad of the launch controle of novation with an logic counter and different led color for each tree positions. 
+I was working empirical, so i guess there is miskate, or we can improve it. 
+
+
+The led color, is set with the value. 
+
+The speed of the blinking led is set with  lfo, i did that because i will use it to know the speed of osc or lfo in my patch. But the true is : i didn&#39;t find the right way to keep it alway one. :sunny: 
+
+Anyway, with this patch you have the number and the value of each note, to use the pad launch controle, with the original set up. 
+
+Edit  this patch &quot; ring buffer overflow the midi send&quot;, you should change  &quot;usb host port 1&quot; to &quot;usb host port 2 &quot;
+
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/9/93d2e7edf7e3571c214c8b3a8bde67ca127e1437.axp&quot;&gt;axoloti-lauchcontrole-led.axp&lt;/a&gt; (22.7 KB)
+
+&lt;img src=&quot;/uploads/default/original/2X/3/3fa03392c76fc6a6c6811690af33e32ee2e4007a.jpg&quot; width=&quot;690&quot; height=&quot;397&quot;&gt;
+
+
+You can find more information about midi and led for lauch pad control there : 
+[https://global.novationmusic.com/sites/default/files/novation/downloads/6958/launch-control-programmers-reference-guide.pdf](https://global.novationmusic.com/sites/default/files/novation/downloads/6958/launch-control-programmers-reference-guide.pdf)
+
+
+Cheers,</description>
+    
+    <lastBuildDate>Sun, 06 Nov 2016 11:34:26 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>ok, the control lines (blue) are updating objects at 'control rate' which is 3000/sec</p>
+
+<p>I think probably the cause of your issue is you are continually sending midi notes out, to update the pad , at a rate derived by your LFOs. this is completely unnecessary... and a waste of CPU too.<br>remove the LFO's and instead place a change from the mux output to the trig<br>e.g. <br>mux -&gt; change -&gt;note/trig</p>
+
+<p>this will mean a midi message will only be sent when the colour actually changes, rather than continually updating.</p>
+
+<p>generally, its important for any computing platform, but especially when using micro-controllers, that you minimise I/O as this is very 'expensive'. so if your doing midi output or gpio output , carefully triggering objects when needed is important.<br>(change speedlim can sometimes be used to throttle changes too, though in this case i dont think it necessary)</p>
+
+<p>as a coding tip, Id also point out, you could also do what your doing with many fewer objects, all those repeated dials, lfo (unnecessary now) , midi/out/note,counters all take up valuable space, and could be replaced generally with a single one.<br>this is not an issue in this case, as the patch doesn't do much, but if you start incorporating with other functionality (e.g. doing FX/Synth) then it will limit that functionality.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/9</link>
+        <pubDate>Sun, 06 Nov 2016 11:34:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-9</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@nuances 26]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nuances">@nuances</a> wrote:</p>
+          <blockquote>
+              <p>many thank for you anwser !  i checked your midi objet for the push but i didn't figure out, how use it. </p>
+
+<p>If i'm right, i should do some think to limite the number midi message. it is correct ?<br>It is how, (k-rate cycle) should be use ? I did'nt understand what it is. sorry.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/8</link>
+        <pubDate>Sat, 05 Nov 2016 22:13:47 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-8</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@thetechnobear Mark Harris]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/thetechnobear">@thetechnobear</a> wrote:</p>
+          <blockquote>
+              <p>you are sending messages faster than can be processed...</p>
+
+<p>this can happen in two scenarios:<br>a) your hardware device is not processing the messages (or too slowly) <br>b) you are trying to send too many messages in one go (k-rate cycle) </p>
+
+<p>I found with the push, that when I made coding errors (a) was the most likely ... e.g. sending on the wrong usb port, or for some reason the push not being connected properly<br>... I suspect this is the case, as the ring buffer is pretty 'large' certainly more than 5 midi messages... so id guess, there is a build up of messages caused by something else.</p>
+
+<p>on the push, I also was careful to not send too many messages in one k-rate cycle instead spreading the updates over a few.</p>
+
+<p>I suspect what you are doing with the launch control is very similar to what I did with the Push, (see my community library objets) , so it might be worth you reviewing my code to see the things Ive done.... you may even be able to use some of it (e.g. to get scales support)</p>
+
+<p>tech note: <br>patches send the messages in the normal 'audio thread', obviously we cannot block this with IO, so message are place in a ring buffer, than is then process by a separate midi IO thread. <br>this error occurs, when you are producing messages faster than the IO thread can consume them.<br>as I mentioned above, if you produce a huge number of messages quickly its possible to overflow, in practice, I found this uncommon, unless my code had gone a bit 'awry' , or a more general issue with usb output.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/7</link>
+        <pubDate>Wed, 26 Oct 2016 10:38:01 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-7</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@nuances 26]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nuances">@nuances</a> wrote:</p>
+          <blockquote>
+              <p>Thank!</p>
+
+<p>Still in progress,... The midi is over flow after more than 5 led blinking <br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/93f730fc4aa34e7360dde36e34bfd38d0e8bc358" href="//community.axoloti.com/uploads/default/original/2X/9/93f730fc4aa34e7360dde36e34bfd38d0e8bc358.jpg" class="lightbox" title="Capture d’écran 2016-10-26 à 01.51.12.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/9/93f730fc4aa34e7360dde36e34bfd38d0e8bc358_1_314x500.jpg" width="314" height="500"><div class="meta">
+<span class="filename">Capture d’écran 2016-10-26 à 01.51.12.jpg</span><span class="informations">371x589 128 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/6</link>
+        <pubDate>Tue, 25 Oct 2016 23:38:13 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-6</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>See this thread for info i talked about:</p>
+
+<aside class="quote" data-topic="1360" data-slug="launchcontrol-xl-led-feedback" data-post="17"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/b/2acd7d/40.png" class="avatar"><a href="//community.axoloti.com/t/launchcontrol-xl-led-feedback/1360/17">Launchcontrol XL Led Feedback</a>
+</div>
+<blockquote><p>Ok thanks for the suggestions. I'm trying to send it lot's of differen Midi Notes with Lfo but I get this quite quickly: Axoloti says: usbh_MidiSend3 : ring buffer overflow    <a href="//community.axoloti.com/uploads/default/original/2X/5/588ba618edcf3991ab4b46664d32112aca902c4d.png" title="Bildschirmfoto 2016-03-23 um 23.36.40.png">[image]</a>  That's not a good thing right?    Oh and I don't want to touch Sysex and I also don't see the reason why. I've programmed the LEDs perfectly with Max for Live so there is no reason it should not work with Axoloti...</p></blockquote></aside>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/5</link>
+        <pubDate>Tue, 25 Oct 2016 16:29:20 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-5</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>ah ok. I think I read another thread a while ago that another user had also attempted this with succes. Try do a search for it, if you havent all ready.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/4</link>
+        <pubDate>Tue, 25 Oct 2016 15:32:48 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-4</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@nuances 26]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nuances">@nuances</a> wrote:</p>
+          <blockquote>
+              <p>thank, ! but i test it with my all patch (lfo, vcf) with midi CC for control, et axoloti  core is disconnecting, because the midi buffer send to much information.</p>
+
+<p>So, the blinking led with the lfo isn't a good idea. There is to much midi information. work in progress !</p>
+
+<p>Looking forward,</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/3</link>
+        <pubDate>Tue, 25 Oct 2016 14:10:26 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-3</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@jaffasplaffa Mr. Grimm]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/jaffasplaffa">@jaffasplaffa</a> wrote:</p>
+          <blockquote>
+              <p>Awesome man. Just bought a launch controller a while ago and I was wondering how to set those LEDs up.</p>
+
+<p>Look forward to test it when I am home in the afternoon.</p>
+
+<p>Allthough I think it is a lot of objects used for such a small task. Like the Modular thing controller patch I have made, it also uses alot of object for a fairly simple task; controlling something. I guess some custom objects would scale it down a bit. Will see it it is possible to do something about it. </p>
+
+<p>Great work <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/2</link>
+        <pubDate>Tue, 25 Oct 2016 06:48:06 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-2</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+      <item>
+        <title>Patch Launch Control Led with logic counter</title>
+        <dc:creator><![CDATA[@nuances 26]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/nuances">@nuances</a> wrote:</p>
+          <blockquote>
+              <p>Hello, </p>
+
+<p>I did this patch,  to use each pad of the launch controle of novation with an logic counter and different led color for each tree positions. <br>I was working empirical, so i guess there is miskate, or we can improve it. </p>
+
+<p>The led color, is set with the value. </p>
+
+<p>The speed of the blinking led is set with  lfo, i did that because i will use it to know the speed of osc or lfo in my patch. But the true is : i didn't find the right way to keep it alway one. <img src="//community.axoloti.com/images/emoji/emoji_one/sunny.png?v=3" title=":sunny:" class="emoji" alt=":sunny:"> </p>
+
+<p>Anyway, with this patch you have the number and the value of each note, to use the pad launch controle, with the original set up. </p>
+
+<p>Edit  this patch " ring buffer overflow the midi send", you should change  "usb host port 1" to "usb host port 2 "</p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/9/93d2e7edf7e3571c214c8b3a8bde67ca127e1437.axp">axoloti-lauchcontrole-led.axp</a> (22.7 KB)</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/3fa03392c76fc6a6c6811690af33e32ee2e4007a" href="//community.axoloti.com/uploads/default/original/2X/3/3fa03392c76fc6a6c6811690af33e32ee2e4007a.jpg" class="lightbox" title="Capture d’écran 2016-10-25 à 01.39.47.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/3/3fa03392c76fc6a6c6811690af33e32ee2e4007a_1_690x397.jpg" width="690" height="397"><div class="meta">
+<span class="filename">Capture d’écran 2016-10-25 à 01.39.47.jpg</span><span class="informations">1180x679 245 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>You can find more information about midi and led for lauch pad control there : <br><a href="https://global.novationmusic.com/sites/default/files/novation/downloads/6958/launch-control-programmers-reference-guide.pdf" class="onebox" target="_blank" rel="nofollow">https://global.novationmusic.com/sites/default/files/novation/downloads/6958/launch-control-programmers-reference-guide.pdf</a></p>
+
+<p>Cheers,</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446/1</link>
+        <pubDate>Mon, 24 Oct 2016 23:41:36 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-2446-1</guid>
+        <source url="http://community.axoloti.com/t/patch-launch-control-led-with-logic-counter/2446.rss">Patch Launch Control Led with logic counter</source>
+      </item>
+  </channel>
+</rss>

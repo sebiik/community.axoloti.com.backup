@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Connecting Axoloti &amp; Arduino via I2C</title>
+    <link>http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223</link>
+    <description>Hey. I wanted to connect the Axoloti, Hohum Axoctrl, and Arduino Nano together via I2C. 
+
+My whole plan is to connect a bunch of RGB LEDs to the Arduino Nano, put the LEDs &amp; Arduino Nano inside the Axoctrl, and finally using the Axoloti to control the LEDs. 
+
+Right now my first step is to figure out how to make the Axoloti &amp; Arduino Nano communicate.
+
+I&#39;m aware that the Axoloti has GPIO ports that allows for controlling LEDs, but with the Axoctrl on top of the Axoloti, I2C seems like the best way to make the Axoloti communicate with the Nano.
+
+I&#39;ve read alot of forum posts on here about i2c. I&#39;m fine with graphical patching but not line-by-line coding, so I don&#39;t understand how to build a custom i2c object. There&#39;s also a few posts that pointed to an i2c driver by chibios. What is that and how do I use it to make an i2c object?</description>
+    
+    <lastBuildDate>Fri, 26 Mar 2021 12:25:13 +0000</lastBuildDate>
+    <category>Hardware</category>
+    <atom:link href="http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Connecting Axoloti &amp; Arduino via I2C</title>
+        <dc:creator><![CDATA[@KelvinT KelvinT]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kelvint">@KelvinT</a> wrote:</p>
+          <blockquote>
+              <p>There's actually holes on the Axoctrl for I2C connection. PB9 is connected to SDA, and PB8 is connected to SCL already. All I need to do is solder the pins.<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/4a93254ec2272d578eda4cb7046bee5cfdb3644a" href="//community.axoloti.com/uploads/default/original/2X/4/4a93254ec2272d578eda4cb7046bee5cfdb3644a.jpg" class="lightbox" title="image.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/4a93254ec2272d578eda4cb7046bee5cfdb3644a_1_690x468.jpg" width="690" height="468"><div class="meta">
+<span class="filename">image.jpg</span><span class="informations">1466x996 598 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>I think the i2c arduino tutorial that you linked is good to follow. It seems easy to program the arduino to be an i2c slave. Now I need to know how to program the axoloti to be the master.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223/3</link>
+        <pubDate>Thu, 25 Mar 2021 21:23:12 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7223-3</guid>
+        <source url="http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223.rss">Connecting Axoloti &amp; Arduino via I2C</source>
+      </item>
+      <item>
+        <title>Connecting Axoloti &amp; Arduino via I2C</title>
+        <dc:creator><![CDATA[@janvantomme Jan Vantomme]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/janvantomme">@janvantomme</a> wrote:</p>
+          <blockquote>
+              <p>Axoloti uses the following gpio pins for i2c. The Hohum Axoctrl already uses I2C for the display. So you will have to communicate to the Arduino on an other address on the i2c bus, and probably solder some extra wires to these pins to connect to your Arduino.</p>
+
+<ul>
+<li>PB9 = SDA (Data Signal)</li>
+<li>PB8 = SCL (Clock Signal)</li>
+</ul>
+
+<p>Chibios is the RTOS (real time operating system) used on the Axoloti.</p>
+
+<p>I2C driver code from the Axoloti firmware can be found here.:</p>
+
+<p><aside class="onebox githubblob">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <h4><a href="https://github.com/axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h" target="_blank" rel="nofollow noopener">axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h</a></h4>
+<pre><code class="lang-h">/**
+  ******************************************************************************
+  * @file    stm32f4xx_hal_i2c.h
+  * @author  MCD Application Team
+  * @version (based on) V1.5.0
+  * @date    06-May-2016
+  * @brief   Header file of I2C HAL module.
+  ******************************************************************************
+  * @attention
+  *
+  * This version is stripped down, all references to DMA are removed.
+  *
+  * @attention
+  *
+  * &lt;h2&gt;&lt;center&gt;&amp;copy; COPYRIGHT(c) 2016 STMicroelectronics&lt;/center&gt;&lt;/h2&gt;
+  *
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+</code></pre>
+
+  This file has been truncated. <a href="https://github.com/axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h" target="_blank" rel="nofollow noopener">show original</a>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+<br><aside class="onebox githubblob">
+  <header class="source">
+    <a href="https://github.com/axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c" target="_blank" rel="nofollow noopener">github.com</a>
+  </header>
+  <article class="onebox-body">
+    <h4><a href="https://github.com/axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c" target="_blank" rel="nofollow noopener">axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c</a></h4>
+<pre><code class="lang-c">/**
+  ******************************************************************************
+  * @file    stm32f4xx_hal_i2c.c
+  * @author  MCD Application Team
+  * @version V1.5.0
+  * @date    06-May-2016
+  * @brief   I2C HAL module driver.
+  *          This file provides firmware functions to manage the following
+  *          functionalities of the Inter Integrated Circuit (I2C) peripheral:
+  *           + Initialization and de-initialization functions
+  *           + IO operation functions
+  *           + Peripheral Control functions
+  *           + Peripheral State functions
+  *
+  @verbatim
+  ==============================================================================
+                        ##### How to use this driver #####
+  ==============================================================================
+  [..]
+    The I2C HAL driver can be used as follows:
+</code></pre>
+
+  This file has been truncated. <a href="https://github.com/axoloti/axoloti/blob/master/firmware/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c" target="_blank" rel="nofollow noopener">show original</a>
+
+  </article>
+  <div class="onebox-metadata">
+    
+    
+  </div>
+  <div style="clear: both"></div>
+</aside>
+</p>
+
+<p>You will also need to write custom code for the Arduino in order to interpret the data coming from the Axoloti, since it won't know by default what the ones and zeroes you are sending mean.</p>
+
+<p>This is a good tutorial to learn about i2c communication between two arduinos.<br><a href="https://dronebotworkshop.com/i2c-arduino-arduino/" class="onebox" target="_blank" rel="nofollow noopener">https://dronebotworkshop.com/i2c-arduino-arduino/</a></p>
+
+<p>Not exactly something I would recommend as a first coding project, but good luck. <img src="//community.axoloti.com/images/emoji/twitter/wink.png?v=5" title=":wink:" class="emoji" alt=":wink:"></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223/2</link>
+        <pubDate>Thu, 25 Mar 2021 13:54:56 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7223-2</guid>
+        <source url="http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223.rss">Connecting Axoloti &amp; Arduino via I2C</source>
+      </item>
+      <item>
+        <title>Connecting Axoloti &amp; Arduino via I2C</title>
+        <dc:creator><![CDATA[@KelvinT KelvinT]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/kelvint">@KelvinT</a> wrote:</p>
+          <blockquote>
+              <p>Hey. I wanted to connect the Axoloti, Hohum Axoctrl, and Arduino Nano together via I2C. </p>
+
+<p>My whole plan is to connect a bunch of RGB LEDs to the Arduino Nano, put the LEDs &amp; Arduino Nano inside the Axoctrl, and finally using the Axoloti to control the LEDs. </p>
+
+<p>Right now my first step is to figure out how to make the Axoloti &amp; Arduino Nano communicate.</p>
+
+<p>I'm aware that the Axoloti has GPIO ports that allows for controlling LEDs, but with the Axoctrl on top of the Axoloti, I2C seems like the best way to make the Axoloti communicate with the Nano.</p>
+
+<p>I've read alot of forum posts on here about i2c. I'm fine with graphical patching but not line-by-line coding, so I don't understand how to build a custom i2c object. There's also a few posts that pointed to an i2c driver by chibios. What is that and how do I use it to make an i2c object?</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223/1</link>
+        <pubDate>Thu, 25 Mar 2021 08:40:02 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-7223-1</guid>
+        <source url="http://community.axoloti.com/t/connecting-axoloti-arduino-via-i2c/7223.rss">Connecting Axoloti &amp; Arduino via I2C</source>
+      </item>
+  </channel>
+</rss>

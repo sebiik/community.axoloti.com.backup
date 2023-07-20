@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>EWI4000s-like patch for wind controller</title>
+    <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108</link>
+    <description>I made a patch with some objects dedicated for wind controllers. My interest was mostly to understand how breath control can be used to add expressiveness to an instrument. To learn more, I attempted to imitate the internal synth of the EWI4000s based on the Vyzex (EWI sound editor) manual. But with a focus on replicating the control of the instrument, not the sounds. On the contrary, the strength of Axoloti is to use different oscillator, filter and effects objects, different methods of synthesis, etc.
+
+&lt;img src=&quot;/uploads/default/original/2X/f/f6ee7c64fcc3abcf69471dff3bffb5637ba1ac12.png&quot; width=&quot;690&quot; height=&quot;429&quot;&gt;
+
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/e/e2ef02a0b2cd9a9e3a44bd27ce7897925709f3ee.axp&quot;&gt;EWI_internal.axp&lt;/a&gt; (14.2 KB)
+
+The ewi_in object draws in the midi signal from the EWI, but can probably also be used for other breath controllers. The object can be finetuned for glide and bend behaviour. The bendsens number indicates the min/max k-rate value of the bend plates associated with the max bend interval.
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/a/a3eb8552cc819740bc726e89bbe29dee5f3d1161.axo&quot;&gt;ewi_in.axo&lt;/a&gt; (3.6 KB)
+
+The breath block modifies the k-rate breath signal, first to a bilinear signal with the threshold and then transforms it into an exponential curve. The subpatch includes two objects for bilinear conversion: ewi_thresh keeps the signal at zero until the threshold value; from there on the signal rises linearly to 1 at max breath value. ewi_xfade initially follows the breath signal until the threshold value and from then goes down linearly to 0 at max breath value. 
+The exp_curve transforms the signal in such way that a negative control value gives higher output at intermediate breath input and a positive control value gives lower output at intermediate breath values with a high slope towards max breath value.
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/4/4c073a7ac5693410c10db3132d8ff02dc4350011.axs&quot;&gt;ewi_breath.axs&lt;/a&gt; (2.6 KB)
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/9/99b3425b233253f62c6ff83d4da5998e30834812.axo&quot;&gt;ewi_thresh.axo&lt;/a&gt; (783 Bytes)
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/2/25e6453c162f4693fc58d7eb0b4b83d80c0e6022.axo&quot;&gt;ewi_xfade.axo&lt;/a&gt; (845 Bytes)
+
+The pitch block controls the tuning for the subsequent oscillator and the initial sweep of the pitch when a new note is blown (not legato, see gate): max. time and pitch (sweep time and sweep depth) of the sweep and the influence of the breath on it: time and pitch (breath attain and breath depth). In fact, the velocity signal is used instead of the breath signal. Velocity for a breath controller is the first breath value whenever a new note is blown. The velocity value is kept constant throughout a legato run.
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/5/51e98734ea4e12308106850764bad511bca95369.axs&quot;&gt;ewi_pitch.axs&lt;/a&gt; (4.0 KB)
+
+The PWM block is used only for the square oscillator in the EWI4000s, but could be used for various controls on other oscillators/objects. Just a straightforward and output-only PWM control.
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/e/ed884d45602a08404043cc1479cad276007f26f4.axs&quot;&gt;ewi_pwm.axs&lt;/a&gt; (1.4 KB)
+
+The filter control block contains modulation control for the filter cutoff frequence by breath strength, as well as an LFO. The strength of the LFO modulation can either increase with breath strength (pos. LFO depth values) or decrease (neg.)
+Key follow for the filter cutoff frequency is centred on note C6. Positive key follow value will cause the cutoff frequence to be raised for notes higher than C6 and lowered for lower notes. Negative key follow does the reverse.
+I haven&#39;t included a time sweep for the filter controls (yet).
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/2/23b64b0c6f84e968896c673f2463f5550bbd44f7.axs&quot;&gt;ewi_filtctrl.axs&lt;/a&gt; (5.9 KB)
+&lt;a class=&quot;attachment&quot; href=&quot;/uploads/default/original/2X/0/05c401aa588d4d246819ec2daa7c39df1f2b86b1.axo&quot;&gt;ewi_lfodepth.axo&lt;/a&gt; (762 Bytes)
+
+The effects chain is still very rudimentary and doesn&#39;t contain any modulation by breath. This can be added quite easily with different objects though.
+
+And now I&#39;ll try to find some good sounds with it. I also intend to build a foot controllor with 2 expression pedals and some switches. Possibilities with Axoloti are just endless :slight_smile:
+
+If anyone with a breath controller wants to try it out, I&#39;m very interested in feedback and fresh ideas.</description>
+    
+    <lastBuildDate>Wed, 05 Aug 2020 13:23:38 +0000</lastBuildDate>
+    <category>Patching</category>
+    <atom:link href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss" rel="self" type="application/rss+xml" />
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@vdyck Tom Van Dyck]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/vdyck">@vdyck</a> wrote:</p>
+          <blockquote>
+              <p>One thing I forgot to mention: </p>
+
+<p>I made some patches without the 'gate' function before the vca/gain. This hold and octave function only work right when an envelope object is put between the gate outlet of the ewi_in object and the gain/vca object.<br>I had made this (sub)patch before without this but with 'breath' outlet connected to the gain/vca object. That gives very unpredictible behaviour of the hold function of the 4000s, makes it unusable.</p>
+
+<p>Its a pity because I seem to lose some of the originally intended character when I put the envelope filter there instead of a direct connection with breath ...</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/9">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/9</link>
+        <pubDate>Wed, 05 Aug 2020 13:23:38 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-9</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@joaogatao joaogatao]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/joaogatao">@joaogatao</a> wrote:</p>
+          <blockquote>
+              <p>Hey, great that you found how to do it already. The yellow (boolean) hold and octave outlets are there as on/off switches so they can also be assigned for another function in the patch.</p>
+
+<p>I've been extremely busy with 'a new career in a new town' the past months. But now I finally got some time again to play and program. And defo wanna try more things for the EWI. If you have thoughts to improve these objects or add new functions specifically for the EWI, please post them here.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/8">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/8</link>
+        <pubDate>Wed, 05 Aug 2020 12:05:27 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-8</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@vdyck Tom Van Dyck]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/vdyck">@vdyck</a> wrote:</p>
+          <blockquote>
+              <p>I found a way to do it. <br>Saved my patch as a polyphonic subpatch as described elsewhere.<br>Added 2 outlets, L en R.<br>In a new patch connected those to a L &amp; R inlet of a stereo output object.<br>Checked the settings on the Hold en Octave buttons on the 4000s: settings as you's use the Ewi standalone: 'Oc' on 'ln' or 'oc' (interval or octave) and 'Ho' to 'LE'<br>Nothing needn't be connected to the yellow 'Hold' &amp; 'Octave' outlets. <br>Works like a charm. <br>I'm becoming a real fan of this little board!! </p>
+
+<p>Next thing I got to learn is being able to change the patchn°in standalone mode.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/7">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/7</link>
+        <pubDate>Tue, 04 Aug 2020 18:54:35 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-7</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@vdyck Tom Van Dyck]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/vdyck">@vdyck</a> wrote:</p>
+          <blockquote>
+              <p>Hello Joaogato,<br>I just started last week with axoloti, the only reason why I want to get into it is because I hope to create some original sounds on my EWI. I bought it a year ago, but didn't get time to really dive in until now ...<br>I used your ewi_in.axo which suits my needs perfectly concerning thumb bends, lip vibrato &amp; thumb glide. Thanks a lot for that!<br>I do not see how one could get the hold and octave function to work as it does with the 4000s internal synth.<br>I made a basic patch that I will use as a starting point for some other sounds. I didn't do it as an imitiation of the ewi 4000s synth. I made it simple, but my instrument reacts the way I like it. <br>Only thing I really miss is the hold &amp; octave function. I wonder if you could give me a hint ...<br>Thanks for the ewi_in object anyway!<br>Hope to hear from you,<br>vdyck<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/57580b620a0693e97c9283cbc17df4b937f36251" href="//community.axoloti.com/uploads/default/original/2X/5/57580b620a0693e97c9283cbc17df4b937f36251.png" class="lightbox" title="ewi basic patch 03.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/5/57580b620a0693e97c9283cbc17df4b937f36251_1_690x388.png" width="690" height="388"><div class="meta">
+<span class="filename">ewi basic patch 03.png</span><span class="informations">1920x1080 175 KB</span><span class="expand"></span>
+</div></a></div></p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/6">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/6</link>
+        <pubDate>Mon, 03 Aug 2020 09:34:49 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-6</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@Woodinblack Woody Goldsack]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/woodinblack">@Woodinblack</a> wrote:</p>
+          <blockquote>
+              <p>Good timing, I have just got an axoloti and connected my 5000 up to it last night. It doesn't seem to work too well with it at the moment, when I tried it on the mac connected to the USB it just completely died and then after that the axoloti wouldn't actually admit to being there any more! Eventually I tried it on the PC and it was working again (I think I just took my USB out!), powered from the USB there was just too much noise, and powered from external not much happened.<br>Eventually I just decided to use the midi and that worked better, however I think the bite sensor is broken on mine, so I was trying to see what came out of what CC. I will give yours a try and see what I can get.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/5">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/5</link>
+        <pubDate>Sun, 12 Jan 2020 12:03:11 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-5</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@weasel79 blender]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/weasel79">@weasel79</a> wrote:</p>
+          <blockquote>
+              <p>fwiw i have one of these, there's a more affordable older version too (100 vs 200 euro) if anbody is interested...<br><a href="https://www.tecontrol.se/products/usb-midi-breath-bite-controller-2" class="onebox" target="_blank">https://www.tecontrol.se/products/usb-midi-breath-bite-controller-2</a><br>after a lot of reviews, the breath and bite controls on this seemed to be amogst the best, plus it adds a gyroscope for another 2 intuivitive physical parameter controls (sideways/forward head leaning)</p>
+
+<p>and it's a pure breath controller, so more suitable for additional modulation when playing synths as opposed to a full size EWI etc with the saxophone keys.</p>
+
+<p>i'll try hook it up to your patch one day but no promises... haven't used that thing in a while.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/4">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/4</link>
+        <pubDate>Mon, 11 Nov 2019 03:03:59 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-4</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@joaogatao joaogatao]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/joaogatao">@joaogatao</a> wrote:</p>
+          <blockquote>
+              <p>Aha that's great to hear. For the bite sensor, that's something I wanted to have as well. But in the MIDI output from the EWI this is not assigned to a separate CC number (at least for EWI4000s, maybe different for EWI USB or EWI5000?)<br>The bite sensor acts as an up and down envelope on the bend signal. This bend signal also contains the input from the two bend plates. These bend plates do have their own CC number: CC48 (bend up) and CC49 (bend down). Even if you subtract these two from the bend signal to isolate the bite sensor, you're still left with the up and down pulse and not a continuous signal for bite strength.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/3">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/3</link>
+        <pubDate>Sun, 10 Nov 2019 06:34:19 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-3</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@biamau Mauro]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/biamau">@biamau</a> wrote:</p>
+          <blockquote>
+              <p>I have an ewi usb, the breath control works very well. the maximum would be to use the bite (Vibrato) to modulate the lfo.<br>thank you so much</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/2">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/2</link>
+        <pubDate>Fri, 08 Nov 2019 20:07:31 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-2</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+      <item>
+        <title>EWI4000s-like patch for wind controller</title>
+        <dc:creator><![CDATA[@joaogatao joaogatao]]></dc:creator>
+        <description><![CDATA[
+          <p><a href="http://community.axoloti.com/u/joaogatao">@joaogatao</a> wrote:</p>
+          <blockquote>
+              <p>I made a patch with some objects dedicated for wind controllers. My interest was mostly to understand how breath control can be used to add expressiveness to an instrument. To learn more, I attempted to imitate the internal synth of the EWI4000s based on the Vyzex (EWI sound editor) manual. But with a focus on replicating the control of the instrument, not the sounds. On the contrary, the strength of Axoloti is to use different oscillator, filter and effects objects, different methods of synthesis, etc.</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/f6ee7c64fcc3abcf69471dff3bffb5637ba1ac12" href="//community.axoloti.com/uploads/default/original/2X/f/f6ee7c64fcc3abcf69471dff3bffb5637ba1ac12.png" class="lightbox" title="EWI_patch.png"><img src="//community.axoloti.com/uploads/default/optimized/2X/f/f6ee7c64fcc3abcf69471dff3bffb5637ba1ac12_1_690x429.png" width="690" height="429"><div class="meta">
+<span class="filename">EWI_patch.png</span><span class="informations">1491x928 128 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/e/e2ef02a0b2cd9a9e3a44bd27ce7897925709f3ee.axp">EWI_internal.axp</a> (14.2 KB)</p>
+
+<p>The ewi_in object draws in the midi signal from the EWI, but can probably also be used for other breath controllers. The object can be finetuned for glide and bend behaviour. The bendsens number indicates the min/max k-rate value of the bend plates associated with the max bend interval.<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/a/a3eb8552cc819740bc726e89bbe29dee5f3d1161.axo">ewi_in.axo</a> (3.6 KB)</p>
+
+<p>The breath block modifies the k-rate breath signal, first to a bilinear signal with the threshold and then transforms it into an exponential curve. The subpatch includes two objects for bilinear conversion: ewi_thresh keeps the signal at zero until the threshold value; from there on the signal rises linearly to 1 at max breath value. ewi_xfade initially follows the breath signal until the threshold value and from then goes down linearly to 0 at max breath value. <br>The exp_curve transforms the signal in such way that a negative control value gives higher output at intermediate breath input and a positive control value gives lower output at intermediate breath values with a high slope towards max breath value.<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/4/4c073a7ac5693410c10db3132d8ff02dc4350011.axs">ewi_breath.axs</a> (2.6 KB)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/9/99b3425b233253f62c6ff83d4da5998e30834812.axo">ewi_thresh.axo</a> (783 Bytes)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/2/25e6453c162f4693fc58d7eb0b4b83d80c0e6022.axo">ewi_xfade.axo</a> (845 Bytes)</p>
+
+<p>The pitch block controls the tuning for the subsequent oscillator and the initial sweep of the pitch when a new note is blown (not legato, see gate): max. time and pitch (sweep time and sweep depth) of the sweep and the influence of the breath on it: time and pitch (breath attain and breath depth). In fact, the velocity signal is used instead of the breath signal. Velocity for a breath controller is the first breath value whenever a new note is blown. The velocity value is kept constant throughout a legato run.<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/5/51e98734ea4e12308106850764bad511bca95369.axs">ewi_pitch.axs</a> (4.0 KB)</p>
+
+<p>The PWM block is used only for the square oscillator in the EWI4000s, but could be used for various controls on other oscillators/objects. Just a straightforward and output-only PWM control.<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/e/ed884d45602a08404043cc1479cad276007f26f4.axs">ewi_pwm.axs</a> (1.4 KB)</p>
+
+<p>The filter control block contains modulation control for the filter cutoff frequence by breath strength, as well as an LFO. The strength of the LFO modulation can either increase with breath strength (pos. LFO depth values) or decrease (neg.)<br>Key follow for the filter cutoff frequency is centred on note C6. Positive key follow value will cause the cutoff frequence to be raised for notes higher than C6 and lowered for lower notes. Negative key follow does the reverse.<br>I haven't included a time sweep for the filter controls (yet).<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/2/23b64b0c6f84e968896c673f2463f5550bbd44f7.axs">ewi_filtctrl.axs</a> (5.9 KB)<br><a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/0/05c401aa588d4d246819ec2daa7c39df1f2b86b1.axo">ewi_lfodepth.axo</a> (762 Bytes)</p>
+
+<p>The effects chain is still very rudimentary and doesn't contain any modulation by breath. This can be added quite easily with different objects though.</p>
+
+<p>And now I'll try to find some good sounds with it. I also intend to build a foot controllor with 2 expression pedals and some switches. Possibilities with Axoloti are just endless <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>If anyone with a breath controller wants to try it out, I'm very interested in feedback and fresh ideas.</p>
+          </blockquote>
+          <p><a href="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/1">Read full topic</a></p>
+        ]]></description>
+        <link>http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108/1</link>
+        <pubDate>Sun, 20 Oct 2019 09:22:55 +0000</pubDate>
+        <guid isPermaLink="false">community.axoloti.com-post-6108-1</guid>
+        <source url="http://community.axoloti.com/t/ewi4000s-like-patch-for-wind-controller/6108.rss">EWI4000s-like patch for wind controller</source>
+      </item>
+  </channel>
+</rss>
