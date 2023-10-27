@@ -1,0 +1,255 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="dual_multi_wave" uuid="91789564-7579-4245-B600-26B0021AD9F2">
+      <sDescription>LFO with 8 outputs shifted by 45 degree, bipolar, multi wave, modulation inputs</sDescription>
+      <author>Are Leistad, tekknovator</author>
+      <license>BSD</license>
+      <inlets>
+         <frac32.bipolar name="pitch" description="Pitch input"/>
+         <frac32.bipolar name="phase" description="Phase modulation"/>
+         <frac32.bipolar name="pwm" description="Pulse width modulation"/>
+         <frac32.bipolar name="am" description="Amplitude modulation"/>
+         <int32.bipolar name="wave" description="Waveform, added to wave parameter"/>
+         <bool32.rising name="reset" description="Reset phase"/>
+      </inlets>
+      <outlets>
+         <frac32 name="0" description="0 degrees output"/>
+         <frac32 name="45"/>
+         <frac32 name="90"/>
+         <frac32 name="135"/>
+         <frac32 name="180"/>
+         <frac32 name="225"/>
+         <frac32 name="270"/>
+         <frac32 name="315"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.s.map.lfopitch name="pitch" description="Pitch" noLabel="false"/>
+         <frac32.u.map.ratio name="pw" description="LFO square pulse width" noLabel="false"/>
+         <frac32.s.map name="amp" description="Amplitude" noLabel="false"/>
+         <bool32.tgl name="unipolar" description="Unipolar output" noLabel="false"/>
+         <int32 name="wave" description="1-5 = tri, sine, saw+, saw-, square" noLabel="false">
+            <MinValue i="1"/>
+            <MaxValue i="5"/>
+         </int32>
+      </params>
+      <attribs/>
+      <code.declaration><![CDATA[uint32_t phase;
+      int32_t  old_reset;
+
+      __attribute__( ( always_inline ) ) __STATIC_INLINE int32_t ___ABS (int32_t op1 )
+      {
+        int32_t result;
+        __ASM volatile ( "movs  %0, %1\n"
+                         "it    mi\n"
+                         "rsbmi %0, %0, #0"
+                         : "=r" (result)
+                         : "r" (op1)
+                       );
+        return(result);
+      };]]></code.declaration>
+      <code.init><![CDATA[phase = 0;
+      old_reset = 0;]]></code.init>
+      <code.krate><![CDATA[if( inlet_reset && !old_reset )
+        {
+          phase = 0;
+        }
+      else
+        {
+          int32_t pitch;
+          pitch = param_pitch + inlet_pitch;
+          if( pitch > 0x07FFFFFF )
+            pitch = 0x07FFFFFF;
+          MTOFEXTENDED( pitch, pitch );
+          phase += pitch>>2;
+        }
+      old_reset = inlet_reset;
+
+      uint32_t phase1 = phase + (inlet_phase<<3);
+      uint32_t phase2 = phase1 - 0x20000000; //trail of thought: if 90 shift is -0x40000000 then 45` must be 0x10000000. But this is decimal thinking, i need to divide hex by 4
+			uint32_t phase3 = phase2 - 0x20000000;
+			uint32_t phase4 = phase3 - 0x20000000;
+			uint32_t phase5 = phase4 - 0x20000000;
+			uint32_t phase6 = phase5 - 0x20000000;
+			uint32_t phase7 = phase6 - 0x20000000;
+			uint32_t phase8 = phase7 - 0x20000000;
+
+      switch( param_wave + inlet_wave )
+        {
+          default:
+          case 1 :
+            // Triangle
+            outlet_0  = (phase1>>4) - (1<<27);
+            outlet_0  = (1<<27) - ___ABS(outlet_0);
+            outlet_45 = (phase2>>4) - (1<<27);
+            outlet_45 = (1<<27) - ___ABS(outlet_45);
+						outlet_90 = (phase3>>4) - (1<<27);
+            outlet_90 = (1<<27) - ___ABS(outlet_90);
+						outlet_135 = (phase4>>4) - (1<<27);
+            outlet_135 = (1<<27) - ___ABS(outlet_135);
+						outlet_180 = (phase5>>4) - (1<<27);
+            outlet_180 = (1<<27) - ___ABS(outlet_180);
+						outlet_225 = (phase6>>4) - (1<<27);
+            outlet_225 = (1<<27) - ___ABS(outlet_225);
+						outlet_270 = (phase7>>4) - (1<<27);
+            outlet_270 = (1<<27) - ___ABS(outlet_270);
+						outlet_315 = (phase8>>4) - (1<<27);
+            outlet_315 = (1<<27) - ___ABS(outlet_315);
+						
+            break;
+
+          case 2 :
+            // Sine
+            SINE2TINTERP( phase1, outlet_0 )
+            outlet_0 = (outlet_0>>5) + (1<<26);
+            SINE2TINTERP( phase2, outlet_45 )
+            outlet_45 = (outlet_45>>5) + (1<<26);
+            SINE2TINTERP( phase3, outlet_90 )
+            outlet_90 = (outlet_90>>5) + (1<<26);
+            SINE2TINTERP( phase4, outlet_135 )
+            outlet_135 = (outlet_135>>5) + (1<<26);
+            SINE2TINTERP( phase5, outlet_180 )
+            outlet_180 = (outlet_180>>5) + (1<<26);
+            SINE2TINTERP( phase6, outlet_225 )
+            outlet_225 = (outlet_225>>5) + (1<<26);
+            SINE2TINTERP( phase7, outlet_270 )
+            outlet_270 = (outlet_270>>5) + (1<<26);
+            SINE2TINTERP( phase8, outlet_315 )
+            outlet_315 = (outlet_315>>5) + (1<<26);
+            break;
+
+          case 3 :
+            // Saw rising
+            outlet_0  = (phase1>>5);
+            outlet_45 = (phase2>>5);
+            outlet_90 = (phase3>>5);
+            outlet_135 = (phase4>>5);
+            outlet_180 = (phase5>>5);
+            outlet_225 = (phase6>>5);
+            outlet_270 = (phase7>>5);
+            outlet_315 = (phase8>>5);
+            break;
+
+          case 4 :
+            // Saw falling
+            outlet_0  = (1<<27) - (phase1>>5);
+            outlet_45 = (1<<27) - (phase2>>5);
+            outlet_90 = (1<<27) - (phase3>>5);
+            outlet_135 = (1<<27) - (phase4>>5);
+            outlet_180 = (1<<27) - (phase5>>5);
+            outlet_225 = (1<<27) - (phase6>>5);
+            outlet_270 = (1<<27) - (phase7>>5);
+            outlet_315 = (1<<27) - (phase8>>5);
+            break;
+
+          case 5 :
+            // Square
+            {
+              int32_t pulsewidth = param_pw + inlet_pwm;
+              if( pulsewidth > (1<<27) )
+                {
+                  pulsewidth = (1<<27);
+                }
+              else if( pulsewidth < 0 )
+                {
+                  pulsewidth = 0;
+                }
+								// output phases start here, there must be a smarter way to do this though, with fewer decisions. Maybe I should put all the rotation values into an array.:
+              if( (phase1>>5) > pulsewidth )
+                {
+                  outlet_0 = 0;
+                }
+              else
+                {
+                  outlet_0 = (1<<27)-1;
+                }
+
+              if( (phase2>>5) > pulsewidth )
+                {
+                  outlet_45 = 0;
+                }
+              else
+                {
+                  outlet_45 = (1<<27)-1;
+                }
+								
+              if( (phase3>>5) > pulsewidth )
+                {
+                  outlet_90 = 0;
+                }
+              else
+                {
+                  outlet_90 = (1<<27)-1;
+                }
+
+              if( (phase4>>5) > pulsewidth )
+                {
+                  outlet_135 = 0;
+                }
+              else
+                {
+                  outlet_135 = (1<<27)-1;
+                }
+								
+              if( (phase5>>5) > pulsewidth )
+                {
+                  outlet_180 = 0;
+                }
+              else
+                {
+                  outlet_180 = (1<<27)-1;
+                }
+
+              if( (phase6>>5) > pulsewidth )
+                {
+                  outlet_225 = 0;
+                }
+              else
+                {
+                  outlet_225 = (1<<27)-1;
+                }
+
+              if( (phase7>>5) > pulsewidth )
+                {
+                  outlet_270 = 0;
+                }
+              else
+                {
+                  outlet_270 = (1<<27)-1;
+                }
+
+              if( (phase8>>5) > pulsewidth )
+                {
+                  outlet_315 = 0;
+                }
+              else
+                {
+                  outlet_315 = (1<<27)-1;
+                }
+            }
+            break;
+        }
+
+      if( !param_unipolar )
+        {
+          outlet_0  = (outlet_0<<1)  - (1<<27);
+          outlet_45 = (outlet_45<<1)  - (1<<27);
+          outlet_90 = (outlet_90<<1) - (1<<27);
+          outlet_135 = (outlet_135<<1) - (1<<27);
+          outlet_180 = (outlet_180<<1) - (1<<27);
+          outlet_225 = (outlet_225<<1) - (1<<27);
+          outlet_270 = (outlet_270<<1) - (1<<27);
+          outlet_315 = (outlet_315<<1) - (1<<27);
+        }
+
+     outlet_0  =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_0  << 2 ), 28 );
+     outlet_45 =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_45 << 2 ), 28 );
+     outlet_90 =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_90 << 2 ), 28 );
+     outlet_135 =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_135 << 2 ), 28 );
+     outlet_180 =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_180 << 2 ), 28 );
+     outlet_225 =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_225 << 2 ), 28 );
+     outlet_270 =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_270 << 2 ), 28 );
+     outlet_315 =  __SSAT( ___SMMUL( (param_amp + inlet_am) << 3, outlet_315 << 2 ), 28 );
+		 
+		 ]]></code.krate>
+   </obj.normal>
+</objdefs>

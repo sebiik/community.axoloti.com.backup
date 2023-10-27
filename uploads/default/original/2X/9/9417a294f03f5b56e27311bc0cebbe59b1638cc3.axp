@@ -1,0 +1,332 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="sss/harmony/scale7bank" uuid="2a9fe655-6081-48a6-9f59-4d760af3266b" name="scale7bank_1" x="294" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/inconfig l" uuid="7007d026acb7c3586f60a7f0898718d1ca7e0607" name="inconfig_1" x="532" y="140">
+      <params/>
+      <attribs>
+         <combo attributeName="gain" selection="24dB"/>
+         <combo attributeName="boost" selection="20dB"/>
+      </attribs>
+   </obj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_2" x="840" y="182">
+      <params>
+         <frac32.s.map name="pitch" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="audio/inconfig r" uuid="8468fe7907553f335959a7f69cbc5a1f7b5d4d1d" name="inconfig_2" x="532" y="210">
+      <params/>
+      <attribs>
+         <combo attributeName="gain" selection="30dB"/>
+         <combo attributeName="boost" selection="20dB"/>
+      </attribs>
+   </obj>
+   <obj type="sss/lfo/BPMext" uuid="7b90c9ef-c596-431d-a030-cf6c78757bca" name="BPMext_1" x="42" y="336">
+      <params>
+         <int32 name="BPM" value="145"/>
+         <int32 name="vari1" value="8"/>
+         <int32 name="vari2" value="1"/>
+         <int32 name="vari3" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/logic/countExt" uuid="44ed9668-63af-48f8-a018-99db931c5e37" name="countExt_1" x="168" y="336">
+      <params>
+         <int32 name="max" value="8"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/patt/rndPattF" uuid="51e68084-34f7-4ce7-b29e-6d2fb66a8b71" name="rndPattF_1" x="294" y="336">
+      <params>
+         <frac32.u.map name="repeat" value="64.0"/>
+         <int32 name="chance" value="6"/>
+         <frac32.u.map name="change" value="9.5"/>
+         <frac32.u.map name="nonMemRnd" value="5.5"/>
+         <frac32.u.map name="size" value="11.0"/>
+         <frac32.u.map name="freeze" value="0.0"/>
+         <frac32.u.map name="maxFreeze" value="0.0"/>
+         <bool32.mom name="rnd" value="0"/>
+         <frac32.u.map name="CV" value="0.0"/>
+         <frac32.s.map name="max" value="13.0"/>
+         <frac32.s.map name="min" value="0.0"/>
+      </params>
+      <attribs>
+         <spinner attributeName="maxSteps" value="32"/>
+      </attribs>
+   </obj>
+   <obj type="sss/harmony/46scales7" uuid="60898ec0-41a5-444f-840f-cd2ef038aa18" name="46scales7_1" x="406" y="336">
+      <params/>
+      <attribs>
+         <objref attributeName="scale" obj="scale7bank_1"/>
+      </attribs>
+   </obj>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_2" x="532" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="171ab5f8-2e92-4e3d-b7e9-f3556949a7db" name="sine_4" x="658" y="336">
+      <params>
+         <frac32.s.map name="pitch" value="12.12999963760376"/>
+         <int32 name="oct" value="-4"/>
+         <bool32.tgl name="sine" value="1"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="171ab5f8-2e92-4e3d-b7e9-f3556949a7db">
+         <sDescription>sine wave oscillator</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>osc.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="pitch" description="pitch"/>
+            <frac32buffer name="freq" description="frequency"/>
+            <frac32buffer name="phase" description="phase"/>
+         </inlets>
+         <outlets>
+            <frac32buffer.bipolar name="sin" description="sine wave"/>
+            <frac32buffer name="cos"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.pitch name="pitch" noLabel="true"/>
+            <int32 name="oct">
+               <MinValue i="-10"/>
+               <MaxValue i="0"/>
+            </int32>
+            <bool32.tgl name="sine"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[uint32_t Phase;]]></code.declaration>
+         <code.init><![CDATA[Phase = 0;]]></code.init>
+         <code.krate><![CDATA[int32_t freq;
+   MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+   freq=freq>>-param_oct;]]></code.krate>
+         <code.srate><![CDATA[Phase += freq + inlet_freq;
+int32_t r;
+int32_t p2 = Phase + (inlet_phase<<4);
+if(param_sine>0){
+SINE2TINTERP(p2*3,r);r=r>>4;}
+else{
+r=((p2>0?p2:-p2)>>3)-(1<<27);
+}
+outlet_sin= (r);
+p2+=1<<30;
+if(param_sine>0){
+SINE2TINTERP(p2,r);r=r>>4;}
+else{
+r=((p2>0?p2:-p2)>>3)-(1<<27);
+}
+outlet_cos= (r);]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="30548ade-2c31-424b-bd61-df83b735301e" name="write_1" x="784" y="336">
+      <params>
+         <frac32.u.map name="tres" value="0.5349998474121094"/>
+         <frac32.s.map name="pitch" value="-24.0"/>
+         <int32 name="parts" value="1"/>
+         <frac32.s.map name="pm" value="9.0"/>
+         <frac32.s.map name="mod" value="14.0"/>
+         <bool32.mom name="rst" value="0"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="16384 (341ms)"/>
+      </attribs>
+      <object id="patch/object" uuid="30548ade-2c31-424b-bd61-df83b735301e">
+         <sDescription>delayline definition, read it with &quot;delay/read&quot; objects referencing the instance name of this object</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>delay.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="wave input"/>
+            <frac32 name="pitch"/>
+            <frac32buffer name="phase"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays>
+            <int8array128.vbar name="d1"/>
+         </displays>
+         <params>
+            <frac32.u.map name="tres"/>
+            <frac32.s.map name="pitch"/>
+            <int32 name="parts">
+               <MinValue i="1"/>
+               <MaxValue i="16"/>
+            </int32>
+            <frac32.s.map name="pm"/>
+            <frac32.s.map name="mod"/>
+            <bool32.mom name="rst"/>
+         </params>
+         <attribs>
+            <combo name="size">
+               <MenuEntries>
+                  <string>256 (5.33ms)</string>
+                  <string>512 (10.66ms)</string>
+                  <string>1024 (21.33ms)</string>
+                  <string>2048 (42.66ms)</string>
+                  <string>4096 (85.33ms)</string>
+                  <string>8192 (170ms)</string>
+                  <string>16384 (341ms)</string>
+                  <string>32768 (682ms)</string>
+                  <string>65536 (1.36s)</string>
+                  <string>131072 (2.73s)</string>
+                  <string>262144 (5.46s)</string>
+                  <string>524288 (10.9s)</string>
+                  <string>1048576 (21.8s)</string>
+                  <string>2097152 (43.7s)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+                  <string>15</string>
+                  <string>16</string>
+                  <string>17</string>
+                  <string>18</string>
+                  <string>19</string>
+                  <string>20</string>
+                  <string>21</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[static const uint32_t LENGTHPOW = (attr_size);
+static const uint32_t LENGTH = (1<<attr_size);
+static const uint32_t LENGTHMASK = ((1<<attr_size)-1);
+int16_t *array;
+uint32_t writepos;
+int32_t cnt;
+int32_t prv;
+int32_t T;
+int32_t rp1,rp2,rp3;
+int32_t val;
+int32_t out;
+uint32_t phs1,phs2,phs3;
+uint32_t Phs;
+int32_t pmod;
+bool trg;]]></code.declaration>
+         <code.init><![CDATA[static int16_t _array[attr_poly][1<<attr_size]  __attribute__ ((section (".sdram")));
+array = &_array[parent->polyIndex][0];
+   int i;
+   writepos = 0;
+   for(i=0;i<LENGTH;i++) array[i] = 0;
+   T=1;]]></code.init>
+         <code.krate><![CDATA[int32_t frq;
+MTOFEXTENDED(inlet_pitch+param_pitch,frq)
+//frq=frq/param_parts;
+int32_t mod;
+MTOFEXTENDED(param_mod,mod)
+mod=mod>>10;
+
+for(int j=0;j<128;j++){
+	disp_d1[j]=array[T*j>>7]>>6;
+}
+if((param_rst>0)&&!trg){
+	for(int i=0;i<LENGTH;i++){
+		array[i]=0;
+	}
+	trg=1;
+	T=1;
+}
+else if(param_rst<1){trg=0;}]]></code.krate>
+         <code.srate><![CDATA[Phs+=frq;
+pmod+=mod;
+phs1=Phs+(___SMMUL(inlet_phase<<3,param_pm<<2)<<6);
+phs2=phs1+pmod;
+phs3=-phs1+pmod*2;
+int32_t ts;
+ts=inlet_in;
+ts=ts>0?ts:-ts;
+val+=ts>0?ts-val:-val>>12;
+
+writepos = (writepos + 1)&LENGTHMASK;
+  if((inlet_in>=0)&&(prv<0)){
+  	cnt+=1;
+  	
+  	if(cnt>=param_parts){
+  	if(ts>param_tres){
+  	T=writepos>T?writepos:T;}
+  	writepos=0;
+  	cnt=0;
+  	}
+  }
+  //rp+=1;
+  //rp=rp>=T?0:rp;
+  
+  int32_t in=array[writepos]<<14;
+  if(ts>param_tres){
+  in+=(inlet_in-in)>>8;
+  }
+   array[writepos] = __SSAT(in>>14,16);
+prv=inlet_in;
+
+rp1=___SMMUL(phs1>>1,T<<1);
+rp2=___SMMUL(phs2>>1,T<<1);
+rp3=___SMMUL(phs3>>1,T<<1);
+outlet_out=array[rp1]-array[rp2]-array[rp3]<<13;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="1106" y="336">
+      <params>
+         <frac32.u.map name="volume" value="47.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="write_1" outlet="out"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="in_2" outlet="right"/>
+         <dest obj="write_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="rndPattF_1" outlet="v"/>
+         <dest obj="46scales7_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="46scales7_1" outlet="note"/>
+         <dest obj="sine_4" inlet="pitch"/>
+         <dest obj="write_1" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="countExt_1" outlet="o"/>
+         <dest obj="rndPattF_1" inlet="count"/>
+      </net>
+      <net>
+         <source obj="countExt_1" outlet="max"/>
+         <dest obj="rndPattF_1" inlet="length"/>
+      </net>
+      <net>
+         <source obj="countExt_1" outlet="c"/>
+         <dest obj="rndPattF_1" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="BPMext_1" outlet="vari1"/>
+         <dest obj="countExt_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="sine_4" outlet="sin"/>
+         <dest obj="write_1" inlet="phase"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1845</width>
+      <height>1096</height>
+   </windowPos>
+</patch-1.0>

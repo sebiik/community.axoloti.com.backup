@@ -1,0 +1,460 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="midi/in/keyb" uuid="53b04874696932f38aceaa168bd5d9efb743716d" name="keyb_1" x="70" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="log/trig" uuid="250a3a01-db95-4840-87e4-45fce53e2d8d" name="trig_1" x="182" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="9b6fad9f-9b54-4a93-a419-2b21e02df744" name="Note On trig " x="252" y="42">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="9b6fad9f-9b54-4a93-a419-2b21e02df744">
+         <sDescription>Generates a single pulse after a rising edge on trigger input. A new trigger before the pulse finishes at the output, extends the pulse.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>pulselength.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o"/>
+         </outlets>
+         <displays>
+            <bool32 name="bool" noLabel="true"/>
+         </displays>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 1;
+ntrig = 1;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig > 0) && !ntrig) {
+  val = 1 << 30;
+  ntrig = 1;
+  outlet_o = 1;
+}
+else {
+  if (!(inlet_trig > 0))
+    ntrig = 0;
+  if (val>0) {
+    int32_t t;
+    MTOF(-64,t);
+     val -= t>>3;
+     if (val<=0) outlet_o = 0;
+     else outlet_o = 1;
+  } else outlet_o = 0;
+}
+
+disp_bool = outlet_o;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="9b6fad9f-9b54-4a93-a419-2b21e02df744" name="Note Off trig __" x="336" y="42">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="9b6fad9f-9b54-4a93-a419-2b21e02df744">
+         <sDescription>Generates a single pulse after a rising edge on trigger input. A new trigger before the pulse finishes at the output, extends the pulse.</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>pulselength.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o"/>
+         </outlets>
+         <displays>
+            <bool32 name="bool" noLabel="true"/>
+         </displays>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+         <code.init><![CDATA[val = 1;
+ntrig = 1;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_trig == 0) && !ntrig) {
+  val = 1 << 30;
+  ntrig = 1;
+  outlet_o = 1;
+}
+else {
+  if (!(inlet_trig == 0))
+    ntrig = 0;
+  if (val>0) {
+    int32_t t;
+    MTOF(-64,t);
+     val -= t>>3;
+     if (val<=0) outlet_o = 0;
+     else outlet_o = 1;
+  } else outlet_o = 0;
+}
+
+disp_bool = outlet_o;]]></code.krate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="434" y="42" text="NB note off does NOT work"/>
+   <comment type="patch/comment" x="434" y="56" text="How do I make that???"/>
+   <comment type="patch/comment" x="434" y="70" text="only thing missing to have a functioning algo...."/>
+   <comment type="patch/comment" x="784" y="112" text="Latch note values"/>
+   <comment type="patch/comment" x="252" y="140" text="Note on"/>
+   <comment type="patch/comment" x="336" y="140" text="Note off"/>
+   <obj type="logic/counter2" uuid="d9536f238ab92e53ac93d5927c3b43ceef998dc1" name="counter2_1" x="434" y="140">
+      <params>
+         <int32 name="maximum" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="532" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="f5d3f110-7a1f-40a5-97d9-312f8f2e563e" name="+_1" x="588" y="140">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="f5d3f110-7a1f-40a5-97d9-312f8f2e563e">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <int32 name="i" description="in1"/>
+         </inlets>
+         <outlets>
+            <bool32 name="o1"/>
+            <bool32 name="o2"/>
+            <bool32 name="o3"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[if(inlet_i == 1) {outlet_o1 = 1 ;} else {outlet_o1 = 0 ;};
+if(inlet_i == 2) {outlet_o2 = 1 ;} else {outlet_o2 = 0 ;};
+if(inlet_i == 3) {outlet_o3 = 1 ;} else {outlet_o3 = 0 ;};]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="phi/disp/boolx4" uuid="1de31710-143a-4071-9675-b127b365e5de" name="boolx4_1" x="672" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="f582b487-4e68-4bab-afa8-509bd6389761" name="patcher_2" x="784" y="140">
+      <params/>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <obj type="patch/inlet f" uuid="5c585d2dcd9c05631e345ac09626a22a639d7c13" name="note" x="0" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="t1" x="168" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="t2" x="266" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/inlet b" uuid="3b0d3eacb5bb978cb05d1372aa2714d5a4790844" name="t3" x="364" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_1" x="476" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_2" x="560" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="logic/latch" uuid="14750683752bd43205826430adb7168dae3cc2c" name="latch_3" x="644" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="o1" x="742" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="o2" x="840" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <obj type="patch/outlet f" uuid="d18a9a550bcaaebac94e25983bd0e27dbfd7233c" name="o3" x="938" y="224">
+            <params/>
+            <attribs/>
+         </obj>
+         <nets>
+            <net>
+               <source obj="note" outlet="inlet"/>
+               <dest obj="latch_1" inlet="i"/>
+               <dest obj="latch_2" inlet="i"/>
+               <dest obj="latch_3" inlet="i"/>
+            </net>
+            <net>
+               <source obj="latch_1" outlet="o"/>
+               <dest obj="o1" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="latch_2" outlet="o"/>
+               <dest obj="o2" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="latch_3" outlet="o"/>
+               <dest obj="o3" inlet="outlet"/>
+            </net>
+            <net>
+               <source obj="t1" outlet="inlet"/>
+               <dest obj="latch_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="t2" outlet="inlet"/>
+               <dest obj="latch_2" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="t3" outlet="inlet"/>
+               <dest obj="latch_3" inlet="trig"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>23</y>
+            <width>1251</width>
+            <height>534</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="Note 1 Val" x="896" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="Note 2 Val" x="980" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="Note 3 Val" x="1064" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <patcher type="patch/patcher" uuid="2c2aad9b-d1a7-4f72-8a5a-4463d6db2e7d" name="patcher_1" x="70" y="154">
+      <params/>
+      <attribs/>
+      <subpatch appVersion="1.0.12">
+         <patchobj type="patch/object" uuid="aaf5e0ed-eb90-4430-883b-189722b78b17" name="+_1" x="70" y="56">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="aaf5e0ed-eb90-4430-883b-189722b78b17">
+               <sDescription>add</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>math.axh</helpPatch>
+               <inlets>
+                  <bool32.rising name="i"/>
+               </inlets>
+               <outlets>
+                  <bool32.pulse name="o1"/>
+                  <bool32.pulse name="o2"/>
+               </outlets>
+               <displays/>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.krate><![CDATA[if(inlet_i == 1){
+outlet_o1 = 1; 
+outlet_o2 = 0; 
+}
+else{
+outlet_o1 = 0; 
+outlet_o2 = 1; 	
+}]]></code.krate>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="82bd8ae3-e23f-4a00-9d29-bfb9d77b9cf5" name="boolms_1" x="154" y="56">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="82bd8ae3-e23f-4a00-9d29-bfb9d77b9cf5">
+               <sDescription>Generates a single pulse after a rising edge on trigger input. A new trigger before the pulse finishes at the output, extends the pulse.</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>pulselength.axh</helpPatch>
+               <inlets>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays>
+                  <bool32 name="bool" noLabel="true"/>
+               </displays>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+               <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig > 0) && !ntrig) {
+  val = 1 << 30;
+  ntrig = 1;
+  disp_bool = 1;
+}
+else {
+  if (!(inlet_trig > 0))
+    ntrig = 0;
+  if (val>0) {
+    int32_t t;
+    MTOF(-64,t);
+     val -= t>>3;
+     if (val<=0) disp_bool = 0;
+     else disp_bool = 1;
+  } else disp_bool = 0;
+}]]></code.krate>
+            </object>
+         </patchobj>
+         <patchobj type="patch/object" uuid="82bd8ae3-e23f-4a00-9d29-bfb9d77b9cf5" name="boolms_2" x="238" y="56">
+            <params/>
+            <attribs/>
+            <object id="patch/object" uuid="82bd8ae3-e23f-4a00-9d29-bfb9d77b9cf5">
+               <sDescription>Generates a single pulse after a rising edge on trigger input. A new trigger before the pulse finishes at the output, extends the pulse.</sDescription>
+               <author>Johannes Taelman</author>
+               <license>BSD</license>
+               <helpPatch>pulselength.axh</helpPatch>
+               <inlets>
+                  <bool32.rising name="trig" description="trigger"/>
+               </inlets>
+               <outlets/>
+               <displays>
+                  <bool32 name="bool" noLabel="true"/>
+               </displays>
+               <params/>
+               <attribs/>
+               <includes/>
+               <code.declaration><![CDATA[int32_t val;
+int ntrig;]]></code.declaration>
+               <code.init><![CDATA[val = 0;
+ntrig = 0;]]></code.init>
+               <code.krate><![CDATA[if ((inlet_trig > 0) && !ntrig) {
+  val = 1 << 30;
+  ntrig = 1;
+  disp_bool = 1;
+}
+else {
+  if (!(inlet_trig > 0))
+    ntrig = 0;
+  if (val>0) {
+    int32_t t;
+    MTOF(-64,t);
+     val -= t>>3;
+     if (val<=0) disp_bool = 0;
+     else disp_bool = 1;
+  } else disp_bool = 0;
+}]]></code.krate>
+            </object>
+         </patchobj>
+         <nets>
+            <net>
+               <source obj="+_1" outlet="o1"/>
+               <dest obj="boolms_1" inlet="trig"/>
+            </net>
+            <net>
+               <source obj="+_1" outlet="o2"/>
+               <dest obj="boolms_2" inlet="trig"/>
+            </net>
+         </nets>
+         <settings>
+            <subpatchmode>no</subpatchmode>
+            <MidiChannel>1</MidiChannel>
+            <NPresets>0</NPresets>
+            <NPresetEntries>0</NPresetEntries>
+            <NModulationSources>0</NModulationSources>
+            <NModulationTargetsPerSource>0</NModulationTargetsPerSource>
+         </settings>
+         <notes><![CDATA[]]></notes>
+         <windowPos>
+            <x>0</x>
+            <y>23</y>
+            <width>400</width>
+            <height>400</height>
+         </windowPos>
+      </subpatch>
+   </patcher>
+   <comment type="patch/comment" x="252" y="154" text="Count UP"/>
+   <comment type="patch/comment" x="336" y="154" text="Count DOWN"/>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="Rst" x="70" y="238">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="trig_1" outlet="o"/>
+         <dest obj="Note On trig " inlet="trig"/>
+         <dest obj="Note Off trig __" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="counter2_1" outlet="o"/>
+         <dest obj="i_1" inlet="in"/>
+         <dest obj="+_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="gate2"/>
+         <dest obj="trig_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="Rst" outlet="o"/>
+         <dest obj="counter2_1" inlet="r"/>
+      </net>
+      <net>
+         <source obj="Note On trig " outlet="o"/>
+         <dest obj="counter2_1" inlet="inc"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="o1"/>
+         <dest obj="boolx4_1" inlet="i1"/>
+         <dest obj="patcher_2" inlet="t1"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="o2"/>
+         <dest obj="boolx4_1" inlet="i2"/>
+         <dest obj="patcher_2" inlet="t2"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="o3"/>
+         <dest obj="patcher_2" inlet="t3"/>
+      </net>
+      <net>
+         <source obj="patcher_2" outlet="o1"/>
+         <dest obj="Note 1 Val" inlet="in"/>
+      </net>
+      <net>
+         <source obj="patcher_2" outlet="o2"/>
+         <dest obj="Note 2 Val" inlet="in"/>
+      </net>
+      <net>
+         <source obj="patcher_2" outlet="o3"/>
+         <dest obj="Note 3 Val" inlet="in"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="patcher_2" inlet="note"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>82</x>
+      <y>164</y>
+      <width>1178</width>
+      <height>568</height>
+   </windowPos>
+</patch-1.0>

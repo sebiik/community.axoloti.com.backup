@@ -1,0 +1,496 @@
+<patch-1.0 appVersion="1.0.10">
+   <patchobj type="patch/object" uuid="5ec3f336-c85e-46d8-9c95-b67ac9a7a55d" name="sync_1_3" x="1120" y="0">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t1"/>
+      </attribs>
+      <object id="patch/object" uuid="5ec3f336-c85e-46d8-9c95-b67ac9a7a55d">
+         <sDescription>write to table</sDescription>
+         <author>robert schirmer</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32buffer.positive name="pos" description="index in fraction of table size"/>
+            <frac32buffer name="wave" description="audio in"/>
+            <bool32.risingfalling name="overdub" description="toggle overdub"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[
+uint32_t data;
+uint32_t in;
+uint32_t csample;
+ ]]></code.declaration>
+         <code.krate><![CDATA[
+
+]]></code.krate>
+         <code.srate><![CDATA[csample =  (__USAT(inlet_pos,27)>>(27-attr_table.LENGTHPOW));
+
+	data = (attr_table.array[csample]);
+	in = __SSAT((inlet_wave),28 )>>attr_table.GAIN;
+
+
+
+//overdub
+	if (inlet_overdub) {
+	attr_table.array[csample] = (in  + data);
+}
+
+
+
+]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="t1" x="112" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="524288"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="t2" x="252" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="524288"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="table/alloc 32b sdram" uuid="1a4546b7b52747ea765093ac97444601c44721e8" name="params" x="392" y="42">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="4"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="602" y="42" text="tablestore will write and output values to a table WHEN THEY CHANGE"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="overdub" x="1008" y="42">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="602" y="56" text="so,if you save the table to sd-card,the LAST CHANGED VALUE is recalled"/>
+   <comment type="patch/comment" x="602" y="70" text="NOT the initial value in the actual patch"/>
+   <obj type="rbrt/data/tablestore 4" uuid="70882983-fca1-4f37-94d9-2a26de523773" name="tablestore_1" x="672" y="112">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="params"/>
+      </attribs>
+   </obj>
+   <obj type="rbrt/looper/loop_drive" uuid="241e8f8e-0399-4ea6-8b9f-64bc44ab252a" name="loop_drive_1" x="910" y="112">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="1120" y="112" text="overdub into a loop"/>
+   <obj type="rbrt/looper/loop_master" uuid="d31145a3-159b-421a-a7f2-ada27c770bac" name="loop_master_1" x="448" y="126">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t1"/>
+      </attribs>
+   </obj>
+   <obj type="math/*" uuid="922423f2db9f222aa3e5ba095778288c446da47a" name="*_4" x="826" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="sound!" x="182" y="140">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="table/read interp" uuid="42918ec2255011ae3787cc5488c9b29980d796a8" name="read_1" x="1120" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t1"/>
+      </attribs>
+   </obj>
+   <obj type="math/*" uuid="3ac307b9f782049739ed62504081b96d580ea336" name="*_1" x="308" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="588" y="154">
+      <params>
+         <frac32.u.map name="value" value="64.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="c16a625a661f40e4b359db604dcd00b3befcdbe3" name="*_3" x="1372" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="osc/saw" uuid="739ecc36017ef3249479b8f01716b8bbfba9abc1" name="saw_1" x="140" y="210">
+      <params>
+         <frac32.s.map name="pitch" value="-18.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="play_master" x="1022" y="210">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_2" x="1120" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="rec_master" x="308" y="238">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="518" y="252" text="modulate the global tempo"/>
+   <comment type="patch/comment" x="672" y="252" text="saves loop length,tempo and tempo modulation"/>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_1" x="1386" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/+" uuid="faedbea4612d9bd3644d6d3bf31946d848a70e19" name="+_2" x="1470" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/out stereo" uuid="a1ca7a567f535acc21055669829101d3ee7f0189" name="out_1" x="1554" y="266">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="420" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/looper/loop_slave_1" uuid="ca95509c-e348-44c1-b6b4-6cdf75bb30f6" name="loop_slave_1_2" x="966" y="280">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t2"/>
+      </attribs>
+   </obj>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_2" x="1120" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/*" uuid="c16a625a661f40e4b359db604dcd00b3befcdbe3" name="*_2" x="1302" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/and 2" uuid="c67031682f552aa0a80b23377495c51ea28a8c9c" name="and_1" x="1204" y="294">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="reset_transport" x="364" y="336">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/or 2" uuid="3805d3c84d30032a44fbdbe42d9a2988a1790a3e" name="or_1" x="476" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="rec_slave" x="812" y="336">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="rec_state" x="1120" y="336">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="896" y="392" text="record a 1-bar loop in SYNC"/>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="play_slave" x="812" y="406">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="table/read interp" uuid="42918ec2255011ae3787cc5488c9b29980d796a8" name="read_2" x="966" y="420">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t2"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="294" y="490" text="a 16-step sequencer driven by the master-loop!"/>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_1" x="1134" y="490">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="loop1.wav"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_3" x="1344" y="490">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="loop2.wav"/>
+      </attribs>
+   </obj>
+   <obj type="string/c" uuid="4aa90a90c435a742ddfa152d232883fc5b2f1b3" name="c_2" x="1512" y="490">
+      <params/>
+      <attribs>
+         <table attributeName="str" table="params.dat"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="SAVE" x="840" y="504">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="938" y="504" text="hit SAVE to write the loop to sd-card"/>
+   <obj type="rbrt/lfo/square" uuid="5d7c2cad-0bfe-4285-8376-ac9152e2db30" name="square_1" x="434" y="518">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="logic/counter" uuid="7a141ba82230e54e5f5cd12da5dbe5a74ba854a5" name="counter_1" x="546" y="518">
+      <params>
+         <int32 name="maximum" value="16"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/ibar 16" uuid="302bfed4cde8894229679ce81f6b8a5c5212dd98" name="ibar_1" x="630" y="518">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_1" x="1134" y="560">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t1"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_3" x="1344" y="560">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t2"/>
+      </attribs>
+   </obj>
+   <obj type="table/save" uuid="3e4108b607d56d9e1cd10abb898b58eea11e53b2" name="save_2" x="1512" y="560">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="params"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="LOAD" x="840" y="574">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="938" y="574" text="hit load to load the loop from sd-card"/>
+   <obj type="rbrt/osc/phasor" uuid="8015d52c-de35-43b7-af2c-e01f5e6d9128" name="phasor_1" x="434" y="602">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_2" x="546" y="602">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_1" x="1134" y="644">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t1"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_3" x="1344" y="644">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t2"/>
+      </attribs>
+   </obj>
+   <obj type="table/load" uuid="600cc22c6734d23a82620da1a14e78782a7e168e" name="load_2" x="1512" y="644">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="params"/>
+      </attribs>
+   </obj>
+   <nets>
+      <net>
+         <source obj="rec_master" outlet="o"/>
+         <dest obj="inv_1" inlet="i"/>
+         <dest obj="loop_master_1" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="sync_1_3" inlet="wave"/>
+         <dest obj="loop_master_1" inlet="wave"/>
+         <dest obj="loop_slave_1_2" inlet="wave"/>
+         <dest obj="+_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="reset_transport" outlet="o"/>
+         <dest obj="or_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="counter_1" outlet="o"/>
+         <dest obj="ibar_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="+_2" outlet="out"/>
+         <dest obj="out_1" inlet="left"/>
+         <dest obj="out_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="o"/>
+         <dest obj="or_1" inlet="i1"/>
+         <dest obj="and_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="counter_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="c_1" outlet="out"/>
+         <dest obj="save_1" inlet="filename"/>
+         <dest obj="load_1" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="LOAD" outlet="o"/>
+         <dest obj="load_1" inlet="trig"/>
+         <dest obj="load_2" inlet="trig"/>
+         <dest obj="load_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="SAVE" outlet="o"/>
+         <dest obj="save_1" inlet="trig"/>
+         <dest obj="save_2" inlet="trig"/>
+         <dest obj="save_3" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="c_2" outlet="out"/>
+         <dest obj="save_2" inlet="filename"/>
+         <dest obj="load_2" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="read_1" outlet="o"/>
+         <dest obj="*_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="read_2" outlet="o"/>
+         <dest obj="*_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="rec_slave" outlet="o"/>
+         <dest obj="loop_slave_1_2" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="loop_slave_1_2" outlet="recstate"/>
+         <dest obj="inv_2" inlet="i"/>
+         <dest obj="rec_state" inlet="in"/>
+      </net>
+      <net>
+         <source obj="inv_2" outlet="o"/>
+         <dest obj="and_1" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="loop_drive_1" outlet="pos"/>
+         <dest obj="sync_1_3" inlet="pos"/>
+         <dest obj="loop_slave_1_2" inlet="pos"/>
+         <dest obj="read_1" inlet="a"/>
+         <dest obj="read_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="*_2" outlet="result"/>
+         <dest obj="+_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="phasor_1" outlet="wave"/>
+         <dest obj="scope_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="*_1" inlet="b"/>
+      </net>
+      <net>
+         <source obj="sound!" outlet="o"/>
+         <dest obj="*_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="+_1" outlet="out"/>
+         <dest obj="+_2" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="play_slave" outlet="o"/>
+         <dest obj="and_1" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="and_1" outlet="o"/>
+         <dest obj="*_2" inlet="b"/>
+      </net>
+      <net>
+         <source obj="overdub" outlet="o"/>
+         <dest obj="sync_1_3" inlet="overdub"/>
+      </net>
+      <net>
+         <source obj="and_2" outlet="o"/>
+         <dest obj="*_3" inlet="b"/>
+      </net>
+      <net>
+         <source obj="*_3" outlet="result"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="play_master" outlet="o"/>
+         <dest obj="and_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="c_3" outlet="out"/>
+         <dest obj="save_3" inlet="filename"/>
+         <dest obj="load_3" inlet="filename"/>
+      </net>
+      <net>
+         <source obj="loop_master_1" outlet="length"/>
+         <dest obj="tablestore_1" inlet="v0"/>
+      </net>
+      <net>
+         <source obj="loop_master_1" outlet="hz"/>
+         <dest obj="tablestore_1" inlet="v1"/>
+      </net>
+      <net>
+         <source obj="tablestore_1" outlet="v0"/>
+         <dest obj="loop_drive_1" inlet="length"/>
+      </net>
+      <net>
+         <source obj="or_1" outlet="o"/>
+         <dest obj="phasor_1" inlet="reset"/>
+         <dest obj="square_1" inlet="reset"/>
+         <dest obj="counter_1" inlet="r"/>
+         <dest obj="loop_drive_1" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="*_4" outlet="result"/>
+         <dest obj="square_1" inlet="hz"/>
+         <dest obj="phasor_1" inlet="freq"/>
+         <dest obj="loop_drive_1" inlet="hz"/>
+      </net>
+      <net>
+         <source obj="tablestore_1" outlet="v1"/>
+         <dest obj="*_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="tablestore_1" outlet="v2"/>
+         <dest obj="*_4" inlet="b"/>
+      </net>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="tablestore_1" inlet="v2"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

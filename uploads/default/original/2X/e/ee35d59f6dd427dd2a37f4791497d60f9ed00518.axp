@@ -1,0 +1,334 @@
+<patch-1.0 appVersion="1.0.12">
+   <comment type="patch/comment" x="0" y="28" text="click &apos;edit&apos; and check out &apos;local data&apos; -&gt;&gt;"/>
+   <patchobj type="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9" name="math" x="252" y="28">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9">
+         <inlets/>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[/* 
+what will save a lot of SRAM when using heavier functions that 
+are called a lot of times from different sources/objects::
+the sentence '__attribute__((noinline))' . 
+ 
+this tells the compiler to create actual functions,living 
+in their own small chunk of SRAM AT RUNTIME, ('no inline')
+instead of just copying the function whenever it is called 
+from an object AT COMPILETIME, thus creating a much longer program,
+and using a lot of SRAM. (which is called 'inlining')
+'inlining' is DEFAULT with AXO and would be the sentence  '__attribute__(alwaysinline)',
+
+the given example may actually be MORE SRAM-consuming, because the functions being called 
+are so small that it might use more SRAM not to inline them.
+also,not inlining functions will result in a performace hit, because the functions actually get called.
+but for heavy functions, it can save a lot of SRAM by reducing actual program size.
+*/
+
+int add(int a,int b)__attribute__((noinline)) {
+	return a+b;
+}
+int substract(int a,int b)__attribute__((noinline)) {
+	return a-b;
+}
+int multiply(int a,int b)__attribute__((noinline)) {
+	return a*b;
+}
+int divide(int a,int b)__attribute__((noinline)) {
+	return a/b;
+}]]></code.declaration>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="336" y="28" text="all these simple math-objects"/>
+   <comment type="patch/comment" x="0" y="42" text="for more infomation on what&apos;s the COOL part"/>
+   <comment type="patch/comment" x="336" y="42" text="are calling simple functions "/>
+   <comment type="patch/comment" x="672" y="42" text="0 = add"/>
+   <comment type="patch/comment" x="336" y="56" text="living in the object called &apos;math&apos; ,"/>
+   <comment type="patch/comment" x="672" y="56" text="1 = substract"/>
+   <comment type="patch/comment" x="336" y="70" text="instead of doing any calculations themselves"/>
+   <comment type="patch/comment" x="672" y="70" text="2 = multiply"/>
+   <comment type="patch/comment" x="672" y="84" text="3 = divide"/>
+   <obj type="ctrl/i radio 4 h" uuid="f87ae81e3162014f3bdca0f56dbbdf9322e69dfd" name="i_2" x="294" y="126">
+      <params>
+         <int32.hradio name="value" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i radio 4 h" uuid="f87ae81e3162014f3bdca0f56dbbdf9322e69dfd" name="i_9" x="644" y="126">
+      <params>
+         <int32.hradio name="value" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9" name="object_2" x="420" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="math" obj="math"/>
+      </attribs>
+      <object id="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9">
+         <inlets>
+            <int32 name="operation"/>
+            <int32 name="i1"/>
+            <int32 name="i2"/>
+         </inlets>
+         <outlets>
+            <int32 name="result"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="math"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[switch(inlet_operation){
+      case 0: outlet_result= attr_math.add(inlet_i1,inlet_i2);break;
+      case 1: outlet_result= attr_math.substract(inlet_i1,inlet_i2);break;
+      case 2: outlet_result= attr_math.multiply(inlet_i1,inlet_i2);break;
+      case 3: outlet_result= attr_math.divide(inlet_i1,inlet_i2);break;
+     
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="560" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9" name="object_4" x="770" y="168">
+      <params/>
+      <attribs>
+         <objref attributeName="math" obj="math"/>
+      </attribs>
+      <object id="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9">
+         <inlets>
+            <int32 name="operation"/>
+            <int32 name="i1"/>
+            <int32 name="i2"/>
+         </inlets>
+         <outlets>
+            <int32 name="result"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="math"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[switch(inlet_operation){
+      case 0: outlet_result= attr_math.add(inlet_i1,inlet_i2);break;
+      case 1: outlet_result= attr_math.substract(inlet_i1,inlet_i2);break;
+      case 2: outlet_result= attr_math.multiply(inlet_i1,inlet_i2);break;
+      case 3: outlet_result= attr_math.divide(inlet_i1,inlet_i2);break;
+     
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_10" x="910" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_3" x="322" y="182">
+      <params>
+         <int32 name="value" value="9"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_11" x="672" y="182">
+      <params>
+         <int32 name="value" value="9"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_4" x="322" y="238">
+      <params>
+         <int32 name="value" value="20"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_12" x="672" y="238">
+      <params>
+         <int32 name="value" value="159"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i radio 4 h" uuid="f87ae81e3162014f3bdca0f56dbbdf9322e69dfd" name="i_5" x="294" y="336">
+      <params>
+         <int32.hradio name="value" value="2"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i radio 4 h" uuid="f87ae81e3162014f3bdca0f56dbbdf9322e69dfd" name="i_13" x="644" y="336">
+      <params>
+         <int32.hradio name="value" value="3"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9" name="object_3" x="420" y="378">
+      <params/>
+      <attribs>
+         <objref attributeName="math" obj="math"/>
+      </attribs>
+      <object id="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9">
+         <inlets>
+            <int32 name="operation"/>
+            <int32 name="i1"/>
+            <int32 name="i2"/>
+         </inlets>
+         <outlets>
+            <int32 name="result"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="math"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[switch(inlet_operation){
+      case 0: outlet_result= attr_math.add(inlet_i1,inlet_i2);break;
+      case 1: outlet_result= attr_math.substract(inlet_i1,inlet_i2);break;
+      case 2: outlet_result= attr_math.multiply(inlet_i1,inlet_i2);break;
+      case 3: outlet_result= attr_math.divide(inlet_i1,inlet_i2);break;
+     
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_6" x="560" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9" name="object_5" x="770" y="378">
+      <params/>
+      <attribs>
+         <objref attributeName="math" obj="math"/>
+      </attribs>
+      <object id="patch/object" uuid="c14a65b6-c59a-42ea-9eda-e93895ab03c9">
+         <inlets>
+            <int32 name="operation"/>
+            <int32 name="i1"/>
+            <int32 name="i2"/>
+         </inlets>
+         <outlets>
+            <int32 name="result"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="math"/>
+         </attribs>
+         <includes/>
+         <code.krate><![CDATA[switch(inlet_operation){
+      case 0: outlet_result= attr_math.add(inlet_i1,inlet_i2);break;
+      case 1: outlet_result= attr_math.substract(inlet_i1,inlet_i2);break;
+      case 2: outlet_result= attr_math.multiply(inlet_i1,inlet_i2);break;
+      case 3: outlet_result= attr_math.divide(inlet_i1,inlet_i2);break;
+     
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_14" x="910" y="378">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_7" x="322" y="392">
+      <params>
+         <int32 name="value" value="9"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_15" x="672" y="392">
+      <params>
+         <int32 name="value" value="120"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_8" x="322" y="448">
+      <params>
+         <int32 name="value" value="29"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_16" x="672" y="448">
+      <params>
+         <int32 name="value" value="29"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="object_2" outlet="result"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="object_2" inlet="operation"/>
+      </net>
+      <net>
+         <source obj="i_3" outlet="out"/>
+         <dest obj="object_2" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="i_4" outlet="out"/>
+         <dest obj="object_2" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="object_3" outlet="result"/>
+         <dest obj="i_6" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_5" outlet="out"/>
+         <dest obj="object_3" inlet="operation"/>
+      </net>
+      <net>
+         <source obj="i_7" outlet="out"/>
+         <dest obj="object_3" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="i_8" outlet="out"/>
+         <dest obj="object_3" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="object_4" outlet="result"/>
+         <dest obj="i_10" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_9" outlet="out"/>
+         <dest obj="object_4" inlet="operation"/>
+      </net>
+      <net>
+         <source obj="i_11" outlet="out"/>
+         <dest obj="object_4" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="i_12" outlet="out"/>
+         <dest obj="object_4" inlet="i2"/>
+      </net>
+      <net>
+         <source obj="object_5" outlet="result"/>
+         <dest obj="i_14" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_13" outlet="out"/>
+         <dest obj="object_5" inlet="operation"/>
+      </net>
+      <net>
+         <source obj="i_15" outlet="out"/>
+         <dest obj="object_5" inlet="i1"/>
+      </net>
+      <net>
+         <source obj="i_16" outlet="out"/>
+         <dest obj="object_5" inlet="i2"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>0</x>
+      <y>0</y>
+      <width>1222</width>
+      <height>746</height>
+   </windowPos>
+</patch-1.0>

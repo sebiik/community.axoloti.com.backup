@@ -1,0 +1,113 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="3b79b6df-231b-425c-bd4a-2448732371e0" name="pwm_1" x="364" y="14">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="3b79b6df-231b-425c-bd4a-2448732371e0">
+         <sDescription>PWM output using hardware timer 3
+at a fixed frequency of 97.65 Hz</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>pwm.axh</helpPatch>
+         <inlets>
+            <frac32buffer.bipolar name="pa6"/>
+            <frac32buffer.bipolar name="pa7"/>
+            <frac32buffer.bipolar name="pb0"/>
+            <frac32buffer.bipolar name="pb1"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <depends>
+            <depend>PWMD3</depend>
+         </depends>
+         <code.init><![CDATA[static const PWMConfig pwmcfg = {12288000, /* 400kHz PWM clock frequency.  */
+	256, /* PWM period is 4096 cycles.    */
+	NULL, 
+	{{PWM_OUTPUT_ACTIVE_HIGH, NULL}, 
+	{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+	{PWM_OUTPUT_ACTIVE_HIGH, NULL}, 
+	{PWM_OUTPUT_ACTIVE_HIGH, NULL}},
+	/* HW dependent part.*/
+	1,
+	1
+	};
+
+pwmStart(&PWMD3, &pwmcfg);
+  
+palSetPadMode(GPIOA, 6, PAL_MODE_ALTERNATE(2));
+palSetPadMode(GPIOA, 7, PAL_MODE_ALTERNATE(2));
+palSetPadMode(GPIOB, 0, PAL_MODE_ALTERNATE(2));
+palSetPadMode(GPIOB, 1, PAL_MODE_ALTERNATE(2));]]></code.init>
+         <code.dispose><![CDATA[pwmStop(&PWMD3);]]></code.dispose>
+         <code.srate><![CDATA[pwmEnableChannel(&PWMD3, 0, (pwmcnt_t)(inlet_pa6>=0?inlet_pa6>>23:0));
+pwmEnableChannel(&PWMD3, 1, (pwmcnt_t)(inlet_pa7>=0?inlet_pa7>>23:0));
+pwmEnableChannel(&PWMD3, 2, (pwmcnt_t)(inlet_pb0>=0?inlet_pb0>>23:0));
+pwmEnableChannel(&PWMD3, 3, (pwmcnt_t)(inlet_pb1>=0?inlet_pb1>>23:0));]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="0" y="70">
+      <params>
+         <frac32.s.map name="pitch" value="-24.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/&gt;&gt;" uuid="5d748ad90476b3ecc3970cde6622af97cf3cf4ac" name="&gt;&gt;_1" x="112" y="70">
+      <params/>
+      <attribs>
+         <spinner attributeName="shift" value="1"/>
+      </attribs>
+   </obj>
+   <obj type="disp/scope 128 b" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_1" x="406" y="140">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="0f35a120-dfd2-4ab3-b1dd-ec082c9fcc74" name="object_1" x="210" y="168">
+      <params>
+         <frac32.s.map name="offset" value="32.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="0f35a120-dfd2-4ab3-b1dd-ec082c9fcc74">
+         <sDescription></sDescription>
+         <inlets>
+            <frac32buffer.bipolar name="in"/>
+         </inlets>
+         <outlets>
+            <frac32buffer.bipolar name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map name="offset"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.srate><![CDATA[outlet_out = inlet_in + param_offset;]]></code.srate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="object_1" outlet="out"/>
+         <dest obj="scope_1" inlet="in"/>
+         <dest obj="pwm_1" inlet="pb1"/>
+      </net>
+      <net>
+         <source obj="&gt;&gt;_1" outlet="result"/>
+         <dest obj="object_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="&gt;&gt;_1" inlet="a"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>382</x>
+      <y>103</y>
+      <width>595</width>
+      <height>558</height>
+   </windowPos>
+</patch-1.0>

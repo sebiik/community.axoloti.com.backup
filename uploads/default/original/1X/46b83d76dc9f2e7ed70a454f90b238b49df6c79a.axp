@@ -1,0 +1,119 @@
+<patch-1.0>
+   <comment type="patch/comment" x="42" y="14" text="4051 De/Multiplexer"/>
+   <comment type="patch/comment" x="42" y="28" text="Object script reads analog ins from a 4051"/>
+   <comment type="patch/comment" x="42" y="56" text="z = PB0"/>
+   <comment type="patch/comment" x="42" y="70" text="s0 = PA0"/>
+   <comment type="patch/comment" x="42" y="84" text="s1 = PA1"/>
+   <comment type="patch/comment" x="42" y="98" text="s2 = P A2"/>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" name="multiplexer_count" x="42" y="126">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[int i;   // select y-input
+
+void setup(void){
+	palSetPadMode(GPIOA,0,PAL_MODE_OUTPUT_PUSHPULL);	// s0 Pin of 4051
+	palSetPadMode(GPIOA,1,PAL_MODE_OUTPUT_PUSHPULL);	// S1 Pin of 4051
+	palSetPadMode(GPIOA,2,PAL_MODE_OUTPUT_PUSHPULL);	// s2 Pin of 4051
+
+	i = 0;
+}
+
+void loop(void){
+
+	i++;
+	if (i == 8) {
+		i = 0;
+	}
+
+	palWritePad(GPIOA,0,((i& 0x01) > 0));		// write s0
+	palWritePad(GPIOA,1,(((i>>1)& 0x01) > 0));	// write s1
+	palWritePad(GPIOA,2,(((i>>2)& 0x01) > 0));	// write s2
+
+	int z = adcvalues[8]<<15;			// ADC z-input
+
+	switch (i){
+		case 0: PExParameterChange(&parent->PExch[PARAM_INDEX_y0_value],z,0xFFFD); break;	//connect in1 to dial (named y0)
+		case 1: PExParameterChange(&parent->PExch[PARAM_INDEX_y1_value],z,0xFFFD); break;	//connect in2 to dial (named y1)
+		case 2: PExParameterChange(&parent->PExch[PARAM_INDEX_y2_value],z,0xFFFD); break;	//connect in3 to dial (named y2)
+		case 3: PExParameterChange(&parent->PExch[PARAM_INDEX_y3_value],z,0xFFFD); break;	//connect in4 to dial (named y3)
+		case 4: PExParameterChange(&parent->PExch[PARAM_INDEX_y4_value],z,0xFFFD); break;	//connect in5 to dial (named y4)
+		case 5: PExParameterChange(&parent->PExch[PARAM_INDEX_y5_value],z,0xFFFD); break;	//connect in6 to dial (named y5)
+		case 6: PExParameterChange(&parent->PExch[PARAM_INDEX_y6_value],z,0xFFFD); break;	//connect in7 to dial (named y6)
+		case 7: PExParameterChange(&parent->PExch[PARAM_INDEX_y7_value],z,0xFFFD); break;	//connect in8 to dial (named y7)
+	}
+
+	
+	chThdSleepMilliseconds(5);	// short delay
+}]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y0" x="42" y="224">
+      <params>
+         <frac32.u.map name="value" value="0.046875"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="266" text="4051 Input Y0"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y1" x="42" y="308">
+      <params>
+         <frac32.u.map name="value" value="63.984375"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="350" text="4051 Input Y1"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y2" x="42" y="392">
+      <params>
+         <frac32.u.map name="value" value="0.03125"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="434" text="4051 Input Y2"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y3" x="42" y="476">
+      <params>
+         <frac32.u.map name="value" value="0.09375"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="518" text="4051 Input Y3"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y4" x="42" y="560">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="602" text="4051 Input Y4"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y5" x="42" y="644">
+      <params>
+         <frac32.u.map name="value" value="0.203125"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="686" text="4051 Input Y5"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y6" x="42" y="728">
+      <params>
+         <frac32.u.map name="value" value="63.984375"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="770" text="4051 Input Y6"/>
+   <obj type="ctrl/dial p" sha="1f21216639bb798a4ea7902940999a5bcfd0de90" name="y7" x="42" y="812">
+      <params>
+         <frac32.u.map name="value" value="0.0625"/>
+      </params>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="126" y="854" text="4051 Input Y7"/>
+   <nets/>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>2263</x>
+      <y>35</y>
+      <width>998</width>
+      <height>998</height>
+   </windowPos>
+</patch-1.0>

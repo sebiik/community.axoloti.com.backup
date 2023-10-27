@@ -1,0 +1,75 @@
+<objdefs appVersion="1.0.12">
+   <obj.normal id="buttondisplayCounter" uuid="1e0cdcb3-9448-4fce-9da7-40f46d8d6fb1">
+      <sDescription>creates a 11char string from four inputs; each input X cycles through the number of entries provided in `labelsX&apos;</sDescription>
+      <author>burek</author>
+      <license>GPL</license>
+      <inlets>
+         <bool32.rising name="i1"/>
+         <bool32.rising name="i2"/>
+         <bool32.rising name="i3"/>
+         <bool32.rising name="i4"/>
+      </inlets>
+      <outlets>
+         <charptr32 name="text"/>
+         <int32.positive name="o1"/>
+         <int32.positive name="o2"/>
+         <int32.positive name="o3"/>
+         <int32.positive name="o4"/>
+         <bool32.pulse name="trig"/>
+      </outlets>
+      <displays/>
+      <params/>
+      <attribs>
+         <text name="labels1"/>
+         <text name="labels2"/>
+         <text name="labels3"/>
+         <text name="labels4"/>
+      </attribs>
+      <code.declaration><![CDATA[char c[11] ="x";
+int pval = 1;
+int8_t num[4],len[4],coun[4];
+char *B[4][10] = {{attr_labels1},{attr_labels2},{attr_labels3},{attr_labels4}}; // 10 here is the maximal number of entries per input]]></code.declaration>
+      <code.init><![CDATA[for (int j=0;j<4;j++){
+		for (int i=0;i<(sizeof(B)/16);i++){
+			
+			if (strlen(B[j][i])>0){
+				num[j]++;
+				if (strlen(B[j][i])>len[j]) len[j]=strlen(B[j][i]);
+			}
+		//	LogTextMessage(""); // seems necessary, don't ask...
+			
+		}
+		//LogTextMessage("%d elements in labels%d, longest: %d",num[j],j,len[j]);
+}]]></code.init>
+      <code.krate><![CDATA[int inp = inlet_i1 + (inlet_i2<<1) + (inlet_i3<<2) + (inlet_i4<<3);
+
+if (pval!=inp){
+	outlet_trig = 1;
+	pval = inp;
+	if (inp>0||c[0]==120){
+		int start = 0;
+		int leng;
+		for (int i=0;i<4;i++){
+			 //coun[i] = (coun[i]<(num[i]-1)?coun[i]+((inp>>i)&1):0);
+			  coun[i] = (((inp>>i)&1)?((coun[i]<(num[i]-1))?(coun[i]+1):0):coun[i]);
+			LogTextMessage("Count %d: %d (%d max)",i,coun[i],num[i]);
+
+			if (start<=10){
+				leng = ((start+len[i])<10?len[i]:11-start);
+				strncpy(&c[start],"           ",leng+1);
+				strncpy(&c[start],B[i][coun[i]],strlen(B[i][coun[i]]));		
+				start = start+leng;
+			}
+		}
+	}
+	
+}
+else outlet_trig=0;
+
+outlet_text = c;
+outlet_o1 = coun[0];
+outlet_o2 = coun[1];
+outlet_o3 = coun[2];
+outlet_o4 = coun[3];]]></code.krate>
+   </obj.normal>
+</objdefs>

@@ -1,0 +1,98 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="84" y="84">
+      <params>
+         <int32 name="value" value="34"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a" name="note_3" x="154" y="84">
+      <params>
+         <bin12 name="p1" value="133"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a">
+         <sDescription>note to a scale</sDescription>
+         <author>Mark Harris</author>
+         <license>BSD</license>
+         <helpPatch>note scale.axh</helpPatch>
+         <inlets>
+            <int32 name="note"/>
+         </inlets>
+         <outlets>
+            <int32 name="s"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin12 name="p1" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int i;]]></code.declaration>
+         <code.krate><![CDATA[int Step = (inlet_note+120) % 12;
+
+int ScaleOut;
+if (param_p1 & (1 << Step)) {
+	ScaleOut = Step;
+} else {
+	int closest_higher = -1, closest_lower = -1;
+	// look for closest lower
+	for (int i = Step - 1; i >= 0; i -= 1) {
+		if (param_p1 & (1 << i)) {
+			closest_lower = Step - i;
+			break;
+		}
+	}
+	// look for closest higher
+	for (int i = Step + 1; i <= 11; i += 1) {
+		if (param_p1 & (1 << i)) {
+			closest_higher = i - Step;
+			break;
+		}		
+	}
+
+	if (closest_lower != -1 && closest_higher != -1) {
+		if (closest_lower < closest_higher) {
+			ScaleOut = Step - closest_lower;
+		} else {
+			ScaleOut = Step + closest_higher;	
+		}
+	} else if (closest_lower != -1) {
+		ScaleOut = Step - closest_lower;
+	} else if (closest_higher != -1) {
+		ScaleOut = Step + closest_higher;
+	} else {
+		ScaleOut = 0;
+	}
+}
+
+
+int Octave = ((inlet_note+120) / 12) * 12 ;
+
+outlet_s = ScaleOut + Octave - 120;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_2" x="322" y="84">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="note_3" outlet="s"/>
+         <dest obj="i_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="note_3" inlet="note"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>398</x>
+      <y>71</y>
+      <width>453</width>
+      <height>592</height>
+   </windowPos>
+</patch-1.0>

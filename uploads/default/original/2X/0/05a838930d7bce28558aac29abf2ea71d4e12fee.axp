@@ -1,0 +1,198 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="osc/sine" uuid="6e094045cca76a9dbf7ebfa72e44e4700d2b3ba" name="sine_1" x="630" y="84">
+      <params>
+         <frac32.s.map name="pitch" value="-1.929999828338623"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="ead8ff11-d3bd-438d-afd6-f65ebbf78ca6" name="sine_2" x="406" y="98">
+      <params>
+         <frac32.s.map name="pitch" value="-7.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="ead8ff11-d3bd-438d-afd6-f65ebbf78ca6">
+         <sDescription>sine wave LFO, linear interpolated table, pitch input</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>lfo.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="pitch" description="pitch"/>
+         </inlets>
+         <outlets>
+            <frac32.bipolar name="wave" description="sine wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.lfopitch name="pitch" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t Phase;]]></code.declaration>
+         <code.init><![CDATA[Phase = 0;]]></code.init>
+         <code.krate><![CDATA[{      int32_t freq;
+      MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+      Phase += freq>>7;
+      int32_t r;
+      SINE2TINTERP(Phase,r)
+      outlet_wave= (Phase>0?Phase:-Phase)-(1<<30)>>3;
+   }]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="math/*c" uuid="7d5ef61c3bcd571ee6bbd8437ef3612125dfb225" name="*c_2" x="504" y="98">
+      <params>
+         <frac32.u.map name="amp" value="21.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="math/*c" uuid="7a66f52a9594e7e9eb31328ea725cb3641a80b55" name="*c_1" x="784" y="98">
+      <params>
+         <frac32.u.map name="amp" value="16.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="280" y="154">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="osc/saw" uuid="739ecc36017ef3249479b8f01716b8bbfba9abc1" name="saw_1" x="280" y="252">
+      <params>
+         <frac32.s.map name="pitch" value="-26.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="filter/hp1" uuid="abea7276611b289bed35b80345a6bc4efd4d9a4e" name="hp1_1" x="602" y="252">
+      <params>
+         <frac32.s.map name="freq" value="-42.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/filter/TZMMF" uuid="78d2ee17-c780-4a13-af02-9d7d7940ffcf" name="TZMMF_2" x="924" y="252">
+      <params>
+         <frac32.s.map name="cut" value="23.0"/>
+         <frac32.u.map name="resonance" value="26.0"/>
+         <int32 name="mode" value="0"/>
+         <frac32.u.map name="treshold" value="24.0"/>
+         <frac32.u.map name="compression" value="32.0"/>
+         <frac32.u.map name="tresOUT" value="16.0"/>
+         <frac32.u.map name="headroom" value="16.0"/>
+         <frac32.s.map name="tspread" value="-43.0"/>
+         <frac32.s.map name="hspread" value="24.0"/>
+         <bool32.tgl name="OS" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="69f399c2-3571-4dd9-9283-d466948dfb14" name="Fold Limiter" x="1064" y="252">
+      <params>
+         <frac32.u.map name="treshold" value="33.5"/>
+         <frac32.s.map name="ratio" value="0.0"/>
+         <frac32.s.map name="tspread" value="-14.0"/>
+         <frac32.s.map name="rspread" value="7.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="69f399c2-3571-4dd9-9283-d466948dfb14">
+         <sDescription>Multiply (attenuate) with a constant value</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="in" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out" description="output"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="treshold"/>
+            <frac32.s.map name="ratio"/>
+            <frac32.s.map name="tspread"/>
+            <frac32.s.map name="rspread"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[int32_t ta,tb,ra,rb;
+ta=param_treshold+param_tspread;
+tb=param_treshold-param_tspread;
+ra=param_ratio+param_rspread;
+rb=param_ratio-param_rspread;]]></code.krate>
+         <code.srate><![CDATA[int32_t mix=__SSAT(inlet_in,28)+(1<<27)<<3;
+int32_t in=(1<<27)-__USAT((inlet_in>0?inlet_in:-inlet_in),27);
+in=(1<<27)-1-___SMMUL(in<<3,in<<2);
+int32_t a=(___SMMUL(inlet_in-ta,(1<<27)+___SMMUL(ra-(1<<27)<<2,in<<3))<<5)+ta;
+int32_t b=(___SMMUL(inlet_in+tb,(1<<27)+___SMMUL(rb-(1<<27)<<2,in<<3))<<5)-tb;
+outlet_out=b+(___SMMUL(a-b,mix)<<1);]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="filter/hp1" uuid="abea7276611b289bed35b80345a6bc4efd4d9a4e" name="hp1_2" x="1148" y="252">
+      <params>
+         <frac32.s.map name="freq" value="-48.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/disp/BIGscope" uuid="2f63730e-acd8-4bb4-ae0d-107a81b2c082" name="BIGscope_1" x="336" y="728">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="1386" y="728">
+      <params>
+         <frac32.u.map name="volume" value="33.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="saw_1" outlet="wave"/>
+         <dest obj="BIGscope_1" inlet="syncIn"/>
+         <dest obj="hp1_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="TZMMF_2" outlet="o"/>
+         <dest obj="Fold Limiter" inlet="in"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="TZMMF_2" inlet="ping"/>
+      </net>
+      <net>
+         <source obj="sine_1" outlet="wave"/>
+         <dest obj="*c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_1" outlet="out"/>
+         <dest obj="TZMMF_2" inlet="fm"/>
+      </net>
+      <net>
+         <source obj="hp1_1" outlet="out"/>
+         <dest obj="TZMMF_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="sine_2" outlet="wave"/>
+         <dest obj="*c_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="*c_2" outlet="out"/>
+         <dest obj="TZMMF_2" inlet="cut"/>
+      </net>
+      <net>
+         <source obj="Fold Limiter" outlet="out"/>
+         <dest obj="hp1_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="hp1_2" outlet="out"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+         <dest obj="BIGscope_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1874</width>
+      <height>1096</height>
+   </windowPos>
+</patch-1.0>

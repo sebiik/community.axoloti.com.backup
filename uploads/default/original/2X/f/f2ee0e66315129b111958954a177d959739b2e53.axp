@@ -1,0 +1,96 @@
+<patch-1.0 appVersion="1.0.10">
+   <obj type="ctrl/dial p" uuid="cc5d2846c3d50e425f450c4b9851371b54f4d674" name="dial_1" x="84" y="98">
+      <params>
+         <frac32.u.map name="value" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="patch/cyclecounter" uuid="6b9e9c2187a0e07fb56029aef6ccaaf1f9621e35" name="cyclecounter_1" x="196" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="96da9a47-7d67-452e-96ad-ecfa2ac1c0f8" name="Range Test" x="336" y="98">
+      <params>
+         <frac32.u.map name="a" value="0.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="96da9a47-7d67-452e-96ad-ecfa2ac1c0f8">
+         <sDescription>greater than</sDescription>
+         <author>toneburst</author>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="b" description="in1"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="a"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[
+
+__attribute__ ( ( always_inline ) ) __STATIC_INLINE int32_t map(int32_t val, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max) {
+	float x		= (float)val;
+	float inMin	= (float)in_min;
+	float inMax	= (float)in_max;
+	float outMin	= (float)out_min;
+	float outMax	= (float)out_max;	
+	return (int32_t)((x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin);
+}
+
+]]></code.declaration>
+         <code.krate><![CDATA[outlet_out = map(__USAT(param_a + inlet_b, 27), 0, 0x07FFFFFF, 0, 27);]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="patch/cyclecounter" uuid="6b9e9c2187a0e07fb56029aef6ccaaf1f9621e35" name="cyclecounter_2" x="434" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/hex" uuid="87617898f70d90033f8add921438bf0d11721fdd" name="hex_1" x="616" y="98">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/-" uuid="1643d55e6e7ce1c995a5e66db9f54fd969e6c9b7" name="-_1" x="546" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="630" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="dial_1" outlet="out"/>
+         <dest obj="Range Test" inlet="b"/>
+      </net>
+      <net>
+         <source obj="cyclecounter_1" outlet="t"/>
+         <dest obj="-_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="-_1" outlet="out"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="Range Test" outlet="out"/>
+         <dest obj="hex_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="cyclecounter_2" outlet="t"/>
+         <dest obj="-_1" inlet="in1"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>470</x>
+      <y>161</y>
+      <width>945</width>
+      <height>471</height>
+   </windowPos>
+</patch-1.0>

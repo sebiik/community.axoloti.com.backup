@@ -1,0 +1,82 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_2" x="70" y="42">
+      <params>
+         <int32 name="value" value="95"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/change" uuid="96e39ae624c3f3c952cec4a95e1986ee0104f718" name="change_2" x="154" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="8c46ef5d-87fa-459c-a88f-6abd842c6668" name="layout_3" x="280" y="42">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="8c46ef5d-87fa-459c-a88f-6abd842c6668">
+         <author>Mattilyn Mattroe</author>
+         <license>give me two apple pies and a small fries evry time the object is used in an art installation at the louvre. Otherwise, do as you will</license>
+         <helpPatch>LPadPro.axh</helpPatch>
+         <inlets>
+            <bool32 name="send"/>
+            <int32 name="v"/>
+         </inlets>
+         <outlets/>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int strig;
+int v;
+int msb;
+int msb2;
+int msb3;
+int lsb;]]></code.declaration>
+         <code.krate><![CDATA[v = inlet_v;
+
+if (v < 0){
+	msb = 127;
+	msb2 = 127;
+	msb3 = 31;
+	lsb = 128 + v;
+} else  if (v >= 0){
+
+	msb = (v / 128);
+	msb2 = (v / 16384);				
+	msb3 = (v / 2097152);
+	
+	lsb = v - ((msb * 128) + (msb2 * 16384) + (msb3 * 2097152));
+	
+	}
+
+uint8_t sysexArray[14] = {240,0,1,56,0,91,34,6,38,msb3,msb2,msb,lsb,247}; 
+
+if (inlet_send&&!strig){
+	sdWrite(&SDMIDI, sysexArray, 14);
+	strig=1;
+}
+
+else if (!inlet_send){strig=0;}]]></code.krate>
+      </object>
+   </patchobj>
+   <nets>
+      <net>
+         <source obj="i_2" outlet="out"/>
+         <dest obj="change_2" inlet="in"/>
+         <dest obj="layout_3" inlet="v"/>
+      </net>
+      <net>
+         <source obj="change_2" outlet="trig"/>
+         <dest obj="layout_3" inlet="send"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>382</x>
+      <y>23</y>
+      <width>740</width>
+      <height>328</height>
+   </windowPos>
+</patch-1.0>

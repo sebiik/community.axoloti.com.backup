@@ -1,0 +1,1816 @@
+<patch-1.0 appVersion="1.0.12">
+   <patchobj type="patch/object" uuid="e7fd92b7-9ca6-4f5a-bb35-1015c7697de4" name="square_1" x="196" y="112">
+      <params>
+         <frac32.s.map name="pitch" value="-45.0"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="e7fd92b7-9ca6-4f5a-bb35-1015c7697de4">
+         <sDescription>square wave LFO, boolean output, frequency input</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>lfo.axh</helpPatch>
+         <inlets>
+            <frac32.bipolar name="pitch" description="pitch"/>
+            <bool32.rising name="reset" description="reset phase"/>
+         </inlets>
+         <outlets>
+            <bool32 name="wave" description="square wave"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.s.map.lfopitch name="pitch" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int32_t Phase;
+uint32_t r;
+]]></code.declaration>
+         <code.init><![CDATA[   Phase = 0;
+   r = 1;
+]]></code.init>
+         <code.krate><![CDATA[{
+      if (inlet_reset && r) {
+         Phase = 0;
+         r = 0;
+      } else {
+         if (!inlet_reset) r = 1;
+         int32_t freq;
+         MTOFEXTENDED(param_pitch + inlet_pitch,freq);
+         Phase += freq>>6;
+      }
+      outlet_wave= (Phase>0)?1:0;
+   }]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="audio/inconfig" uuid="9a80ef3c19f2a8f81da3a3b7c1c44d18126b97d9" name="inconfig_1" x="658" y="126">
+      <params/>
+      <attribs>
+         <combo attributeName="gain" selection="9dB"/>
+         <combo attributeName="boost" selection="20dB"/>
+         <combo attributeName="mode" selection="Stereo"/>
+      </attribs>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_2" x="350" y="168">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/button" uuid="ef3d13774349df85aa9bfecf30dbc91ab8488b3f" name="button_1" x="434" y="182">
+      <params>
+         <bool32.mom name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="518" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="audio/in stereo" uuid="99848ad6d90a8e615e83b2e619cfc806f28e7281" name="in_1" x="14" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/dyn/compander" uuid="4a709004-666d-401a-b174-0201aee45a0b" name="compander_1" x="98" y="280">
+      <params>
+         <frac32.u.map name="gainIn" value="6.5"/>
+         <frac32.u.map name="tresh" value="32.0"/>
+         <frac32.u.map name="ratio" value="64.0"/>
+         <frac32.u.map name="expand" value="64.0"/>
+         <frac32.u.map name="slope" value="0.0"/>
+         <frac32.s.map name="release" value="-28.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="ddde5e2f-4100-4527-83c2-029805383ac1" name="record_1" x="252" y="280">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="sampling oscillator"/>
+      </attribs>
+      <object id="patch/object" uuid="ddde5e2f-4100-4527-83c2-029805383ac1">
+         <sDescription>record audio into table, starting from position</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="wave" description="wave"/>
+            <frac32.positive name="pos" description="start position in table"/>
+            <bool32.rising name="start" description="start playback"/>
+            <bool32.rising name="stop" description="stop playback"/>
+         </inlets>
+         <outlets>
+            <bool32 name="rec"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int pstart;
+   int pstop;
+   int pos;]]></code.declaration>
+         <code.init><![CDATA[pos = 0;
+pstart = 0;
+pstop = 1;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_start>0) && !pstart) {
+      pstart = 1;
+      pstop = 0;
+      uint32_t asat = __USAT(inlet_pos,27);
+      pos = asat>>(27-attr_table.LENGTHPOW);
+  } else if (!(inlet_start>0)) {
+      pstart = 0;
+  }
+  if ((inlet_stop>0) && !pstop) {
+      pstop = 1;
+      pstart = 0;
+  }
+  if(pos<attr_table.LENGTHMASK)
+  {
+  	outlet_rec=1;
+  }
+  else
+  {
+  	outlet_rec=0;
+  }]]></code.krate>
+         <code.srate><![CDATA[if (!pstop)  {
+       if (pos< attr_table.LENGTH)
+              attr_table.array[pos++] = __SSAT(inlet_wave,28);
+   }]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="env/follower" uuid="356ce1d18ac6b51704833f94dac5dea823fb8223" name="follower_1" x="406" y="280">
+      <params/>
+      <attribs>
+         <combo attributeName="time" selection="10.6ms"/>
+      </attribs>
+   </obj>
+   <obj type="env/follower" uuid="356ce1d18ac6b51704833f94dac5dea823fb8223" name="follower_2" x="490" y="280">
+      <params/>
+      <attribs>
+         <combo attributeName="time" selection="42.6ms"/>
+      </attribs>
+   </obj>
+   <obj type="disp/chart p" uuid="58f42040a894006a5f73ed8cb8d0bd45481b28cd" name="chart_1" x="700" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/-" uuid="3280bb759e9fc189e134300e48dda7e903c9a110" name="-_1" x="602" y="448">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/&gt;c" uuid="99f2934d97d62b715a829979ef6c8abef35dcdb2" name="&gt;c_1" x="672" y="448">
+      <params>
+         <frac32.u.map name="c" value="7.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b" name="*_1" x="728" y="448">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[int32_t a=__USAT(inlet_a,23)<<4;
+//a=___SMMUL(a<<3,a<<2);
+outlet_result= a;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_3" x="1078" y="448">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_2" x="994" y="462">
+      <params>
+         <bool32.tgl name="b" value="1"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b" name="*_3" x="728" y="518">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[int32_t a=__USAT(inlet_a,25)<<2;
+//a=___SMMUL(a<<3,a<<2);
+outlet_result= a;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="timer/pulselengthm" uuid="62560cedc7cebe84778bc1bb4fc6c2122074a4ab" name="pulselengthm_2" x="952" y="518">
+      <params>
+         <frac32.s.map name="delay" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="1092" y="518">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="bf582db2-a5ad-462a-b418-7e862b625c58" name="+_2" x="854" y="532">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="bf582db2-a5ad-462a-b418-7e862b625c58">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+            <frac32 name="in2" description="in2"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out" description="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1+inlet_in2 >>1;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="sss/dyn/compander" uuid="4a709004-666d-401a-b174-0201aee45a0b" name="compander_2" x="98" y="560">
+      <params>
+         <frac32.u.map name="gainIn" value="6.5"/>
+         <frac32.u.map name="tresh" value="32.0"/>
+         <frac32.u.map name="ratio" value="64.0"/>
+         <frac32.u.map name="expand" value="64.0"/>
+         <frac32.u.map name="slope" value="0.0"/>
+         <frac32.s.map name="release" value="-28.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="ddde5e2f-4100-4527-83c2-029805383ac1" name="record_2" x="252" y="560">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="sampling oscillator_"/>
+      </attribs>
+      <object id="patch/object" uuid="ddde5e2f-4100-4527-83c2-029805383ac1">
+         <sDescription>record audio into table, starting from position</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="wave" description="wave"/>
+            <frac32.positive name="pos" description="start position in table"/>
+            <bool32.rising name="start" description="start playback"/>
+            <bool32.rising name="stop" description="stop playback"/>
+         </inlets>
+         <outlets>
+            <bool32 name="rec"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table"/>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[int pstart;
+   int pstop;
+   int pos;]]></code.declaration>
+         <code.init><![CDATA[pos = 0;
+pstart = 0;
+pstop = 1;]]></code.init>
+         <code.krate><![CDATA[if ((inlet_start>0) && !pstart) {
+      pstart = 1;
+      pstop = 0;
+      uint32_t asat = __USAT(inlet_pos,27);
+      pos = asat>>(27-attr_table.LENGTHPOW);
+  } else if (!(inlet_start>0)) {
+      pstart = 0;
+  }
+  if ((inlet_stop>0) && !pstop) {
+      pstop = 1;
+      pstart = 0;
+  }
+  if(pos<attr_table.LENGTHMASK)
+  {
+  	outlet_rec=1;
+  }
+  else
+  {
+  	outlet_rec=0;
+  }]]></code.krate>
+         <code.srate><![CDATA[if (!pstop)  {
+       if (pos< attr_table.LENGTH)
+              attr_table.array[pos++] = __SSAT(inlet_wave,28);
+   }]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="env/follower" uuid="356ce1d18ac6b51704833f94dac5dea823fb8223" name="follower_3" x="392" y="560">
+      <params/>
+      <attribs>
+         <combo attributeName="time" selection="10.6ms"/>
+      </attribs>
+   </obj>
+   <obj type="env/follower" uuid="356ce1d18ac6b51704833f94dac5dea823fb8223" name="follower_4" x="476" y="560">
+      <params/>
+      <attribs>
+         <combo attributeName="time" selection="42.6ms"/>
+      </attribs>
+   </obj>
+   <obj type="math/-" uuid="3280bb759e9fc189e134300e48dda7e903c9a110" name="-_2" x="504" y="616">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/&gt;c" uuid="99f2934d97d62b715a829979ef6c8abef35dcdb2" name="&gt;c_2" x="574" y="616">
+      <params>
+         <frac32.u.map name="c" value="7.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="timer/pulselengthm" uuid="62560cedc7cebe84778bc1bb4fc6c2122074a4ab" name="pulselengthm_1" x="644" y="616">
+      <params>
+         <frac32.s.map name="delay" value="0.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b" name="*_2" x="784" y="616">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[int32_t a=__USAT(inlet_a,23)<<4;
+//a=___SMMUL(a<<3,a<<2);
+outlet_result= a;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b" name="*_4" x="854" y="616">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="dc9ae908-4bc5-492a-a13a-8e3bde84050b">
+         <sDescription>multiply</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="a" description="input"/>
+         </inlets>
+         <outlets>
+            <frac32 name="result" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[int32_t a=__USAT(inlet_a,25)<<2;
+//a=___SMMUL(a<<3,a<<2);
+outlet_result= a;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="bf582db2-a5ad-462a-b418-7e862b625c58" name="+_1" x="924" y="616">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="bf582db2-a5ad-462a-b418-7e862b625c58">
+         <sDescription>add</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>math.axh</helpPatch>
+         <inlets>
+            <frac32 name="in1" description="in1"/>
+            <frac32 name="in2" description="in2"/>
+         </inlets>
+         <outlets>
+            <frac32 name="out" description="out"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.krate><![CDATA[outlet_out= inlet_in1+inlet_in2 >>1;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e" name="counter_22" x="994" y="616">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e">
+         <sDescription>cyclic up counter</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>counter.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <bool32.rising name="r" description="reset"/>
+            <bool32 name="gen"/>
+         </inlets>
+         <outlets>
+            <int32 name="o" description="output"/>
+            <bool32.pulse name="c" description="carry pulse"/>
+            <bool32 name="0"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+   int rtrig;
+   int count;
+   int cnt,CNT,gen;
+   int maximum,recount,direction,swap,ofs,chance,range;]]></code.declaration>
+         <code.init><![CDATA[count=-1;
+   ntrig = 0;
+   rtrig = 0;
+   cnt=0;
+
+   maximum=(GenerateRandomNumber()%29)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&3)+1;]]></code.init>
+         <code.krate><![CDATA[outlet_c=0;
+
+if(inlet_gen&&!gen)
+{
+	gen=1;
+	maximum=(GenerateRandomNumber()%61)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&31)+1;
+}
+else if(!inlet_gen){gen=0;}
+if ((inlet_trig>0) && !ntrig) {
+   count += 1; if (count>=maximum) {count = 0; outlet_c = 1;}
+   //ntrig=1;
+}
+else if (!(inlet_trig>0)) ntrig=0;
+if ((inlet_r>0) && !rtrig) {count=0; rtrig = 1;outlet_c=1;}
+else if (!(inlet_r>0)) rtrig=0;
+outlet_0=0;
+if(inlet_trig&&!ntrig)
+{
+ntrig=1;
+cnt=count%recount;
+int max=maximum/recount;
+cnt+=count>max?1:0;
+if(direction)
+{
+	cnt=(recount-1-cnt);
+}
+if(swap)
+{
+	cnt=cnt>0?recount-cnt:cnt;
+}
+if(ofs>0)
+{
+	cnt-=1;
+	if(cnt>=0)
+	{cnt=(cnt+ofs)%(recount-1);}
+	cnt+=1;
+}
+if(((GenerateRandomNumber()>>1)<chance)||(cnt==0))
+{
+	CNT=cnt;
+}
+outlet_0=cnt==0;
+}
+outlet_o= (CNT%range)+1;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e" name="counter_23" x="1078" y="616">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e">
+         <sDescription>cyclic up counter</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>counter.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <bool32.rising name="r" description="reset"/>
+            <bool32 name="gen"/>
+         </inlets>
+         <outlets>
+            <int32 name="o" description="output"/>
+            <bool32.pulse name="c" description="carry pulse"/>
+            <bool32 name="0"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+   int rtrig;
+   int count;
+   int cnt,CNT,gen;
+   int maximum,recount,direction,swap,ofs,chance,range;]]></code.declaration>
+         <code.init><![CDATA[count=-1;
+   ntrig = 0;
+   rtrig = 0;
+   cnt=0;
+
+   maximum=(GenerateRandomNumber()%29)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&3)+1;]]></code.init>
+         <code.krate><![CDATA[outlet_c=0;
+
+if(inlet_gen&&!gen)
+{
+	gen=1;
+	maximum=(GenerateRandomNumber()%61)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&31)+1;
+}
+else if(!inlet_gen){gen=0;}
+if ((inlet_trig>0) && !ntrig) {
+   count += 1; if (count>=maximum) {count = 0; outlet_c = 1;}
+   //ntrig=1;
+}
+else if (!(inlet_trig>0)) ntrig=0;
+if ((inlet_r>0) && !rtrig) {count=0; rtrig = 1;outlet_c=1;}
+else if (!(inlet_r>0)) rtrig=0;
+outlet_0=0;
+if(inlet_trig&&!ntrig)
+{
+ntrig=1;
+cnt=count%recount;
+int max=maximum/recount;
+cnt+=count>max?1:0;
+if(direction)
+{
+	cnt=(recount-1-cnt);
+}
+if(swap)
+{
+	cnt=cnt>0?recount-cnt:cnt;
+}
+if(ofs>0)
+{
+	cnt-=1;
+	if(cnt>=0)
+	{cnt=(cnt+ofs)%(recount-1);}
+	cnt+=1;
+}
+if(((GenerateRandomNumber()>>1)<chance)||(cnt==0))
+{
+	CNT=cnt;
+}
+outlet_0=cnt==0;
+}
+outlet_o= (CNT%range)+1;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e" name="counter_24" x="1162" y="616">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e">
+         <sDescription>cyclic up counter</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>counter.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <bool32.rising name="r" description="reset"/>
+            <bool32 name="gen"/>
+         </inlets>
+         <outlets>
+            <int32 name="o" description="output"/>
+            <bool32.pulse name="c" description="carry pulse"/>
+            <bool32 name="0"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+   int rtrig;
+   int count;
+   int cnt,CNT,gen;
+   int maximum,recount,direction,swap,ofs,chance,range;]]></code.declaration>
+         <code.init><![CDATA[count=-1;
+   ntrig = 0;
+   rtrig = 0;
+   cnt=0;
+
+   maximum=(GenerateRandomNumber()%29)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&3)+1;]]></code.init>
+         <code.krate><![CDATA[outlet_c=0;
+
+if(inlet_gen&&!gen)
+{
+	gen=1;
+	maximum=(GenerateRandomNumber()%61)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&63)+1;
+}
+else if(!inlet_gen){gen=0;}
+if ((inlet_trig>0) && !ntrig) {
+   count += 1; if (count>=maximum) {count = 0; outlet_c = 1;}
+   //ntrig=1;
+}
+else if (!(inlet_trig>0)) ntrig=0;
+if ((inlet_r>0) && !rtrig) {count=0; rtrig = 1;outlet_c=1;}
+else if (!(inlet_r>0)) rtrig=0;
+outlet_0=0;
+if(inlet_trig&&!ntrig)
+{
+ntrig=1;
+cnt=count%recount;
+int max=maximum/recount;
+cnt+=count>max?1:0;
+if(direction)
+{
+	cnt=(recount-1-cnt);
+}
+if(swap)
+{
+	cnt=cnt>0?recount-cnt:cnt;
+}
+if(ofs>0)
+{
+	cnt-=1;
+	if(cnt>=0)
+	{cnt=(cnt+ofs)%(recount-1);}
+	cnt+=1;
+}
+if(((GenerateRandomNumber()>>1)<chance)||(cnt==0))
+{
+	CNT=cnt;
+}
+outlet_0=cnt==0;
+}
+outlet_o= (CNT%range)+1;]]></code.krate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e" name="counter_25" x="1246" y="616">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="0c207e28-cc92-42d3-9acc-a441f9edc44e">
+         <sDescription>cyclic up counter</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>counter.axh</helpPatch>
+         <inlets>
+            <bool32.rising name="trig" description="trigger"/>
+            <bool32.rising name="r" description="reset"/>
+            <bool32 name="gen"/>
+         </inlets>
+         <outlets>
+            <int32 name="o" description="output"/>
+            <bool32.pulse name="c" description="carry pulse"/>
+            <bool32 name="0"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int ntrig;
+   int rtrig;
+   int count;
+   int cnt,CNT,gen;
+   int maximum,recount,direction,swap,ofs,chance,range;]]></code.declaration>
+         <code.init><![CDATA[count=-1;
+   ntrig = 0;
+   rtrig = 0;
+   cnt=0;
+
+   maximum=(GenerateRandomNumber()%29)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&3)+1;]]></code.init>
+         <code.krate><![CDATA[outlet_c=0;
+
+if(inlet_gen&&!gen)
+{
+	gen=1;
+	maximum=(GenerateRandomNumber()%61)+4;
+   recount=(GenerateRandomNumber()%maximum)+1;
+   direction=(GenerateRandomNumber()&1);
+   swap=(GenerateRandomNumber()&1);
+   ofs=(GenerateRandomNumber()%maximum);
+   chance=(GenerateRandomNumber()>>1);
+   range=(GenerateRandomNumber()&63)+1;
+}
+else if(!inlet_gen){gen=0;}
+if ((inlet_trig>0) && !ntrig) {
+   count += 1; if (count>=maximum) {count = 0; outlet_c = 1;}
+   //ntrig=1;
+}
+else if (!(inlet_trig>0)) ntrig=0;
+if ((inlet_r>0) && !rtrig) {count=0; rtrig = 1;outlet_c=1;}
+else if (!(inlet_r>0)) rtrig=0;
+outlet_0=0;
+if(inlet_trig&&!ntrig)
+{
+ntrig=1;
+cnt=count%recount;
+int max=maximum/recount;
+cnt+=count>max?1:0;
+if(direction)
+{
+	cnt=(recount-1-cnt);
+}
+if(swap)
+{
+	cnt=cnt>0?recount-cnt:cnt;
+}
+if(ofs>0)
+{
+	cnt-=1;
+	if(cnt>=0)
+	{cnt=(cnt+ofs)%(recount-1);}
+	cnt+=1;
+}
+if(((GenerateRandomNumber()>>1)<chance)||(cnt==0))
+{
+	CNT=cnt;
+}
+outlet_0=cnt==0;
+}
+outlet_o= (CNT%range)+1;]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="conv/nointerp" uuid="5e7389d61f8cd8945790bb71f1670b3a0904c15b" name="nointerp_1" x="1330" y="616">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="conv/nointerp" uuid="5e7389d61f8cd8945790bb71f1670b3a0904c15b" name="nointerp_2" x="1330" y="658">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="sss/conv/audio2pitchfreq" uuid="332c7daa-1647-4266-8d7a-700eaf64d8de" name="audio2pitchfreq_1" x="350" y="770">
+      <params>
+         <frac32.s.map name="damp" value="14.0"/>
+         <int32 name="avg" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/conv/audio2pitchfreq" uuid="332c7daa-1647-4266-8d7a-700eaf64d8de" name="audio2pitchfreq_2" x="504" y="770">
+      <params>
+         <frac32.s.map name="damp" value="14.0"/>
+         <int32 name="avg" value="4"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="f3fc9c6c-265c-409a-b774-c21973ee1183" name="sampling oscillator" x="644" y="770">
+      <params>
+         <frac32.u.map name="lengthA" value="0.0"/>
+         <frac32.u.map name="lengthB" value="0.0"/>
+         <frac32.u.map name="posA" value="0.0"/>
+         <frac32.u.map name="posB" value="29.5"/>
+         <frac32.s.map name="pitch" value="-60.0"/>
+         <frac32.u.map name="chance" value="11.5"/>
+         <frac32.u.map name="random" value="49.5"/>
+         <int32 name="stack" value="8"/>
+         <int32 name="train" value="2"/>
+         <frac32.u.map name="jump" value="14.5"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="262144"/>
+      </attribs>
+      <object id="patch/object" uuid="f3fc9c6c-265c-409a-b774-c21973ee1183">
+         <sDescription>allocate 32bit table in SDRAM memory</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <bool32 name="rnd"/>
+            <frac32 name="pitch"/>
+            <bool32 name="gen"/>
+            <frac32buffer name="posA"/>
+            <frac32buffer name="posB"/>
+            <frac32 name="lengthA"/>
+            <frac32 name="lengthB"/>
+            <frac32 name="freq"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="lengthA"/>
+            <frac32.u.map name="lengthB"/>
+            <frac32.u.map name="posA"/>
+            <frac32.u.map name="posB"/>
+            <frac32.s.map.pitch name="pitch"/>
+            <frac32.u.map.gain name="chance"/>
+            <frac32.u.map.gain name="random"/>
+            <int32 name="stack">
+               <MinValue i="1"/>
+               <MaxValue i="16"/>
+            </int32>
+            <int32 name="train">
+               <MinValue i="1"/>
+               <MaxValue i="8"/>
+            </int32>
+            <frac32.u.map.gain name="jump"/>
+         </params>
+         <attribs>
+            <combo name="size">
+               <MenuEntries>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+                  <string>128</string>
+                  <string>256</string>
+                  <string>512</string>
+                  <string>1024</string>
+                  <string>2048</string>
+                  <string>4096</string>
+                  <string>8192</string>
+                  <string>16384</string>
+                  <string>32768</string>
+                  <string>65536</string>
+                  <string>131072</string>
+                  <string>262144</string>
+                  <string>524288</string>
+                  <string>1048576</string>
+                  <string>2097152</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+                  <string>15</string>
+                  <string>16</string>
+                  <string>17</string>
+                  <string>18</string>
+                  <string>19</string>
+                  <string>20</string>
+                  <string>21</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[static const uint32_t LENGTHPOW = attr_size;
+static const uint32_t LENGTH = 1<<attr_size;
+static const uint32_t LENGTHMASK = (1<<attr_size)-1;
+static const uint32_t BITS = 32;
+static const uint32_t GAIN = 0;
+int32_t *array;
+uint32_t phs;
+int rnd;
+int lengthA,lngA,lngB;
+int lengthB;
+int psA;
+int psB,oct;
+int gen;]]></code.declaration>
+         <code.init><![CDATA[static int32_t _array[attr_poly][LENGTH] __attribute__ ((section (".sdram")));
+array = &_array[parent->polyIndex][0];
+{ 
+  int i,j;
+
+int32_t phase;
+int32_t freq,pitch,gain,fm,damp;
+
+for(i=0;i<LENGTH;i++)
+{
+	array[i]=0;
+}
+
+for(i=0;i<8;i++)
+{
+	pitch=(int32_t)(GenerateRandomNumber())>>4;
+	gain=(int32_t)(GenerateRandomNumber()>>4);
+	fm=(int32_t)(GenerateRandomNumber())>>4;
+	damp=(int32_t)(GenerateRandomNumber())>>4;
+	for(j=0;j<LENGTH;j++)
+	{
+		damp+=((int32_t)(GenerateRandomNumber())>>4)+(1<<24)-damp>>3;
+		int32_t dmp;
+		MTOF(damp,dmp)
+		pitch+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-pitch<<1,dmp);
+		
+		gain+=___SMMUL(((int32_t)(GenerateRandomNumber()>>4))-gain<<1,dmp);
+		fm+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-fm<<1,dmp);
+		MTOFEXTENDED(pitch,freq)
+		phase+=freq+(___SMMUL(array[j],___SMMUL(fm,freq)<<5)<<9);
+		int32_t s;
+		SINE2TINTERP(phase,s)
+		array[j]+=___SMMUL(gain,s)>>3;
+	}
+}
+
+
+lengthA=10<<21;
+lengthB=10<<21;
+psA=32<<21;
+psB=19<<21;
+oct=0;
+}]]></code.init>
+         <code.krate><![CDATA[if(inlet_rnd&&!rnd)
+{
+	rnd=1;
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		lengthA=(GenerateRandomNumber()>>5);
+	}
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		lengthB=(GenerateRandomNumber()>>5);
+	}
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		psA=(GenerateRandomNumber()>>5);
+	}
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		psB=(GenerateRandomNumber()>>5);
+	}
+	oct=(GenerateRandomNumber()%4);
+}
+else if(!inlet_rnd){rnd=0;}
+
+if(inlet_gen&&!gen)
+{
+	codec_clearbuffer();
+	int32_t phase;
+int32_t freq,pitch,gain,fm,damp;
+	gen=1;
+	int i,j;
+	for(i=0;i<LENGTH;i++)
+{
+	array[i]=0;
+}
+
+for(i=0;i<param_stack;i++)
+{
+	pitch=(int32_t)(GenerateRandomNumber())>>4;
+	gain=(int32_t)(GenerateRandomNumber()>>4);
+	fm=(int32_t)(GenerateRandomNumber())>>4;
+	damp=(int32_t)(GenerateRandomNumber())>>4;
+	for(j=0;j<LENGTH;j++)
+	{
+		damp+=((int32_t)(GenerateRandomNumber())>>4)+(1<<24)-damp>>3;
+		int32_t dmp;
+		MTOF(damp,dmp)dmp=dmp>>3;
+		pitch+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-pitch<<1,dmp);
+		
+		gain+=___SMMUL(((int32_t)(GenerateRandomNumber()>>4))-gain<<1,dmp);
+		fm+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-fm<<1,dmp);
+		MTOFEXTENDED(pitch,freq)
+		phase+=freq+(___SMMUL(array[j],___SMMUL(fm,freq)<<5)<<9);
+		int32_t s;
+		SINE2TINTERP(phase,s)
+		array[j]+=___SMMUL(gain,s)/param_stack;
+	}
+}
+}
+else if(!inlet_gen){gen=0;}
+
+int32_t frq;
+MTOFEXTENDED(param_pitch+inlet_pitch,frq)
+frq=frq/param_train;
+frq<<=oct;
+frq-=inlet_freq/param_train;
+
+
+
+
+int LNGA,LNGB;
+LNGA=__USAT(param_lengthA+inlet_lengthA,27);
+LNGB=__USAT(param_lengthB+inlet_lengthB,27);
+LNGA=LNGA+___SMMUL(lengthA-LNGA<<1,param_random);
+LNGB=LNGB+___SMMUL(lengthB-LNGB<<1,param_random);
+lngA+=LNGA-lngA>>0;
+lngB+=LNGB-lngB>>0;
+LNGA=lngA>>27-LENGTHPOW;
+LNGB=lngB>>27-LENGTHPOW;
+LNGA=LNGA>4?LNGA:4;
+LNGB=LNGB>4?LNGB:4;]]></code.krate>
+         <code.srate><![CDATA[int32_t posA=param_posA;
+int32_t posB=param_posB;
+posA=((posA+___SMMUL(psA-posA<<1,param_random)+inlet_posA)&((1<<27)-1))>>27-LENGTHPOW;
+posB=((posB+___SMMUL(psB-posB<<1,param_random)+inlet_posB)&((1<<27)-1))>>27-LENGTHPOW;
+
+phs+=frq;
+
+uint32_t Phs=phs*param_train;
+uint32_t index=((uint32_t)((uint64_t)phs*param_train>>32)*param_jump<<1)>>32-LENGTHPOW;
+uint32_t mix,a1,a2,window;
+HANNING2TINTERP(Phs,window)
+mix=((uint32_t)Phs*LNGA)>>1;
+a1=(uint64_t)Phs*LNGA>>32;
+a2=(a1+1)%LNGA;
+a1+=posA+index;
+a2+=posA+index;
+int32_t b1,b2;
+b1=array[a1&LENGTHMASK];
+b2=array[a2&LENGTHMASK];
+b1+=___SMMUL(b2-b1,mix)<<1;
+b1=___SMMUL(b1<<1,window);
+
+
+uint32_t PHS=(uint32_t)phs+(1<<31);
+Phs=PHS*param_train;
+index=((uint32_t)((uint64_t)PHS*param_train>>32)*param_jump<<1)>>32-LENGTHPOW;
+HANNING2TINTERP(Phs,window)
+mix=((uint32_t)Phs*LNGB)>>1;
+a1=(uint64_t)Phs*LNGB>>32;
+a2=(a1+1)%LNGB;
+a1+=posB+index;
+a2+=posB+index;
+int32_t c1,c2;
+c1=array[a1&LENGTHMASK];
+c2=array[a2&LENGTHMASK];
+c1+=___SMMUL(c2-c1,mix)<<1;
+c1=___SMMUL(c1<<1,window);
+outlet_out=b1+c1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="f3fc9c6c-265c-409a-b774-c21973ee1183" name="sampling oscillator_" x="742" y="770">
+      <params>
+         <frac32.u.map name="lengthA" value="0.0"/>
+         <frac32.u.map name="lengthB" value="0.0"/>
+         <frac32.u.map name="posA" value="0.0"/>
+         <frac32.u.map name="posB" value="29.5"/>
+         <frac32.s.map name="pitch" value="-60.0"/>
+         <frac32.u.map name="chance" value="11.5"/>
+         <frac32.u.map name="random" value="49.5"/>
+         <int32 name="stack" value="8"/>
+         <int32 name="train" value="2"/>
+         <frac32.u.map name="jump" value="14.5"/>
+      </params>
+      <attribs>
+         <combo attributeName="size" selection="262144"/>
+      </attribs>
+      <object id="patch/object" uuid="f3fc9c6c-265c-409a-b774-c21973ee1183">
+         <sDescription>allocate 32bit table in SDRAM memory</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>table.axh</helpPatch>
+         <inlets>
+            <bool32 name="rnd"/>
+            <frac32 name="pitch"/>
+            <bool32 name="gen"/>
+            <frac32buffer name="posA"/>
+            <frac32buffer name="posB"/>
+            <frac32 name="lengthA"/>
+            <frac32 name="lengthB"/>
+            <frac32 name="freq"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="out"/>
+         </outlets>
+         <displays/>
+         <params>
+            <frac32.u.map name="lengthA"/>
+            <frac32.u.map name="lengthB"/>
+            <frac32.u.map name="posA"/>
+            <frac32.u.map name="posB"/>
+            <frac32.s.map.pitch name="pitch"/>
+            <frac32.u.map.gain name="chance"/>
+            <frac32.u.map.gain name="random"/>
+            <int32 name="stack">
+               <MinValue i="1"/>
+               <MaxValue i="16"/>
+            </int32>
+            <int32 name="train">
+               <MinValue i="1"/>
+               <MaxValue i="8"/>
+            </int32>
+            <frac32.u.map.gain name="jump"/>
+         </params>
+         <attribs>
+            <combo name="size">
+               <MenuEntries>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+                  <string>64</string>
+                  <string>128</string>
+                  <string>256</string>
+                  <string>512</string>
+                  <string>1024</string>
+                  <string>2048</string>
+                  <string>4096</string>
+                  <string>8192</string>
+                  <string>16384</string>
+                  <string>32768</string>
+                  <string>65536</string>
+                  <string>131072</string>
+                  <string>262144</string>
+                  <string>524288</string>
+                  <string>1048576</string>
+                  <string>2097152</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3</string>
+                  <string>4</string>
+                  <string>5</string>
+                  <string>6</string>
+                  <string>7</string>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+                  <string>15</string>
+                  <string>16</string>
+                  <string>17</string>
+                  <string>18</string>
+                  <string>19</string>
+                  <string>20</string>
+                  <string>21</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[static const uint32_t LENGTHPOW = attr_size;
+static const uint32_t LENGTH = 1<<attr_size;
+static const uint32_t LENGTHMASK = (1<<attr_size)-1;
+static const uint32_t BITS = 32;
+static const uint32_t GAIN = 0;
+int32_t *array;
+uint32_t phs;
+int rnd;
+int lengthA,lngA,lngB;
+int lengthB;
+int psA;
+int psB,oct;
+int gen;]]></code.declaration>
+         <code.init><![CDATA[static int32_t _array[attr_poly][LENGTH] __attribute__ ((section (".sdram")));
+array = &_array[parent->polyIndex][0];
+{ 
+  int i,j;
+
+int32_t phase;
+int32_t freq,pitch,gain,fm,damp;
+
+for(i=0;i<LENGTH;i++)
+{
+	array[i]=0;
+}
+
+for(i=0;i<8;i++)
+{
+	pitch=(int32_t)(GenerateRandomNumber())>>4;
+	gain=(int32_t)(GenerateRandomNumber()>>4);
+	fm=(int32_t)(GenerateRandomNumber())>>4;
+	damp=(int32_t)(GenerateRandomNumber())>>4;
+	for(j=0;j<LENGTH;j++)
+	{
+		damp+=((int32_t)(GenerateRandomNumber())>>4)+(1<<24)-damp>>3;
+		int32_t dmp;
+		MTOF(damp,dmp)
+		pitch+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-pitch<<1,dmp);
+		
+		gain+=___SMMUL(((int32_t)(GenerateRandomNumber()>>4))-gain<<1,dmp);
+		fm+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-fm<<1,dmp);
+		MTOFEXTENDED(pitch,freq)
+		phase+=freq+(___SMMUL(array[j],___SMMUL(fm,freq)<<5)<<9);
+		int32_t s;
+		SINE2TINTERP(phase,s)
+		array[j]+=___SMMUL(gain,s)>>3;
+	}
+}
+
+
+lengthA=10<<21;
+lengthB=10<<21;
+psA=32<<21;
+psB=19<<21;
+oct=0;
+}]]></code.init>
+         <code.krate><![CDATA[if(inlet_rnd&&!rnd)
+{
+	rnd=1;
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		lengthA=(GenerateRandomNumber()>>5);
+	}
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		lengthB=(GenerateRandomNumber()>>5);
+	}
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		psA=(GenerateRandomNumber()>>5);
+	}
+	if((GenerateRandomNumber()>>1)<param_chance)
+	{
+		psB=(GenerateRandomNumber()>>5);
+	}
+	oct=(GenerateRandomNumber()%4);
+}
+else if(!inlet_rnd){rnd=0;}
+
+if(inlet_gen&&!gen)
+{
+	codec_clearbuffer();
+	int32_t phase;
+int32_t freq,pitch,gain,fm,damp;
+	gen=1;
+	int i,j;
+	for(i=0;i<LENGTH;i++)
+{
+	array[i]=0;
+}
+
+for(i=0;i<param_stack;i++)
+{
+	pitch=(int32_t)(GenerateRandomNumber())>>4;
+	gain=(int32_t)(GenerateRandomNumber()>>4);
+	fm=(int32_t)(GenerateRandomNumber())>>4;
+	damp=(int32_t)(GenerateRandomNumber())>>4;
+	for(j=0;j<LENGTH;j++)
+	{
+		damp+=((int32_t)(GenerateRandomNumber())>>4)+(1<<24)-damp>>3;
+		int32_t dmp;
+		MTOF(damp,dmp)dmp=dmp>>3;
+		pitch+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-pitch<<1,dmp);
+		
+		gain+=___SMMUL(((int32_t)(GenerateRandomNumber()>>4))-gain<<1,dmp);
+		fm+=___SMMUL(((int32_t)(GenerateRandomNumber())>>4)-fm<<1,dmp);
+		MTOFEXTENDED(pitch,freq)
+		phase+=freq+(___SMMUL(array[j],___SMMUL(fm,freq)<<5)<<9);
+		int32_t s;
+		SINE2TINTERP(phase,s)
+		array[j]+=___SMMUL(gain,s)/param_stack;
+	}
+}
+}
+else if(!inlet_gen){gen=0;}
+
+int32_t frq;
+MTOFEXTENDED(param_pitch+inlet_pitch,frq)
+frq=frq/param_train;
+frq<<=oct;
+frq-=inlet_freq/param_train;
+
+
+
+
+int LNGA,LNGB;
+LNGA=__USAT(param_lengthA+inlet_lengthA,27);
+LNGB=__USAT(param_lengthB+inlet_lengthB,27);
+LNGA=LNGA+___SMMUL(lengthA-LNGA<<1,param_random);
+LNGB=LNGB+___SMMUL(lengthB-LNGB<<1,param_random);
+lngA+=LNGA-lngA>>0;
+lngB+=LNGB-lngB>>0;
+LNGA=lngA>>27-LENGTHPOW;
+LNGB=lngB>>27-LENGTHPOW;
+LNGA=LNGA>4?LNGA:4;
+LNGB=LNGB>4?LNGB:4;]]></code.krate>
+         <code.srate><![CDATA[int32_t posA=param_posA;
+int32_t posB=param_posB;
+posA=((posA+___SMMUL(psA-posA<<1,param_random)+inlet_posA)&((1<<27)-1))>>27-LENGTHPOW;
+posB=((posB+___SMMUL(psB-posB<<1,param_random)+inlet_posB)&((1<<27)-1))>>27-LENGTHPOW;
+
+phs+=frq;
+
+uint32_t Phs=phs*param_train;
+uint32_t index=((uint32_t)((uint64_t)phs*param_train>>32)*param_jump<<1)>>32-LENGTHPOW;
+uint32_t mix,a1,a2,window;
+HANNING2TINTERP(Phs,window)
+mix=((uint32_t)Phs*LNGA)>>1;
+a1=(uint64_t)Phs*LNGA>>32;
+a2=(a1+1)%LNGA;
+a1+=posA+index;
+a2+=posA+index;
+int32_t b1,b2;
+b1=array[a1&LENGTHMASK];
+b2=array[a2&LENGTHMASK];
+b1+=___SMMUL(b2-b1,mix)<<1;
+b1=___SMMUL(b1<<1,window);
+
+
+uint32_t PHS=(uint32_t)phs+(1<<31);
+Phs=PHS*param_train;
+index=((uint32_t)((uint64_t)PHS*param_train>>32)*param_jump<<1)>>32-LENGTHPOW;
+HANNING2TINTERP(Phs,window)
+mix=((uint32_t)Phs*LNGB)>>1;
+a1=(uint64_t)Phs*LNGB>>32;
+a2=(a1+1)%LNGB;
+a1+=posB+index;
+a2+=posB+index;
+int32_t c1,c2;
+c1=array[a1&LENGTHMASK];
+c2=array[a2&LENGTHMASK];
+c1+=___SMMUL(c2-c1,mix)<<1;
+c1=___SMMUL(c1<<1,window);
+outlet_out=b1+c1;]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="d396ef59-dbc4-48ff-9826-f7e38c6812d2" name="vca_1" x="1078" y="770">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="d396ef59-dbc4-48ff-9826-f7e38c6812d2">
+         <sDescription>&quot;voltage controlled amplifier&quot;, multiplies v and a inputs, with linear interpolation from k- to s-rate</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32 name="v" description="gain input"/>
+            <frac32buffer name="a" description="audio input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="o" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[   int32_t prev;
+    int32_t step;
+]]></code.declaration>
+         <code.krate><![CDATA[int32_t v=(__USAT(inlet_v,27));
+   step = (v - prev)>>4;
+   int32_t i = prev;
+   prev = v;]]></code.krate>
+         <code.srate><![CDATA[   outlet_o =  ___SMMUL(inlet_a,i)<<5;
+   i += step;
+]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="disp/scope 128 b trig" uuid="11747dcd1dc9afe4919f537c861fb18b80b4e4e" name="scope_1" x="1218" y="770">
+      <params/>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="d396ef59-dbc4-48ff-9826-f7e38c6812d2" name="vca_2" x="1078" y="882">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="d396ef59-dbc4-48ff-9826-f7e38c6812d2">
+         <sDescription>&quot;voltage controlled amplifier&quot;, multiplies v and a inputs, with linear interpolation from k- to s-rate</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <inlets>
+            <frac32 name="v" description="gain input"/>
+            <frac32buffer name="a" description="audio input"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="o" description="output"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[   int32_t prev;
+    int32_t step;
+]]></code.declaration>
+         <code.krate><![CDATA[int32_t v=(__USAT(inlet_v,27));
+   step = (v - prev)>>4;
+   int32_t i = prev;
+   prev = v;]]></code.krate>
+         <code.srate><![CDATA[   outlet_o =  ___SMMUL(inlet_a,i)<<5;
+   i += step;
+]]></code.srate>
+      </object>
+   </patchobj>
+   <patchobj type="patch/object" uuid="4cffc94b-e7c9-4046-99dd-febe078d6f3d" name="allpass reverb" x="1050" y="980">
+      <params>
+         <bool32.mom name="rnd" value="0"/>
+         <frac32.u.map name="dampTail" value="52.0"/>
+         <frac32.u.map name="roomsize" value="40.5"/>
+         <frac32.u.map name="vicinity" value="22.5"/>
+         <frac32.u.map name="brighten" value="1.0"/>
+         <frac32.u.map name="darken" value="2.0"/>
+         <frac32.u.map name="wet" value="22.5"/>
+      </params>
+      <attribs>
+         <combo attributeName="asize" selection="16384 (341ms)"/>
+      </attribs>
+      <object id="patch/object" uuid="4cffc94b-e7c9-4046-99dd-febe078d6f3d">
+         <inlets>
+            <frac32buffer name="l"/>
+            <frac32buffer name="r"/>
+            <bool32 name="rnd"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="l"/>
+            <frac32buffer name="r"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bool32.mom name="rnd"/>
+            <frac32.u.map.squaregain name="dampTail"/>
+            <frac32.u.map name="roomsize"/>
+            <frac32.u.map name="vicinity"/>
+            <frac32.u.map name="brighten"/>
+            <frac32.u.map name="darken"/>
+            <frac32.u.map.gain name="wet"/>
+         </params>
+         <attribs>
+            <combo name="asize">
+               <MenuEntries>
+                  <string>256 (5.33ms)</string>
+                  <string>512 (10.66ms)</string>
+                  <string>1024 (21.33ms)</string>
+                  <string>2048 (42.66ms)</string>
+                  <string>4096 (85.33ms)</string>
+                  <string>8192 (170ms)</string>
+                  <string>16384 (341ms)</string>
+                  <string>32768 (682ms)</string>
+                  <string>65536 (1.36s)</string>
+                  <string>131072 (2.73s)</string>
+                  <string>262144 (5.46s)</string>
+                  <string>524288 (10.9s)</string>
+                  <string>1048576 (21.8s)</string>
+                  <string>2097152 (43.7s)</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>8</string>
+                  <string>9</string>
+                  <string>10</string>
+                  <string>11</string>
+                  <string>12</string>
+                  <string>13</string>
+                  <string>14</string>
+                  <string>15</string>
+                  <string>16</string>
+                  <string>17</string>
+                  <string>18</string>
+                  <string>19</string>
+                  <string>20</string>
+                  <string>21</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[static const uint32_t LENGTH=1<<attr_asize;
+static const uint32_t LENGTHPOW=attr_asize;
+static const uint32_t LENGTHMASK=(1<<attr_asize)-1;
+int32_t val[2];
+int32_t IN;
+int32_t vol[8];
+int32_t Frq[8];
+int32_t *buf;
+uint32_t wp[9];
+int LNG[8],rnd;
+int32_t ALLPASS(int32_t in,int32_t f,int lng,int i){
+int k=i<<LENGTHPOW;
+wp[i]=(wp[i]+1)%lng;
+int32_t tmp=buf[(wp[i]+k)];
+in+=___SMMUL(tmp,-f)<<2;
+buf[(wp[i]+k)]=in;
+int32_t out=(___SMMUL(in,f)<<2)+tmp;
+return out;
+}]]></code.declaration>
+         <code.init><![CDATA[static int32_t _buf[9<<attr_asize]  __attribute__ ((section (".sdram")));
+buf = &_buf[0];
+   int i;
+
+   for(i=0;i<LENGTH*9;i++) buf[i] = 0;
+
+
+for(int i=0;i<8;i++){
+	wp[i]=0;
+	LNG[i]=(GenerateRandomNumber()%((LENGTH>>4)*15))+((LENGTHMASK>>4));
+	Frq[i]=GenerateRandomNumber()>>1;
+	vol[i]=(1<<29);
+}
+wp[8]=0;
+LNG[8]=(GenerateRandomNumber()%((LENGTH>>4)))+((LENGTHMASK>>4)*15);]]></code.init>
+         <code.krate><![CDATA[int RND=param_rnd||inlet_rnd;
+if(RND&&!rnd){
+rnd=1;
+for(int i=0;i<8;i++){
+Frq[i]=GenerateRandomNumber()>>1;
+
+LNG[i]=(GenerateRandomNumber()%((LENGTH>>4)*15))+((LENGTHMASK>>4));
+
+}
+LNG[8]=(GenerateRandomNumber()%((LENGTH>>4)))+((LENGTHMASK>>4)*15);
+for(int i=0;i<LENGTH*9;i++) buf[i] = 0;
+}
+if(!RND){rnd=0;}
+
+int32_t frq[8];
+
+int32_t LG[9];
+for(int i=0;i<8;i++){
+	LG[i]=___SMMUL(LNG[i]-1<<5,param_vicinity)+1;
+	SINE2TINTERP(Frq[i]+(GenerateRandomNumber()>>12),frq[i])
+	frq[i]=frq[i]>>1;
+}
+LG[8]=___SMMUL(param_roomsize<<4,LNG[8]<<1);
+//LG[8]=param_roomsize>>27-LENGTHPOW;
+int32_t decay=param_dampTail;]]></code.krate>
+         <code.srate><![CDATA[//decay=decay>param_decay?decay:param_decay;
+wp[8]=(wp[8]+1);
+wp[8]=wp[8]>=LG[8]?0:wp[8];
+
+outlet_l=inlet_l;
+outlet_r=inlet_r;
+
+int32_t tp=buf[(wp[8]+(LENGTH<<3))];
+IN=__SSAT(inlet_l+tp,28);
+int32_t suml=0;
+int32_t sumr=0;
+for(int i=0;i<8;i++){
+	if(i==1){IN+=inlet_r;}
+	IN=ALLPASS(IN,frq[i],LG[i],i);
+	if((i&1)>0)
+	{
+		suml+=___SMMUL(IN,vol[i]);
+		sumr+=___SMMUL(IN,vol[i])>>1;
+	}
+	else
+	{
+		suml+=___SMMUL(IN,vol[i])>>1;
+		sumr+=___SMMUL(IN,vol[i]);
+	}
+}
+outlet_l+=___SMMUL(suml,param_wet)<<2;
+outlet_r+=___SMMUL(sumr,param_wet)<<2;
+IN-=___SMMUL(decay,IN)<<1;
+
+val[0]+=IN-val[0]>>6;
+IN-=___SMMUL(param_brighten,val[0])<<3;
+int32_t hp;
+val[1]+=IN-val[1]>>5;
+hp=IN-val[1];
+IN-=___SMMUL(param_darken,hp)<<3;
+
+buf[(wp[8]+(LENGTH<<3))]=IN;]]></code.srate>
+      </object>
+   </patchobj>
+   <obj type="mix/mix 2 sq" uuid="9b03da12a01f39ecd48d16285e7d10acb8e1267c" name="mix_1" x="1176" y="980">
+      <params>
+         <frac32.u.map name="gain1" value="40.0"/>
+         <frac32.u.map name="gain2" value="56.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="mix/mix 2 sq" uuid="9b03da12a01f39ecd48d16285e7d10acb8e1267c" name="mix_2" x="1288" y="980">
+      <params>
+         <frac32.u.map name="gain1" value="40.0"/>
+         <frac32.u.map name="gain2" value="56.5"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="sss/audio/StOutVol" uuid="0ca9cf1e-1ce3-469c-80da-a4a885c21246" name="StOutVol_1" x="1498" y="980">
+      <params>
+         <frac32.u.map name="volume" value="54.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="compander_1" outlet="out"/>
+         <dest obj="audio2pitchfreq_1" inlet="in"/>
+         <dest obj="record_1" inlet="wave"/>
+      </net>
+      <net>
+         <source obj="button_1" outlet="o"/>
+         <dest obj="inv_1" inlet="i"/>
+         <dest obj="sampling oscillator_" inlet="gen"/>
+         <dest obj="sampling oscillator" inlet="gen"/>
+      </net>
+      <net>
+         <source obj="follower_1" outlet="amp"/>
+         <dest obj="-_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="left"/>
+         <dest obj="compander_1" inlet="in"/>
+         <dest obj="mix_1" inlet="in1"/>
+         <dest obj="follower_1" inlet="in"/>
+         <dest obj="follower_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="follower_2" outlet="amp"/>
+         <dest obj="-_1" inlet="in2"/>
+         <dest obj="*_3" inlet="a"/>
+      </net>
+      <net>
+         <source obj="-_1" outlet="out"/>
+         <dest obj="&gt;c_1" inlet="in"/>
+         <dest obj="chart_1" inlet="in"/>
+         <dest obj="*_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="pulselengthm_2" outlet="pulse"/>
+         <dest obj="bool_1" inlet="in"/>
+         <dest obj="sampling oscillator" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="audio2pitchfreq_1" outlet="pitch"/>
+         <dest obj="sampling oscillator" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="in_1" outlet="right"/>
+         <dest obj="mix_2" inlet="in1"/>
+         <dest obj="compander_2" inlet="in"/>
+         <dest obj="follower_3" inlet="in"/>
+         <dest obj="follower_4" inlet="in"/>
+      </net>
+      <net>
+         <source obj="mix_1" outlet="out"/>
+         <dest obj="StOutVol_1" inlet="left"/>
+      </net>
+      <net>
+         <source obj="mix_2" outlet="out"/>
+         <dest obj="StOutVol_1" inlet="right"/>
+      </net>
+      <net>
+         <source obj="vca_1" outlet="o"/>
+         <dest obj="allpass reverb" inlet="l"/>
+      </net>
+      <net>
+         <source obj="compander_2" outlet="out"/>
+         <dest obj="record_2" inlet="wave"/>
+         <dest obj="audio2pitchfreq_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="-_2" outlet="out"/>
+         <dest obj="&gt;c_2" inlet="in"/>
+         <dest obj="*_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="follower_3" outlet="amp"/>
+         <dest obj="-_2" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="follower_4" outlet="amp"/>
+         <dest obj="-_2" inlet="in2"/>
+         <dest obj="*_4" inlet="a"/>
+      </net>
+      <net>
+         <source obj="vca_2" outlet="o"/>
+         <dest obj="allpass reverb" inlet="r"/>
+      </net>
+      <net>
+         <source obj="audio2pitchfreq_2" outlet="pitch"/>
+         <dest obj="sampling oscillator_" inlet="pitch"/>
+      </net>
+      <net>
+         <source obj="allpass reverb" outlet="l"/>
+         <dest obj="mix_1" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="allpass reverb" outlet="r"/>
+         <dest obj="mix_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="*_3" outlet="result"/>
+         <dest obj="+_2" inlet="in2"/>
+      </net>
+      <net>
+         <source obj="*_4" outlet="result"/>
+         <dest obj="+_1" inlet="in1"/>
+      </net>
+      <net>
+         <source obj="*_2" outlet="result"/>
+         <dest obj="+_1" inlet="in2"/>
+         <dest obj="vca_2" inlet="v"/>
+      </net>
+      <net>
+         <source obj="*_1" outlet="result"/>
+         <dest obj="+_2" inlet="in1"/>
+         <dest obj="vca_1" inlet="v"/>
+      </net>
+      <net>
+         <source obj="sampling oscillator" outlet="out"/>
+         <dest obj="vca_1" inlet="a"/>
+      </net>
+      <net>
+         <source obj="sampling oscillator_" outlet="out"/>
+         <dest obj="vca_2" inlet="a"/>
+      </net>
+      <net>
+         <source obj="pulselengthm_1" outlet="pulse"/>
+         <dest obj="counter_22" inlet="trig"/>
+         <dest obj="counter_23" inlet="trig"/>
+         <dest obj="counter_24" inlet="trig"/>
+         <dest obj="counter_25" inlet="trig"/>
+         <dest obj="sampling oscillator_" inlet="rnd"/>
+      </net>
+      <net>
+         <source obj="toggle_3" outlet="o"/>
+         <dest obj="counter_22" inlet="gen"/>
+         <dest obj="counter_23" inlet="gen"/>
+         <dest obj="counter_24" inlet="gen"/>
+         <dest obj="counter_25" inlet="gen"/>
+      </net>
+      <net>
+         <source obj="counter_24" outlet="o"/>
+         <dest obj="nointerp_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="counter_25" outlet="o"/>
+         <dest obj="nointerp_2" inlet="i"/>
+      </net>
+      <net>
+         <source obj="toggle_2" outlet="o"/>
+         <dest obj="counter_23" inlet="r"/>
+         <dest obj="counter_22" inlet="r"/>
+         <dest obj="counter_24" inlet="r"/>
+         <dest obj="counter_25" inlet="r"/>
+      </net>
+      <net>
+         <source obj="counter_22" outlet="o"/>
+         <dest obj="sampling oscillator_" inlet="lengthA"/>
+         <dest obj="sampling oscillator" inlet="lengthA"/>
+      </net>
+      <net>
+         <source obj="counter_23" outlet="o"/>
+         <dest obj="sampling oscillator_" inlet="lengthB"/>
+         <dest obj="sampling oscillator" inlet="lengthB"/>
+      </net>
+      <net>
+         <source obj="nointerp_1" outlet="o"/>
+         <dest obj="sampling oscillator_" inlet="posA"/>
+         <dest obj="sampling oscillator" inlet="posA"/>
+      </net>
+      <net>
+         <source obj="nointerp_2" outlet="o"/>
+         <dest obj="sampling oscillator_" inlet="posB"/>
+         <dest obj="sampling oscillator" inlet="posB"/>
+      </net>
+      <net>
+         <source obj="&gt;c_2" outlet="out"/>
+         <dest obj="pulselengthm_1" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="&gt;c_1" outlet="out"/>
+         <dest obj="pulselengthm_2" inlet="trig"/>
+      </net>
+      <net>
+         <source obj="square_1" outlet="wave"/>
+         <dest obj="record_1" inlet="start"/>
+         <dest obj="record_2" inlet="start"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1874</width>
+      <height>1096</height>
+   </windowPos>
+</patch-1.0>

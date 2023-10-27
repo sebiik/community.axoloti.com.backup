@@ -1,0 +1,226 @@
+<objdefs>
+   <obj.normal id="granulator" uuid="15716b15ebe691010ccfd54af72ea23232a843c6" sha="ead10382facf54bac6df959166fbb9a87434068e">
+      <sDescription>Audio granulator with pitch/time stretch control</sDescription>
+      <author>Joren Six</author>
+      <license>BSD</license>
+      <helpPatch>granulator.axh</helpPatch>
+      <inlets>
+         <frac32buffer name="in" description="input"/>
+         <frac32 name="timef" description="time stretch factor"/>
+         <frac32 name="pitchf" description="pitch shift factor"/>
+         <frac32 name="pitchd" description="Detected pitch (autotune)"/>
+         <frac32 name="pitchr" description="Requested pitch (autotune)"/>
+      </inlets>
+      <outlets>
+         <frac32buffer name="out" description="output"/>
+         <frac32 name="graincount"/>
+      </outlets>
+      <displays/>
+      <params>
+         <frac32.u.map.gain name="pitch" noLabel="false"/>
+         <frac32.u.map.gain name="time" noLabel="false"/>
+      </params>
+      <attribs>
+         <spinner name="delaylength" MinValue="1" MaxValue="21" DefaultValue="12"/>
+         <spinner name="grainsize" MinValue="32" MaxValue="2000" DefaultValue="100"/>
+         <spinner name="graininterval" MinValue="2" MaxValue="2000" DefaultValue="40"/>
+         <spinner name="maxgraincount" MinValue="1" MaxValue="200" DefaultValue="35"/>
+      </attribs>
+      <code.declaration><![CDATA[
+
+   //write index
+   int32_t delay_line_write_index;
+
+   static const uint32_t LENGTH = 1<<attr_delaylength;
+
+   //delay line
+	int32_t delayline[LENGTH];
+
+   // The definition of an audio grain
+	struct Grain {
+		   /* Position within the delay line (in milliseconds) */
+   		float position;
+   		/*  The age (in milliseconds) */
+   		float age;
+   		/* The size of a grain (in milliseconds) */
+   		float size;
+         /* Is the grain currently active? */
+         bool active;
+	};
+
+   //  The array of grains
+   Grain grains[attr_maxgraincount];
+
+   // The position in the audio in milliseconds
+   float position;
+
+   // default grain size (in ms)
+   float default_grain_size = (float) attr_grainsize;
+
+   //default interval between start of grains (in ms)
+   float grain_interval = (float) attr_graininterval;
+
+   // time since last grain was started (in ms)
+   float time_since_last_grain;
+
+   // Hanning window of 1000 elements
+   float hanning_window [1000];
+
+   //the number of fractional milliseconds per sample
+   float time_for_one_audio_sample;
+
+   // Defines how much pitch is changed
+   // 2.0 means one octave higher (double), 0.5 one octave lower.
+   float pitch_shift_factor = 0.70f;
+   
+   // Defines how much faster or slower audio is played
+   // 2.0 means double tempo, 0.5 half.
+   float time_stretch_factor = 0.85f;
+
+   int32_t no_interpolation(float grain_position) {
+      int frame = positionInSamples(grain_position);
+      return delayline[frame];
+   }
+
+   int positionInSamples(float grain_position){
+      int position_in_samples = (int) (grain_position / time_for_one_audio_sample);
+      return (position_in_samples + LENGTH) % LENGTH;
+   }
+
+]]></code.declaration>
+      <code.init><![CDATA[
+
+   /*
+   static int32_t _delayline[attr_poly][LENGTH] __attribute__ ((section (".sdram")));
+   delayline = &_delayline[parent->polyIndex][0];
+   */    
+  int i;
+   for(i=0;i<LENGTH;i++){
+     delayline[i]=0;
+   }
+   
+   delay_line_write_index = 0;
+
+   position = 0;
+
+   time_since_last_grain = 0;
+
+   time_for_one_audio_sample = 1.0f/48.0f;
+
+   for(i=0;i<attr_maxgraincount;i++){
+      Grain g = { .position = 0, .age = 0, .size = 0, .active = false};
+      grains[i] = g;
+   }
+
+   // initialize the hanning window 
+   for(i=0;i<1000;i++){
+      float multiplier = 0.5f * (1.0f - cosf(2.0f*PI*i/1000.0f));
+      hanning_window[i] = multiplier;
+   }
+]]></code.init>
+      <code.krate><![CDATA[ 
+
+//a range from -2 to 2
+pitch_shift_factor = (param_pitch / (float) (1<<31)) * 4.0f - 2.0f;
+time_stretch_factor = (param_time / (float) (1<<31)) * 4.0f - 2.0f;
+
+pitch_shift_factor = inlet_pitchr/(float) inlet_pitchd;
+
+/*
+pitch_shift_factor =  ((param_pitch / (float) (1<<27)) - 1.0f);
+
+time_stretch_factor = ((param_time / (float) (1<<27)) - 1.0f ) * 3.0f;
+*/
+
+//time_stretch_factor = 1.0f
+
+//For readability everything is in done in the krate code block (also the srate code)
+if(position==0){
+   grains[0].position = position;
+   grains[0].age = default_grain_size / 4.0f;
+   grains[0].size = default_grain_size;
+   grains[0].active = true;
+   time_since_last_grain = grain_interval / 2.0f;
+}
+
+int i;
+int j;
+float active_grains = 0;
+for(i = 0 ; i < attr_maxgraincount ; i++){
+   if(grains[i].active){
+      active_grains++;
+   }
+}
+
+float percentage = active_grains / ((float) attr_maxgraincount.0f);
+outlet_graincount = (int32_t) ( (percentage-1.0f)  * (1<<27) );
+
+
+//fill the delay line with the new audio data
+for(j=0;j<BUFSIZE;j++){
+   delayline[delay_line_write_index]=inlet_in[j];
+   delay_line_write_index++;
+   if (delay_line_write_index == LENGTH){
+      delay_line_write_index= 0;
+   }
+   //reset output
+   outlet_out[j]=0;
+}
+
+for(j=0;j<BUFSIZE;j++){
+
+   // Is a new grain needed?
+   if(time_since_last_grain > grain_interval){
+     // Find the first inactive (free) grain
+     for(i = 0 ; i < attr_maxgraincount ; i++){
+         if(!grains[i].active){
+            grains[i].position = position;
+            grains[i].age = 0;
+            grains[i].size = default_grain_size;
+            grains[i].active = true;
+            break;
+         }
+      }
+      // We just enabled a new grain, so the time since last grain is zero 
+      time_since_last_grain = 0;
+   }
+
+   //Gather output for this sample from each grain
+   for(i = 0 ; i < attr_maxgraincount ; i++){
+      
+      //active grains contribute to the output for this sample
+      if(grains[i].active){
+         int window_index = (int) (grains[i].age/grains[i].size * 1000.0f);
+         float window_multiplier = hanning_window[window_index];
+         int32_t sample_value = no_interpolation(grains[i].position);
+
+         outlet_out[j] += outlet_out[j] + (int32_t)(sample_value * window_multiplier);
+      }
+   }
+
+   // Increment the position (time stretched)
+   position +=  time_for_one_audio_sample * time_stretch_factor;
+
+   // Change the state for each active grain
+   for(i = 0 ; i < attr_maxgraincount ; i++){
+      
+      //only modify active grains
+      if(grains[i].active){
+         int direction = time_stretch_factor >= 0 ? 1 : -1;
+         grains[i].age = grains[i].age + time_for_one_audio_sample;
+         grains[i].position =  grains[i].position + direction * time_for_one_audio_sample * pitch_shift_factor;
+
+         // Check if grains should be inactive and deactivate them
+         if (grains[i].age > grains[i].size) {
+            grains[i].active = false;
+         }
+      }
+   }
+
+   // Increment the time since last was started grain (in real time)
+   time_since_last_grain = time_since_last_grain + time_for_one_audio_sample;
+}
+
+]]></code.krate>
+   </obj.normal>
+</objdefs>

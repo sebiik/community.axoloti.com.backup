@@ -1,0 +1,291 @@
+<patch-1.0 appVersion="1.0.11">
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_28" x="672" y="14">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="714" y="14" text="...whats left.."/>
+   <obj type="sss/math/divremc" uuid="1638b705-df81-436f-acf6-3399bf364363" name="divremc_1" x="532" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="i_1" x="406" y="56">
+      <params>
+         <int32 name="value" value="48000"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_27" x="742" y="56">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="784" y="70" text="divisor I guess ;)"/>
+   <comment type="patch/comment" x="350" y="126" text="set the tempo you want to scale to"/>
+   <patchobj type="patch/object" uuid="22c9cd0e-1f8a-4d86-9df7-50fff047eca7" name="lrec_1" x="196" y="140">
+      <params/>
+      <attribs>
+         <objref attributeName="table" obj="t1"/>
+         <combo attributeName="slots" selection="1"/>
+      </attribs>
+      <object id="patch/object" uuid="22c9cd0e-1f8a-4d86-9df7-50fff047eca7">
+         <sDescription>records audio to a table.
+the table can be divided into 1,2,4 or 8 slots.
+when &apos;sync&apos; is enabled,recording will be synced to phase of the signal connected to &apos;pos&apos;,
+and after &apos;rec&apos; is zero,recording will continue until the starting point is reached.
+after recording is done,the length if the recording in samples is sent out,
+as well as the length of the recording (in fraction of the table&apos;s size).</sDescription>
+         <author>Robert Schirmer</author>
+         <license>BSD</license>
+         <helpPatch>loop_multi.axh</helpPatch>
+         <inlets>
+            <frac32buffer name="wave" description="audio in"/>
+            <frac32buffer.positive name="pos"/>
+            <bool32.risingfalling name="rec" description="record,set tempo"/>
+            <int32 name="slot" description="select slot to record to"/>
+            <bool32 name="sync" description="sync on/off"/>
+         </inlets>
+         <outlets>
+            <frac32.positive name="offset"/>
+            <frac32.positive name="range" description="length of recording in fraction of the slot"/>
+            <frac32 name="startpoint" description="recording offset when recording in sync"/>
+            <int32 name="smps" description="length of recording in samples"/>
+            <bool32 name="rec" description="record state"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs>
+            <objref name="table" description="table to record to "/>
+            <combo name="slots" description="number of slots in the table">
+               <MenuEntries>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>4</string>
+                  <string>8</string>
+                  <string>16</string>
+                  <string>32</string>
+               </MenuEntries>
+               <CEntries>
+                  <string>0</string>
+                  <string>1</string>
+                  <string>2</string>
+                  <string>3 </string>
+                  <string>4</string>
+                  <string>5</string>
+               </CEntries>
+            </combo>
+         </attribs>
+         <includes/>
+         <code.declaration><![CDATA[bool rec;
+int recpos;
+int offset;
+int rec_offset;
+int rec_max;
+int shift;
+int  spos;
+int csample;
+int start;
+int mode;]]></code.declaration>
+         <code.init><![CDATA[recpos =0;
+rec = 0;
+start = 0;
+      rec_max = attr_table.LENGTH >> attr_slots;
+
+//set 'shift factor' for storing the recording length/the sync output
+    if (attr_table.LENGTH == 2048){shift = 16; }
+    if (attr_table.LENGTH == 4096){shift = 15; }
+    if (attr_table.LENGTH == 8192){shift = 14; }
+    if (attr_table.LENGTH == 16384){shift = 13; }
+    if (attr_table.LENGTH == 32768){shift = 12; }
+    if (attr_table.LENGTH == 65536){shift = 11; }
+    if (attr_table.LENGTH == 131072){shift = 10;}
+    if (attr_table.LENGTH == 262144){shift = 9;}
+    if (attr_table.LENGTH == 524288){shift = 8;}
+    if (attr_table.LENGTH == 1048576 ){shift = 7;}
+    if (attr_table.LENGTH == 2097152 ){shift = 6;}
+    if (attr_table.LENGTH == 4194304 ){shift = 5;}]]></code.init>
+         <code.srate><![CDATA[csample = (inlet_pos >> 7);
+
+   if ((inlet_rec) && !rec) {
+      rec = 1;
+      recpos = 0;
+      spos = csample ;
+      start = inlet_pos;
+      outlet_range = 0;
+      outlet_smps = 0;
+      outlet_startpoint = 0;
+      mode = inlet_sync;
+      offset = (((inlet_slot  ) << 21) >> attr_slots) << 6;
+      rec_offset = (__USAT(offset,27)>>(27-attr_table.LENGTHPOW));
+
+       } 
+       
+  //rec stopped-wait for rollover  
+ else if (!(inlet_rec)) {
+ 	if (mode)	{
+        if ((csample > (spos -12)) && (csample < (spos +12))) { rec = 0;} 
+        } else rec = 0;
+   }
+           
+   //record   
+   if (rec)  {
+              recpos ++;
+              if (recpos >= rec_max) recpos = 0;
+              attr_table.array[(recpos+rec_offset)] = __SSAT(inlet_wave,28 )>>attr_table.GAIN;
+   
+}
+
+   //rec done
+
+      if (!rec) {  
+     outlet_range = (recpos << shift); 
+     outlet_smps = recpos;
+
+     
+    if (mode)
+     outlet_startpoint = start; 
+     else outlet_startpoint = 0;
+
+      } 
+
+        outlet_rec = rec;
+        outlet_offset = offset;]]></code.srate>
+      </object>
+   </patchobj>
+   <comment type="patch/comment" x="350" y="140" text="here--- 1 second"/>
+   <obj type="math/&gt;c" uuid="99f2934d97d62b715a829979ef6c8abef35dcdb2" name="&gt;c_1" x="1106" y="154">
+      <params>
+         <frac32.u.map name="c" value="59.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="1176" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/math/s2f" uuid="7c22ff76-ce0f-4e67-ab3b-d7cff44b6566" name="s2f_1" x="672" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="rbrt/osc/phasor div" uuid="a88cfdd6-8eb9-479b-9d88-bda5354f0042" name="phasor_2" x="812" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_5" x="938" y="168">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="ctrl/toggle" uuid="42b8134fa729d54bfc8d62d6ef3fa99498c1de99" name="toggle_1" x="84" y="182">
+      <params>
+         <bool32.tgl name="b" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_31" x="518" y="196">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="728" y="238" text="HERE!!!"/>
+   <comment type="patch/comment" x="518" y="252" text="actual length in smps"/>
+   <comment type="patch/comment" x="728" y="252" text="you could easily hook up a clock divider"/>
+   <obj type="logic/inv" uuid="2bd44b865d3b63ff9b80862242bf5be779e3ad5" name="inv_1" x="350" y="280">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="table/alloc 16b sdram" uuid="6d8eb0fd68f404cb5d14e7d4c8c146c8ccf09da1" name="t1" x="112" y="308">
+      <params/>
+      <attribs>
+         <combo attributeName="size" selection="4194304"/>
+         <text attributeName="init">
+            <sText><![CDATA[]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="1191" y="317" text="maybe sync?"/>
+   <comment type="patch/comment" x="1190" y="336" text="...better to listen.."/>
+   <comment type="patch/comment" x="938" y="364" text="scaled tempo"/>
+   <obj type="rbrt/osc/sphasor" uuid="f30e08a7-f10c-4a04-bc56-aa6750ecb145" name="sphasor_2" x="826" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/scope 128 b" uuid="2b69f51a714fc276503ef10c349d6d253d1ae5e2" name="scope_3" x="938" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="math/&gt;c" uuid="99f2934d97d62b715a829979ef6c8abef35dcdb2" name="&gt;c_2" x="1106" y="392">
+      <params>
+         <frac32.u.map name="c" value="59.0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="1176" y="392">
+      <params/>
+      <attribs/>
+   </obj>
+   <comment type="patch/comment" x="938" y="588" text="original tempo"/>
+   <nets>
+      <net>
+         <source obj="toggle_1" outlet="o"/>
+         <dest obj="lrec_1" inlet="rec"/>
+      </net>
+      <net>
+         <source obj="lrec_1" outlet="rec"/>
+         <dest obj="inv_1" inlet="i"/>
+      </net>
+      <net>
+         <source obj="inv_1" outlet="o"/>
+         <dest obj="sphasor_2" inlet="reset"/>
+         <dest obj="phasor_2" inlet="reset"/>
+      </net>
+      <net>
+         <source obj="lrec_1" outlet="smps"/>
+         <dest obj="divremc_1" inlet="a"/>
+         <dest obj="i_31" inlet="in"/>
+         <dest obj="s2f_1" inlet="smps"/>
+         <dest obj="sphasor_2" inlet="smps"/>
+      </net>
+      <net>
+         <source obj="sphasor_2" outlet="wave"/>
+         <dest obj="scope_3" inlet="in"/>
+         <dest obj="&gt;c_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="divremc_1" outlet="rem"/>
+         <dest obj="i_28" inlet="in"/>
+      </net>
+      <net>
+         <source obj="divremc_1" outlet="div"/>
+         <dest obj="i_27" inlet="in"/>
+         <dest obj="phasor_2" inlet="divider"/>
+      </net>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="divremc_1" inlet="denominator"/>
+      </net>
+      <net>
+         <source obj="phasor_2" outlet="wave"/>
+         <dest obj="scope_5" inlet="in"/>
+         <dest obj="&gt;c_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="&gt;c_2" outlet="out"/>
+         <dest obj="bool_1" inlet="in"/>
+      </net>
+      <net>
+         <source obj="&gt;c_1" outlet="out"/>
+         <dest obj="bool_2" inlet="in"/>
+      </net>
+      <net>
+         <source obj="s2f_1" outlet="freq"/>
+         <dest obj="phasor_2" inlet="freq"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>-8</x>
+      <y>-8</y>
+      <width>1616</width>
+      <height>876</height>
+   </windowPos>
+</patch-1.0>

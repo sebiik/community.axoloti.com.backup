@@ -1,0 +1,78 @@
+<patch-1.0>
+   <comment type="patch/comment" x="14" y="42" text="TWO 74HC595 SHIFT REGISTERS via SPI"/>
+   <obj type="gpio/spi/config" sha="62af644b09e7f654b36d66533da8ea5971ddb351" uuid="d3e75d8a02e2ccabbbc2af3bc2fcdb8ea65a6133" name="config_1" x="14" y="70">
+      <params/>
+      <attribs>
+         <combo attributeName="clock_polarity" selection="CPOL=0"/>
+         <combo attributeName="clock_phase" selection="CPHA=0"/>
+         <combo attributeName="baudrate" selection="FPCLK/4"/>
+         <combo attributeName="format" selection="MSB first"/>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="168" y="98" text="PA4 = Pin12 (74hc595)"/>
+   <comment type="patch/comment" x="168" y="112" text="PA5 = Pin11 (74hc595)"/>
+   <comment type="patch/comment" x="168" y="126" text="PA5 = Pin14 (74hc595)"/>
+   <comment type="patch/comment" x="168" y="154" text="SHIFT REG1 Pin9 connect to SHIFT REG2 Pin14"/>
+   <comment type="patch/comment" x="14" y="182" text="1.BIT = Q0"/>
+   <comment type="patch/comment" x="14" y="196" text="2.BIT = Q1"/>
+   <comment type="patch/comment" x="14" y="210" text="3.BIT = Q2"/>
+   <comment type="patch/comment" x="14" y="224" text="4.BIT = Q3"/>
+   <comment type="patch/comment" x="14" y="238" text="5.BIT = Q4"/>
+   <comment type="patch/comment" x="14" y="252" text="6.BIT = Q5"/>
+   <comment type="patch/comment" x="14" y="266" text="7.BIT = Q6"/>
+   <comment type="patch/comment" x="14" y="280" text="8.BIT = Q7"/>
+   <obj type="ctrl/cb16" sha="773dda357a5eeb21e4b6dcb55132f015267d4bd1" uuid="fd74594344cc6cd720fa4b473a55cbd15cd360e4" name="SHIFT REGISTER 1 &amp; 2" x="14" y="322">
+      <params>
+         <bin16 name="b16" value="0"/>
+      </params>
+      <attribs/>
+   </obj>
+   <obj type="script/script2" sha="362a4413ceaefbe716480bf8f9c62eb3587fe6c0" uuid="d39e743cf47c9221f4e99c133430148cf74c68c5" name="SHIFTREG" x="224" y="322">
+      <params/>
+      <attribs>
+         <text attributeName="script">
+            <sText><![CDATA[// TWO 74HC595 SHIFT REGISTERS
+// by paul
+
+uint8_t *txbuf;
+
+void setup(void){
+	
+	static uint8_t _txbuf[32] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+
+}
+
+void loop(void){
+	spiSelect(&SPID1);
+	txbuf[0] = (in1>>8); 	// SHIFTREGISTER 1
+	txbuf[1] = (in1);	// SHIFTREGISTER 2
+  	spiSend(&SPID1,2,txbuf);
+  	spiUnselect(&SPID1);
+	chThdSleepMilliseconds(1);
+}
+]]></sText>
+         </text>
+      </attribs>
+   </obj>
+   <comment type="patch/comment" x="14" y="378" text="1 2  3  4  5  6  7  8"/>
+   <comment type="patch/comment" x="112" y="378" text="1 2  3  4  5  6  7  8"/>
+   <comment type="patch/comment" x="14" y="392" text="SHIFT REGISTER 1"/>
+   <comment type="patch/comment" x="112" y="392" text="SHIFT REGISTER 2"/>
+   <nets>
+      <net>
+         <source obj="SHIFT REGISTER 1 &amp; 2" outlet="o"/>
+         <dest obj="SHIFTREG" inlet="in1_"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>2393</x>
+      <y>23</y>
+      <width>857</width>
+      <height>660</height>
+   </windowPos>
+</patch-1.0>

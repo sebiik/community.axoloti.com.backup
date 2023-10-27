@@ -1,0 +1,92 @@
+<patch-1.0 appVersion="1.0.11">
+   <obj type="const/i" uuid="e202f44b2df17ae0b3e663b98ea6b14c8ff00408" name="i_1" x="112" y="154">
+      <params/>
+      <attribs>
+         <spinner attributeName="value" value="1"/>
+      </attribs>
+   </obj>
+   <patchobj type="patch/object" uuid="539b10b6-d4f0-472f-8db7-85de38e69327" name="keyb_1" x="210" y="154">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="539b10b6-d4f0-472f-8db7-85de38e69327">
+         <sDescription>Monophonic MIDI keyboard note input, gate, velocity and release velocity
+with MIDI-channel input</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <helpPatch>midi_in.axh</helpPatch>
+         <inlets>
+            <int32.positive name="channel" description="midi channel"/>
+         </inlets>
+         <outlets>
+            <frac32.bipolar name="note" description="midi note number (-64..63)"/>
+            <bool32 name="gate" description="key pressed, no retrigger legato"/>
+            <bool32 name="gate2" description="key pressed, retrigger on legato"/>
+            <frac32.positive name="velocity" description="note-on velocity"/>
+            <frac32.positive name="releaseVelocity" description="note-off velocity"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int8_t _note;
+int32_t _gate;
+int32_t _gate2;
+uint8_t _velo;
+uint8_t _rvelo;
+
+uint8_t _ch;]]></code.declaration>
+         <code.init><![CDATA[_gate = 0;
+_note = 0;
+
+_ch = 0;]]></code.init>
+         <code.krate><![CDATA[outlet_note= _note<<21;
+outlet_gate= _gate;
+outlet_gate2= _gate2;
+_gate2 = _gate;
+outlet_velocity= _velo<<20;
+outlet_releaseVelocity= _rvelo<<20;
+
+if (inlet_channel != _ch) {
+	_ch = inlet_channel;
+}]]></code.krate>
+         <code.midihandler><![CDATA[if ((status == MIDI_NOTE_ON + _ch) && (data2)) {
+  _velo = data2;
+  _note = data1-64;
+  _gate = 1<<27;
+  _gate2 = 0;
+} else if (((status == MIDI_NOTE_ON + _ch) && (!data2))||
+          (status == MIDI_NOTE_OFF + _ch)) {
+  if (_note == data1-64) {
+    _rvelo = data2;
+    _gate = 0;
+  }
+} else if ((status == _ch + MIDI_CONTROL_CHANGE)&&(data1 == MIDI_C_ALL_NOTES_OFF)) {
+  _gate = 0;
+}]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_1" x="378" y="154">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="i_1" outlet="out"/>
+         <dest obj="keyb_1" inlet="channel"/>
+      </net>
+      <net>
+         <source obj="keyb_1" outlet="note"/>
+         <dest obj="dial_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>435</x>
+      <y>112</y>
+      <width>639</width>
+      <height>580</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,105 @@
+<patch-1.0 appVersion="1.0.12">
+   <obj type="ctrl/i" uuid="a3786816db6ea5bc6ac4193a5cccdb2c83b83496" name="0-11" x="140" y="126">
+      <params>
+         <int32 name="value" value="11"/>
+      </params>
+      <attribs/>
+   </obj>
+   <patchobj type="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a" name="note_2" x="210" y="126">
+      <params>
+         <bin12 name="p1" value="2121"/>
+      </params>
+      <attribs/>
+      <object id="patch/object" uuid="44fe5a3d-48ba-4130-8e2f-98fcb44b841a">
+         <sDescription>note to a scale</sDescription>
+         <author>Mark Harris</author>
+         <license>BSD</license>
+         <helpPatch>note scale.axh</helpPatch>
+         <inlets>
+            <int32 name="note"/>
+         </inlets>
+         <outlets>
+            <frac32buffer name="o"/>
+            <int32 name="s"/>
+         </outlets>
+         <displays/>
+         <params>
+            <bin12 name="p1" noLabel="true"/>
+         </params>
+         <attribs/>
+         <includes/>
+         <code.declaration><![CDATA[int i;]]></code.declaration>
+         <code.krate><![CDATA[// Only for visual out, not part of the algorithm.
+for(i=0;i<12;i++){
+outlet_o[i] 	= (param_p1 & (1 << i)) ? i :0;
+}
+
+
+
+// Select step and output the value of that step, 0-11.
+// If parameter is on, then output step value.
+// If parameter is not on, then output zero.
+
+int Step = inlet_note;
+//outlet_s 		= (param_p1 & (1 << Step)) ? Step :0;
+
+if (param_p1 & (1 << Step)) {
+	outlet_s = Step;
+} else {
+	int closest_higher = -1, closest_lower = -1;
+	// look for closest lower
+	for (int i = Step - 1; i >= 0; i -= 1) {
+		if (param_p1 & (1 << i)) {
+			closest_lower = Step - i;
+			break;
+		}
+	}
+	// look for closest higher
+	for (int i = Step + 1; i <= 11; i += 1) {
+		if (param_p1 & (1 << i)) {
+			closest_higher = i - Step;
+			break;
+		}		
+	}
+
+	if (closest_lower != -1 && closest_higher != -1) {
+		if (closest_lower < closest_higher) {
+			outlet_s = Step - closest_lower;
+		} else {
+			outlet_s = Step + closest_higher;	
+		}
+	} else if (closest_lower != -1) {
+		outlet_s = Step - closest_lower;
+	} else if (closest_higher != -1) {
+		outlet_s = Step + closest_higher;
+	} else {
+		outlet_s = 0;
+	}
+}]]></code.krate>
+      </object>
+   </patchobj>
+   <obj type="disp/i" uuid="5e35fd0c62d81e70017289250cf28edd26e19e4a" name="i_1" x="462" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source obj="0-11" outlet="out"/>
+         <dest obj="note_2" inlet="note"/>
+      </net>
+      <net>
+         <source obj="note_2" outlet="s"/>
+         <dest obj="i_1" inlet="in"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+   <windowPos>
+      <x>498</x>
+      <y>23</y>
+      <width>762</width>
+      <height>484</height>
+   </windowPos>
+</patch-1.0>

@@ -1,0 +1,161 @@
+<patchModel appVersion="1.0.12">
+   <comment type="patch/comment" name="0" x="14" y="14" text="// 3dconnexion spacenavigator test // for use with experimental firmware only  // 20170809, jt "/>
+   <patchobj type="patch/object" uuid="2fd4b915-3527-4fa6-8d67-0f3de7ae348a" name="object_1" x="14" y="42">
+      <params/>
+      <attribs/>
+      <object id="patch/object" uuid="2fd4b915-3527-4fa6-8d67-0f3de7ae348a">
+         <sDescription>3dconnexion spacenavigator test
+for use with experimental firmware only
+20170809</sDescription>
+         <author>Johannes Taelman</author>
+         <license>BSD</license>
+         <providesModulationSource>false</providesModulationSource>
+         <rotatedParams>false</rotatedParams>
+         <inlets/>
+         <outlets>
+            <frac32 name="x" description=""/>
+            <frac32 name="y" description=""/>
+            <frac32 name="z" description=""/>
+            <frac32 name="xr" description=""/>
+            <frac32 name="yr" description=""/>
+            <frac32 name="zr" description=""/>
+            <bool32 name="b1" description="button1"/>
+            <bool32 name="b2" description="button2"/>
+         </outlets>
+         <displays/>
+         <params/>
+         <attribs/>
+         <code.declaration><![CDATA[typedef struct {
+	int x;
+	int y;
+	int z;
+	int xr;
+	int yr;
+	int zr;
+	int btns;
+} spacenavigator_data_t;
+
+static spacenavigator_data_t *getData(void) {
+	static spacenavigator_data_t spacenavigator_data;
+	return &spacenavigator_data;
+}
+
+static void cb(uint8_t *hid_report, int len){
+	uint32_t *hid_report32 = (uint32_t *)hid_report;
+	spacenavigator_data_t *d = getData();
+	switch(hid_report[0]) {
+	 case 0: {
+	 } break;
+	 case 1: {
+	 	// translations
+		uint32_t d1 = hid_report32[0];
+		uint32_t d2 = hid_report32[1];
+		d->x = ((int16_t)(d1>>8))<<18;
+		d->y = ((int16_t)((d2<<8)|(d1>>24)))<<18;
+		d->z = ((int16_t)(d2>>8))<<18;
+	 } break;
+	case 2: {
+		// rotations
+		uint32_t d3 = hid_report32[0];
+		uint32_t d4 = hid_report32[1];
+		d->xr = ((int16_t)(d3>>8))<<18;
+		d->yr = ((int16_t)((d4<<8)|(d3>>24)))<<18;
+		d->zr = ((int16_t)(d4>>8))<<18;
+	} break;
+	case 3: {
+		d->btns = hid_report[1];
+	} break;
+	default:
+	break;
+	}
+}]]></code.declaration>
+         <code.init><![CDATA[register_usbh_hid_custom_report_cb(cb);]]></code.init>
+         <code.dispose><![CDATA[unregister_usbh_hid_custom_report_cb(cb);]]></code.dispose>
+         <code.krate><![CDATA[extern uint8_t *hid_report;
+
+spacenavigator_data_t *d = getData();
+
+outlet_x = d->x;
+outlet_y = d->y;
+outlet_z = d->z;
+outlet_xr = d->xr;
+outlet_yr = d->yr;
+outlet_zr = d->zr;
+
+outlet_b1 = d->btns&1;
+outlet_b2 = d->btns&2;]]></code.krate>
+         <code.srate><![CDATA[]]></code.srate>
+         <code.midihandler><![CDATA[]]></code.midihandler>
+      </object>
+   </patchobj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_1" x="112" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_2" x="182" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_3" x="252" y="42">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_4" x="112" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_5" x="182" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/dial b" uuid="9ffed04e6a3052d9001eda83bae7024cb6d17037" name="dial_6" x="252" y="126">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_1" x="112" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <obj type="disp/bool" uuid="a0ee71d48208b71752cbb8c05e55145106ef3946" name="bool_2" x="182" y="210">
+      <params/>
+      <attribs/>
+   </obj>
+   <nets>
+      <net>
+         <source outlet="x" obj="object_1"/>
+         <dest inlet="in" obj="dial_1"/>
+      </net>
+      <net>
+         <source outlet="y" obj="object_1"/>
+         <dest inlet="in" obj="dial_2"/>
+      </net>
+      <net>
+         <source outlet="z" obj="object_1"/>
+         <dest inlet="in" obj="dial_3"/>
+      </net>
+      <net>
+         <source outlet="xr" obj="object_1"/>
+         <dest inlet="in" obj="dial_4"/>
+      </net>
+      <net>
+         <source outlet="yr" obj="object_1"/>
+         <dest inlet="in" obj="dial_5"/>
+      </net>
+      <net>
+         <source outlet="zr" obj="object_1"/>
+         <dest inlet="in" obj="dial_6"/>
+      </net>
+      <net>
+         <source outlet="b1" obj="object_1"/>
+         <dest inlet="in" obj="bool_1"/>
+      </net>
+      <net>
+         <source outlet="b2" obj="object_1"/>
+         <dest inlet="in" obj="bool_2"/>
+      </net>
+   </nets>
+   <settings>
+      <subpatchmode>no</subpatchmode>
+   </settings>
+   <notes><![CDATA[]]></notes>
+</patchModel>
