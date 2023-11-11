@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Q-formats used in axoloti_filters - Software - Axoloti Community</title>
+    <meta name="description" content="Hi 
+
+I got my Axoloti this week and I am really impressed, especially by the audio quality, the live mode and how fast a patch is compiled and downloaded. 
+
+Today I wrote my first custom object. I used bp.axo and the fun&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.5.0.beta6 - https://github.com/discourse/discourse version fbffe287724f663d3fda72b8d37d6ae8a5552d11">
+<link rel="icon" type="image/png" href="/images/default-favicon.ico">
+<link rel="apple-touch-icon" type="image/png" href="/images/default-apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334" />
+
+      
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+  ga('send', 'pageview');
+
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Q-formats used in axoloti_filters&#39;" href="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta property="og:url" content="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/q-formats-used-in-axoloti-filters/1334" />
+<meta property="og:title" content="Q-formats used in axoloti_filters" />
+<meta name="twitter:title" content="Q-formats used in axoloti_filters" />
+<meta property="og:description" content="Hi   I got my Axoloti this week and I am really impressed, especially by the audio quality, the live mode and how fast a patch is compiled and downloaded.   Today I wrote my first custom object. I used bp.axo and the function biquad_bp_coefs from axoloti_filters.h as starting point and was able to make a notch-filter object [:smile:]  ... but without understanding al lot of the code, especially the fractional numbers.   Near the surface, the Q5.27-format seems to be used. I came to this conclusi..." />
+<meta name="twitter:description" content="Hi   I got my Axoloti this week and I am really impressed, especially by the audio quality, the live mode and how fast a patch is compiled and downloaded.   Today I wrote my first custom object. I used bp.axo and the function biquad_bp_coefs from axoloti_filters.h as starting point and was able to make a notch-filter object [:smile:]  ... but without understanding al lot of the code, especially the fractional numbers.   Near the surface, the Q5.27-format seems to be used. I came to this conclusi..." />
+
+    <style>
+        img { max-width: 100%; width: auto; height: auto; }
+    </style>
+  </head>
+  <body>
+      
+    <header>
+      <a href="/"><img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="/t/q-formats-used-in-axoloti-filters/1334">Q-formats used in axoloti_filters</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/software" itemprop="url">
+        <span itemprop="title">Software</span>
+      </a>
+    </div>
+</div>
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Jan'><b itemprop='author'>Jan</b></a>
+           
+           <time datetime='2016-03-20T19:31:21Z' itemprop='datePublished'>
+             2016-03-20 19:31:21 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi</p>
+
+<p>I got my Axoloti this week and I am really impressed, especially by the audio quality, the live mode and how fast a patch is compiled and downloaded.</p>
+
+<p>Today I wrote my first custom object. I used bp.axo and the function biquad_bp_coefs from axoloti_filters.h as starting point and was able to make a notch-filter object <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> <br>... but without understanding al lot of the code, especially the fractional numbers.</p>
+
+<p>Near the surface, the Q5.27-format seems to be used. I came to this conclusion while playing with controlls and hex-displays, where:<br><code>0x07FFFFFF * 0x07FFFFFF == 0x07FFFFFE</code><br>... so 0x07FFFFFF must be interpreted as one.</p>
+
+<p>I come to the same conclusion while looking at the s-rate code in STAR.axo:<br><code>outlet_result= ___SMMUL(inlet_a&lt;&lt;3,inlet_b&lt;&lt;2);</code><br>... so during multiplication a left-shift of 5 positions is needed.</p>
+
+<p>But when I look at method biquad_bp_coefs in axoloti_filters.h, then the term<br> <code>(1.0 + alpha)</code> is implemented as: <code>(HALFQ31 + alpha)</code>,<br>where the constant HALFQ31 has the value 0x40000000,<br>so this calculation seems to use the Q2.30-format.</p>
+
+<p>And finally in method biquad_dsp in axoloti_filters.h, the Q4.28-format seems to be used, because after the SMMLA-sequence, the result is shifted to the left about 4 positions:</p>
+
+<pre><code>  for (i = 0; i &lt; BUFSIZE; i++) {
+    int32_t filterinput = inbuffer[i];
+    int32_t accu = ___SMMUL(coefs-&gt;cxn_0, filterinput);
+    accu = ___SMMLA(coefs-&gt;cxn_1, filter_x_n1, accu);
+    accu = ___SMMLA(coefs-&gt;cxn_2, filter_x_n2, accu);
+    accu = ___SMMLS(coefs-&gt;cyn_1, filter_y_n1, accu);
+    accu = ___SMMLS(coefs-&gt;cyn_2, filter_y_n2, accu);
+    int32_t filteroutput;
+    filteroutput = accu &lt;&lt; 4;
+    filter_x_n2 = filter_x_n1;
+    filter_x_n1 = filterinput;
+    filter_y_n2 = filter_y_n1;
+    filter_y_n1 = filteroutput;
+    outbuffer[i] = __SSAT(filteroutput, 28);
+  }</code></pre>
+
+<p>On the other hand, the filter-output is saturated on position 28, as in the saturation object sat.axo (which would indicate Q5.27).</p>
+
+<p>I need some help to see the concept, e.g. where the format has to be converted. Thanx very much.</p>
+
+<p>Jan</p>
+
+<p>P.S. My next goal is to implement a parametric equalizer object</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-06T10:52:26Z' itemprop='datePublished'>
+             2016-04-06 10:52:26 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/users/johannes">@johannes</a> do you have any thoughts to share on this?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Jan'><b itemprop='author'>Jan</b></a>
+           
+           <time datetime='2016-04-06T20:59:01Z' itemprop='datePublished'>
+             2016-04-06 20:59:01 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I figured out a lot by myself. At the beginning I was puzzled why the filter coefficient weren't stored in Q1.31 to get the highest possible quality. But the filter-coefficients can be larger than one, so you need some headroom.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-06T21:32:52Z' itemprop='datePublished'>
+             2016-04-06 21:32:52 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>ah, so just a matter of knowing the convention for different data I suppose...<br>e.g. 5.27 for b/p control rate floats, 1.31 for audio , and 4.28 for filter co-eff ?</p>
+
+<p>I guess, it just needs to use whichever representation is the best fit for the data, and then convert to the relevant  convention for the output to outlets.</p>
+
+<p>Ive also been 'struggling' with some of this stuff, so its good to see some posts about it, its helping me to clarify some of it in my head <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Jan'><b itemprop='author'>Jan</b></a>
+           
+           <time datetime='2016-04-06T21:42:57Z' itemprop='datePublished'>
+             2016-04-06 21:42:57 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm going to try to make some helpful comments in my code. It's especially confusing if a bitshift operation has more than one intention, e.g. if<br><code>x &lt;&lt;= 2;</code><br>stands for: switch from q5.27 to q4.28 AND multiply by 2. <img src="/images/emoji/emoji_one/no_mouth.png?v=0" title=":no_mouth:" class="emoji" alt=":no_mouth:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-04-07T23:17:52Z' itemprop='datePublished'>
+             2016-04-07 23:17:52 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Q5.27 is indeed used for control rate and audio rate in- and outlets.<br>Parameters before transform (pfunction) are also Q5.27<br>Objects can use whatever representation they want internally.</p>
+
+<p>If you add comments, I'd be happy to take a git pull request!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Jan'><b itemprop='author'>Jan</b></a>
+           
+           <time datetime='2016-04-08T12:04:18Z' itemprop='datePublished'>
+             2016-04-08 12:04:18 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="6" data-topic="1334"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>If you add comments, I'd be happy to take a git pull request!</p></blockquote></aside>
+
+<p>As a start I'm trying to comment my own contributions to the community library <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='/'>Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/guidelines">FAQ/Guidelines</a>
+        <a href="/tos">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="http://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+      
+  </body>
+</html>

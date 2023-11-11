@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device  anon">
+  <head>
+    <meta charset="utf-8">
+    <title>Low level firmware debugging (via SWD) - Developer - Axoloti Community</title>
+    <meta name="description" content="ok, this is not a support topic really just some ramblings on what I doing to try to do firmware debugging (just started) as it might help someone,  and also as a reminder to me :smile:   and thanks to @johannes for help&amp;hellip;">
+    <meta name="discourse_theme_key" content="b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+    
+
+      <meta name="fragment" content="!">
+
+
+    <script>
+      window.EmberENV = window.EmberENV || {};
+      window.EmberENV['FORCE_JQUERY'] = true;
+    </script>
+
+    <link rel='preload' href='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js' as='script'/>
+<script src='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js'></script>
+    <link rel='preload' href='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js' as='script'/>
+<script src='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js'></script>
+    <link rel='preload' href='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js' as='script'/>
+<script src='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js'></script>
+    <link rel='preload' href='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js' as='script'/>
+<script src='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js'></script>
+    <link rel='preload' href='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js' as='script'/>
+<script src='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js'></script>
+    <link rel='preload' href='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js' as='script'/>
+<script src='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js'></script>
+    <link rel='preload' href='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js' as='script'/>
+<script src='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js'></script>
+    <link rel='preload' href='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js' as='script'/>
+<script src='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js'></script>
+
+
+      
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+    <link rel="manifest" href="/manifest.json">
+
+
+      <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+
+
+  <link href="/stylesheets/desktop_theme_1_6c5f8f7f5e6a154a9f0dfd7aedf04bae4b669f17.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop_theme"/>
+
+    
+
+<link rel="preload" href="/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0" as="font" type="font/woff2" crossorigin />
+<style>
+  @font-face {
+    font-family: 'FontAwesome';
+    src: url('/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0') format('woff2'),
+         url('/assets/fontawesome-webfont-ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07.woff?http://community.axoloti.com&amp;2&v=4.7.0') format('woff');
+  }
+</style>
+
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Low level firmware debugging (via SWD)&#39;" href="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/low-level-firmware-debugging-via-swd/275" />
+<meta property="og:title" content="Low level firmware debugging (via SWD)" />
+<meta name="twitter:title" content="Low level firmware debugging (via SWD)" />
+<meta property="og:description" content="ok, this is not a support topic really just some ramblings on what I doing to try to do firmware debugging (just started) as it might help someone,  and also as a reminder to me 😄   and thanks to @johannes for helping me get this going!   (Work in progress, I&#39;ll add more, as I learn more )   (no blame taken if you get it wrong and blow up your board... (very unlikely but still!))   Hardware connections  First, locate the 7-pin header labeled X3, close to LEDs. The SWD connector is labeled ..." />
+<meta name="twitter:description" content="ok, this is not a support topic really just some ramblings on what I doing to try to do firmware debugging (just started) as it might help someone,  and also as a reminder to me 😄   and thanks to @johannes for helping me get this going!   (Work in progress, I&#39;ll add more, as I learn more )   (no blame taken if you get it wrong and blow up your board... (very unlikely but still!))   Hardware connections  First, locate the 7-pin header labeled X3, close to LEDs. The SWD connector is labeled ..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="2 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="8 ❤" />
+
+
+
+    
+  </head>
+
+  <body class="">
+    
+
+    <div class='debug-eyeline'></div>
+
+    <noscript data-path="/t/low-level-firmware-debugging-via-swd/275">
+      <header class="d-header">
+  <div class="wrap">
+    <div class="contents">
+      <div class="row">
+        <div class="title span13">
+          <a href="/">
+              <img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo">
+          </a>
+        </div>
+            <div class='panel clearfix'>
+              <a href="/login" class='btn btn-primary btn-small login-button'><i class="fa fa-user"></i> Log In</a>
+            </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div id="main-outlet" class="wrap">
+        <!-- preload-content: -->
+        <h1>
+  <a href="/t/low-level-firmware-debugging-via-swd/275">Low level firmware debugging (via SWD)</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/developer" itemprop="url">
+        <span itemprop="title">Developer</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-08-19T16:23:47Z' itemprop='datePublished'>
+             2015-08-19 16:23:47 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>ok, this is not a support topic really just some ramblings on what I doing to try to do firmware debugging (just started) as it might help someone,  and also as a reminder to me <img src="/images/emoji/emoji_one/smile.png?v=2" title=":smile:" class="emoji" alt=":smile:">   and thanks to <a class="mention" href="/users/johannes">@johannes</a> for helping me get this going!</p>
+
+<p>(Work in progress, I'll add more, as I learn more )</p>
+
+<p>(no blame taken if you get it wrong and blow up your board... (very unlikely but still!))</p>
+
+<h2>Hardware connections</h2>
+
+<p>First, locate the 7-pin header labeled X3, close to LEDs. The SWD connector is labeled JP1, near X3, and has 5 pins, and comes without pinheader soldered in.</p>
+
+<p>the board looks something like this, well as closely as ASCII graphics can do.<br>e.g. </p>
+
+<pre><code>———————————
+LEDR LEDG
+
+o o o o o o o (X3)
+
+    JP1
+     o (5) NRST
+     o (4) SWDIO
+     o (3) GND
+     o (2) SWCLK
+     o (1) VCC
+——————————</code></pre>
+
+<p>you will need to solder in standard header pins, then you can connect with female/female jumper cables.</p>
+
+<h2>SWD to STLink/v2 connections</h2>
+
+<p>SWD - STLINK/V2<br>5 - 15 (NRST)<br>4 - 7 (SWDIO)<br>3 - 8 (GND) <br>2 - 9 (SWCLK)<br>1 - 1 (VCC) </p>
+
+<h1>openocd for debugging</h1>
+
+<p>command line:</p>
+
+<p>/usr/local/opt/open-ocd/share/openocd/scripts/board/stm32f4discovery.cfg</p>
+
+<p>openocd -f ~/stm32f4discovery.cfg  </p>
+
+<p>if this works you will see the following, and the COM light will flash RED/GREEN</p>
+
+<pre><code>Open On-Chip Debugger 0.9.0 (2015-08-08-00:27)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+Info : The selected transport took over low-level target control. The results might differ compared to plain JTAG/SWD
+adapter speed: 2000 kHz
+adapter_nsrst_delay: 100
+none separate
+srst_only separate srst_nogate srst_open_drain connect_deassert_srst
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : clock speed 1800 kHz
+Info : STLINK v2 JTAG v23 API v2 SWIM v4 VID 0x0483 PID 0x3748
+Info : using stlink api v2
+Info : Target voltage: 3.219895
+Info : stm32f4x.cpu: hardware has 6 breakpoints, 4 watchpoints</code></pre>
+
+<p>if you get something about low voltage, checkout VCC <br>example:</p>
+
+<pre><code>Info : Target voltage: 1.009287
+Error: target voltage may be too low for reliable debugging</code></pre>
+
+<p>if it doesn’t communication, check SWDIO/SWCLK<br>example:</p>
+
+<pre><code>Error: init mode failed (unable to connect to the target)
+in procedure 'init' 
+in procedure 'ocd_bouncer'</code></pre>
+
+<p>if you get both, check all your connections <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:4'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+            <a href="http://community.axoloti.com/t/how-to-code-axoloti-objects/663/28">How to code Axoloti objects</a>
+            <hr>
+            <a href="http://community.axoloti.com/t/debugging-axos/603/7">Debugging axo&#39;s</a>
+            <hr>
+            <a href="http://community.axoloti.com/t/official-pin-outs-revised-work-in-progress/1284">Official Pin Outs revised (work in progress)</a>
+            <hr>
+            <a href="http://community.axoloti.com/t/how-do-i-make-my-own-gui-controls-for-the-patcher-or-modify-extend-existing-ones/2452/8">How do I make my own GUI controls for the patcher?, or modify/extend existing ones</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MikeAnblips'><b itemprop='author'>MikeAnblips</b></a>
+           
+           <time datetime='2016-07-24T16:06:47Z' itemprop='datePublished'>
+             2016-07-24 16:06:47 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi <span class="mention">@technobear</span></p>
+
+<p>thank you for this...This is the kind of direction I want to take for AXO so it is comforting that somebody else is thinking in the same direction.</p>
+
+<p>However, I am a bit confused by your indications: according to the schematics, the X3 header has SPI connections (and it is populated on the board), whereas the SWD functionality is on JP1.</p>
+
+<p>Is it just that the post is old and refers to a previous board version?</p>
+
+<p>Thanks,<br>Mike</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-07-24T16:16:34Z' itemprop='datePublished'>
+             2016-07-24 16:16:34 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Cleared up confusion in top post...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MikeAnblips'><b itemprop='author'>MikeAnblips</b></a>
+           
+           <time datetime='2016-07-24T16:46:06Z' itemprop='datePublished'>
+             2016-07-24 16:46:06 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/users/johannes">@johannes</a> thank you,</p>
+
+<p>however I am not sure still...In the schematic we have:</p>
+
+<p><img src="//community.axoloti.com/uploads/default/original/2X/a/a57a08e953e3c276c64a9167d59f8d42bf27e159.png" width="271" height="201"></p>
+
+<p>So it looks to me that the RST pin is on (5), not (1) as reported above:</p>
+
+<p><code>JP1<br>     o (1) NRST<br>     o (2) SWDIO<br>     o (3) GND<br>     o (4) SWCLK<br>     o (5) VCC</code></p>
+
+<p>Also, the connector on ST-Link/v2 and your board schematics report <strong>RST</strong>, not <strong>NRST</strong>. Why is it indicated as NRST in the post?</p>
+
+<p>Am I missing something?</p>
+
+<p>Thanks,<br>Mike</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-07-24T16:53:40Z' itemprop='datePublished'>
+             2016-07-24 16:53:40 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I was confused as you were... in fact i found correct pinouts (as detailed in top post) partly by trial and error <img src="/images/emoji/emoji_one/wink.png?v=2" title=":wink:" class="emoji" alt=":wink:"> <br>so this is exactly how ive wired up my axoloti and st-link/v2 </p>
+
+<p>(cant comment, on the schematics as i didn't check them, just wanted it working... I'm more a software guy, than hardware <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"> )</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MikeAnblips'><b itemprop='author'>MikeAnblips</b></a>
+           
+           <time datetime='2016-07-24T16:58:14Z' itemprop='datePublished'>
+             2016-07-24 16:58:14 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hmm that's bizarre!</p>
+
+<p>I would like <a class="mention" href="/users/johannes">@johannes</a> to comment on that, but otherwise will keep flexible when preparing the connection <img src="/images/emoji/emoji_one/smiley.png?v=2" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p>Thank you very much for debugging this!</p>
+
+<p>So...btw...you are treating AXO as if it were an stm32f4discovery board?</p>
+
+<p>Cheers!</p>
+
+<p>M</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-07-24T17:03:21Z' itemprop='datePublished'>
+             2016-07-24 17:03:21 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Updated the pin numbering to correspond with the schematics in the top post.<br>RST versus NRST, in the schematics there is a (overstrike?) line above RST, this line indicates negative logic. <br>Or sometimes, where overstrike can't be formatted (like here), it is indicated by a N prefix.<br>In any case, it is the processor reset signal, in "active-low logic". Active-low for the reset means, <em>reset</em> is active at the low voltage level, so the processor inactive at logic low. <br>And don't worry, there is no other reset signal involved in SWD setup. And yes, the F4discovery config profile works fine for debugging Axoloti Core.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MikeAnblips'><b itemprop='author'>MikeAnblips</b></a>
+           
+           <time datetime='2016-07-24T17:29:16Z' itemprop='datePublished'>
+             2016-07-24 17:29:16 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Cheers <a class="mention" href="/users/johannes">@johannes</a> <img src="/images/emoji/emoji_one/smiley.png?v=2" title=":smiley:" class="emoji" alt=":smiley:"></p>
+
+<p>Yes I'm aware of the overbar convention, however my print didn't resolve that very well and it escaped me.<br>So you've updated the schematics then?</p>
+
+<p>I'll keep going then <img src="/images/emoji/emoji_one/wink.png?v=2" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>Thank you for your very prompt and courteous replies guys!</p>
+
+<p>M</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-07-24T17:35:09Z' itemprop='datePublished'>
+             2016-07-24 17:35:09 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>The overbar probably disappeared when rasterizing to a bitmap picture.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MikeAnblips'><b itemprop='author'>MikeAnblips</b></a>
+           
+           <time datetime='2016-07-30T15:31:57Z' itemprop='datePublished'>
+             2016-07-30 15:31:57 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>  Hi guys,</p>
+
+<p>I have installed the openOCD software, put my hands on an ST-Link/v2, and made the connections as instructed in the top post.</p>
+
+<p>I connect the AXO board with the microUSB, the ST-link through its USB cable (drivers also installed), then head over to a project directory and type:</p>
+
+<pre><code>C:\Projects\E407Blinker\STM32-E407_blink_FLASH&gt;openocd -f stm32f4discovery.cfg
+Open On-Chip Debugger 0.9.0 (2015-05-19-12:06)
+Licensed under GNU GPL v2
+For bug reports, read
+        http://openocd.org/doc/doxygen/bugs.html
+Info : The selected transport took over low-level target control. The results mi
+ght differ compared to plain JTAG/SWD
+adapter speed: 2000 kHz
+adapter_nsrst_delay: 100
+none separate
+srst_only separate srst_nogate srst_open_drain connect_deassert_srst
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : Unable to match requested speed 2000 kHz, using 1800 kHz
+Info : clock speed 1800 kHz
+Info : STLINK v2 JTAG v25 API v2 SWIM v4 VID 0x0483 PID 0x3748
+Info : using stlink api v2
+Info : Target voltage: 3.215779
+Error: init mode failed (unable to connect to the target)
+in procedure 'init'
+in procedure 'ocd_bouncer'</code></pre>
+
+<p>So as <a class="mention" href="/users/thetechnobear">@thetechnobear</a> was pointing out, it <strong>might well be</strong>  that my signal connections are crappy. Indeed, they are:</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771" href="//community.axoloti.com/uploads/default/original/2X/3/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771.jpg" class="lightbox" title="bull_conns.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/3/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771_1_690x388.jpg" width="690" height="388"><div class="meta">
+<span class="filename">bull_conns.jpg</span><span class="informations">2048x1152 856 KB</span><span class="expand"></span>
+</div></a></div></p>
+
+<p>As you see, no soldering...So it is highly likely that this is the issue, however since I do see a supply voltage there, I am just wondering whether there is some other thing I should keep into account...</p>
+
+<p>Any hints?</p>
+
+<p>Thanks,<br>Mike</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MikeAnblips'><b itemprop='author'>MikeAnblips</b></a>
+           
+           <time datetime='2016-07-30T15:44:23Z' itemprop='datePublished'>
+             2016-07-30 15:44:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Nevermind!!</p>
+
+<p>I got the ST-link cable pinout "upside-down" (exchanged pin rows)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Low level firmware debugging (via SWD)'>
+      <hr>
+  </div>
+
+
+
+
+
+
+        <!-- :preload-content -->
+        <footer>
+          <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+            <a href='/'>Home</a>
+            <a href="/categories">Categories</a>
+            <a href="/guidelines">FAQ/Guidelines</a>
+            <a href="/tos">Terms of Service</a>
+            <a href="/privacy">Privacy Policy</a>
+          </nav>
+        </footer>
+      </div>
+
+      <footer id='noscript-footer'>
+        <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+      </footer>
+    </noscript>
+
+      
+
+    <section id='main'>
+    </section>
+
+    <div id='offscreen-content'>
+    </div>
+
+      <form id='hidden-login-form' method="post" action="/login" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+
+      <script>
+      (function() {
+        var ps = require('preload-store').default;
+          ps.store("site", {"default_archetype":"regular","notification_types":{"mentioned":1,"replied":2,"quoted":3,"edited":4,"liked":5,"private_message":6,"invited_to_private_message":7,"invitee_accepted":8,"posted":9,"moved_post":10,"linked":11,"granted_badge":12,"invited_to_topic":13,"custom":14,"group_mentioned":15,"group_message_summary":16,"watching_first_post":17,"topic_reminder":18},"post_types":{"regular":1,"moderator_action":2,"small_action":3,"whisper":4},"groups":[{"id":1,"name":"admins"},{"id":0,"name":"everyone"},{"id":2,"name":"moderators"},{"id":3,"name":"staff"},{"id":10,"name":"trust_level_0"},{"id":11,"name":"trust_level_1"},{"id":12,"name":"trust_level_2"},{"id":13,"name":"trust_level_3"},{"id":14,"name":"trust_level_4"}],"filters":["latest","unread","new","read","posted","bookmarks"],"periods":["all","yearly","quarterly","monthly","weekly","daily"],"top_menu_items":["latest","unread","new","read","posted","bookmarks","category","categories","top"],"anonymous_top_menu_items":["latest","top","categories","category","categories","top"],"uncategorized_category_id":1,"is_readonly":false,"disabled_plugins":[],"user_field_max_length":2048,"suppressed_from_homepage_category_ids":[],"post_action_types":[{"name_key":"bookmark","name":"Bookmark","description":"Bookmark this post","short_description":"Bookmark this post","long_form":"bookmarked this post","is_flag":false,"icon":null,"id":1,"is_custom_flag":false},{"name_key":"like","name":"Like","description":"Like this post","short_description":"Like this post","long_form":"liked this","is_flag":false,"icon":"heart","id":2,"is_custom_flag":false},{"name_key":"off_topic","name":"Off-Topic","description":"This post is not relevant to the current discussion as defined by the title and first post, and should probably be moved elsewhere.","short_description":"Not relevant to the discussion","long_form":"flagged this as off-topic","is_flag":true,"icon":null,"id":3,"is_custom_flag":false},{"name_key":"inappropriate","name":"Inappropriate","description":"This post contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"A violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"vote","name":"Vote","description":"Vote for this post","short_description":"Vote for this post","long_form":"voted for this post","is_flag":false,"icon":null,"id":5,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This post is an advertisement, or vandalism. It is not useful or relevant to the current topic.","short_description":"This is an advertisement or vandalism","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_user","name":"Send @{{username}} a message","description":"I want to talk to this person directly and privately about their post.","short_description":"I want to talk to this person directly and privately about their post.","long_form":"messaged user","is_flag":true,"icon":null,"id":6,"is_custom_flag":true},{"name_key":"notify_moderators","name":"Something Else","description":"This post requires staff attention for another reason not listed above.","short_description":"Requires staff attention for another reason","long_form":"flagged this for staff attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"topic_flag_types":[{"name_key":"inappropriate","name":"Inappropriate","description":"This topic contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"translation missing: en.topic_flag_types.inappropriate.short_description","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This topic is an advertisement. It is not useful or relevant to this site, but promotional in nature.","short_description":"translation missing: en.topic_flag_types.spam.short_description","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_moderators","name":"Something Else","description":"This topic requires general staff attention based on the \u003ca href=\"/guidelines\"\u003eguidelines\u003c/a\u003e, \u003ca href=\"/tos\"\u003eTOS\u003c/a\u003e, or for another reason not listed above.","short_description":"translation missing: en.topic_flag_types.notify_moderators.short_description","long_form":"flagged this for moderator attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"can_create_tag":null,"can_tag_topics":null,"tags_filter_regexp":"[/\\?#\\[\\]@!\\$\u0026'\\(\\)\\*\\+,;=\\.%\\\\`^\\s|\\{\\}\"\u003c\u003e]+","top_tags":["midi","controllers","modular","linux","1.0.11","macos","windows","troubleshooting","usb","wavetable","challenge","library","14bit","tips","out","current"],"topic_featured_link_allowed_category_ids":[4,12,1,6,5,15,10,2,14,8,16,9,3,11,7,13],"user_themes":[{"theme_key":"b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408","name":"Migrated from Site Text","default":true}],"categories":[{"id":1,"name":"Uncategorized","color":"AB9364","text_color":"FFFFFF","slug":"uncategorized","topic_count":-1,"post_count":1,"position":0,"description":"Topics that don't need a category, or don't fit into any other existing category.","description_text":"","topic_url":"/t/","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":10,"name":"User Guide","color":"3AB54A","text_color":"FFFFFF","slug":"user-guide","topic_count":24,"post_count":102,"position":1,"description":"This category contains posts to help users use Axoloti, a dynamic user guide.","description_text":"This category contains posts to help users use Axoloti, a dynamic user guide.","topic_url":"/t/about-the-user-guide-category/51","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":8,"name":"Helpdesk","color":"9EB83B","text_color":"FFFFFF","slug":"helpdesk","topic_count":361,"post_count":2948,"position":2,"description":"This category is for reporting issues and bugs\u003cbr\u003ePlease use other categories for discussions on features or questions or \"how to?\"","description_text":"This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or \"how to?\"","topic_url":"/t/about-the-helpdesk-category/23","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":13,"name":"Community Library","color":"9EB83B","text_color":"FFFFFF","slug":"community-library","topic_count":54,"post_count":2857,"position":3,"description":"Category for the community library","description_text":"Category for the community library","topic_url":"/t/about-the-community-library-category/1005","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":7,"name":"Patching","color":"AB9364","text_color":"FFFFFF","slug":"patching","topic_count":953,"post_count":7826,"position":4,"description":"This category is for discussion about patching Axoloti, and sharing patches.","description_text":"This category is for discussion about patching Axoloti, and sharing patches.","topic_url":"/t/about-the-patching-category/14","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":5,"name":"Hardware","color":"AB9364","text_color":"FFFFFF","slug":"hardware","topic_count":629,"post_count":6937,"position":5,"description":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects. ","description_text":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects.","topic_url":"/t/about-the-hardware-category/12","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":6,"name":"Software","color":"AB9364","text_color":"FFFFFF","slug":"software","topic_count":322,"post_count":3286,"position":6,"description":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. ","description_text":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti.","topic_url":"/t/about-the-software-category/13","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":16,"name":"AxoObject coding","color":"AB9364","text_color":"FFFFFF","slug":"axoobject-code","topic_count":259,"post_count":2123,"position":7,"description":"Category to discuss coding Axoloti Objects.","description_text":"Category to discuss coding Axoloti Objects.","topic_url":"/t/about-the-axoobject-coding-category/1519","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":14,"name":"News/Events","color":"283890","text_color":"FFFFFF","slug":"events","topic_count":30,"post_count":106,"position":8,"description":"Meetups, workshops, presentations, all sort of events.\u003cbr\u003eIt's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.\u003cbr\u003eStart your topic title with the name of the area where your event will happen.","description_text":"Meetups, workshops, presentations, all sort of events.It's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.Start your topic title with the name of the area where your event will happen.","topic_url":"/t/about-the-events-category/1142","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":12,"name":"Challenges","color":"0E76BD","text_color":"FFFFFF","slug":"challenges","topic_count":19,"post_count":266,"position":9,"description":"This category is for challenges, competitions and discussions related to these.\u003cbr\u003eposters are reminded when entering challenges and competitions to not include any copyrighted material","description_text":"This category is for challenges, competitions and discussions related to these.posters are reminded when entering challenges and competitions to not include any copyrighted material","topic_url":"/t/about-the-challenges-category/838","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":9,"name":"Your Music/Projects","color":"0E76BD","text_color":"FFFFFF","slug":"your-music-projects","topic_count":174,"post_count":1207,"position":10,"description":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?\u003cbr\u003eTells us about it here.","description_text":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?Tells us about it here.","topic_url":"/t/about-the-your-music-projects-category/25","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":15,"name":"Lounge","color":"AB9364","text_color":"FFFFFF","slug":"lounge","topic_count":99,"post_count":1668,"position":11,"description":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.\u003cbr\u003e(please ensure it has some relevance to Axoloti, rather than general discussion) ","description_text":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.(please ensure it has some relevance to Axoloti, rather than general discussion)","topic_url":"/t/about-the-lounge-category/1277","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":11,"name":"Developer","color":"BF1E2E","text_color":"FFFFFF","slug":"developer","topic_count":64,"post_count":639,"position":12,"description":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","description_text":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","topic_url":"/t/about-the-developer-category/735","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"This category is for low level discussion on the development of Axoloti, its is intended for developers/programmers only.","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":3,"name":"Website and Forum","color":"808281","text_color":"FFFFFF","slug":"meta","topic_count":45,"post_count":410,"position":13,"description":"Discussion about this site, its organization, how it works, and how we can improve it.","description_text":"Discussion about this site, its organization, how it works, and how we can improve it.","topic_url":"/t/about-the-meta-category/2","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null}],"trust_levels":[{"id":0,"name":"new user"},{"id":1,"name":"basic user"},{"id":2,"name":"member"},{"id":3,"name":"regular"},{"id":4,"name":"leader"}],"archetypes":[{"id":"regular","name":"Regular Topic","options":[]},{"id":"banner","name":"Banner Topic","options":[]}],"user_fields":[]});
+          ps.store("siteSettings", {"title":"Axoloti Community","contact_email":"johannes.taelman@gmail.com","contact_url":"","logo_url":"/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png","logo_small_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","mobile_logo_url":"","favicon_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","allow_user_locale":false,"suggested_topics":5,"track_external_right_clicks":false,"ga_universal_tracking_code":"UA-56017691-4","ga_universal_domain_name":"auto","ga_tracking_code":"","ga_domain_name":"","gtm_container_id":"","top_menu":"categories|latest|new|unread|top","post_menu":"like-count|like|share|flag|edit|bookmark|delete|admin|reply","post_menu_hidden_items":"flag|bookmark|edit|delete|admin","share_links":"twitter|facebook|email","desktop_category_page_style":"categories_and_latest_topics","category_colors":"BF1E2E|F1592A|F7941D|9EB83B|3AB54A|12A89D|25AAE2|0E76BD|652D90|92278F|ED207B|8C6238|231F20|808281|B3B5B4|283890","category_style":"bullet","enable_mobile_theme":true,"relative_date_duration":30,"fixed_category_positions":true,"fixed_category_positions_on_create":false,"enable_badges":true,"enable_badge_sql":false,"enable_whispers":false,"invite_only":false,"login_required":false,"must_approve_users":false,"enable_local_logins":true,"allow_new_registrations":true,"enable_signup_cta":true,"enable_google_oauth2_logins":false,"enable_yahoo_logins":false,"enable_twitter_logins":false,"enable_instagram_logins":false,"enable_facebook_logins":false,"enable_github_logins":false,"enable_sso":false,"sso_overrides_avatar":false,"min_username_length":3,"max_username_length":20,"min_password_length":10,"min_admin_password_length":15,"logout_redirect":"","full_name_required":false,"enable_names":true,"invites_per_page":40,"delete_user_max_post_age":60,"delete_all_posts_max":15,"show_email_on_profile":false,"prioritize_username_in_ux":true,"enable_user_directory":true,"allow_anonymous_posting":false,"anonymous_posting_min_trust_level":1,"hide_user_profiles_from_public":false,"enable_group_directory":true,"min_post_length":20,"min_first_post_length":20,"min_private_message_post_length":10,"max_post_length":32000,"topic_featured_link_enabled":true,"min_topic_title_length":15,"max_topic_title_length":255,"min_private_message_title_length":2,"allow_uncategorized_topics":false,"min_title_similar_length":10,"min_body_similar_length":15,"enable_private_messages":true,"edit_history_visible_to_public":false,"delete_removed_posts_after":24,"enable_experimental_markdown_it":false,"traditional_markdown_linebreaks":false,"enable_markdown_typographer":false,"allow_html_tables":false,"suppress_reply_directly_below":true,"suppress_reply_directly_above":true,"max_reply_history":1,"newuser_max_images":1,"newuser_max_attachments":2,"show_pinned_excerpt_mobile":true,"show_pinned_excerpt_desktop":true,"display_name_on_posts":false,"show_time_gap_days":7,"short_progress_text_threshold":10000,"default_code_lang":"auto","autohighlight_all_code":false,"highlighted_languages":"apache|bash|cs|cpp|css|coffeescript|diff|xml|http|ini|json|java|javascript|makefile|markdown|nginx|objectivec|ruby|perl|php|python|sql|handlebars","censored_words":"","censored_pattern":"","enable_emoji":true,"emoji_set":"twitter","code_formatting_style":"4-spaces-indent","allowed_href_schemes":"","email_time_window_mins":10,"disable_digest_emails":false,"email_in":false,"disable_emails":false,"bounce_score_threshold":4,"max_image_size_kb":3072,"max_attachment_size_kb":3072,"authorized_extensions":"jpg|jpeg|png|gif|axo|axp|axs|axh|fpd|brd|axt","max_image_width":690,"max_image_height":500,"prevent_anons_from_downloading_files":false,"enable_s3_uploads":false,"allow_profile_backgrounds":true,"allow_uploaded_avatars":true,"allow_animated_avatars":false,"default_avatars":"","external_system_avatars_enabled":true,"external_system_avatars_url":"/letter_avatar_proxy/v2/letter/{first_letter}/{color}/{size}.png","allow_staff_to_upload_any_file_in_pm":true,"tl1_requires_read_posts":30,"tl3_links_no_follow":false,"use_admin_ip_whitelist":false,"max_oneboxes_per_post":50,"alert_admins_if_errors_per_minute":0,"alert_admins_if_errors_per_hour":0,"max_prints_per_hour_per_user":5,"enable_long_polling":true,"long_polling_base_url":"/","background_polling_interval":60000,"polling_interval":3000,"anon_polling_interval":15000,"flush_timings_secs":20,"verbose_localization":false,"max_new_topics":500,"tos_url":"","privacy_policy_url":"","faq_url":"","maximum_backups":5,"min_search_term_length":3,"version_checks":true,"suppress_uncategorized_badge":true,"topic_views_heat_low":1000,"topic_views_heat_medium":2000,"topic_views_heat_high":5000,"topic_post_like_heat_low":0.5,"topic_post_like_heat_medium":1.0,"topic_post_like_heat_high":2.0,"history_hours_low":12,"history_hours_medium":24,"history_hours_high":48,"cold_age_days_low":14,"cold_age_days_medium":90,"cold_age_days_high":180,"global_notice":"","show_create_topics_notice":true,"bootstrap_mode_min_users":50,"bootstrap_mode_enabled":false,"automatically_unpin_topics":true,"read_time_word_count":500,"disable_mailing_list_mode":false,"default_topics_automatic_unpin":true,"tagging_enabled":true,"tag_style":"simple","max_tags_per_topic":5,"max_tag_length":20,"min_trust_level_to_tag_topics":0,"max_tag_search_results":5,"show_filter_by_tag":true,"tags_sort_alphabetically":false,"staff_tags":"","suppress_overlapping_tags_in_list":false,"discourse_narrative_bot_enabled":true,"poll_enabled":true,"poll_maximum_options":20,"details_enabled":true,"available_locales":"ar|bs_BA|cs|da|de|el|en|es|et|fa_IR|fi|fr|gl|he|id|it|ja|ko|nb_NO|nl|pl_PL|pt|pt_BR|ro|ru|sk|sq|sv|te|tr_TR|uk|ur|vi|zh_CN|zh_TW"});
+          ps.store("customHTML", {"top":"","footer":""});
+          ps.store("banner", {});
+          ps.store("customEmoji", []);
+          ps.store("translationOverrides", {});
+          ps.store("topic_275", {"post_stream":{"posts":[{"id":972,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2015-08-19T16:23:47.548Z","cooked":"\u003cp\u003eok, this is not a support topic really just some ramblings on what I doing to try to do firmware debugging (just started) as it might help someone,  and also as a reminder to me \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=2\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e   and thanks to \u003ca class=\"mention\" href=\"/users/johannes\"\u003e@johannes\u003c/a\u003e for helping me get this going!\u003c/p\u003e\n\n\u003cp\u003e(Work in progress, I'll add more, as I learn more )\u003c/p\u003e\n\n\u003cp\u003e(no blame taken if you get it wrong and blow up your board... (very unlikely but still!))\u003c/p\u003e\n\n\u003ch2\u003eHardware connections\u003c/h2\u003e\n\n\u003cp\u003eFirst, locate the 7-pin header labeled X3, close to LEDs. The SWD connector is labeled JP1, near X3, and has 5 pins, and comes without pinheader soldered in.\u003c/p\u003e\n\n\u003cp\u003ethe board looks something like this, well as closely as ASCII graphics can do.\u003cbr\u003ee.g. \u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003e———————————\nLEDR LEDG\n\no o o o o o o (X3)\n\n    JP1\n     o (5) NRST\n     o (4) SWDIO\n     o (3) GND\n     o (2) SWCLK\n     o (1) VCC\n——————————\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eyou will need to solder in standard header pins, then you can connect with female/female jumper cables.\u003c/p\u003e\n\n\u003ch2\u003eSWD to STLink/v2 connections\u003c/h2\u003e\n\n\u003cp\u003eSWD - STLINK/V2\u003cbr\u003e5 - 15 (NRST)\u003cbr\u003e4 - 7 (SWDIO)\u003cbr\u003e3 - 8 (GND) \u003cbr\u003e2 - 9 (SWCLK)\u003cbr\u003e1 - 1 (VCC) \u003c/p\u003e\n\n\u003ch1\u003eopenocd for debugging\u003c/h1\u003e\n\n\u003cp\u003ecommand line:\u003c/p\u003e\n\n\u003cp\u003e/usr/local/opt/open-ocd/share/openocd/scripts/board/stm32f4discovery.cfg\u003c/p\u003e\n\n\u003cp\u003eopenocd -f ~/stm32f4discovery.cfg  \u003c/p\u003e\n\n\u003cp\u003eif this works you will see the following, and the COM light will flash RED/GREEN\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eOpen On-Chip Debugger 0.9.0 (2015-08-08-00:27)\nLicensed under GNU GPL v2\nFor bug reports, read\n\thttp://openocd.org/doc/doxygen/bugs.html\nInfo : The selected transport took over low-level target control. The results might differ compared to plain JTAG/SWD\nadapter speed: 2000 kHz\nadapter_nsrst_delay: 100\nnone separate\nsrst_only separate srst_nogate srst_open_drain connect_deassert_srst\nInfo : Unable to match requested speed 2000 kHz, using 1800 kHz\nInfo : Unable to match requested speed 2000 kHz, using 1800 kHz\nInfo : clock speed 1800 kHz\nInfo : STLINK v2 JTAG v23 API v2 SWIM v4 VID 0x0483 PID 0x3748\nInfo : using stlink api v2\nInfo : Target voltage: 3.219895\nInfo : stm32f4x.cpu: hardware has 6 breakpoints, 4 watchpoints\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eif you get something about low voltage, checkout VCC \u003cbr\u003eexample:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eInfo : Target voltage: 1.009287\nError: target voltage may be too low for reliable debugging\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eif it doesn’t communication, check SWDIO/SWCLK\u003cbr\u003eexample:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eError: init mode failed (unable to connect to the target)\nin procedure 'init' \nin procedure 'ocd_bouncer'\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eif you get both, check all your connections \u003cimg src=\"/images/emoji/emoji_one/slight_smile.png?v=2\" title=\":slight_smile:\" class=\"emoji\" alt=\":slight_smile:\"\u003e\u003c/p\u003e","post_number":1,"post_type":1,"updated_at":"2016-07-24T16:54:13.547Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":46,"incoming_link_count":5821,"reads":95,"score":29250.3,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":4,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://community.axoloti.com/t/how-to-code-axoloti-objects/663/28","internal":true,"reflection":true,"title":"How to code Axoloti objects","clicks":4},{"url":"http://community.axoloti.com/t/debugging-axos/603/7","internal":true,"reflection":true,"title":"Debugging axo's","clicks":3},{"url":"http://community.axoloti.com/t/official-pin-outs-revised-work-in-progress/1284","internal":true,"reflection":true,"title":"Official Pin Outs revised (work in progress)","clicks":2},{"url":"http://community.axoloti.com/t/how-do-i-make-my-own-gui-controls-for-the-patcher-or-modify-extend-existing-ones/2452/8","internal":true,"reflection":true,"title":"How do I make my own GUI controls for the patcher?, or modify/extend existing ones","clicks":0}],"read":true,"user_title":null,"actions_summary":[{"id":2,"count":4}],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12285,"name":"Michele Ancis","username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png","created_at":"2016-07-24T16:06:47.290Z","cooked":"\u003cp\u003eHi \u003cspan class=\"mention\"\u003e@technobear\u003c/span\u003e\u003c/p\u003e\n\n\u003cp\u003ethank you for this...This is the kind of direction I want to take for AXO so it is comforting that somebody else is thinking in the same direction.\u003c/p\u003e\n\n\u003cp\u003eHowever, I am a bit confused by your indications: according to the schematics, the X3 header has SPI connections (and it is populated on the board), whereas the SWD functionality is on JP1.\u003c/p\u003e\n\n\u003cp\u003eIs it just that the post is old and refers to a previous board version?\u003c/p\u003e\n\n\u003cp\u003eThanks,\u003cbr\u003eMike\u003c/p\u003e","post_number":2,"post_type":1,"updated_at":"2016-07-24T16:06:47.290Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":13,"incoming_link_count":8,"reads":45,"score":54.65,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Michele Ancis","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":719,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12286,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-07-24T16:16:34.498Z","cooked":"\u003cp\u003eCleared up confusion in top post...\u003c/p\u003e","post_number":3,"post_type":1,"updated_at":"2016-07-24T16:16:34.498Z","reply_count":0,"reply_to_post_number":2,"quote_count":0,"avg_time":16,"incoming_link_count":2,"reads":41,"score":64.0,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png"},"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12287,"name":"Michele Ancis","username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png","created_at":"2016-07-24T16:46:06.631Z","cooked":"\u003cp\u003e\u003ca class=\"mention\" href=\"/users/johannes\"\u003e@johannes\u003c/a\u003e thank you,\u003c/p\u003e\n\n\u003cp\u003ehowever I am not sure still...In the schematic we have:\u003c/p\u003e\n\n\u003cp\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/a/a57a08e953e3c276c64a9167d59f8d42bf27e159.png\" width=\"271\" height=\"201\"\u003e\u003c/p\u003e\n\n\u003cp\u003eSo it looks to me that the RST pin is on (5), not (1) as reported above:\u003c/p\u003e\n\n\u003cp\u003e\u003ccode\u003eJP1\u003cbr\u003e     o (1) NRST\u003cbr\u003e     o (2) SWDIO\u003cbr\u003e     o (3) GND\u003cbr\u003e     o (4) SWCLK\u003cbr\u003e     o (5) VCC\u003c/code\u003e\u003c/p\u003e\n\n\u003cp\u003eAlso, the connector on ST-Link/v2 and your board schematics report \u003cstrong\u003eRST\u003c/strong\u003e, not \u003cstrong\u003eNRST\u003c/strong\u003e. Why is it indicated as NRST in the post?\u003c/p\u003e\n\n\u003cp\u003eAm I missing something?\u003c/p\u003e\n\n\u003cp\u003eThanks,\u003cbr\u003eMike\u003c/p\u003e","post_number":4,"post_type":1,"updated_at":"2016-07-24T16:46:06.631Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":22,"incoming_link_count":20,"reads":41,"score":114.3,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Michele Ancis","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":719,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12289,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2016-07-24T16:53:40.162Z","cooked":"\u003cp\u003eI was confused as you were... in fact i found correct pinouts (as detailed in top post) partly by trial and error \u003cimg src=\"/images/emoji/emoji_one/wink.png?v=2\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e \u003cbr\u003eso this is exactly how ive wired up my axoloti and st-link/v2 \u003c/p\u003e\n\n\u003cp\u003e(cant comment, on the schematics as i didn't check them, just wanted it working... I'm more a software guy, than hardware \u003cimg src=\"/images/emoji/emoji_one/slight_smile.png?v=2\" title=\":slight_smile:\" class=\"emoji\" alt=\":slight_smile:\"\u003e )\u003c/p\u003e","post_number":5,"post_type":1,"updated_at":"2016-07-24T16:53:40.162Z","reply_count":1,"reply_to_post_number":4,"quote_count":0,"avg_time":21,"incoming_link_count":5,"reads":35,"score":53.05,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png"},"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12290,"name":"Michele Ancis","username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png","created_at":"2016-07-24T16:58:14.173Z","cooked":"\u003cp\u003eHmm that's bizarre!\u003c/p\u003e\n\n\u003cp\u003eI would like \u003ca class=\"mention\" href=\"/users/johannes\"\u003e@johannes\u003c/a\u003e to comment on that, but otherwise will keep flexible when preparing the connection \u003cimg src=\"/images/emoji/emoji_one/smiley.png?v=2\" title=\":smiley:\" class=\"emoji\" alt=\":smiley:\"\u003e\u003c/p\u003e\n\n\u003cp\u003eThank you very much for debugging this!\u003c/p\u003e\n\n\u003cp\u003eSo...btw...you are treating AXO as if it were an stm32f4discovery board?\u003c/p\u003e\n\n\u003cp\u003eCheers!\u003c/p\u003e\n\n\u003cp\u003eM\u003c/p\u003e","post_number":6,"post_type":1,"updated_at":"2016-07-24T16:58:14.173Z","reply_count":0,"reply_to_post_number":5,"quote_count":0,"avg_time":19,"incoming_link_count":7,"reads":35,"score":42.95,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Michele Ancis","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":719,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12291,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-07-24T17:03:21.396Z","cooked":"\u003cp\u003eUpdated the pin numbering to correspond with the schematics in the top post.\u003cbr\u003eRST versus NRST, in the schematics there is a (overstrike?) line above RST, this line indicates negative logic. \u003cbr\u003eOr sometimes, where overstrike can't be formatted (like here), it is indicated by a N prefix.\u003cbr\u003eIn any case, it is the processor reset signal, in \"active-low logic\". Active-low for the reset means, \u003cem\u003ereset\u003c/em\u003e is active at the low voltage level, so the processor inactive at logic low. \u003cbr\u003eAnd don't worry, there is no other reset signal involved in SWD setup. And yes, the F4discovery config profile works fine for debugging Axoloti Core.\u003c/p\u003e","post_number":7,"post_type":1,"updated_at":"2016-07-24T17:03:21.396Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":17,"incoming_link_count":4,"reads":35,"score":77.85,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12292,"name":"Michele Ancis","username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png","created_at":"2016-07-24T17:29:16.231Z","cooked":"\u003cp\u003eCheers \u003ca class=\"mention\" href=\"/users/johannes\"\u003e@johannes\u003c/a\u003e \u003cimg src=\"/images/emoji/emoji_one/smiley.png?v=2\" title=\":smiley:\" class=\"emoji\" alt=\":smiley:\"\u003e\u003c/p\u003e\n\n\u003cp\u003eYes I'm aware of the overbar convention, however my print didn't resolve that very well and it escaped me.\u003cbr\u003eSo you've updated the schematics then?\u003c/p\u003e\n\n\u003cp\u003eI'll keep going then \u003cimg src=\"/images/emoji/emoji_one/wink.png?v=2\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e\u003c/p\u003e\n\n\u003cp\u003eThank you for your very prompt and courteous replies guys!\u003c/p\u003e\n\n\u003cp\u003eM\u003c/p\u003e","post_number":8,"post_type":1,"updated_at":"2016-07-24T17:29:16.231Z","reply_count":1,"reply_to_post_number":7,"quote_count":0,"avg_time":15,"incoming_link_count":13,"reads":35,"score":77.75,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Michele Ancis","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":719,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12293,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-07-24T17:35:09.894Z","cooked":"\u003cp\u003eThe overbar probably disappeared when rasterizing to a bitmap picture.\u003c/p\u003e","post_number":9,"post_type":1,"updated_at":"2016-07-24T17:35:09.894Z","reply_count":0,"reply_to_post_number":8,"quote_count":0,"avg_time":18,"incoming_link_count":4,"reads":33,"score":27.5,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12471,"name":"Michele Ancis","username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png","created_at":"2016-07-30T15:31:57.778Z","cooked":"\u003cp\u003e  Hi guys,\u003c/p\u003e\n\n\u003cp\u003eI have installed the openOCD software, put my hands on an ST-Link/v2, and made the connections as instructed in the top post.\u003c/p\u003e\n\n\u003cp\u003eI connect the AXO board with the microUSB, the ST-link through its USB cable (drivers also installed), then head over to a project directory and type:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eC:\\Projects\\E407Blinker\\STM32-E407_blink_FLASH\u0026gt;openocd -f stm32f4discovery.cfg\nOpen On-Chip Debugger 0.9.0 (2015-05-19-12:06)\nLicensed under GNU GPL v2\nFor bug reports, read\n        http://openocd.org/doc/doxygen/bugs.html\nInfo : The selected transport took over low-level target control. The results mi\nght differ compared to plain JTAG/SWD\nadapter speed: 2000 kHz\nadapter_nsrst_delay: 100\nnone separate\nsrst_only separate srst_nogate srst_open_drain connect_deassert_srst\nInfo : Unable to match requested speed 2000 kHz, using 1800 kHz\nInfo : Unable to match requested speed 2000 kHz, using 1800 kHz\nInfo : clock speed 1800 kHz\nInfo : STLINK v2 JTAG v25 API v2 SWIM v4 VID 0x0483 PID 0x3748\nInfo : using stlink api v2\nInfo : Target voltage: 3.215779\nError: init mode failed (unable to connect to the target)\nin procedure 'init'\nin procedure 'ocd_bouncer'\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eSo as \u003ca class=\"mention\" href=\"/users/thetechnobear\"\u003e@thetechnobear\u003c/a\u003e was pointing out, it \u003cstrong\u003emight well be\u003c/strong\u003e  that my signal connections are crappy. Indeed, they are:\u003c/p\u003e\n\n\u003cp\u003e\u003cdiv class=\"lightbox-wrapper\"\u003e\u003ca data-download-href=\"//community.axoloti.com/uploads/default/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771\" href=\"//community.axoloti.com/uploads/default/original/2X/3/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771.jpg\" class=\"lightbox\" title=\"bull_conns.jpg\"\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/optimized/2X/3/3ea7ed949c2237c67cbe0d9c4a7b4c0600b45771_1_690x388.jpg\" width=\"690\" height=\"388\"\u003e\u003cdiv class=\"meta\"\u003e\n\u003cspan class=\"filename\"\u003ebull_conns.jpg\u003c/span\u003e\u003cspan class=\"informations\"\u003e2048x1152 856 KB\u003c/span\u003e\u003cspan class=\"expand\"\u003e\u003c/span\u003e\n\u003c/div\u003e\u003c/a\u003e\u003c/div\u003e\u003c/p\u003e\n\n\u003cp\u003eAs you see, no soldering...So it is highly likely that this is the issue, however since I do see a supply voltage there, I am just wondering whether there is some other thing I should keep into account...\u003c/p\u003e\n\n\u003cp\u003eAny hints?\u003c/p\u003e\n\n\u003cp\u003eThanks,\u003cbr\u003eMike\u003c/p\u003e","post_number":10,"post_type":1,"updated_at":"2016-07-30T15:31:57.778Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":43,"incoming_link_count":39,"reads":33,"score":203.75,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Michele Ancis","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":719,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":12473,"name":"Michele Ancis","username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png","created_at":"2016-07-30T15:44:23.993Z","cooked":"\u003cp\u003eNevermind!!\u003c/p\u003e\n\n\u003cp\u003eI got the ST-link cable pinout \"upside-down\" (exchanged pin rows)\u003c/p\u003e","post_number":11,"post_type":1,"updated_at":"2016-07-30T15:44:23.993Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":12,"incoming_link_count":26,"reads":32,"score":182.0,"yours":false,"topic_id":275,"topic_slug":"low-level-firmware-debugging-via-swd","display_username":"Michele Ancis","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":false,"admin":false,"staff":false,"user_id":719,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false}],"stream":[972,12285,12286,12287,12289,12290,12291,12292,12293,12471,12473]},"timeline_lookup":[[1,1894],[2,1554],[10,1548]],"id":275,"title":"Low level firmware debugging (via SWD)","fancy_title":"Low level firmware debugging (via SWD)","posts_count":11,"created_at":"2015-08-19T16:23:47.287Z","views":4024,"reply_count":5,"participant_count":3,"like_count":8,"last_posted_at":"2016-07-30T15:44:23.993Z","visible":true,"closed":false,"archived":false,"has_summary":false,"archetype":"regular","slug":"low-level-firmware-debugging-via-swd","category_id":11,"word_count":1124,"deleted_at":null,"user_id":5,"pm_with_non_human_user":false,"draft":null,"draft_key":"topic_275","draft_sequence":null,"unpinned":null,"pinned_globally":false,"pinned":false,"pinned_at":null,"pinned_until":null,"details":{"created_by":{"id":5,"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png"},"last_poster":{"id":719,"username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png"},"participants":[{"id":719,"username":"MikeAnblips","avatar_template":"/letter_avatar_proxy/v2/letter/m/2acd7d/{size}.png","post_count":6,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":3,"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","post_count":3,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":5,"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","post_count":2,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null}],"suggested_topics":[{"id":6298,"title":"PM (of sine) with much more than (roughly) one cycle shift?","fancy_title":"PM (of sine) with much more than (roughly) one cycle shift?","slug":"pm-of-sine-with-much-more-than-roughly-one-cycle-shift","posts_count":6,"reply_count":2,"highest_post_number":6,"image_url":null,"created_at":"2020-01-01T16:19:00.577Z","last_posted_at":"2020-01-02T11:36:27.906Z","bumped":true,"bumped_at":"2020-01-02T11:36:27.906Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":227,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":1930,"username":"opt.x","avatar_template":"/user_avatar/community.axoloti.com/opt.x/{size}/6784_1.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":967,"username":"SmashedTransistors","avatar_template":"/user_avatar/community.axoloti.com/smashedtransistors/{size}/3147_1.png"}}]},{"id":6543,"title":"Mojave update makes funky knob response","fancy_title":"Mojave update makes funky knob response","slug":"mojave-update-makes-funky-knob-response","posts_count":1,"reply_count":0,"highest_post_number":1,"image_url":null,"created_at":"2020-04-06T15:28:21.816Z","last_posted_at":"2020-04-06T15:28:21.931Z","bumped":true,"bumped_at":"2020-04-06T15:28:21.931Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":106,"category_id":6,"tags":[],"featured_link":null,"posters":[{"extras":"latest single","description":"Original Poster, Most Recent Poster","user":{"id":1436,"username":"servandisco","avatar_template":"/user_avatar/community.axoloti.com/servandisco/{size}/6750_1.png"}}]},{"id":6550,"title":"Axocontrol Joystick Bend","fancy_title":"Axocontrol Joystick Bend","slug":"axocontrol-joystick-bend","posts_count":2,"reply_count":0,"highest_post_number":2,"image_url":null,"created_at":"2020-04-08T07:57:26.119Z","last_posted_at":"2020-04-08T10:33:54.973Z","bumped":true,"bumped_at":"2020-04-08T10:33:54.973Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":1,"views":139,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":998,"username":"kx3","avatar_template":"/letter_avatar_proxy/v2/letter/k/ba8739/{size}.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":1436,"username":"servandisco","avatar_template":"/user_avatar/community.axoloti.com/servandisco/{size}/6750_1.png"}}]},{"id":6569,"title":"Saving SRAM with 'no inline'","fancy_title":"Saving SRAM with \u0026lsquo;no inline\u0026rsquo;","slug":"saving-sram-with-no-inline","posts_count":4,"reply_count":1,"highest_post_number":4,"image_url":"/uploads/default/original/2X/4/4d52e39dc6c2849f55c4a309785f9baac6059501.PNG","created_at":"2020-04-17T20:46:07.225Z","last_posted_at":"2020-04-25T22:11:02.280Z","bumped":true,"bumped_at":"2020-04-25T22:11:02.280Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":8,"views":210,"category_id":16,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":384,"username":"rbrt","avatar_template":"/user_avatar/community.axoloti.com/rbrt/{size}/1907_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2249,"username":"aRNo","avatar_template":"/letter_avatar_proxy/v2/letter/a/a5b964/{size}.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":2480,"username":"jcgriggs","avatar_template":"/letter_avatar_proxy/v2/letter/j/9e8a1a/{size}.png"}}]},{"id":6605,"title":"Patch works on USB to computer but not powered using anything else","fancy_title":"Patch works on USB to computer but not powered using anything else","slug":"patch-works-on-usb-to-computer-but-not-powered-using-anything-else","posts_count":4,"reply_count":2,"highest_post_number":4,"image_url":null,"created_at":"2020-05-04T12:12:24.397Z","last_posted_at":"2020-05-05T10:53:42.261Z","bumped":true,"bumped_at":"2020-05-05T10:53:42.261Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":2,"views":137,"category_id":8,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":2537,"username":"drsnuggles","avatar_template":"/user_avatar/community.axoloti.com/drsnuggles/{size}/7081_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":790,"username":"lokki","avatar_template":"/user_avatar/community.axoloti.com/lokki/{size}/5157_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":337,"username":"Blindsmyth","avatar_template":"/letter_avatar_proxy/v2/letter/b/2acd7d/{size}.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":1436,"username":"servandisco","avatar_template":"/user_avatar/community.axoloti.com/servandisco/{size}/6750_1.png"}}]}],"links":[{"url":"http://community.axoloti.com/t/how-to-code-axoloti-objects/663/28","title":"How to code Axoloti objects","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":4,"user_id":3,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/debugging-axos/603/7","title":"Debugging axo's","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":3,"user_id":3,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/official-pin-outs-revised-work-in-progress/1284","title":"Official Pin Outs revised (work in progress)","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":2,"user_id":322,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/how-do-i-make-my-own-gui-controls-for-the-patcher-or-modify-extend-existing-ones/2452/8","title":"How do I make my own GUI controls for the patcher?, or modify/extend existing ones","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":0,"user_id":5,"domain":"community.axoloti.com"}],"notification_level":1,"can_flag_topic":false},"highest_post_number":11,"deleted_by":null,"actions_summary":[{"id":4,"count":0,"hidden":false,"can_act":false},{"id":7,"count":0,"hidden":false,"can_act":false},{"id":8,"count":0,"hidden":false,"can_act":false}],"chunk_size":20,"bookmarked":null,"tags":[],"featured_link":null,"topic_timer":null,"message_bus_last_id":8});
+      })();
+      </script>
+
+    
+
+    <script>
+  Ember.RSVP.configure('onerror', function(e) {
+    // Ignore TransitionAborted exceptions that bubble up
+    if (e && e.message === "TransitionAborted") { return; }
+
+    window.onerror(e && e.message, null,null,null,e);
+  });
+</script>
+
+<script>
+
+  (function() {
+    var ps = require('preload-store').default;
+
+    Discourse.CDN = '';
+    Discourse.BaseUrl = 'community.axoloti.com'.replace(/:[\d]*$/,"");
+    Discourse.BaseUri = '';
+    Discourse.Environment = 'production';
+    Discourse.SiteSettings = ps.get('siteSettings');
+    Discourse.LetterAvatarVersion = '5_9b142ce9460b8c6b265fd9abf598d3fd';
+    I18n.defaultLocale = 'en';
+    Discourse.start();
+    Discourse.set('assetVersion','d1ec72c862674d2eea0eb8ef6fc5934f');
+    Discourse.Session.currentProp("disableCustomCSS", false);
+    Discourse.HighlightJSPath = "/highlight-js/community.axoloti.com/100444ceef8ca161334f64d3ce49fe7a1556f943.js";
+  })();
+</script>
+
+<link rel='preload' href='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js' as='script'/>
+<script src='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js'></script>
+
+
+    
+
+      
+    
+  </body>
+</html>

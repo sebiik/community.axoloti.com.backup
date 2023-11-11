@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Polyphony example? - Patching - Axoloti Community</title>
+    <meta name="description" content="I&amp;#39;m trying to figure out how the polyphony works, but actually, I have no clue on how this works. So my request is this:  could someone make a small tutorial/example to explain how to do this:  a simple 2 voice synth, bo&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.5.0.beta6 - https://github.com/discourse/discourse version fbffe287724f663d3fda72b8d37d6ae8a5552d11">
+<link rel="icon" type="image/png" href="/images/default-favicon.ico">
+<link rel="apple-touch-icon" type="image/png" href="/images/default-apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/polyphony-example/473" />
+
+      
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+  ga('send', 'pageview');
+
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Polyphony example?&#39;" href="http://community.axoloti.com/t/polyphony-example/473.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta property="og:url" content="http://community.axoloti.com/t/polyphony-example/473/3" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/polyphony-example/473/3" />
+<meta property="og:title" content="Polyphony example?" />
+<meta name="twitter:title" content="Polyphony example?" />
+<meta property="og:description" content="Do you mean a two oscillator mono synth?  Or do you really want every note to allocate two voices, where the 2nd voice is one octave up?    You can get the voice number in a polyphonic subpatch through the &quot;patch/polyindex&quot; object.     I don&#39;t understand the use case or how that &#39;d work." />
+<meta name="twitter:description" content="Do you mean a two oscillator mono synth?  Or do you really want every note to allocate two voices, where the 2nd voice is one octave up?    You can get the voice number in a polyphonic subpatch through the &quot;patch/polyindex&quot; object.     I don&#39;t understand the use case or how that &#39;d work." />
+
+    <style>
+        img { max-width: 100%; width: auto; height: auto; }
+    </style>
+  </head>
+  <body>
+      
+    <header>
+      <a href="/"><img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="/t/polyphony-example/473">Polyphony example?</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/patching" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/alex'><b itemprop='author'>alex</b></a>
+           
+           <time datetime='2015-09-19T13:48:49Z' itemprop='datePublished'>
+             2015-09-19 13:48:49 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm trying to figure out how the polyphony works, but actually, I have no clue on how this works.<br>So my request is this: <br>could someone make a small tutorial/example to explain how to do this: <br>a simple 2 voice synth, both voices in unison, but the second voice is always pitched 1octave higher.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-09-19T14:01:35Z' itemprop='datePublished'>
+             2015-09-19 14:01:35 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>ok, the simple (but slightly incorrect) answer, is you cannot do this.</p>
+
+<p>voice allocation is done by midi note, which is done in the midi handler in the parent patch.<br>so you need midi note to invoke a voice....</p>
+
+<p>the normal way to do unison is to put the oscillator in the same patch</p>
+
+<p>BUT i said, this was the simple but incorrect answer</p>
+
+<p>the reason is, you are able to generate midi, and send it via the 'internal' bus, so i this way, you can create your new midi note, and it will then be sent to the subpatch and allocate a voice accordingly.<br>(not tried,  but this should work fine)</p>
+
+<p>but I don't think it would be too difficult for us to create a new subpatch type, that allow explicit routing.<br>(the main issue being the inlets currently go to all voices, so it would have to somehow 'stall' these and only send to the active voice  ... remember we are using midi as the routing currently which is a different handler)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2015-09-19T14:49:46Z' itemprop='datePublished'>
+             2015-09-19 14:49:46 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="1" data-topic="473"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/alex/40/286_1.png" class="avatar">alex:</div>
+<blockquote><p>a simple 2 voice synth, both voices in unison, but the second voice is always pitched 1octave higher.</p></blockquote></aside>
+
+<p>Do you mean a two oscillator mono synth? <br>Or do you really want every note to allocate two voices, where the 2nd voice is one octave up? </p>
+
+<p>You can get the voice number in a polyphonic subpatch through the "patch/polyindex" object.</p>
+
+<aside class="quote" data-post="2" data-topic="473"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>but I don't think it would be too difficult for us to create a new subpatch type, that allow explicit routing.(the main issue being the inlets currently go to all voices, so it would have to somehow 'stall' these and only send to the active voice  ... remember we are using midi as the routing currently which is a different handler)</p></blockquote></aside>
+
+<p>I don't understand the use case or how that 'd work.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/alex'><b itemprop='author'>alex</b></a>
+           
+           <time datetime='2015-09-19T15:00:03Z' itemprop='datePublished'>
+             2015-09-19 15:00:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>What I mean is an example to get started, because I cant find any info on how to use  'polyindex' and 'polyphonic subpatch' ...</p>
+
+<aside class="quote" data-post="3" data-topic="473"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>do you really want every note to allocate two voices, where the 2nd voice is one octave up?</p></blockquote></aside>
+
+<p> yes.<br>What I (eventually) want to create is something like this (korg volca keys): <br><img src="//community.axoloti.com/uploads/default/original/1X/5ca333d720023180ed37260dd4729d27e74966ae.png" width="252" height="166"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-09-19T15:11:28Z' itemprop='datePublished'>
+             2015-09-19 15:11:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>multi voice subpatch...</p>
+
+<p>well the use case is quite simple... anywhere where you don't want the voices/notes to be from midi<br>the unison is a reasonable example, but others could from sequencers sending in note inputs...<br>also should we want to move midi to a 'wire', then this might also become a use case. (depending on implementation)</p>
+
+<p>how would it work...<br>well i would envisage, it working in a similar way to the way poly~ works in max,  its pretty simple and works very well (its a fairly simple switch (with 0 for all) that determined where current control messages go).<br>the best part is it means you can design your own voice allocation algo, which is actually very handy. (there is more than one reasonable way to handle the 'running out of voices' scenario. </p>
+
+<p>the current midi/subpatch type routing is absolutely fine for most scenarios, after all most voices originate from midi, but it we get into algorithmic poly patches, then going via midi is arguably not the most efficient way.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2015-09-19T15:27:03Z' itemprop='datePublished'>
+             2015-09-19 15:27:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>This tutorial shows how to make a poly synth: <a href="https://www.youtube.com/watch?v=d7Xv99v1RwI">https://www.youtube.com/watch?v=d7Xv99v1RwI</a><br>There are also quite some examples provided, <br>Menu File-&gt;library-&gt;demos-&gt;synth ...</p>
+
+<p>I would not call Volca polyphonic, with only one envelope and one vca. That Volca knob is changing the routing quite a bit. This is easier expressed in separate patches.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2015-09-19T15:35:37Z' itemprop='datePublished'>
+             2015-09-19 15:35:37 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Custom voice allocation schemes: I can certainly see the use for that. I believe these things are better expressed in code than by a patch.</p>
+
+<p>Poly~: Max uses control messages, Axoloti does not have this concept. Manipulating parameters of individual voices is a (currently unexposed) possibility.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-09-19T15:46:35Z' itemprop='datePublished'>
+             2015-09-19 15:46:35 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="7" data-topic="473"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Poly~: Max uses control messages, Axoloti does not have this concept.</p></blockquote></aside>
+
+<p>yes, the main difference being that on 'one control rate loop' you can actually send multiple messages in max/reaktor etc, <br>otherwise its pretty close. to having an voiceIdx inlet, i.e. it can work, but is not as flexible as max.</p>
+
+<p>(i do understand that creating multiple paths , e.g.  like the trigger object in max/pd would be quite difficult in axoloti)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/snaper'><b itemprop='author'>snaper</b></a>
+           
+           <time datetime='2016-03-18T07:41:32Z' itemprop='datePublished'>
+             2016-03-18 07:41:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Maybe I'm doing something wrong...<br>I've followed the youtube demo, saved the patch as voice.axs, and created a new one, but when I start to type ./ to the browser, nothing shows up <img src="/images/emoji/emoji_one/frowning.png?v=0" title=":frowning:" class="emoji" alt=":frowning:"><br>I'm sure that it must be a folder problem, I'm from Mac.<br>Is there a way to manually link the subpatch?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/snaper'><b itemprop='author'>snaper</b></a>
+           
+           <time datetime='2016-03-18T08:42:04Z' itemprop='datePublished'>
+             2016-03-18 08:42:04 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Nope, tried several times, doesn't work for me.<br>Every time I start typing ./name, I get a demux object <img src="/images/emoji/emoji_one/frowning.png?v=0" title=":frowning:" class="emoji" alt=":frowning:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kausto'><b itemprop='author'>kausto</b></a>
+           
+           <time datetime='2016-03-18T09:11:19Z' itemprop='datePublished'>
+             2016-03-18 09:11:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>You can use patcher object instead of subpatch. Copy/paste stuff from your subpatch into patcher object, then go to patcher settings and set everything like for subpatch and then push update button on patcher.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/janvantomme'><b itemprop='author'>janvantomme</b></a>
+           
+           <time datetime='2016-03-18T10:14:50Z' itemprop='datePublished'>
+             2016-03-18 10:14:50 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Did you save the new patch you've created in the same directory?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='/'>Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/guidelines">FAQ/Guidelines</a>
+        <a href="/tos">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="http://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+      
+  </body>
+</html>

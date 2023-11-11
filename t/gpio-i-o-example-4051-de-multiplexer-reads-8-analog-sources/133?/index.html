@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>[GPIO I/O] Example 4051 de/multiplexer reads 8 analog sources - Patching - Axoloti Community</title>
+    <meta name="description" content="Hi everyone, 
+
+here is a short example for a 4051 de/multiplexer. The 4051 can be used for extra 8 analog outputs or inputs. The Y0-7 pins are choosen by HIGH/LOW state of the S0-2 pins. It&amp;#39;s not the fastest way to expan&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.7.0.beta4 - https://github.com/discourse/discourse version 7acbd63d9290f8180a5c6f617b6df2e7011e63dc">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources/133" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+      
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;[GPIO I/O] Example 4051 de/multiplexer reads 8 analog sources&#39;" href="http://community.axoloti.com/t/gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources/133.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/optimized/1X/576999d15c4e6a91164b6366d0a23ff59da317e3_1_163x499.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/optimized/1X/576999d15c4e6a91164b6366d0a23ff59da317e3_1_163x499.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources/133" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources/133" />
+<meta property="og:title" content="[GPIO I/O] Example 4051 de/multiplexer reads 8 analog sources" />
+<meta name="twitter:title" content="[GPIO I/O] Example 4051 de/multiplexer reads 8 analog sources" />
+<meta property="og:description" content="Hi everyone,   here is a short example for a 4051 de/multiplexer. The 4051 can be used for extra 8 analog outputs or inputs. The Y0-7 pins are choosen by HIGH/LOW state of the S0-2 pins. It&#39;s not the fastest way to expand the analog input or output, but the IC are very cheap and I own a lot of them sweat_smile  It&#39;s good thing to decouple the analog inputs and VCC with a 100n capacitor. A MCP3008 or MCP3208 SPI is much faster and has an input protection build in. An examples for this IC will be ..." />
+<meta name="twitter:description" content="Hi everyone,   here is a short example for a 4051 de/multiplexer. The 4051 can be used for extra 8 analog outputs or inputs. The Y0-7 pins are choosen by HIGH/LOW state of the S0-2 pins. It&#39;s not the fastest way to expand the analog input or output, but the IC are very cheap and I own a lot of them sweat_smile  It&#39;s good thing to decouple the analog inputs and VCC with a 100n capacitor. A MCP3008 or MCP3208 SPI is much faster and has an input protection build in. An examples for this IC will be ..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="7 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="8 ❤" />
+
+    <style>
+      header img {
+        max-width: 90% !important;
+        padding-bottom: 10px;
+      }
+
+      img { max-width: 100%; width: auto; height: auto; }
+
+      #main-outlet > div {
+        margin-bottom: 15px;
+      }
+
+      footer nav a {
+        margin-right: 15px;
+      }
+
+      footer nav {
+        line-height: 30px;
+      }
+
+      body {
+        max-width: 98%;
+        padding-left: 1%;
+      }
+      .topic-list > div > a {
+        margin-right: 10px;
+      }
+      .topic-list > div .posts {
+          margin-left: 10px;
+      }
+      .topic-list > div {
+        margin-bottom: 15px;
+      }
+
+    </style>
+  </head>
+  <body>
+      
+    <header>
+      <a href="/"><img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 400px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="/t/gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources/133">[GPIO I/O] Example 4051 de/multiplexer reads 8 analog sources</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/patching" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-06T20:41:28Z' itemprop='datePublished'>
+             2015-08-06 20:41:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi everyone,</p>
+
+<p>here is a short example for a 4051 de/multiplexer. The 4051 can be used for extra 8 analog outputs or inputs. The Y0-7 pins are choosen by HIGH/LOW state of the S0-2 pins. It's not the fastest way to expand the analog input or output, but the IC are very cheap and I own a lot of them <img src="/images/emoji/emoji_one/sweat_smile.png?v=0" title=":sweat_smile:" class="emoji" alt="sweat_smile"> <br>It's good thing to decouple the analog inputs and VCC with a 100n capacitor.<br>A MCP3008 or MCP3208 SPI is much faster and has an input protection build in. An examples for this IC will be followed the next week. </p>
+
+<p>Check hesspet important hint about 4051 characteristics on this thread.</p>
+
+<p>By editing the number between the brace at line "adcvalues[8]", you can select the adc input pin.<br>Here is a short overview about the possible adc pins.</p>
+
+<p>PA1 (ADC1_IN1)	= 1<br>PA2 (ADC1_IN2) = 2<br>PA3 (ADC1_IN3)	= 3<br>PA4 (ADC1_IN4)	= 4<br>PA5 (ADC1_IN5)	= 5<br>PA6 (ADC1_IN6)	= 6<br>PA7 (ADC1_IN7)	= 7<br>PB0 (ADC1_IN8)	= 8<br>PB1 (ADC1_IN9)	= 9<br>PC0 (ADC1_IN10)	= 10<br>PC1 (ADC1_IN11)	= 11<br>PC2 (ADC1_IN12)	= 12<br>PC3 (ADC1_IN13)	= 13<br>PC4 (ADC1_IN14)	= 14</p>
+
+<p>Download Patch: <a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/46b83d76dc9f2e7ed70a454f90b238b49df6c79a.axp">4051 demultiplex.axp</a> (4.6 KB) </p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/576999d15c4e6a91164b6366d0a23ff59da317e3" href="//community.axoloti.com/uploads/default/original/1X/576999d15c4e6a91164b6366d0a23ff59da317e3.png" class="lightbox" title="Bildschirmfoto 2015-08-06 um 22.17.03.png"><img src="//community.axoloti.com/uploads/default/optimized/1X/576999d15c4e6a91164b6366d0a23ff59da317e3_1_163x499.png" width="163" height="499"><div class="meta">
+<span class="filename">Bildschirmfoto 2015-08-06 um 22.17.03.png</span><span class="informations">293x895 35 KB</span><span class="expand"></span>
+</div></a></div> </p>
+
+<p>Schematic:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/eeddb7a7001399e7726e652349d038d9de2af907" href="//community.axoloti.com/uploads/default/original/1X/eeddb7a7001399e7726e652349d038d9de2af907.jpg" class="lightbox" title="4051 de-multiplexer_web.jpg"><img src="//community.axoloti.com/uploads/default/optimized/1X/eeddb7a7001399e7726e652349d038d9de2af907_1_471x500.jpg" width="471" height="500"><div class="meta">
+<span class="filename">4051 de-multiplexer_web.jpg</span><span class="informations">1227x1302 381 KB</span><span class="expand"></span>
+</div></a></div></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:2'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/sinneb'><b itemprop='author'>sinneb</b></a>
+           
+           <time datetime='2015-08-07T17:56:48Z' itemprop='datePublished'>
+             2015-08-07 17:56:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>thx! great example, very usefull for me since I also own a bunch of 4051's. Next to that, a very clear introduction in IC interfacing!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2015-08-12T19:51:33Z' itemprop='datePublished'>
+             2015-08-12 19:51:33 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi, </p>
+
+<p>I'm currently trying this, however, I cannot see the "s0" "s1" or "s3" pin on my axoloti core. Lots of PA1 and PB1 and PB2 and so on. How does that map?</p>
+
+<p>also in the script object you speak about GPIOA 0 and so on...</p>
+
+<p>I'm guessing s0 = PA0...</p>
+
+<p>right?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-12T19:57:34Z' itemprop='datePublished'>
+             2015-08-12 19:57:34 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>hi, s0…s2 &amp; z are the pins of your 4051 IC. This are the variable names I took out of the datasheet. To get it working, you have to connect the s0 pin to PA0 pin axoloti etc. this correct pin connection is described as a comment in the patch above the script object. </p>
+
+<p>I will update my breadboard picture with the axoloti pins to make it clear. You can hook up the s0…2 pin of your 4051 IC to every axoloti pin which can be defined as an output. By turning them on or off you can select an I/O port of the 4051. check the datasheet for more informations. If you choose other digital outputs, you have to edit the script file with your choosen pins (GPIOs).</p>
+
+<p><a class="mention" href="/users/sinneb">@sinneb</a> thank you</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2015-08-12T20:10:02Z' itemprop='datePublished'>
+             2015-08-12 20:10:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/users/paul">@paul</a> right sorry. Using a slightly different datasheet. I'm converting my controller from a teensy to Axoloti. I was using this earlier <a href="https://www.pjrc.com/teensy/td_midi.html" rel="nofollow">https://www.pjrc.com/teensy/td_midi.html</a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-12T20:16:03Z' itemprop='datePublished'>
+             2015-08-12 20:16:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>no, I should explain and show it more clearly. Your request improved my explanation. So it's more clearly for others. By the way, the axoloti offers many analog in pins which can be read faster then using a 4051. </p>
+
+<p>The next days, I will add a description for a MCP3208 SPI ADC. At the moment it's working fine with axoloti but the code in the script object has to be optimize.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2015-08-12T20:56:36Z' itemprop='datePublished'>
+             2015-08-12 20:56:36 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>ok, I soldered everything, but I cannot get it to compile on my previous axoloti (V0.3) It compiles fine on the new one that shipped with kickstarter, unfortunately that one hasn't got 15 pots soldered to it...<br>probably this is not going to be fixed I guess...(as no one else has this board)</p>
+
+<pre><code>../chibios/boards/ST_STM32F4_DISCOVERY -I../chibios/ext/fatfs/src -I../firmware -MD -MP -c xpatch.cpp -o xpatch.o
+xpatch.cpp: In member function 'msg_t rootc::instancescript__1::ThreadX2()':
+xpatch.cpp:67:17: error: a function-definition is not allowed here before '{' token
+ void setup(void){
+                 ^
+xpatch.cpp:75:16: error: a function-definition is not allowed here before '{' token
+ void loop(void){
+                ^
+xpatch.cpp:102:1: error: expected '}' at end of input
+ }
+ ^
+make: *** [all] Error 1
+shell task failed, exit value: 2</code></pre>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-12T21:09:31Z' itemprop='datePublished'>
+             2015-08-12 21:09:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>strange. I can't say any about previous board. My STM32 disco board don't work with latest axoloti software. If I want to use the STM32 I have to compline manually the axoloti ver. 1.0 and run it by entering ./axoloti.sh on terminal (mac user). Do your V3 board works normal with other patches?</p>
+
+<p>I checked the 4051 and uploaded it to my stm32 a few minutes ago.</p>
+
+<p>edit: Do you have update the FW of your V3 board? Maybe Johannes can say more about this error.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2015-08-12T21:32:59Z' itemprop='datePublished'>
+             2015-08-12 21:32:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>the board works with at least some of the demo patches, it's missing USB host and has way less RAM to play with... not a problem for this...<br>now focussing on recompiling the whole thing from source, seems to work, but I have errors in the firmware compilation now. I'll ping Johannes</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-12T21:48:12Z' itemprop='datePublished'>
+             2015-08-12 21:48:12 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>if you can't get the script working, you can try to trigger the single s0…2 pins by manual patch. It's maybe not the faster solution but it should work. </p>
+
+<p>you can use MartijnVerhallen clock divider patch and connect the decoding outputs to single digital out objects.<br><a href="//community.axoloti.com/t/clock-diver-patch-with-rotate-function/170">clock divider</a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2015-08-13T07:53:34Z' itemprop='datePublished'>
+             2015-08-13 07:53:34 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>got it working!</p>
+
+<p>very smooth, a bit of jitter though is that why I should "decouple." can you describe how decoupling works?</p>
+
+<p>this is what it looks like, I hope to add the adafruit trellis modules next<br><a href="https://twitter.com/kaosbeat/status/631734735463665664" rel="nofollow"><img src="//community.axoloti.com/uploads/default/original/1X/120ab11c71ddb73a43d6832daabe5cc4a11c61e1.jpg" alt="" width="375" height="500"></a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:3'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/MartijnVerhallen'><b itemprop='author'>MartijnVerhallen</b></a>
+           
+           <time datetime='2015-08-13T08:55:23Z' itemprop='datePublished'>
+             2015-08-13 08:55:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>wow! nice looking panel!!!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-13T09:40:17Z' itemprop='datePublished'>
+             2015-08-13 09:40:17 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>nice to hear and your panel design looks sweet. </p>
+
+<p>I never studied electrical engineering, so my answer is roughly. a cpacitor needs some time to get its voltage field loaded. The time it's needed to get loaded depends on the voltage, which is feeding to the capacitor  and the capacity of your capacitor. <br>this pic make it more clear (red line is the input voltage; black voltage of capacitor)<br><a href="https://de.wikipedia.org/wiki/Kondensator_%28Elektrotechnik%29#/media/File:Ladevorgang.svg" rel="nofollow">wikipedia</a> </p>
+
+<p>Together with a potentiometer a capacitor is working as a variable low pass filter. </p>
+
+<p>Shortly, a capacitor nearby the analog input of your 4051 will stabilize the voltage and filters fast voltage drops but capacitor makes it also a bit sluggish. </p>
+
+<p>by the way, the trellis module uses an I2C communication. Can you share your code, if you get it working? Check axoloti archiv dir for a I2C example from johannes.<br>  </p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2015-08-14T07:45:31Z' itemprop='datePublished'>
+             2015-08-14 07:45:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/users/paul">@paul</a>, <a class="mention" href="/users/martijnverhallen">@MartijnVerhallen</a>, The panel was stripped from an analog color picture developing machine.</p>
+
+<p><a class="mention" href="/users/paul">@paul</a>, on the decoupling, I know what a capacitor is and how it works, but  for the sake of clarity is this how it should work?<br><img src="//community.axoloti.com/uploads/default/original/1X/4ed9734ef36bd515f47851224c67c2b88a84e409.png" width="220" height="337"> <br>I'll report back on the trellis ASAP</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-14T08:35:12Z' itemprop='datePublished'>
+             2015-08-14 08:35:12 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/users/kaos">@kaos</a> oh sorry, I misapprehend you. Capacitor should stabilize the input signal. <br>Your circuit seems right, but the other leg of capacitor should be connected to GND not VDD. </p>
+
+<p>How big is the jittering? When I tested my 4051s, there was only a small jittering +/- 0.50. One thing you can try would be, to set a longer delay to select the a channel. It's "chThdSleepMilliseconds(1);" line at the end of the script. By using a higher delay rate (= longer channel selection) with less jittering as before, the jittering would be a problem of the script and not a hardware issue.<br>If a small resoldering is not a huge mess, you can try a mcp3208 adc. With this IC, don't get any jitters. <br>here is a pinout picture: <a href="https://developer.mbed.org/media/uploads/silbo/x_scaled_mcp3208.png.pagespeed.ic.t0WtkGjVuS.png" rel="nofollow">MCP3208</a></p>
+
+<p>This is my actually working code for the mcp: <a href="http://pastebin.com/F37GZMjw" rel="nofollow">script</a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2015-08-14T09:05:20Z' itemprop='datePublished'>
+             2015-08-14 09:05:20 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>tried 1 ms delay and 50 ms delay. Actually it's quite ok at 5ms  i have way less than +/- 0.5 it's more something like  +/- 0.1. </p>
+
+<p>About resoldering, huge mess I  think <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile"> actually I would have to resolder 4 4051s, so no. About the 4 though, I cannot see anywhere in the script where you asign the "z" connection to axo.</p>
+
+<pre><code>int z = adcvalues[8]&lt;&lt;15;</code></pre>
+
+<p>I want to make it </p>
+
+<pre><code>int z1 = adcvalues[8]&lt;&lt;15;	
+int z2 = adcvalues[8]&lt;&lt;15;	
+int z3 = adcvalues[8]&lt;&lt;15;	
+int z4 = adcvalues[8]&lt;&lt;15;</code></pre>
+
+<p>to read out 32 values</p>
+
+<p>is adcvalues an array of GPIOs on axo? where is it documented?</p>
+
+<p>(I'll start a different thread on my trellis efforts soon btw)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-14T10:31:03Z' itemprop='datePublished'>
+             2015-08-14 10:31:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I copied &amp; edited the code "adcvalues[inputpin]" from the object editor of analogin object in axoloti software.<br>the number in the brace stands for a single adc port.</p>
+
+<p>Here is a overview of the GPIOs:<br>the number after equal sign is the variable name of the input pin which should be paste in the braces<br>PA0 (ADC1_IN0)	= 0<br>PA1 (ADC1_IN1)	= 1<br>PA2 (ADC1_IN2) 	= 2<br>PA3 (ADC1_IN3)	= 3<br>PA4 (ADC1_IN4)	= 4<br>PA5 (ADC1_IN5)	= 5<br>PA6 (ADC1_IN6)	= 6<br>PA7 (ADC1_IN7)	= 7<br>PB0 (ADC1_IN8)	= 8<br>PB1 (ADC1_IN9)	= 9<br>PC0 (ADC1_IN10)	= 10<br>PC1 (ADC1_IN11)	= 11<br>PC2 (ADC1_IN12)	= 12<br>PC3 (ADC1_IN13)	= 13<br>PC4 (ADC1_IN14)	= 14</p>
+
+<p>one hint to filter adc jitter by code. you can try to sample the read value and compare upcoming value to the last read one. If it's change by e.g. 5%, the adc should send the new value to the y dials…</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/hesspet'><b itemprop='author'>hesspet</b></a>
+           
+           <time datetime='2015-08-16T00:22:11Z' itemprop='datePublished'>
+             2015-08-16 00:22:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Some addtional troubleshooting hints with the 4051:</p>
+
+<p><strong>Important!</strong> Not all versions of the 4051 will work stable in a 3,3 envirionment If Vee == GND.</p>
+
+<p>e.g. the 4051 HCT has specification: <br>VCC-GND         min: 4.5, typical: 5.0 max:5.5      V</p>
+
+<p>e.g. the 4051 HC has specification: <br>VCC-GND         min:2.0, typical: 5.0, max:10.0 V</p>
+
+<p>So when you use the HCT version with the AXO, you'll run into a lot of strange problems . It works, sometimes - but outsite the specification. This is good if you plan to build an Lunetta :-), but for a multiplexer this can be worse.</p>
+
+<p>BTW: 100nf between Vcc and GND could save a lot of problems in such breadboard environments. Put the cap close as possible to the pins!  Or better solder the cap on top over the chip.</p>
+
+<p>FYI: More about the voltages on page 6:<a href="http://www.nxp.com/documents/data_sheet/74HC_HCT4051.pdf" rel="nofollow">http://www.nxp.com/documents/data_sheet/74HC_HCT4051.pdf</a></p>
+
+<p>This is if you like to use DIPs.</p>
+
+<p>But better would be a version like this:<strong>HD74LV4051A</strong></p>
+
+<p>the shortcut <strong>LV / LVC</strong> gives you a hint of LowVoltage. Those Chips are made for the use with 3,3V. They are hard to get sometimes and hard to solder. Only SMD available. If you have luck, SOIC14 is available. This is one of the disadvantages of the 3,3 voltage for tinkerer (and breadboard testing)</p>
+
+<p>Or use a "<strong>level shifter</strong>" between the Axo board and the "normal" CMOS 5V world. <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile"> Since I work with 3,3 I allway have some 8 Line Levershifter breakouts in stock......</p>
+
+<p>The last: Be aware, if you use a 4051, you lose aprox. 0,4 of you incomming signal inside the chip. This is normal!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/paul'><b itemprop='author'>paul</b></a>
+           
+           <time datetime='2015-08-16T13:30:12Z' itemprop='datePublished'>
+             2015-08-16 13:30:12 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>hi <a class="mention" href="/users/hesspet">@hesspet</a>,<br>this is a helpful hint. I will link your explanations on my first post.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Bohrbug'><b itemprop='author'>Bohrbug</b></a>
+           
+           <time datetime='2015-11-25T14:58:56Z' itemprop='datePublished'>
+             2015-11-25 14:58:56 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-topic="133" data-slug="gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources" data-post="18"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/hesspet/40/209_1.png" class="avatar">hesspet:</div>
+<blockquote><p>Some addtional troubleshooting hints with the 4051:   Important! Not all versions of the 4051 will work stable in a 3,3 envirionment If Vee == GND.   e.g. the 4051 HCT has specification:  VCC-GND         min: 4.5, typical: 5.0 max:5.5      V   e.g. the 4051 HC has specification:  VCC-GND         min:2.0, typical: 5.0, max:10.0 V   So when you use the HCT version with the AXO, you'll run into a lot of strange problems . It works, sometimes - but outsite the specification. This is good if you plan…</p></blockquote></aside>
+
+<p><a class="mention" href="/users/hesspet">@hesspet</a></p>
+
+<p>Hi Hesspet,</p>
+
+<p>Do you have a link where we can by a HD74LV4051A</p>
+
+<p>Thanks !</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+
+  <div role='navigation' itemscope itemtype='http://schema.org/SiteNavigationElement'>
+      <span itemprop='url'><b><a rel="next" itemprop="name" href="/t/gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources/133?page=2">next page →</a></b></span>
+  </div>
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='/'>Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/guidelines">FAQ/Guidelines</a>
+        <a href="/tos">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="http://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+      
+  </body>
+</html>

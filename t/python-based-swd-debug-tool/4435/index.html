@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device  anon">
+  <head>
+    <meta charset="utf-8">
+    <title>Python Based SWD Debug Tool - Developer - Axoloti Community</title>
+    <meta name="description" content="For previous work on Cortex-M chips I wrote a Python based SWD debugger: pycs Now that I have an Axoloti board I have added it as a target and find it useful to poke around and see what the firmware is doing to the chip.&amp;hellip;">
+    <meta name="discourse_theme_key" content="b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/python-based-swd-debug-tool/4435" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+    
+
+      <meta name="fragment" content="!">
+
+
+    <script>
+      window.EmberENV = window.EmberENV || {};
+      window.EmberENV['FORCE_JQUERY'] = true;
+    </script>
+
+    <link rel='preload' href='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js' as='script'/>
+<script src='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js'></script>
+    <link rel='preload' href='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js' as='script'/>
+<script src='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js'></script>
+    <link rel='preload' href='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js' as='script'/>
+<script src='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js'></script>
+    <link rel='preload' href='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js' as='script'/>
+<script src='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js'></script>
+    <link rel='preload' href='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js' as='script'/>
+<script src='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js'></script>
+    <link rel='preload' href='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js' as='script'/>
+<script src='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js'></script>
+    <link rel='preload' href='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js' as='script'/>
+<script src='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js'></script>
+    <link rel='preload' href='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js' as='script'/>
+<script src='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js'></script>
+
+
+      
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+    <link rel="manifest" href="/manifest.json">
+
+
+      <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+
+
+  <link href="/stylesheets/desktop_theme_1_6c5f8f7f5e6a154a9f0dfd7aedf04bae4b669f17.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop_theme"/>
+
+    
+
+<link rel="preload" href="/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0" as="font" type="font/woff2" crossorigin />
+<style>
+  @font-face {
+    font-family: 'FontAwesome';
+    src: url('/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0') format('woff2'),
+         url('/assets/fontawesome-webfont-ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07.woff?http://community.axoloti.com&amp;2&v=4.7.0') format('woff');
+  }
+</style>
+
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Python Based SWD Debug Tool&#39;" href="http://community.axoloti.com/t/python-based-swd-debug-tool/4435.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/python-based-swd-debug-tool/4435" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/python-based-swd-debug-tool/4435" />
+<meta property="og:title" content="Python Based SWD Debug Tool" />
+<meta name="twitter:title" content="Python Based SWD Debug Tool" />
+<meta property="og:description" content="For previous work on Cortex-M chips I wrote a Python based SWD debugger: pycs Now that I have an Axoloti board I have added it as a target and find it useful to poke around and see what the firmware is doing to the chip. I connect to the board with an STLink V2 dongle. It uses the CMSIS-SVD files to decode the SoC peripheral registers. The target specification adds the Axoloti specific IO and SDRAM. If I can work out how to make the codec talk to me, I&#39;ll add some register dumps for that as well..." />
+<meta name="twitter:description" content="For previous work on Cortex-M chips I wrote a Python based SWD debugger: pycs Now that I have an Axoloti board I have added it as a target and find it useful to poke around and see what the firmware is doing to the chip. I connect to the board with an STLink V2 dongle. It uses the CMSIS-SVD files to decode the SoC peripheral registers. The target specification adds the Axoloti specific IO and SDRAM. If I can work out how to make the codec talk to me, I&#39;ll add some register dumps for that as well..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="3 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="4 ❤" />
+
+
+
+    
+  </head>
+
+  <body class="">
+    
+
+    <div class='debug-eyeline'></div>
+
+    <noscript data-path="/t/python-based-swd-debug-tool/4435">
+      <header class="d-header">
+  <div class="wrap">
+    <div class="contents">
+      <div class="row">
+        <div class="title span13">
+          <a href="/">
+              <img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo">
+          </a>
+        </div>
+            <div class='panel clearfix'>
+              <a href="/login" class='btn btn-primary btn-small login-button'><i class="fa fa-user"></i> Log In</a>
+            </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div id="main-outlet" class="wrap">
+        <!-- preload-content: -->
+        <h1>
+  <a href="/t/python-based-swd-debug-tool/4435">Python Based SWD Debug Tool</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/developer" itemprop="url">
+        <span itemprop="title">Developer</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/deadsy'><b itemprop='author'>deadsy</b></a>
+           
+           <time datetime='2018-04-08T03:32:48Z' itemprop='datePublished'>
+             2018-04-08 03:32:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>For previous work on Cortex-M chips I wrote a Python based SWD debugger: <a href="https://github.com/deadsy/pycs" rel="nofollow noopener">pycs</a><br>Now that I have an Axoloti board I have added it as a target and find it useful to poke around and see what the firmware is doing to the chip. I connect to the board with an STLink V2 dongle.<br>It uses the CMSIS-SVD files to decode the SoC peripheral registers.<br>The target specification adds the Axoloti specific IO and SDRAM.<br>If I can work out how to make the codec talk to me, I'll add some register dumps for that as well.</p>
+
+<pre><code>$ ./pycs -t axoloti
+
+pycs: ARM CoreSight Tool 1.0
+STM32F427xG: compiling ./vendor/st/svd/STM32F427x.svd.gz
+ST-Link usb 0483:3748 serial u'P\xffj\x06IgSV1R%\x87'
+target voltage 3.249V
+axoloti*&gt; 
+   cpu             : cpu functions                         
+   da              : disassemble memory                    
+   debugger        : debugger functions                    
+   exit            : exit application                      
+   flash           : flash functions                       
+   go              : exit debug mode, run until breakpoint 
+   gpio            : gpio functions                        
+   halt            : stop running, enter debug mode        
+   help            : general help                          
+   history         : command history                       
+   i2c             : i2c functions                         
+   map             : display memory map                    
+   mem             : memory functions                      
+   program         : program firmware file to flash        
+   regs            : display registers                     
+   rtt             : rtt client functions                  
+   vtable          : display exceptions vector table</code></pre>
+
+<p>The tool builds a memory map for the target:</p>
+
+<pre><code>axoloti*&gt; map
+flash_main      : 08000000 080fffff 1MiB   flash main memory                                       
+ccm_sram        : 10000000 1000ffff 64KiB  core coupled memory sram                                
+flash_opt_bank2 : 1ffec000 1ffec00f 16B    flash option memory                                     
+flash_system    : 1fff0000 1fff77ff 30KiB  flash system memory                                     
+flash_otp       : 1fff7800 1fff7a0f 528B   flash otp memory                                        
+UID             : 1fff7a10 1fff7a1b 12B    Unique Device ID                                        
+FLASH_SIZE      : 1fff7a22 1fff7a23 2B     Flash Size                                              
+flash_opt_bank1 : 1fffc000 1fffc00f 16B    flash option memory                                     
+   ...etc...                   
+NVIC            : e000e000 e000efff 4KiB   Nested Vectored Interrupt Controller                    
+SysTick         : e000e010 e000e40f 1KiB   SysTick                                                 
+SCB             : e000ed00 e000f0ff 1KiB   System Control Block                                    
+MPU             : e000ed90 e000f18f 1KiB   Memory Protection Unit                                  
+FPU             : e000ef30 e000f32f 1KiB   Floating Point Unit                                     
+DBG             : e0042000 e00423ff 1KiB   Debug support                                           
+ROMTABLE        : e00ff000 e00ff3ff 1KiB   ROM Table</code></pre>
+
+<p>The tool reads the CMSIS-SVD file for the chip so it can do a full decode of the peripheral registers:</p>
+
+<pre><code>axoloti*&gt; regs RNG *
+CR             : 50060800[31:0] = 0x00000004   control register               
+  IE[3]        : 0                             Interrupt enable               
+  RNGEN[2]     : 1                             Random number generator enable 
+SR             : 50060804[31:0] = 0x00000001   status register                
+  SEIS[6]      : 0                             Seed error interrupt status    
+  CEIS[5]      : 0                             Clock error interrupt status   
+  SECS[2]      : 0                             Seed error current status      
+  CECS[1]      : 0                             Clock error current status     
+  DRDY[0]      : 1                             Data ready                     
+DR             : 50060808[31:0] = 0xf791b09f * data register                  
+  RNDATA[31:0] : 0xf791b09f                    Random data</code></pre>
+
+<p>Memory dumps:</p>
+
+<pre><code>axoloti*&gt; mem d8 flash_otp
+address   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+1fff7800: 41 78 6f 6c 6f 74 69 20 43 6f 72 65 00 00 00 00  Axoloti Core....
+1fff7810: 00 00 00 01 00 00 00 01 00 00 00 00 00 00 00 08  ................
+1fff7820: 50 fd 98 fa 5f fd 5e 35 1a 24 89 f3 ab e6 98 39  P..._.^5.$.....9
+1fff7830: e7 7e 48 ac ab 17 6f 50 41 de 4a ed 7a 2c 48 08  .~H...oPA.J.z,H.
+1fff7840: da b6 26 dd 3a d5 06 cf ed d4 e1 91 fd 79 b2 be  ..&amp;.:........y..
+1fff7850: d0 97 20 03 72 01 de 8c 6e ad 5c fc 3f ab d0 dd  .. .r...n.\.?...
+1fff7860: 97 9b 99 e6 c3 83 37 72 da de 9e 82 32 e9 61 89  ......7r....2.a.
+1fff7870: 38 4e 48 70 4b cd a6 97 cc bf 0d f3 bc 55 05 fd  8NHpK........U..
+1fff7880: b1 4c 29 69 a7 ba 6f aa ad f8 31 3e 32 ec b9 60  .L)i..o...1&gt;2..`
+1fff7890: 3d 42 9f 78 98 56 ba 6d 4c 87 0c 31 91 07 af c5  =B.x.V.mL..1....
+1fff78a0: 7c 90 48 28 f5 29 85 e1 14 d7 ee 34 5d be 70 57  |.H(.).....4].pW
+1fff78b0: 6d 3b 67 ed 62 d5 f9 43 d4 62 97 7e e6 6e 57 4c  m;g.b..C.b.~.nWL
+1fff78c0: 50 03 97 88 69 63 fa f0 48 ae 8d 3e ba 74 7e 57  P...ic..H..&gt;.t~W
+1fff78d0: fc e8 af 74 75 1a 7a a1 1e 54 19 e0 20 3e 77 1e  ...tu.z..T.. &gt;w.
+1fff78e0: e5 62 ba 34 85 11 35 8e 68 fa 2e 62 33 ad 9a 36  .b.4..5.h..b3..6
+1fff78f0: 56 0d 9e 3a bf bb ca ab 11 d1 94 3d a9 9e 08 ba  V..:.......=....
+1fff7900: 64 30 7b 3e d1 9f f1 97 17 85 d0 b3 56 b6 24 48  d0{&gt;........V.$H
+1fff7910: 5e 30 9e 17 e6 c0 b4 ee 94 a7 3c 15 e8 07 ac ac  ^0........&lt;.....</code></pre>
+
+<p>Interrupt vector table:</p>
+
+<pre><code>axoloti*&gt; vtable
+priority group : pppp.... 4 bits group 3
+vector table   : 00000000
+
+Name                 Exc Irq EPA Prio Vector                                                                      
+Reset              : 1   -       -3   080002a0                                                                    
+NMI                : 2   -   e.  -2   080003c0                                                                    
+HardFault          : 3   -       -1   0801b260                                                                    
+MemManage          : 4   -   ... 0.0  0801b260                                                                    
+BusFault           : 5   -   ... 0.0  0801b260                                                                    
+UsageFault         : 6   -   ... 0.0  0801b260                                                                    
+SVCall             : 11  -    .. 1.0  080003f0                                                                    
+DebugMonitor       : 12  -     . 0.0  080003c0                                                                    
+PendSV             : 14  -    .  2.0  080003c0                                                                    
+SysTick            : 15  -   e.  8.0  080004d0                                                                    
+WWDG               : 16  0   ... 0.0  0801b890 Window Watchdog interrupt                                          
+PVD                : 17  1   ... 0.0  080003c0 PVD through EXTI line detection interrupt                          
+TAMP_STAMP         : 18  2   ... 0.0  080003c0 Tamper and TimeStamp interrupts through the EXTI line              
+RTC_WKUP           : 19  3   ... 0.0  080003c0 RTC Wakeup interrupt through the EXTI line                         
+FLASH              : 20  4   ... 0.0  080003c0 Flash global interrupt                                             
+RCC                : 21  5   ... 0.0  080003c0 RCC global interrupt                                               
+EXTI0              : 22  6   ... 0.0  080003c0 EXTI Line0 interrupt                                               
+EXTI1              : 23  7   ... 0.0  080003c0 EXTI Line1 interrupt                                               
+EXTI2              : 24  8   ... 0.0  080003c0 EXTI Line2 interrupt                                               
+EXTI3              : 25  9   ... 0.0  080003c0 EXTI Line3 interrupt                                               
+EXTI4              : 26  10  ... 0.0  080003c0 EXTI Line4 interrupt                                               
+DMA1_Stream0       : 27  11  ... 0.0  08002d90 DMA1 Stream0 global interrupt                                      
+DMA1_Stream1       : 28  12  ... 0.0  08002dc0 DMA1 Stream1 global interrupt                                      
+DMA1_Stream2       : 29  13  ... 0.0  08002df0 DMA1 Stream2 global interrupt                                      
+DMA1_Stream3       : 30  14  ... 0.0  08002e20 DMA1 Stream3 global interrupt                                      
+DMA1_Stream4       : 31  15  ... 0.0  08002e50 DMA1 Stream4 global interrupt                                      
+DMA1_Stream5       : 32  16  ... 0.0  08002e80 DMA1 Stream5 global interrupt                                      
+DMA1_Stream6       : 33  17  ... 0.0  08002eb0 DMA1 Stream6 global interrupt                                      
+ADC                : 34  18  e.. 6.0  08003510 ADC1 global interrupt                                              
+CAN1_TX            : 35  19  ... 0.0  080003c0 CAN1 TX interrupts                                                 
+etc....                                       
+UART7              : 98  82  ... 0.0  080003c0 UART 7 global interrupt                                            
+UART8              : 99  83  ... 0.0  080003c0 UART 8 global interrupt                                            
+SPI4               : 100 84  ... 0.0  080003c0 SPI 4 global interrupt                                             
+SPI5               : 101 85  ... 0.0  080003c0 SPI 5 global interrupt                                             
+SPI6               : 102 86  ... 0.0  080003c0 SPI 6 global interrupt                                             
+SAI1               : 103 87  ... 0.0  080003c0 SAI1 global interrupt</code></pre>
+
+<p>IO Status:</p>
+
+<pre><code>axoloti*&gt; gpio status
+PA0  an     tp37                              
+PA1  an     tp38                              
+PA2  an     tp39                              
+PA3  an     tp40                              
+PA4  an     tp41                              
+PA5  an     tp42                              
+PA6  an     tp43                              
+PA7  an     tp44                              
+PA8  af0    codec_mclk, x4_2 (MCO1)           
+PA9  in(0)  ?                                 
+PA10 in(0)  s2                                
+PA11 af10   fs_dm (OTG_FS_DM)                 
+PA12 af10   fs_dp (OTG_FS_DP)                 
+PA13 af0    swdio (SWDIO)                     
+PA14 af0    swclk (SWCLK)                     
+PA15 out(0) x3_6                              
+PB0  an     tp45                              
+PB1  an     tp46                              
+PB2  in(0)  ?                                 
+PB3  af6    x3_5 (SPI3_SCK/I2S3_CK)           
+PB4  af6    x3_7 (SPI3_MISO)                  
+PB5  af6    boot0 (SPI3_MOSI/I2S3_SD)         
+PB6  af12   tp47 (FMC_SDNE1)                  
+PB7  in(1)  tp48                              
+PB8  in(1)  tp49                              
+PB9  af4    tp50 (I2C1_SDA)                   
+PB10 in(1)  x3_2, x4_5                        
+PB11 in(1)  ?                                 
+PB12 af12   ? (OTG_HS_ID)                     
+PB13 in(1)  ?                                 
+PB14 af12   hs_dm (OTG_HS_DM)                 
+PB15 af12   hs_dp (OTG_HS_DP)                 
+PC0  an     tp51                              
+PC1  an     tp52                              
+PC2  an     tp53                              
+PC3  an     tp54                              
+PC4  an     tp55                              
+PC5  an     tp56                              
+PC6  out(0) led_red                           
+PC7  af6    ? (I2S3_MCK)                      
+PC8  af12   sdio_d0 (SDIO_D0)                 
+PC9  af12   sdio_d1 (SDIO_D1)                 
+PC10 af12   sdio_d2 (SDIO_D2)                 
+PC11 af12   sdio_d3 (SDIO_D3)                 
+PC12 af12   sdio_ck (SDIO_CK)                 
+PC13 in(1)  ?                                 
+PC14 in(1)  ?                                 
+PC15 in(1)  ?                                 
+PD0  af12   sdram_d2 (FMC_D2)                 
+PD1  af12   sdram_d3 (FMC_D3)                 
+PD2  af12   sdio_cmd (SDIO_CMD)               
+PD3  in(1)  ?                                 
+PD4  out(1) ?                                 
+PD5  in(1)  ?                                 
+PD6  in(1)  x3_4                              
+PD7  out(0) usb_enable                        
+PD8  af12   sdram_d13 (FMC_D13)               
+PD9  af12   sdram_d14 (FMC_D14)               
+PD10 af12   sdram_d15 (FMC_D15)               
+PD11 in(1)  ?                                 
+PD12 out(0) ?                                 
+PD13 in(0)  sdio_cd1                          
+PD14 af12   sdram_d0 (FMC_D0)                 
+PD15 af12   sdram_d1 (FMC_D1)                 
+PE0  af12   sdram_ldqm (FMC_NBL0)             
+PE1  af12   sdram_udqm (FMC_NBL1)             
+PE2  in(1)  ?                                 
+PE3  af6    Codec ADC_SDATA/GPIO1 (SAI1_SD_B) 
+PE4  af6    codec_lrclk, x4-4 (SAI1_FS_A)     
+PE5  af6    codec_bclk, x4-3 (SAI1_SCK_A)     
+PE6  af6    Codec DAC_SDATA/GPIO0 (SAI1_SD_A) 
+PE7  af12   sdram_d4 (FMC_D4)                 
+PE8  af12   sdram_d5 (FMC_D5)                 
+PE9  af12   sdram_d6 (FMC_D6)                 
+PE10 af12   sdram_d7 (FMC_D7)                 
+PE11 af12   sdram_d8 (FMC_D8)                 
+PE12 af12   sdram_d9 (FMC_D9)                 
+PE13 af12   sdram_d10 (FMC_D10)               
+PE14 af12   sdram_d11 (FMC_D11)               
+PE15 af12   sdram_d12 (FMC_D12)               
+PF0  af12   sdram_a0 (FMC_A0)                 
+PF1  af12   sdram_a1 (FMC_A1)                 
+PF2  af12   sdram_a2 (FMC_A2)                 
+PF3  af12   sdram_a3 (FMC_A3)                 
+PF4  af12   sdram_a4 (FMC_A4)                 
+PF5  af12   sdram_a5 (FMC_A5)                 
+PF6  in(1)  ?                                 
+PF7  in(1)  ?                                 
+PF8  in(1)  ?                                 
+PF9  in(1)  ?                                 
+PF10 an     power_monitor                     
+PF11 af12   sdram_ras (FMC_SNDRAS)            
+PF12 af12   sdram_a6 (FMC_A6)                 
+PF13 af12   sdram_a7 (FMC_A7)                 
+PF14 af12   sdram_a8 (FMC_A8)                 
+PF15 af12   sdram_a9 (FMC_A9)                 
+PG0  af12   sdram_a10 (FMC_A10)               
+PG1  af12   sdram_a11 (FMC_A11)               
+PG2  af12   sdram_a12 (FMC_A12)               
+PG3  in(1)  ?                                 
+PG4  af12   sdram_ba0 (FMC_A14/FMC_BA0)       
+PG5  af12   sdram_ba1 (FMC_A15/FMC_BA1)       
+PG6  out(1) led_green                         
+PG7  in(0)  ?                                 
+PG8  af12   sdram_clk (FMC_SDCLK)             
+PG9  af8    midi_in (USART6_RX)               
+PG10 in(1)  ?                                 
+PG11 in(1)  ?                                 
+PG12 in(1)  ?                                 
+PG13 in(1)  usb_flag                          
+PG14 af8    midi_out (USART6_TX)              
+PG15 af12   sdram_cas (FMC_SDNCAS)            
+PH0  in(0)  ?                                 
+PH1  in(0)  ?                                 
+PH2  af12   sdram_cke (FMC_SDCKE0)            
+PH3  af12   sdram_cs0 (FMC_SDNE0)             
+PH4  in(1)  ?                                 
+PH5  af12   sdram_we (FMC_SDNWE)              
+PH6  af12   ? (FMC_SDNE1)                     
+PH7  af4    codec_scl (I2C3_SCL)              
+PH8  af4    codec_sda (I2C3_SDA)              
+PH9  in(1)  ?                                 
+PH10 in(1)  ?                                 
+PH11 in(1)  ?                                 
+PH12 in(1)  ?                                 
+PH13 in(1)  ?                                 
+PH14 in(1)  ?                                 
+PH15 in(1)  ?                                 
+PI0  in(1)  ?                                 
+PI1  in(0)  ?                                 
+PI2  in(1)  ?                                 
+PI3  in(1)  ?                                 
+PI4  in(1)  ?                                 
+PI5  in(1)  ?                                 
+PI6  in(1)  ?                                 
+PI7  in(1)  ?                                 
+PI8  in(1)  ?                                 
+PI9  in(1)  ?                                 
+PI10 in(1)  ?                                 
+PI11 in(0)  ?                                 
+PI12 in(0)  ?                                 
+PI13 in(0)  ?                                 
+PI14 in(0)  ?                                 
+PI15 in(0)  ?</code></pre>
+
+<p>etc.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:4'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Python Based SWD Debug Tool'>
+      <hr>
+  </div>
+
+
+
+
+
+
+        <!-- :preload-content -->
+        <footer>
+          <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+            <a href='/'>Home</a>
+            <a href="/categories">Categories</a>
+            <a href="/guidelines">FAQ/Guidelines</a>
+            <a href="/tos">Terms of Service</a>
+            <a href="/privacy">Privacy Policy</a>
+          </nav>
+        </footer>
+      </div>
+
+      <footer id='noscript-footer'>
+        <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+      </footer>
+    </noscript>
+
+      
+
+    <section id='main'>
+    </section>
+
+    <div id='offscreen-content'>
+    </div>
+
+      <form id='hidden-login-form' method="post" action="/login" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+
+      <script>
+      (function() {
+        var ps = require('preload-store').default;
+          ps.store("site", {"default_archetype":"regular","notification_types":{"mentioned":1,"replied":2,"quoted":3,"edited":4,"liked":5,"private_message":6,"invited_to_private_message":7,"invitee_accepted":8,"posted":9,"moved_post":10,"linked":11,"granted_badge":12,"invited_to_topic":13,"custom":14,"group_mentioned":15,"group_message_summary":16,"watching_first_post":17,"topic_reminder":18},"post_types":{"regular":1,"moderator_action":2,"small_action":3,"whisper":4},"groups":[{"id":1,"name":"admins"},{"id":0,"name":"everyone"},{"id":2,"name":"moderators"},{"id":3,"name":"staff"},{"id":10,"name":"trust_level_0"},{"id":11,"name":"trust_level_1"},{"id":12,"name":"trust_level_2"},{"id":13,"name":"trust_level_3"},{"id":14,"name":"trust_level_4"}],"filters":["latest","unread","new","read","posted","bookmarks"],"periods":["all","yearly","quarterly","monthly","weekly","daily"],"top_menu_items":["latest","unread","new","read","posted","bookmarks","category","categories","top"],"anonymous_top_menu_items":["latest","top","categories","category","categories","top"],"uncategorized_category_id":1,"is_readonly":false,"disabled_plugins":[],"user_field_max_length":2048,"suppressed_from_homepage_category_ids":[],"post_action_types":[{"name_key":"bookmark","name":"Bookmark","description":"Bookmark this post","short_description":"Bookmark this post","long_form":"bookmarked this post","is_flag":false,"icon":null,"id":1,"is_custom_flag":false},{"name_key":"like","name":"Like","description":"Like this post","short_description":"Like this post","long_form":"liked this","is_flag":false,"icon":"heart","id":2,"is_custom_flag":false},{"name_key":"off_topic","name":"Off-Topic","description":"This post is not relevant to the current discussion as defined by the title and first post, and should probably be moved elsewhere.","short_description":"Not relevant to the discussion","long_form":"flagged this as off-topic","is_flag":true,"icon":null,"id":3,"is_custom_flag":false},{"name_key":"inappropriate","name":"Inappropriate","description":"This post contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"A violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"vote","name":"Vote","description":"Vote for this post","short_description":"Vote for this post","long_form":"voted for this post","is_flag":false,"icon":null,"id":5,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This post is an advertisement, or vandalism. It is not useful or relevant to the current topic.","short_description":"This is an advertisement or vandalism","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_user","name":"Send @{{username}} a message","description":"I want to talk to this person directly and privately about their post.","short_description":"I want to talk to this person directly and privately about their post.","long_form":"messaged user","is_flag":true,"icon":null,"id":6,"is_custom_flag":true},{"name_key":"notify_moderators","name":"Something Else","description":"This post requires staff attention for another reason not listed above.","short_description":"Requires staff attention for another reason","long_form":"flagged this for staff attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"topic_flag_types":[{"name_key":"inappropriate","name":"Inappropriate","description":"This topic contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"translation missing: en.topic_flag_types.inappropriate.short_description","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This topic is an advertisement. It is not useful or relevant to this site, but promotional in nature.","short_description":"translation missing: en.topic_flag_types.spam.short_description","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_moderators","name":"Something Else","description":"This topic requires general staff attention based on the \u003ca href=\"/guidelines\"\u003eguidelines\u003c/a\u003e, \u003ca href=\"/tos\"\u003eTOS\u003c/a\u003e, or for another reason not listed above.","short_description":"translation missing: en.topic_flag_types.notify_moderators.short_description","long_form":"flagged this for moderator attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"can_create_tag":null,"can_tag_topics":null,"tags_filter_regexp":"[/\\?#\\[\\]@!\\$\u0026'\\(\\)\\*\\+,;=\\.%\\\\`^\\s|\\{\\}\"\u003c\u003e]+","top_tags":["midi","controllers","modular","linux","1.0.11","macos","windows","troubleshooting","usb","challenge","wavetable","library","math","faust","dsp","out","tips","current","14bit"],"topic_featured_link_allowed_category_ids":[10,4,1,5,15,12,2,6,9,16,14,3,8,7,13,11],"user_themes":[{"theme_key":"b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408","name":"Migrated from Site Text","default":true}],"categories":[{"id":1,"name":"Uncategorized","color":"AB9364","text_color":"FFFFFF","slug":"uncategorized","topic_count":-1,"post_count":1,"position":0,"description":"Topics that don't need a category, or don't fit into any other existing category.","description_text":"","topic_url":"/t/","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":10,"name":"User Guide","color":"3AB54A","text_color":"FFFFFF","slug":"user-guide","topic_count":24,"post_count":102,"position":1,"description":"This category contains posts to help users use Axoloti, a dynamic user guide.","description_text":"This category contains posts to help users use Axoloti, a dynamic user guide.","topic_url":"/t/about-the-user-guide-category/51","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":8,"name":"Helpdesk","color":"9EB83B","text_color":"FFFFFF","slug":"helpdesk","topic_count":395,"post_count":3131,"position":2,"description":"This category is for reporting issues and bugs\u003cbr\u003ePlease use other categories for discussions on features or questions or \"how to?\"","description_text":"This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or \"how to?\"","topic_url":"/t/about-the-helpdesk-category/23","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":13,"name":"Community Library","color":"9EB83B","text_color":"FFFFFF","slug":"community-library","topic_count":54,"post_count":2953,"position":3,"description":"Category for the community library","description_text":"Category for the community library","topic_url":"/t/about-the-community-library-category/1005","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":7,"name":"Patching","color":"AB9364","text_color":"FFFFFF","slug":"patching","topic_count":1043,"post_count":8521,"position":4,"description":"This category is for discussion about patching Axoloti, and sharing patches.","description_text":"This category is for discussion about patching Axoloti, and sharing patches.","topic_url":"/t/about-the-patching-category/14","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":5,"name":"Hardware","color":"AB9364","text_color":"FFFFFF","slug":"hardware","topic_count":732,"post_count":7717,"position":5,"description":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects. ","description_text":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects.","topic_url":"/t/about-the-hardware-category/12","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":6,"name":"Software","color":"AB9364","text_color":"FFFFFF","slug":"software","topic_count":340,"post_count":3410,"position":6,"description":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. ","description_text":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti.","topic_url":"/t/about-the-software-category/13","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":16,"name":"AxoObject coding","color":"AB9364","text_color":"FFFFFF","slug":"axoobject-code","topic_count":276,"post_count":2240,"position":7,"description":"Category to discuss coding Axoloti Objects.","description_text":"Category to discuss coding Axoloti Objects.","topic_url":"/t/about-the-axoobject-coding-category/1519","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":14,"name":"News/Events","color":"283890","text_color":"FFFFFF","slug":"events","topic_count":30,"post_count":106,"position":8,"description":"Meetups, workshops, presentations, all sort of events.\u003cbr\u003eIt's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.\u003cbr\u003eStart your topic title with the name of the area where your event will happen.","description_text":"Meetups, workshops, presentations, all sort of events.It's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.Start your topic title with the name of the area where your event will happen.","topic_url":"/t/about-the-events-category/1142","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":12,"name":"Challenges","color":"0E76BD","text_color":"FFFFFF","slug":"challenges","topic_count":19,"post_count":277,"position":9,"description":"This category is for challenges, competitions and discussions related to these.\u003cbr\u003eposters are reminded when entering challenges and competitions to not include any copyrighted material","description_text":"This category is for challenges, competitions and discussions related to these.posters are reminded when entering challenges and competitions to not include any copyrighted material","topic_url":"/t/about-the-challenges-category/838","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":9,"name":"Your Music/Projects","color":"0E76BD","text_color":"FFFFFF","slug":"your-music-projects","topic_count":196,"post_count":1385,"position":10,"description":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?\u003cbr\u003eTells us about it here.","description_text":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?Tells us about it here.","topic_url":"/t/about-the-your-music-projects-category/25","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":15,"name":"Lounge","color":"AB9364","text_color":"FFFFFF","slug":"lounge","topic_count":107,"post_count":1736,"position":11,"description":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.\u003cbr\u003e(please ensure it has some relevance to Axoloti, rather than general discussion) ","description_text":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.(please ensure it has some relevance to Axoloti, rather than general discussion)","topic_url":"/t/about-the-lounge-category/1277","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":11,"name":"Developer","color":"BF1E2E","text_color":"FFFFFF","slug":"developer","topic_count":69,"post_count":672,"position":12,"description":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","description_text":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","topic_url":"/t/about-the-developer-category/735","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"This category is for low level discussion on the development of Axoloti, its is intended for developers/programmers only.","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":3,"name":"Website and Forum","color":"808281","text_color":"FFFFFF","slug":"meta","topic_count":46,"post_count":416,"position":13,"description":"Discussion about this site, its organization, how it works, and how we can improve it.","description_text":"Discussion about this site, its organization, how it works, and how we can improve it.","topic_url":"/t/about-the-meta-category/2","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null}],"trust_levels":[{"id":0,"name":"new user"},{"id":1,"name":"basic user"},{"id":2,"name":"member"},{"id":3,"name":"regular"},{"id":4,"name":"leader"}],"archetypes":[{"id":"regular","name":"Regular Topic","options":[]},{"id":"banner","name":"Banner Topic","options":[]}],"user_fields":[]});
+          ps.store("siteSettings", {"title":"Axoloti Community","contact_email":"johannes.taelman@gmail.com","contact_url":"","logo_url":"/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png","logo_small_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","mobile_logo_url":"","favicon_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","allow_user_locale":false,"suggested_topics":5,"track_external_right_clicks":false,"ga_universal_tracking_code":"UA-56017691-4","ga_universal_domain_name":"auto","ga_tracking_code":"","ga_domain_name":"","gtm_container_id":"","top_menu":"categories|latest|new|unread|top","post_menu":"like-count|like|share|flag|edit|bookmark|delete|admin|reply","post_menu_hidden_items":"flag|bookmark|edit|delete|admin","share_links":"twitter|facebook|email","desktop_category_page_style":"categories_and_latest_topics","category_colors":"BF1E2E|F1592A|F7941D|9EB83B|3AB54A|12A89D|25AAE2|0E76BD|652D90|92278F|ED207B|8C6238|231F20|808281|B3B5B4|283890","category_style":"bullet","enable_mobile_theme":true,"relative_date_duration":30,"fixed_category_positions":true,"fixed_category_positions_on_create":false,"enable_badges":true,"enable_badge_sql":false,"enable_whispers":false,"invite_only":false,"login_required":false,"must_approve_users":false,"enable_local_logins":true,"allow_new_registrations":true,"enable_signup_cta":true,"enable_google_oauth2_logins":false,"enable_yahoo_logins":false,"enable_twitter_logins":false,"enable_instagram_logins":false,"enable_facebook_logins":false,"enable_github_logins":false,"enable_sso":false,"sso_overrides_avatar":false,"min_username_length":3,"max_username_length":20,"min_password_length":10,"min_admin_password_length":15,"logout_redirect":"","full_name_required":false,"enable_names":true,"invites_per_page":40,"delete_user_max_post_age":60,"delete_all_posts_max":15,"show_email_on_profile":false,"prioritize_username_in_ux":true,"enable_user_directory":true,"allow_anonymous_posting":false,"anonymous_posting_min_trust_level":1,"hide_user_profiles_from_public":false,"enable_group_directory":true,"min_post_length":20,"min_first_post_length":20,"min_private_message_post_length":10,"max_post_length":32000,"topic_featured_link_enabled":true,"min_topic_title_length":15,"max_topic_title_length":255,"min_private_message_title_length":2,"allow_uncategorized_topics":false,"min_title_similar_length":10,"min_body_similar_length":15,"enable_private_messages":true,"edit_history_visible_to_public":false,"delete_removed_posts_after":24,"enable_experimental_markdown_it":false,"traditional_markdown_linebreaks":false,"enable_markdown_typographer":false,"allow_html_tables":false,"suppress_reply_directly_below":true,"suppress_reply_directly_above":true,"max_reply_history":1,"newuser_max_images":1,"newuser_max_attachments":2,"show_pinned_excerpt_mobile":true,"show_pinned_excerpt_desktop":true,"display_name_on_posts":false,"show_time_gap_days":7,"short_progress_text_threshold":10000,"default_code_lang":"auto","autohighlight_all_code":false,"highlighted_languages":"apache|bash|cs|cpp|css|coffeescript|diff|xml|http|ini|json|java|javascript|makefile|markdown|nginx|objectivec|ruby|perl|php|python|sql|handlebars","censored_words":"","censored_pattern":"","enable_emoji":true,"emoji_set":"twitter","code_formatting_style":"4-spaces-indent","allowed_href_schemes":"","email_time_window_mins":10,"disable_digest_emails":false,"email_in":false,"disable_emails":false,"bounce_score_threshold":4,"max_image_size_kb":3072,"max_attachment_size_kb":3072,"authorized_extensions":"jpg|jpeg|png|gif|axo|axp|axs|axh|fpd|brd|axt","max_image_width":690,"max_image_height":500,"prevent_anons_from_downloading_files":false,"enable_s3_uploads":false,"allow_profile_backgrounds":true,"allow_uploaded_avatars":true,"allow_animated_avatars":false,"default_avatars":"","external_system_avatars_enabled":true,"external_system_avatars_url":"/letter_avatar_proxy/v2/letter/{first_letter}/{color}/{size}.png","allow_staff_to_upload_any_file_in_pm":true,"tl1_requires_read_posts":30,"tl3_links_no_follow":false,"use_admin_ip_whitelist":false,"max_oneboxes_per_post":50,"alert_admins_if_errors_per_minute":0,"alert_admins_if_errors_per_hour":0,"max_prints_per_hour_per_user":5,"enable_long_polling":true,"long_polling_base_url":"/","background_polling_interval":60000,"polling_interval":3000,"anon_polling_interval":15000,"flush_timings_secs":20,"verbose_localization":false,"max_new_topics":500,"tos_url":"","privacy_policy_url":"","faq_url":"","maximum_backups":5,"min_search_term_length":3,"version_checks":true,"suppress_uncategorized_badge":true,"topic_views_heat_low":1000,"topic_views_heat_medium":2000,"topic_views_heat_high":5000,"topic_post_like_heat_low":0.5,"topic_post_like_heat_medium":1.0,"topic_post_like_heat_high":2.0,"history_hours_low":12,"history_hours_medium":24,"history_hours_high":48,"cold_age_days_low":14,"cold_age_days_medium":90,"cold_age_days_high":180,"global_notice":"","show_create_topics_notice":true,"bootstrap_mode_min_users":50,"bootstrap_mode_enabled":false,"automatically_unpin_topics":true,"read_time_word_count":500,"disable_mailing_list_mode":false,"default_topics_automatic_unpin":true,"tagging_enabled":true,"tag_style":"simple","max_tags_per_topic":5,"max_tag_length":20,"min_trust_level_to_tag_topics":0,"max_tag_search_results":5,"show_filter_by_tag":true,"tags_sort_alphabetically":false,"staff_tags":"","suppress_overlapping_tags_in_list":false,"discourse_narrative_bot_enabled":true,"poll_enabled":true,"poll_maximum_options":20,"details_enabled":true,"available_locales":"ar|bs_BA|cs|da|de|el|en|es|et|fa_IR|fi|fr|gl|he|id|it|ja|ko|nb_NO|nl|pl_PL|pt|pt_BR|ro|ru|sk|sq|sv|te|tr_TR|uk|ur|vi|zh_CN|zh_TW"});
+          ps.store("customHTML", {"top":"","footer":""});
+          ps.store("banner", {});
+          ps.store("customEmoji", []);
+          ps.store("translationOverrides", {});
+          ps.store("topic_4435", {"post_stream":{"posts":[{"id":28041,"name":"Jason T Harris","username":"deadsy","avatar_template":"/user_avatar/community.axoloti.com/deadsy/{size}/5105_1.png","created_at":"2018-04-08T03:32:48.456Z","cooked":"\u003cp\u003eFor previous work on Cortex-M chips I wrote a Python based SWD debugger: \u003ca href=\"https://github.com/deadsy/pycs\" rel=\"nofollow noopener\"\u003epycs\u003c/a\u003e\u003cbr\u003eNow that I have an Axoloti board I have added it as a target and find it useful to poke around and see what the firmware is doing to the chip. I connect to the board with an STLink V2 dongle.\u003cbr\u003eIt uses the CMSIS-SVD files to decode the SoC peripheral registers.\u003cbr\u003eThe target specification adds the Axoloti specific IO and SDRAM.\u003cbr\u003eIf I can work out how to make the codec talk to me, I'll add some register dumps for that as well.\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003e$ ./pycs -t axoloti\n\npycs: ARM CoreSight Tool 1.0\nSTM32F427xG: compiling ./vendor/st/svd/STM32F427x.svd.gz\nST-Link usb 0483:3748 serial u'P\\xffj\\x06IgSV1R%\\x87'\ntarget voltage 3.249V\naxoloti*\u0026gt; \n   cpu             : cpu functions                         \n   da              : disassemble memory                    \n   debugger        : debugger functions                    \n   exit            : exit application                      \n   flash           : flash functions                       \n   go              : exit debug mode, run until breakpoint \n   gpio            : gpio functions                        \n   halt            : stop running, enter debug mode        \n   help            : general help                          \n   history         : command history                       \n   i2c             : i2c functions                         \n   map             : display memory map                    \n   mem             : memory functions                      \n   program         : program firmware file to flash        \n   regs            : display registers                     \n   rtt             : rtt client functions                  \n   vtable          : display exceptions vector table\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eThe tool builds a memory map for the target:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eaxoloti*\u0026gt; map\nflash_main      : 08000000 080fffff 1MiB   flash main memory                                       \nccm_sram        : 10000000 1000ffff 64KiB  core coupled memory sram                                \nflash_opt_bank2 : 1ffec000 1ffec00f 16B    flash option memory                                     \nflash_system    : 1fff0000 1fff77ff 30KiB  flash system memory                                     \nflash_otp       : 1fff7800 1fff7a0f 528B   flash otp memory                                        \nUID             : 1fff7a10 1fff7a1b 12B    Unique Device ID                                        \nFLASH_SIZE      : 1fff7a22 1fff7a23 2B     Flash Size                                              \nflash_opt_bank1 : 1fffc000 1fffc00f 16B    flash option memory                                     \n   ...etc...                   \nNVIC            : e000e000 e000efff 4KiB   Nested Vectored Interrupt Controller                    \nSysTick         : e000e010 e000e40f 1KiB   SysTick                                                 \nSCB             : e000ed00 e000f0ff 1KiB   System Control Block                                    \nMPU             : e000ed90 e000f18f 1KiB   Memory Protection Unit                                  \nFPU             : e000ef30 e000f32f 1KiB   Floating Point Unit                                     \nDBG             : e0042000 e00423ff 1KiB   Debug support                                           \nROMTABLE        : e00ff000 e00ff3ff 1KiB   ROM Table\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eThe tool reads the CMSIS-SVD file for the chip so it can do a full decode of the peripheral registers:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eaxoloti*\u0026gt; regs RNG *\nCR             : 50060800[31:0] = 0x00000004   control register               \n  IE[3]        : 0                             Interrupt enable               \n  RNGEN[2]     : 1                             Random number generator enable \nSR             : 50060804[31:0] = 0x00000001   status register                \n  SEIS[6]      : 0                             Seed error interrupt status    \n  CEIS[5]      : 0                             Clock error interrupt status   \n  SECS[2]      : 0                             Seed error current status      \n  CECS[1]      : 0                             Clock error current status     \n  DRDY[0]      : 1                             Data ready                     \nDR             : 50060808[31:0] = 0xf791b09f * data register                  \n  RNDATA[31:0] : 0xf791b09f                    Random data\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eMemory dumps:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eaxoloti*\u0026gt; mem d8 flash_otp\naddress   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n1fff7800: 41 78 6f 6c 6f 74 69 20 43 6f 72 65 00 00 00 00  Axoloti Core....\n1fff7810: 00 00 00 01 00 00 00 01 00 00 00 00 00 00 00 08  ................\n1fff7820: 50 fd 98 fa 5f fd 5e 35 1a 24 89 f3 ab e6 98 39  P..._.^5.$.....9\n1fff7830: e7 7e 48 ac ab 17 6f 50 41 de 4a ed 7a 2c 48 08  .~H...oPA.J.z,H.\n1fff7840: da b6 26 dd 3a d5 06 cf ed d4 e1 91 fd 79 b2 be  ..\u0026amp;.:........y..\n1fff7850: d0 97 20 03 72 01 de 8c 6e ad 5c fc 3f ab d0 dd  .. .r...n.\\.?...\n1fff7860: 97 9b 99 e6 c3 83 37 72 da de 9e 82 32 e9 61 89  ......7r....2.a.\n1fff7870: 38 4e 48 70 4b cd a6 97 cc bf 0d f3 bc 55 05 fd  8NHpK........U..\n1fff7880: b1 4c 29 69 a7 ba 6f aa ad f8 31 3e 32 ec b9 60  .L)i..o...1\u0026gt;2..`\n1fff7890: 3d 42 9f 78 98 56 ba 6d 4c 87 0c 31 91 07 af c5  =B.x.V.mL..1....\n1fff78a0: 7c 90 48 28 f5 29 85 e1 14 d7 ee 34 5d be 70 57  |.H(.).....4].pW\n1fff78b0: 6d 3b 67 ed 62 d5 f9 43 d4 62 97 7e e6 6e 57 4c  m;g.b..C.b.~.nWL\n1fff78c0: 50 03 97 88 69 63 fa f0 48 ae 8d 3e ba 74 7e 57  P...ic..H..\u0026gt;.t~W\n1fff78d0: fc e8 af 74 75 1a 7a a1 1e 54 19 e0 20 3e 77 1e  ...tu.z..T.. \u0026gt;w.\n1fff78e0: e5 62 ba 34 85 11 35 8e 68 fa 2e 62 33 ad 9a 36  .b.4..5.h..b3..6\n1fff78f0: 56 0d 9e 3a bf bb ca ab 11 d1 94 3d a9 9e 08 ba  V..:.......=....\n1fff7900: 64 30 7b 3e d1 9f f1 97 17 85 d0 b3 56 b6 24 48  d0{\u0026gt;........V.$H\n1fff7910: 5e 30 9e 17 e6 c0 b4 ee 94 a7 3c 15 e8 07 ac ac  ^0........\u0026lt;.....\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eInterrupt vector table:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eaxoloti*\u0026gt; vtable\npriority group : pppp.... 4 bits group 3\nvector table   : 00000000\n\nName                 Exc Irq EPA Prio Vector                                                                      \nReset              : 1   -       -3   080002a0                                                                    \nNMI                : 2   -   e.  -2   080003c0                                                                    \nHardFault          : 3   -       -1   0801b260                                                                    \nMemManage          : 4   -   ... 0.0  0801b260                                                                    \nBusFault           : 5   -   ... 0.0  0801b260                                                                    \nUsageFault         : 6   -   ... 0.0  0801b260                                                                    \nSVCall             : 11  -    .. 1.0  080003f0                                                                    \nDebugMonitor       : 12  -     . 0.0  080003c0                                                                    \nPendSV             : 14  -    .  2.0  080003c0                                                                    \nSysTick            : 15  -   e.  8.0  080004d0                                                                    \nWWDG               : 16  0   ... 0.0  0801b890 Window Watchdog interrupt                                          \nPVD                : 17  1   ... 0.0  080003c0 PVD through EXTI line detection interrupt                          \nTAMP_STAMP         : 18  2   ... 0.0  080003c0 Tamper and TimeStamp interrupts through the EXTI line              \nRTC_WKUP           : 19  3   ... 0.0  080003c0 RTC Wakeup interrupt through the EXTI line                         \nFLASH              : 20  4   ... 0.0  080003c0 Flash global interrupt                                             \nRCC                : 21  5   ... 0.0  080003c0 RCC global interrupt                                               \nEXTI0              : 22  6   ... 0.0  080003c0 EXTI Line0 interrupt                                               \nEXTI1              : 23  7   ... 0.0  080003c0 EXTI Line1 interrupt                                               \nEXTI2              : 24  8   ... 0.0  080003c0 EXTI Line2 interrupt                                               \nEXTI3              : 25  9   ... 0.0  080003c0 EXTI Line3 interrupt                                               \nEXTI4              : 26  10  ... 0.0  080003c0 EXTI Line4 interrupt                                               \nDMA1_Stream0       : 27  11  ... 0.0  08002d90 DMA1 Stream0 global interrupt                                      \nDMA1_Stream1       : 28  12  ... 0.0  08002dc0 DMA1 Stream1 global interrupt                                      \nDMA1_Stream2       : 29  13  ... 0.0  08002df0 DMA1 Stream2 global interrupt                                      \nDMA1_Stream3       : 30  14  ... 0.0  08002e20 DMA1 Stream3 global interrupt                                      \nDMA1_Stream4       : 31  15  ... 0.0  08002e50 DMA1 Stream4 global interrupt                                      \nDMA1_Stream5       : 32  16  ... 0.0  08002e80 DMA1 Stream5 global interrupt                                      \nDMA1_Stream6       : 33  17  ... 0.0  08002eb0 DMA1 Stream6 global interrupt                                      \nADC                : 34  18  e.. 6.0  08003510 ADC1 global interrupt                                              \nCAN1_TX            : 35  19  ... 0.0  080003c0 CAN1 TX interrupts                                                 \netc....                                       \nUART7              : 98  82  ... 0.0  080003c0 UART 7 global interrupt                                            \nUART8              : 99  83  ... 0.0  080003c0 UART 8 global interrupt                                            \nSPI4               : 100 84  ... 0.0  080003c0 SPI 4 global interrupt                                             \nSPI5               : 101 85  ... 0.0  080003c0 SPI 5 global interrupt                                             \nSPI6               : 102 86  ... 0.0  080003c0 SPI 6 global interrupt                                             \nSAI1               : 103 87  ... 0.0  080003c0 SAI1 global interrupt\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eIO Status:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eaxoloti*\u0026gt; gpio status\nPA0  an     tp37                              \nPA1  an     tp38                              \nPA2  an     tp39                              \nPA3  an     tp40                              \nPA4  an     tp41                              \nPA5  an     tp42                              \nPA6  an     tp43                              \nPA7  an     tp44                              \nPA8  af0    codec_mclk, x4_2 (MCO1)           \nPA9  in(0)  ?                                 \nPA10 in(0)  s2                                \nPA11 af10   fs_dm (OTG_FS_DM)                 \nPA12 af10   fs_dp (OTG_FS_DP)                 \nPA13 af0    swdio (SWDIO)                     \nPA14 af0    swclk (SWCLK)                     \nPA15 out(0) x3_6                              \nPB0  an     tp45                              \nPB1  an     tp46                              \nPB2  in(0)  ?                                 \nPB3  af6    x3_5 (SPI3_SCK/I2S3_CK)           \nPB4  af6    x3_7 (SPI3_MISO)                  \nPB5  af6    boot0 (SPI3_MOSI/I2S3_SD)         \nPB6  af12   tp47 (FMC_SDNE1)                  \nPB7  in(1)  tp48                              \nPB8  in(1)  tp49                              \nPB9  af4    tp50 (I2C1_SDA)                   \nPB10 in(1)  x3_2, x4_5                        \nPB11 in(1)  ?                                 \nPB12 af12   ? (OTG_HS_ID)                     \nPB13 in(1)  ?                                 \nPB14 af12   hs_dm (OTG_HS_DM)                 \nPB15 af12   hs_dp (OTG_HS_DP)                 \nPC0  an     tp51                              \nPC1  an     tp52                              \nPC2  an     tp53                              \nPC3  an     tp54                              \nPC4  an     tp55                              \nPC5  an     tp56                              \nPC6  out(0) led_red                           \nPC7  af6    ? (I2S3_MCK)                      \nPC8  af12   sdio_d0 (SDIO_D0)                 \nPC9  af12   sdio_d1 (SDIO_D1)                 \nPC10 af12   sdio_d2 (SDIO_D2)                 \nPC11 af12   sdio_d3 (SDIO_D3)                 \nPC12 af12   sdio_ck (SDIO_CK)                 \nPC13 in(1)  ?                                 \nPC14 in(1)  ?                                 \nPC15 in(1)  ?                                 \nPD0  af12   sdram_d2 (FMC_D2)                 \nPD1  af12   sdram_d3 (FMC_D3)                 \nPD2  af12   sdio_cmd (SDIO_CMD)               \nPD3  in(1)  ?                                 \nPD4  out(1) ?                                 \nPD5  in(1)  ?                                 \nPD6  in(1)  x3_4                              \nPD7  out(0) usb_enable                        \nPD8  af12   sdram_d13 (FMC_D13)               \nPD9  af12   sdram_d14 (FMC_D14)               \nPD10 af12   sdram_d15 (FMC_D15)               \nPD11 in(1)  ?                                 \nPD12 out(0) ?                                 \nPD13 in(0)  sdio_cd1                          \nPD14 af12   sdram_d0 (FMC_D0)                 \nPD15 af12   sdram_d1 (FMC_D1)                 \nPE0  af12   sdram_ldqm (FMC_NBL0)             \nPE1  af12   sdram_udqm (FMC_NBL1)             \nPE2  in(1)  ?                                 \nPE3  af6    Codec ADC_SDATA/GPIO1 (SAI1_SD_B) \nPE4  af6    codec_lrclk, x4-4 (SAI1_FS_A)     \nPE5  af6    codec_bclk, x4-3 (SAI1_SCK_A)     \nPE6  af6    Codec DAC_SDATA/GPIO0 (SAI1_SD_A) \nPE7  af12   sdram_d4 (FMC_D4)                 \nPE8  af12   sdram_d5 (FMC_D5)                 \nPE9  af12   sdram_d6 (FMC_D6)                 \nPE10 af12   sdram_d7 (FMC_D7)                 \nPE11 af12   sdram_d8 (FMC_D8)                 \nPE12 af12   sdram_d9 (FMC_D9)                 \nPE13 af12   sdram_d10 (FMC_D10)               \nPE14 af12   sdram_d11 (FMC_D11)               \nPE15 af12   sdram_d12 (FMC_D12)               \nPF0  af12   sdram_a0 (FMC_A0)                 \nPF1  af12   sdram_a1 (FMC_A1)                 \nPF2  af12   sdram_a2 (FMC_A2)                 \nPF3  af12   sdram_a3 (FMC_A3)                 \nPF4  af12   sdram_a4 (FMC_A4)                 \nPF5  af12   sdram_a5 (FMC_A5)                 \nPF6  in(1)  ?                                 \nPF7  in(1)  ?                                 \nPF8  in(1)  ?                                 \nPF9  in(1)  ?                                 \nPF10 an     power_monitor                     \nPF11 af12   sdram_ras (FMC_SNDRAS)            \nPF12 af12   sdram_a6 (FMC_A6)                 \nPF13 af12   sdram_a7 (FMC_A7)                 \nPF14 af12   sdram_a8 (FMC_A8)                 \nPF15 af12   sdram_a9 (FMC_A9)                 \nPG0  af12   sdram_a10 (FMC_A10)               \nPG1  af12   sdram_a11 (FMC_A11)               \nPG2  af12   sdram_a12 (FMC_A12)               \nPG3  in(1)  ?                                 \nPG4  af12   sdram_ba0 (FMC_A14/FMC_BA0)       \nPG5  af12   sdram_ba1 (FMC_A15/FMC_BA1)       \nPG6  out(1) led_green                         \nPG7  in(0)  ?                                 \nPG8  af12   sdram_clk (FMC_SDCLK)             \nPG9  af8    midi_in (USART6_RX)               \nPG10 in(1)  ?                                 \nPG11 in(1)  ?                                 \nPG12 in(1)  ?                                 \nPG13 in(1)  usb_flag                          \nPG14 af8    midi_out (USART6_TX)              \nPG15 af12   sdram_cas (FMC_SDNCAS)            \nPH0  in(0)  ?                                 \nPH1  in(0)  ?                                 \nPH2  af12   sdram_cke (FMC_SDCKE0)            \nPH3  af12   sdram_cs0 (FMC_SDNE0)             \nPH4  in(1)  ?                                 \nPH5  af12   sdram_we (FMC_SDNWE)              \nPH6  af12   ? (FMC_SDNE1)                     \nPH7  af4    codec_scl (I2C3_SCL)              \nPH8  af4    codec_sda (I2C3_SDA)              \nPH9  in(1)  ?                                 \nPH10 in(1)  ?                                 \nPH11 in(1)  ?                                 \nPH12 in(1)  ?                                 \nPH13 in(1)  ?                                 \nPH14 in(1)  ?                                 \nPH15 in(1)  ?                                 \nPI0  in(1)  ?                                 \nPI1  in(0)  ?                                 \nPI2  in(1)  ?                                 \nPI3  in(1)  ?                                 \nPI4  in(1)  ?                                 \nPI5  in(1)  ?                                 \nPI6  in(1)  ?                                 \nPI7  in(1)  ?                                 \nPI8  in(1)  ?                                 \nPI9  in(1)  ?                                 \nPI10 in(1)  ?                                 \nPI11 in(0)  ?                                 \nPI12 in(0)  ?                                 \nPI13 in(0)  ?                                 \nPI14 in(0)  ?                                 \nPI15 in(0)  ?\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eetc.\u003c/p\u003e","post_number":1,"post_type":1,"updated_at":"2018-04-08T03:32:48.456Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":32,"incoming_link_count":212,"reads":42,"score":1160.0,"yours":false,"topic_id":4435,"topic_slug":"python-based-swd-debug-tool","display_username":"Jason T Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"https://github.com/deadsy/pycs","internal":false,"reflection":false,"title":"GitHub - deadsy/pycs: Python Based ARM CoreSight Debug and Trace Tools","clicks":34}],"read":true,"user_title":null,"actions_summary":[{"id":2,"count":4}],"moderator":false,"admin":false,"staff":false,"user_id":1672,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false}],"stream":[28041]},"timeline_lookup":[[1,1633]],"id":4435,"title":"Python Based SWD Debug Tool","fancy_title":"Python Based SWD Debug Tool","posts_count":1,"created_at":"2018-04-08T03:32:48.300Z","views":1123,"reply_count":0,"participant_count":1,"like_count":4,"last_posted_at":"2018-04-08T03:32:48.456Z","visible":true,"closed":false,"archived":false,"has_summary":false,"archetype":"regular","slug":"python-based-swd-debug-tool","category_id":11,"word_count":1659,"deleted_at":null,"user_id":1672,"pm_with_non_human_user":false,"draft":null,"draft_key":"topic_4435","draft_sequence":null,"unpinned":null,"pinned_globally":false,"pinned":false,"pinned_at":null,"pinned_until":null,"details":{"created_by":{"id":1672,"username":"deadsy","avatar_template":"/user_avatar/community.axoloti.com/deadsy/{size}/5105_1.png"},"last_poster":{"id":1672,"username":"deadsy","avatar_template":"/user_avatar/community.axoloti.com/deadsy/{size}/5105_1.png"},"participants":[{"id":1672,"username":"deadsy","avatar_template":"/user_avatar/community.axoloti.com/deadsy/{size}/5105_1.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null}],"suggested_topics":[{"id":7581,"title":"What would be required to build patcher for browser","fancy_title":"What would be required to build patcher for browser","slug":"what-would-be-required-to-build-patcher-for-browser","posts_count":12,"reply_count":4,"highest_post_number":12,"image_url":null,"created_at":"2021-12-15T05:03:33.291Z","last_posted_at":"2021-12-30T16:26:11.660Z","bumped":true,"bumped_at":"2021-12-30T16:26:11.660Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":8,"views":314,"category_id":11,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":521,"username":"tekknovator","avatar_template":"/user_avatar/community.axoloti.com/tekknovator/{size}/7986_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":410,"username":"SirSickSik","avatar_template":"/user_avatar/community.axoloti.com/sirsicksik/{size}/5014_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":177,"username":"DIYDSP","avatar_template":"/letter_avatar_proxy/v2/letter/d/6de8d8/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2111,"username":"tele_player","avatar_template":"/letter_avatar_proxy/v2/letter/t/e47c2d/{size}.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":13,"username":"janvantomme","avatar_template":"/user_avatar/community.axoloti.com/janvantomme/{size}/10_1.png"}}]},{"id":7596,"title":"Possible to upload files to SD card via script or code?","fancy_title":"Possible to upload files to SD card via script or code?","slug":"possible-to-upload-files-to-sd-card-via-script-or-code","posts_count":3,"reply_count":1,"highest_post_number":3,"image_url":null,"created_at":"2022-01-03T12:01:58.112Z","last_posted_at":"2022-01-03T13:59:18.519Z","bumped":true,"bumped_at":"2022-01-03T13:59:18.519Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":143,"category_id":11,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":2301,"username":"ivofx","avatar_template":"/letter_avatar_proxy/v2/letter/i/c57346/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":13,"username":"janvantomme","avatar_template":"/user_avatar/community.axoloti.com/janvantomme/{size}/10_1.png"}}]},{"id":7786,"title":"Anyone tried editing/adding custom controls?","fancy_title":"Anyone tried editing/adding custom controls?","slug":"anyone-tried-editing-adding-custom-controls","posts_count":8,"reply_count":4,"highest_post_number":8,"image_url":null,"created_at":"2022-09-12T12:18:01.091Z","last_posted_at":"2022-09-27T05:18:06.593Z","bumped":true,"bumped_at":"2022-09-27T05:18:06.593Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":3,"views":66,"category_id":11,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":410,"username":"SirSickSik","avatar_template":"/user_avatar/community.axoloti.com/sirsicksik/{size}/5014_1.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":139,"username":"sebiiksbcs","avatar_template":"/user_avatar/community.axoloti.com/sebiiksbcs/{size}/6295_1.png"}}]},{"id":7657,"title":"WANTED: Axocontrol (thonk) or similar","fancy_title":"WANTED: Axocontrol (thonk) or similar","slug":"wanted-axocontrol-thonk-or-similar","posts_count":1,"reply_count":0,"highest_post_number":1,"image_url":null,"created_at":"2022-03-16T17:47:49.597Z","last_posted_at":"2022-03-16T17:47:49.666Z","bumped":true,"bumped_at":"2022-03-16T17:47:49.666Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":127,"category_id":5,"tags":[],"featured_link":null,"posters":[{"extras":"latest single","description":"Original Poster, Most Recent Poster","user":{"id":2865,"username":"SuperBlip","avatar_template":"/user_avatar/community.axoloti.com/superblip/{size}/8140_1.png"}}]},{"id":7673,"title":"Zagausiq Synthesizer","fancy_title":"Zagausiq Synthesizer","slug":"zagausiq-synthesizer","posts_count":11,"reply_count":3,"highest_post_number":11,"image_url":"/uploads/default/optimized/2X/8/87dc982db1c79f08f361a7e32390e2b7d268d234_1_666x500.jpg","created_at":"2022-04-05T03:01:24.038Z","last_posted_at":"2022-04-11T17:12:37.055Z","bumped":true,"bumped_at":"2022-04-11T17:12:37.055Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":24,"views":288,"category_id":9,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":2354,"username":"Stefanatz","avatar_template":"/letter_avatar_proxy/v2/letter/s/c6cbf5/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2600,"username":"hitachii","avatar_template":"/user_avatar/community.axoloti.com/hitachii/{size}/7348_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1252,"username":"andrei.kudryavtsev","avatar_template":"/letter_avatar_proxy/v2/letter/a/c4cdca/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":357,"username":"floodcomics","avatar_template":"/user_avatar/community.axoloti.com/floodcomics/{size}/5260_1.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":1385,"username":"Yot","avatar_template":"/letter_avatar_proxy/v2/letter/y/b9bd4f/{size}.png"}}]}],"links":[{"url":"https://github.com/deadsy/pycs","title":"GitHub - deadsy/pycs: Python Based ARM CoreSight Debug and Trace Tools","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":34,"user_id":1672,"domain":"github.com"}],"notification_level":1,"can_flag_topic":false},"highest_post_number":1,"deleted_by":null,"actions_summary":[{"id":4,"count":0,"hidden":false,"can_act":false},{"id":7,"count":0,"hidden":false,"can_act":false},{"id":8,"count":0,"hidden":false,"can_act":false}],"chunk_size":20,"bookmarked":null,"tags":[],"featured_link":null,"topic_timer":null,"message_bus_last_id":7});
+      })();
+      </script>
+
+    
+
+    <script>
+  Ember.RSVP.configure('onerror', function(e) {
+    // Ignore TransitionAborted exceptions that bubble up
+    if (e && e.message === "TransitionAborted") { return; }
+
+    window.onerror(e && e.message, null,null,null,e);
+  });
+</script>
+
+<script>
+
+  (function() {
+    var ps = require('preload-store').default;
+
+    Discourse.CDN = '';
+    Discourse.BaseUrl = 'community.axoloti.com'.replace(/:[\d]*$/,"");
+    Discourse.BaseUri = '';
+    Discourse.Environment = 'production';
+    Discourse.SiteSettings = ps.get('siteSettings');
+    Discourse.LetterAvatarVersion = '5_9b142ce9460b8c6b265fd9abf598d3fd';
+    I18n.defaultLocale = 'en';
+    Discourse.start();
+    Discourse.set('assetVersion','d1ec72c862674d2eea0eb8ef6fc5934f');
+    Discourse.Session.currentProp("disableCustomCSS", false);
+    Discourse.HighlightJSPath = "/highlight-js/community.axoloti.com/100444ceef8ca161334f64d3ce49fe7a1556f943.js";
+  })();
+</script>
+
+<link rel='preload' href='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js' as='script'/>
+<script src='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js'></script>
+
+
+    
+
+      
+    
+  </body>
+</html>

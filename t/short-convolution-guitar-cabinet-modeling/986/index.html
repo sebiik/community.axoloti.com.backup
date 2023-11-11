@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device  anon">
+  <head>
+    <meta charset="utf-8">
+    <title>Short Convolution (Guitar Cabinet Modeling) - Patching - Axoloti Community</title>
+    <meta name="description" content="I know that it would introduce delays and require a lot of DSP horsepower, but being able to use extremely short impulses for guitar cabinet modeling would be wonderful.  I know there was some requests for iFFT capabilit&amp;hellip;">
+    <meta name="discourse_theme_key" content="b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#nil">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/short-convolution-guitar-cabinet-modeling/986" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+    
+
+      <meta name="fragment" content="!">
+
+
+    <script>
+      window.EmberENV = window.EmberENV || {};
+      window.EmberENV['FORCE_JQUERY'] = true;
+    </script>
+
+    <link rel='preload' href='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js' as='script'/>
+<script src='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js'></script>
+    <link rel='preload' href='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js' as='script'/>
+<script src='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js'></script>
+    <link rel='preload' href='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js' as='script'/>
+<script src='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js'></script>
+    <link rel='preload' href='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js' as='script'/>
+<script src='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js'></script>
+    <link rel='preload' href='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js' as='script'/>
+<script src='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js'></script>
+    <link rel='preload' href='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js' as='script'/>
+<script src='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js'></script>
+    <link rel='preload' href='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js' as='script'/>
+<script src='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js'></script>
+    <link rel='preload' href='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js' as='script'/>
+<script src='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js'></script>
+
+
+      
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+    <link rel="manifest" href="/manifest.json">
+
+
+      <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+
+
+  <link href="/stylesheets/desktop_theme_1_6c5f8f7f5e6a154a9f0dfd7aedf04bae4b669f17.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop_theme"/>
+
+    
+
+<link rel="preload" href="/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0" as="font" type="font/woff2" crossorigin />
+<style>
+  @font-face {
+    font-family: 'FontAwesome';
+    src: url('/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0') format('woff2'),
+         url('/assets/fontawesome-webfont-ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07.woff?http://community.axoloti.com&amp;2&v=4.7.0') format('woff');
+  }
+</style>
+
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Short Convolution (Guitar Cabinet Modeling)&#39;" href="http://community.axoloti.com/t/short-convolution-guitar-cabinet-modeling/986.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/short-convolution-guitar-cabinet-modeling/986" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/short-convolution-guitar-cabinet-modeling/986" />
+<meta property="og:title" content="Short Convolution (Guitar Cabinet Modeling)" />
+<meta name="twitter:title" content="Short Convolution (Guitar Cabinet Modeling)" />
+<meta property="og:description" content="I know that it would introduce delays and require a lot of DSP horsepower, but being able to use extremely short impulses for guitar cabinet modeling would be wonderful.  I know there was some requests for iFFT capabilities before.  Is this possible right now?  Is it planned?  Are there other ways to model cabinets with filters?" />
+<meta name="twitter:description" content="I know that it would introduce delays and require a lot of DSP horsepower, but being able to use extremely short impulses for guitar cabinet modeling would be wonderful.  I know there was some requests for iFFT capabilities before.  Is this possible right now?  Is it planned?  Are there other ways to model cabinets with filters?" />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="3 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="7 ❤" />
+
+      <link rel="next" href="/t/short-convolution-guitar-cabinet-modeling/986?page=2">
+
+
+    
+  </head>
+
+  <body class="">
+    
+
+    <div class='debug-eyeline'></div>
+
+    <noscript data-path="/t/short-convolution-guitar-cabinet-modeling/986">
+      <header class="d-header">
+  <div class="wrap">
+    <div class="contents">
+      <div class="row">
+        <div class="title span13">
+          <a href="/">
+              <img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo">
+          </a>
+        </div>
+            <div class='panel clearfix'>
+              <a href="/login" class='btn btn-primary btn-small login-button'><i class="fa fa-user"></i> Log In</a>
+            </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div id="main-outlet" class="wrap">
+        <!-- preload-content: -->
+        <h1>
+  <a href="/t/short-convolution-guitar-cabinet-modeling/986">Short Convolution (Guitar Cabinet Modeling)</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/patching" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Marlow'><b itemprop='author'>Marlow</b></a>
+           
+           <time datetime='2016-02-03T17:47:25Z' itemprop='datePublished'>
+             2016-02-03 17:47:25 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I know that it would introduce delays and require a lot of DSP horsepower, but being able to use extremely short impulses for guitar cabinet modeling would be wonderful.  I know there was some requests for iFFT capabilities before.  Is this possible right now?  Is it planned?  Are there other ways to model cabinets with filters?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+            <a href="http://community.axoloti.com/t/axoloti-guitar-preamp/6096/2">Axoloti guitar preamp</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/anon5189335'><b itemprop='author'>anon5189335</b></a>
+           
+           <time datetime='2016-02-03T20:46:40Z' itemprop='datePublished'>
+             2016-02-03 20:46:40 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Was looking into making a reverb using FIR filters the other day. Didnt get as far as patching, only reading and from what I read you can probably use a FIR filter for short impulse response too. Need to read a lot more about it. BUt i think the FIR filters can open up another level in Axoloti. Just need to understand how they work first <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<p>Point 3.0 about reverb modeling got me on the track that it might be possible to use impulse responses with FIR filter in Axoloti. </p>
+
+<p><a href="http://musicweb.ucsd.edu/~sdubnov/Mu172/Lectures/ReverberationDevicesAndGettingStarted.pdf" class="onebox" target="_blank">http://musicweb.ucsd.edu/~sdubnov/Mu172/Lectures/ReverberationDevicesAndGettingStarted.pdf</a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-02-03T21:45:24Z' itemprop='datePublished'>
+             2016-02-03 21:45:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Doing FFT convolution in a short buffer environment calls for partitioned FFT convolution, quite some work, and is low on my priority list. I have not worked out how much is feasible in Axoloti. And perhaps subject of active patents...<br>Other possibilities for cabinet modelling, perhaps a mix of tapped delay lines and biquad filters, but hard to match all the coefficients to a given impulse response.<br>Contributions would be welcome!</p>
+
+<p><a class="mention" href="/users/jaffasplaffa">@jaffasplaffa</a> <br>Direct FIR filters will not get very far in terms of impulse response length.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/anon5189335'><b itemprop='author'>anon5189335</b></a>
+           
+           <time datetime='2016-02-03T22:18:17Z' itemprop='datePublished'>
+             2016-02-03 22:18:17 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ok thanks, Johannes</p>
+
+<p>Still reading up on it. IIR filters would be needed for the longer relections? And FIR for the early reflections? But for amp modeling, maybe it could be used <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:">  There was just a few things in the link above that caught my eye and made me want to study it a bit further, just as a new approach to do things and reach new areas <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> </p>
+
+<p>Also a piece of the manual for the Axe Fx from Fractal Audio also mentions something about FIR filters being a big part of amp modeling. On FIR and IIR and amp modeling, Page 4, "simulation basics":<br><a href="http://www.fractalaudio.com/downloads/manuals/axe-fx-2/Fractal-Audio-Systems-MIMIC-%28tm%29-Technology.pdf" class="onebox" target="_blank">http://www.fractalaudio.com/downloads/manuals/axe-fx-2/Fractal-Audio-Systems-MIMIC-%28tm%29-Technology.pdf</a></p>
+
+<p>"FIR  filters  are  complex  filters  suitable  for  a  wide  range  of  filtering  tasks and  most  products  use  FIR  filters  (commonly  called  IRs)  for  their  speaker  simulations,  <strong>sometimes</strong>  in  conjunction  with  IIR  filters. "</p>
+
+<p>I am focusing on the "sometimes": sometimes means it is possible to make amp modeling with FIR alone and will persue that idea <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> But no idea how complicated we can go or how complicated it would be... BUT there are loads of impulse responses, copyright free that we could use without getting in trouble <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"> Maybe loading impulse respons in a table combined with the FIR filters in some way... Even more options for creativity in Axoloti</p>
+
+<p>EDIT: ahh yeah I see maybe Impulse Responses are patentet and therefor that technique can only be used if you pay for it?</p>
+
+<p>My attention turned to these filters, also the allpass, cause I wanted to create an EQ.. I got a 1 band eq with cut/boost function  working using allpass filter, invertes and bandpass filters and thought I wanted to explore the FIR filter too. I think they can be used for all kinds of things that I am interested in. Like creating all kind of effects from scratch. </p>
+
+<p>But now I am out. Second Axoloti boards output just died too <img src="/images/emoji/emoji_one/confounded.png?v=0" title=":confounded:" class="emoji" alt=":confounded:"> Have no idea how to fix either of them. </p>
+
+<p>But will have to rest on it and see what I can come up with tommorow..</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Marlow'><b itemprop='author'>Marlow</b></a>
+           
+           <time datetime='2016-02-04T07:32:47Z' itemprop='datePublished'>
+             2016-02-04 07:32:47 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks for the information so far, jaffasplaffa and Johannes.  I'd truly appreciate collaborating in this effort either way!  I have plenty of opensource cabinet impulse responses and use convolution in this way regularly with VSTs and some apps on iOS.  I don't think patents would be an issue, but the size of the impulses would definitely need to be very small.  I have impulses that range in length, but I think 5-20ms would work well for this.  How could we approximate with a FIR?  Or how could we use delayed taps and use biquad filters?  I think some if the opensource CAPS LADSPA plugins might also be a good start.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/anon5189335'><b itemprop='author'>anon5189335</b></a>
+           
+           <time datetime='2016-02-04T07:40:31Z' itemprop='datePublished'>
+             2016-02-04 07:40:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Yeah lets see if we can get anything going. Though again I think i am out for a while cause of the default boards. Two on same day. </p>
+
+<p>Wil have to look into fixing the boards in some way first.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/kassu'><b itemprop='author'>kassu</b></a>
+           
+           <time datetime='2016-02-04T09:56:08Z' itemprop='datePublished'>
+             2016-02-04 09:56:08 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I suppose the limit on the FIR filter object (16 coefficients) is the same issue as with longer FFTs: that the sample buffer is 16 samples, so that is the longest you can do "easily". 16 samples is 1/3 of a ms, too short even for typical audio frequency filters.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/anon5189335'><b itemprop='author'>anon5189335</b></a>
+           
+           <time datetime='2016-02-04T10:00:31Z' itemprop='datePublished'>
+             2016-02-04 10:00:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Naive question (again):</p>
+
+<p>Couldnt you Chain a few of Them for more samples?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Marlow'><b itemprop='author'>Marlow</b></a>
+           
+           <time datetime='2016-02-04T11:23:17Z' itemprop='datePublished'>
+             2016-02-04 11:23:17 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Kassu, would you know how to use that to create an extremely short convolution capability?  I'd even be willing to try that by slicing the impulse to 16 samples, but I wouldn't know what to do with it.  Also, what do you think about jaffasplaffa's idea of chaining them in serial?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/kassu'><b itemprop='author'>kassu</b></a>
+           
+           <time datetime='2016-02-04T13:52:00Z' itemprop='datePublished'>
+             2016-02-04 13:52:00 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I don't know the best solution to this, but the algorithm linked below might be roughly what you need to do. I'm pretty sure you have to implement this as a custom object to stand a chance, and I'm not able to write it myself.</p>
+
+<p>The idea seems to be chopping the input signal in pieces, and convolve each piece with the entire filter kernel (inpulse response). Then you need to add the result for each piece together, with a certain amount of overlap. If I understand the algorithm correctly, you need one extra memory buffer with the length of the impulse response + 16 samples (the piece length), which sounds feasible. I don't know what the limits on axoloti are, basically how big a convolution can you do in the time of 16 samples...</p>
+
+<aside class="onebox wikipedia">
+  <header class="source">
+    <a href="https://en.wikipedia.org/wiki/Overlap%E2%80%93add_method">
+      
+      en.wikipedia.org
+    </a>
+  </header>
+  <article class="onebox-body">
+    <img src="//upload.wikimedia.org/wikipedia/commons/7/77/Depiction_of_overlap-add_algorithm.png" class="thumbnail" width="131" height="68">
+
+<h3><a href="https://en.wikipedia.org/wiki/Overlap%E2%80%93add_method">Overlap–add method</a></h3>
+
+<p>In signal processing, the overlap–add method (OA, OLA) is an efficient way to evaluate the discrete convolution of a very long signal  with a finite impulse response (FIR) filter : where h[m] = 0 for m outside the region [1, M]. The concept is to divide the problem into multiple convolutions of h[n] with short segments of : where L is an arbitrary segment length. Then:</p>
+
+  </article>
+  <div style="clear: both"></div>
+</aside>
+
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/anon5189335'><b itemprop='author'>anon5189335</b></a>
+           
+           <time datetime='2016-02-04T17:48:44Z' itemprop='datePublished'>
+             2016-02-04 17:48:44 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>there is an example of an overlap add shifter in Axoloti. </p>
+
+<p>Tutorial 22.</p>
+
+<p>But I dont understand what is going on in the patch yet.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-02-04T19:57:30Z' itemprop='datePublished'>
+             2016-02-04 19:57:30 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/users/kassu">@kassu</a> "partitioned convolution" removes the latency inherent to the method described in that wikipedia article. The term "overlap add" also covers other things than the FFT convolution described in that article. </p>
+
+<aside class="quote" data-post="11" data-topic="986"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png" class="avatar">jaffasplaffa:</div>
+<blockquote><p>there is an example of an overlap add shifter in Axoloti.</p></blockquote></aside>
+
+<p>That's a different "overlap add" than in that pitch shifter.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-02-04T22:14:46Z' itemprop='datePublished'>
+             2016-02-04 22:14:46 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>A rough estimate - implementing direct convolution (pretty simple, far easier than implementing regular fft convolution or partitioned convolution), should work out up to around a 1600 samples impulse response length, ~ 33 milliseconds) for mono in/out. </p>
+
+<p><a href="http://www.arm.com/files/pdf/DSPConceptsM4Presentation.pdf" class="onebox" target="_blank">http://www.arm.com/files/pdf/DSPConceptsM4Presentation.pdf</a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Marlow'><b itemprop='author'>Marlow</b></a>
+           
+           <time datetime='2016-02-05T17:17:13Z' itemprop='datePublished'>
+             2016-02-05 17:17:13 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Sweet!  So it should be possible as long as the impulse sample is 33ms or less!  Can it be done with current objects, or would this be a future object or addition to the core code?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+            <a href="http://community.axoloti.com/t/reverbs-creation/1071/8">Reverbs creation</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-02-07T14:11:46Z' itemprop='datePublished'>
+             2016-02-07 14:11:46 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>This can't be done with current objects, it requires development of a custom object.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+            <a href="http://community.axoloti.com/t/reverbs-creation/1071/8">Reverbs creation</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/anon5189335'><b itemprop='author'>anon5189335</b></a>
+           
+           <time datetime='2016-02-12T21:56:50Z' itemprop='datePublished'>
+             2016-02-12 21:56:50 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="15" data-topic="986" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>This can't be done with current objects, it requires development of a custom object.</p></blockquote></aside>
+
+<p><a class="mention" href="/users/johannes">@johannes</a> </p>
+
+<p>Is that something you would consider implementing sometime down the road? Would be a great addition to Axoloti. No rush on it. Just curios if you have thought about it <img src="/images/emoji/emoji_one/wink.png?v=0" title=":wink:" class="emoji" alt=":wink:"> </p>
+
+<p>Thanks.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/toneburst'><b itemprop='author'>toneburst</b></a>
+           
+           <time datetime='2016-04-08T15:21:21Z' itemprop='datePublished'>
+             2016-04-08 15:21:21 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm derailing the topic a little here, but I was just looking through the CMSIS DSP library documentation, and there is an  <a href="http://www.keil.com/pack/doc/CMSIS/DSP/html/arm_convolution_example_f32_8c-example.html" rel="nofollow">example</a> of a convolution setup using the library's FFT functions.</p>
+
+<p>Assuming CMSIS DSP is available to custom objects, could this example be adapted to make a spectral morph between two s-rate audio inputs? If so, would it work with two 16-sample buffers, or would it be necessary to aggregate several buffers (and increase latency)?</p>
+
+<p>a|x</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-07-01T17:20:54Z' itemprop='datePublished'>
+             2016-07-01 17:20:54 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I have pushed a convolution object and help patch to the 1.0.10 factory library, "filter/convolution", using version 1.0.10 "sync libraries" should get it to you. </p>
+
+<p>I also added an example synth patch in axoloti-factory/patches/demos/synth/dreamy.axp</p>
+
+<p>I haven't tried cabinet modelling with it, but should do fine <img src="/images/emoji/emoji_one/slight_smile.png?v=2" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+
+<p>edit1: OOPS: the length is fixed to 1024 samples, working on a fix...<br>edit2: fixed...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:3'>
+      <meta itemprop='interactionCount' content='UserComments:3'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/jaffasplaffa'><b itemprop='author'>jaffasplaffa</b></a>
+           
+           <time datetime='2016-07-01T21:51:57Z' itemprop='datePublished'>
+             2016-07-01 21:51:57 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hey <a class="mention" href="/users/johannes">@johannes</a></p>
+
+<p>Nice. Fun to play with. Thanks <img src="/images/emoji/emoji_one/wink.png?v=2" title=":wink:" class="emoji" alt=":wink:"> But I think the object would benefint a lot from having a modulation input for the coefficients, like the FIR filter has. I think that will help eliminate some of the "digitalness" of the sound of the object.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Marlow'><b itemprop='author'>Marlow</b></a>
+           
+           <time datetime='2016-07-10T15:47:45Z' itemprop='datePublished'>
+             2016-07-10 15:47:45 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Johannes!</p>
+
+<p>Fantastic work!  THIS was what I was wishing for!  I replaced the noise input sources with various cab impulses and rocked out!  I put an awesome distortion with gate in the front and an eq, delay, and small reverb module in the mix and am running at around 80%.  I actually tried a more lush reverb, but it used too much sdram.</p>
+
+<p>The ONLY problem I have is that I have to push the button for the impulse to be read into the table, so it doesn't work in stand alone mode.  Any ideas on how to have an impulse auto load to the table?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Short Convolution (Guitar Cabinet Modeling)'>
+      <hr>
+  </div>
+
+  <div role='navigation' itemscope itemtype='http://schema.org/SiteNavigationElement'>
+      <span itemprop='url'><b><a rel="next" itemprop="name" href="/t/short-convolution-guitar-cabinet-modeling/986?page=2">next page →</a></b></span>
+  </div>
+
+
+
+
+
+        <!-- :preload-content -->
+        <footer>
+          <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+            <a href='/'>Home</a>
+            <a href="/categories">Categories</a>
+            <a href="/guidelines">FAQ/Guidelines</a>
+            <a href="/tos">Terms of Service</a>
+            <a href="/privacy">Privacy Policy</a>
+          </nav>
+        </footer>
+      </div>
+
+      <footer id='noscript-footer'>
+        <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+      </footer>
+    </noscript>
+
+      
+
+    <section id='main'>
+    </section>
+
+    <div id='offscreen-content'>
+    </div>
+
+      <form id='hidden-login-form' method="post" action="/login" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+
+      <script>
+      (function() {
+        var ps = require('preload-store').default;
+          ps.store("site", {"default_archetype":"regular","notification_types":{"mentioned":1,"replied":2,"quoted":3,"edited":4,"liked":5,"private_message":6,"invited_to_private_message":7,"invitee_accepted":8,"posted":9,"moved_post":10,"linked":11,"granted_badge":12,"invited_to_topic":13,"custom":14,"group_mentioned":15,"group_message_summary":16,"watching_first_post":17,"topic_reminder":18},"post_types":{"regular":1,"moderator_action":2,"small_action":3,"whisper":4},"groups":[{"id":1,"name":"admins"},{"id":0,"name":"everyone"},{"id":2,"name":"moderators"},{"id":3,"name":"staff"},{"id":10,"name":"trust_level_0"},{"id":11,"name":"trust_level_1"},{"id":12,"name":"trust_level_2"},{"id":13,"name":"trust_level_3"},{"id":14,"name":"trust_level_4"}],"filters":["latest","unread","new","read","posted","bookmarks"],"periods":["all","yearly","quarterly","monthly","weekly","daily"],"top_menu_items":["latest","unread","new","read","posted","bookmarks","category","categories","top"],"anonymous_top_menu_items":["latest","top","categories","category","categories","top"],"uncategorized_category_id":1,"is_readonly":false,"disabled_plugins":[],"user_field_max_length":2048,"suppressed_from_homepage_category_ids":[],"post_action_types":[{"name_key":"bookmark","name":"Bookmark","description":"Bookmark this post","short_description":"Bookmark this post","long_form":"bookmarked this post","is_flag":false,"icon":null,"id":1,"is_custom_flag":false},{"name_key":"like","name":"Like","description":"Like this post","short_description":"Like this post","long_form":"liked this","is_flag":false,"icon":"heart","id":2,"is_custom_flag":false},{"name_key":"off_topic","name":"Off-Topic","description":"This post is not relevant to the current discussion as defined by the title and first post, and should probably be moved elsewhere.","short_description":"Not relevant to the discussion","long_form":"flagged this as off-topic","is_flag":true,"icon":null,"id":3,"is_custom_flag":false},{"name_key":"inappropriate","name":"Inappropriate","description":"This post contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"A violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"vote","name":"Vote","description":"Vote for this post","short_description":"Vote for this post","long_form":"voted for this post","is_flag":false,"icon":null,"id":5,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This post is an advertisement, or vandalism. It is not useful or relevant to the current topic.","short_description":"This is an advertisement or vandalism","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_user","name":"Send @{{username}} a message","description":"I want to talk to this person directly and privately about their post.","short_description":"I want to talk to this person directly and privately about their post.","long_form":"messaged user","is_flag":true,"icon":null,"id":6,"is_custom_flag":true},{"name_key":"notify_moderators","name":"Something Else","description":"This post requires staff attention for another reason not listed above.","short_description":"Requires staff attention for another reason","long_form":"flagged this for staff attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"topic_flag_types":[{"name_key":"inappropriate","name":"Inappropriate","description":"This topic contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"translation missing: en.topic_flag_types.inappropriate.short_description","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This topic is an advertisement. It is not useful or relevant to this site, but promotional in nature.","short_description":"translation missing: en.topic_flag_types.spam.short_description","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_moderators","name":"Something Else","description":"This topic requires general staff attention based on the \u003ca href=\"/guidelines\"\u003eguidelines\u003c/a\u003e, \u003ca href=\"/tos\"\u003eTOS\u003c/a\u003e, or for another reason not listed above.","short_description":"translation missing: en.topic_flag_types.notify_moderators.short_description","long_form":"flagged this for moderator attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"can_create_tag":null,"can_tag_topics":null,"tags_filter_regexp":"[/\\?#\\[\\]@!\\$\u0026'\\(\\)\\*\\+,;=\\.%\\\\`^\\s|\\{\\}\"\u003c\u003e]+","top_tags":["midi","controllers","modular","linux","1.0.11","macos","windows","troubleshooting","usb","challenge","wavetable","library","math","faust","dsp","out","tips","current","14bit"],"topic_featured_link_allowed_category_ids":[10,4,12,1,6,5,2,15,3,16,14,9,8,11,13,7],"user_themes":[{"theme_key":"b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408","name":"Migrated from Site Text","default":true}],"categories":[{"id":1,"name":"Uncategorized","color":"AB9364","text_color":"FFFFFF","slug":"uncategorized","topic_count":-1,"post_count":1,"position":0,"description":"Topics that don't need a category, or don't fit into any other existing category.","description_text":"","topic_url":"/t/","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":10,"name":"User Guide","color":"3AB54A","text_color":"FFFFFF","slug":"user-guide","topic_count":24,"post_count":102,"position":1,"description":"This category contains posts to help users use Axoloti, a dynamic user guide.","description_text":"This category contains posts to help users use Axoloti, a dynamic user guide.","topic_url":"/t/about-the-user-guide-category/51","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":8,"name":"Helpdesk","color":"9EB83B","text_color":"FFFFFF","slug":"helpdesk","topic_count":389,"post_count":3093,"position":2,"description":"This category is for reporting issues and bugs\u003cbr\u003ePlease use other categories for discussions on features or questions or \"how to?\"","description_text":"This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or \"how to?\"","topic_url":"/t/about-the-helpdesk-category/23","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":13,"name":"Community Library","color":"9EB83B","text_color":"FFFFFF","slug":"community-library","topic_count":54,"post_count":2940,"position":3,"description":"Category for the community library","description_text":"Category for the community library","topic_url":"/t/about-the-community-library-category/1005","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":7,"name":"Patching","color":"AB9364","text_color":"FFFFFF","slug":"patching","topic_count":1023,"post_count":8372,"position":4,"description":"This category is for discussion about patching Axoloti, and sharing patches.","description_text":"This category is for discussion about patching Axoloti, and sharing patches.","topic_url":"/t/about-the-patching-category/14","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":5,"name":"Hardware","color":"AB9364","text_color":"FFFFFF","slug":"hardware","topic_count":697,"post_count":7484,"position":5,"description":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects. ","description_text":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects.","topic_url":"/t/about-the-hardware-category/12","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":6,"name":"Software","color":"AB9364","text_color":"FFFFFF","slug":"software","topic_count":334,"post_count":3364,"position":6,"description":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. ","description_text":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti.","topic_url":"/t/about-the-software-category/13","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":16,"name":"AxoObject coding","color":"AB9364","text_color":"FFFFFF","slug":"axoobject-code","topic_count":269,"post_count":2191,"position":7,"description":"Category to discuss coding Axoloti Objects.","description_text":"Category to discuss coding Axoloti Objects.","topic_url":"/t/about-the-axoobject-coding-category/1519","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":14,"name":"News/Events","color":"283890","text_color":"FFFFFF","slug":"events","topic_count":30,"post_count":106,"position":8,"description":"Meetups, workshops, presentations, all sort of events.\u003cbr\u003eIt's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.\u003cbr\u003eStart your topic title with the name of the area where your event will happen.","description_text":"Meetups, workshops, presentations, all sort of events.It's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.Start your topic title with the name of the area where your event will happen.","topic_url":"/t/about-the-events-category/1142","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":12,"name":"Challenges","color":"0E76BD","text_color":"FFFFFF","slug":"challenges","topic_count":19,"post_count":266,"position":9,"description":"This category is for challenges, competitions and discussions related to these.\u003cbr\u003eposters are reminded when entering challenges and competitions to not include any copyrighted material","description_text":"This category is for challenges, competitions and discussions related to these.posters are reminded when entering challenges and competitions to not include any copyrighted material","topic_url":"/t/about-the-challenges-category/838","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":9,"name":"Your Music/Projects","color":"0E76BD","text_color":"FFFFFF","slug":"your-music-projects","topic_count":187,"post_count":1309,"position":10,"description":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?\u003cbr\u003eTells us about it here.","description_text":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?Tells us about it here.","topic_url":"/t/about-the-your-music-projects-category/25","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":15,"name":"Lounge","color":"AB9364","text_color":"FFFFFF","slug":"lounge","topic_count":105,"post_count":1712,"position":11,"description":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.\u003cbr\u003e(please ensure it has some relevance to Axoloti, rather than general discussion) ","description_text":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.(please ensure it has some relevance to Axoloti, rather than general discussion)","topic_url":"/t/about-the-lounge-category/1277","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":11,"name":"Developer","color":"BF1E2E","text_color":"FFFFFF","slug":"developer","topic_count":66,"post_count":648,"position":12,"description":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","description_text":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","topic_url":"/t/about-the-developer-category/735","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"This category is for low level discussion on the development of Axoloti, its is intended for developers/programmers only.","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":3,"name":"Website and Forum","color":"808281","text_color":"FFFFFF","slug":"meta","topic_count":45,"post_count":412,"position":13,"description":"Discussion about this site, its organization, how it works, and how we can improve it.","description_text":"Discussion about this site, its organization, how it works, and how we can improve it.","topic_url":"/t/about-the-meta-category/2","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null}],"trust_levels":[{"id":0,"name":"new user"},{"id":1,"name":"basic user"},{"id":2,"name":"member"},{"id":3,"name":"regular"},{"id":4,"name":"leader"}],"archetypes":[{"id":"regular","name":"Regular Topic","options":[]},{"id":"banner","name":"Banner Topic","options":[]}],"user_fields":[]});
+          ps.store("siteSettings", {"title":"Axoloti Community","contact_email":"johannes.taelman@gmail.com","contact_url":"","logo_url":"/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png","logo_small_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","mobile_logo_url":"","favicon_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","allow_user_locale":false,"suggested_topics":5,"track_external_right_clicks":false,"ga_universal_tracking_code":"UA-56017691-4","ga_universal_domain_name":"auto","ga_tracking_code":"","ga_domain_name":"","gtm_container_id":"","top_menu":"categories|latest|new|unread|top","post_menu":"like-count|like|share|flag|edit|bookmark|delete|admin|reply","post_menu_hidden_items":"flag|bookmark|edit|delete|admin","share_links":"twitter|facebook|email","desktop_category_page_style":"categories_and_latest_topics","category_colors":"BF1E2E|F1592A|F7941D|9EB83B|3AB54A|12A89D|25AAE2|0E76BD|652D90|92278F|ED207B|8C6238|231F20|808281|B3B5B4|283890","category_style":"bullet","enable_mobile_theme":true,"relative_date_duration":30,"fixed_category_positions":true,"fixed_category_positions_on_create":false,"enable_badges":true,"enable_badge_sql":false,"enable_whispers":false,"invite_only":false,"login_required":false,"must_approve_users":false,"enable_local_logins":true,"allow_new_registrations":true,"enable_signup_cta":true,"enable_google_oauth2_logins":false,"enable_yahoo_logins":false,"enable_twitter_logins":false,"enable_instagram_logins":false,"enable_facebook_logins":false,"enable_github_logins":false,"enable_sso":false,"sso_overrides_avatar":false,"min_username_length":3,"max_username_length":20,"min_password_length":10,"min_admin_password_length":15,"logout_redirect":"","full_name_required":false,"enable_names":true,"invites_per_page":40,"delete_user_max_post_age":60,"delete_all_posts_max":15,"show_email_on_profile":false,"prioritize_username_in_ux":true,"enable_user_directory":true,"allow_anonymous_posting":false,"anonymous_posting_min_trust_level":1,"hide_user_profiles_from_public":false,"enable_group_directory":true,"min_post_length":20,"min_first_post_length":20,"min_private_message_post_length":10,"max_post_length":32000,"topic_featured_link_enabled":true,"min_topic_title_length":15,"max_topic_title_length":255,"min_private_message_title_length":2,"allow_uncategorized_topics":false,"min_title_similar_length":10,"min_body_similar_length":15,"enable_private_messages":true,"edit_history_visible_to_public":false,"delete_removed_posts_after":24,"enable_experimental_markdown_it":false,"traditional_markdown_linebreaks":false,"enable_markdown_typographer":false,"allow_html_tables":false,"suppress_reply_directly_below":true,"suppress_reply_directly_above":true,"max_reply_history":1,"newuser_max_images":1,"newuser_max_attachments":2,"show_pinned_excerpt_mobile":true,"show_pinned_excerpt_desktop":true,"display_name_on_posts":false,"show_time_gap_days":7,"short_progress_text_threshold":10000,"default_code_lang":"auto","autohighlight_all_code":false,"highlighted_languages":"apache|bash|cs|cpp|css|coffeescript|diff|xml|http|ini|json|java|javascript|makefile|markdown|nginx|objectivec|ruby|perl|php|python|sql|handlebars","censored_words":"","censored_pattern":"","enable_emoji":true,"emoji_set":"twitter","code_formatting_style":"4-spaces-indent","allowed_href_schemes":"","email_time_window_mins":10,"disable_digest_emails":false,"email_in":false,"disable_emails":false,"bounce_score_threshold":4,"max_image_size_kb":3072,"max_attachment_size_kb":3072,"authorized_extensions":"jpg|jpeg|png|gif|axo|axp|axs|axh|fpd|brd|axt","max_image_width":690,"max_image_height":500,"prevent_anons_from_downloading_files":false,"enable_s3_uploads":false,"allow_profile_backgrounds":true,"allow_uploaded_avatars":true,"allow_animated_avatars":false,"default_avatars":"","external_system_avatars_enabled":true,"external_system_avatars_url":"/letter_avatar_proxy/v2/letter/{first_letter}/{color}/{size}.png","allow_staff_to_upload_any_file_in_pm":true,"tl1_requires_read_posts":30,"tl3_links_no_follow":false,"use_admin_ip_whitelist":false,"max_oneboxes_per_post":50,"alert_admins_if_errors_per_minute":0,"alert_admins_if_errors_per_hour":0,"max_prints_per_hour_per_user":5,"enable_long_polling":true,"long_polling_base_url":"/","background_polling_interval":60000,"polling_interval":3000,"anon_polling_interval":15000,"flush_timings_secs":20,"verbose_localization":false,"max_new_topics":500,"tos_url":"","privacy_policy_url":"","faq_url":"","maximum_backups":5,"min_search_term_length":3,"version_checks":true,"suppress_uncategorized_badge":true,"topic_views_heat_low":1000,"topic_views_heat_medium":2000,"topic_views_heat_high":5000,"topic_post_like_heat_low":0.5,"topic_post_like_heat_medium":1.0,"topic_post_like_heat_high":2.0,"history_hours_low":12,"history_hours_medium":24,"history_hours_high":48,"cold_age_days_low":14,"cold_age_days_medium":90,"cold_age_days_high":180,"global_notice":"","show_create_topics_notice":true,"bootstrap_mode_min_users":50,"bootstrap_mode_enabled":false,"automatically_unpin_topics":true,"read_time_word_count":500,"disable_mailing_list_mode":false,"default_topics_automatic_unpin":true,"tagging_enabled":true,"tag_style":"simple","max_tags_per_topic":5,"max_tag_length":20,"min_trust_level_to_tag_topics":0,"max_tag_search_results":5,"show_filter_by_tag":true,"tags_sort_alphabetically":false,"staff_tags":"","suppress_overlapping_tags_in_list":false,"discourse_narrative_bot_enabled":true,"poll_enabled":true,"poll_maximum_options":20,"details_enabled":true,"available_locales":"ar|bs_BA|cs|da|de|el|en|es|et|fa_IR|fi|fr|gl|he|id|it|ja|ko|nb_NO|nl|pl_PL|pt|pt_BR|ro|ru|sk|sq|sv|te|tr_TR|uk|ur|vi|zh_CN|zh_TW"});
+          ps.store("customHTML", {"top":"","footer":""});
+          ps.store("banner", {});
+          ps.store("customEmoji", []);
+          ps.store("translationOverrides", {});
+          ps.store("topic_986", {"post_stream":{"posts":[{"id":5608,"name":"Marlow ","username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png","created_at":"2016-02-03T17:47:25.496Z","cooked":"\u003cp\u003eI know that it would introduce delays and require a lot of DSP horsepower, but being able to use extremely short impulses for guitar cabinet modeling would be wonderful.  I know there was some requests for iFFT capabilities before.  Is this possible right now?  Is it planned?  Are there other ways to model cabinets with filters?\u003c/p\u003e","post_number":1,"post_type":1,"updated_at":"2016-02-03T17:47:25.496Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":33,"incoming_link_count":703,"reads":205,"score":3589.65,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"Marlow ","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://community.axoloti.com/t/axoloti-guitar-preamp/6096/2","internal":true,"reflection":true,"title":"Axoloti guitar preamp","clicks":1}],"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":false,"admin":false,"staff":false,"user_id":340,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5618,"name":null,"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png","created_at":"2016-02-03T20:46:40.319Z","cooked":"\u003cp\u003eWas looking into making a reverb using FIR filters the other day. Didnt get as far as patching, only reading and from what I read you can probably use a FIR filter for short impulse response too. Need to read a lot more about it. BUt i think the FIR filters can open up another level in Axoloti. Just need to understand how they work first \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=0\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e \u003c/p\u003e\n\n\u003cp\u003ePoint 3.0 about reverb modeling got me on the track that it might be possible to use impulse responses with FIR filter in Axoloti. \u003c/p\u003e\n\n\u003cp\u003e\u003ca href=\"http://musicweb.ucsd.edu/~sdubnov/Mu172/Lectures/ReverberationDevicesAndGettingStarted.pdf\" class=\"onebox\" target=\"_blank\"\u003ehttp://musicweb.ucsd.edu/~sdubnov/Mu172/Lectures/ReverberationDevicesAndGettingStarted.pdf\u003c/a\u003e\u003c/p\u003e","post_number":2,"post_type":1,"updated_at":"2016-02-03T20:48:06.891Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":43,"incoming_link_count":17,"reads":204,"score":127.95,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":null,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://musicweb.ucsd.edu/~sdubnov/Mu172/Lectures/ReverberationDevicesAndGettingStarted.pdf","internal":false,"reflection":false,"clicks":54}],"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":48,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5620,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-02-03T21:45:24.056Z","cooked":"\u003cp\u003eDoing FFT convolution in a short buffer environment calls for partitioned FFT convolution, quite some work, and is low on my priority list. I have not worked out how much is feasible in Axoloti. And perhaps subject of active patents...\u003cbr\u003eOther possibilities for cabinet modelling, perhaps a mix of tapped delay lines and biquad filters, but hard to match all the coefficients to a given impulse response.\u003cbr\u003eContributions would be welcome!\u003c/p\u003e\n\n\u003cp\u003e\u003ca class=\"mention\" href=\"/users/jaffasplaffa\"\u003e@jaffasplaffa\u003c/a\u003e \u003cbr\u003eDirect FIR filters will not get very far in terms of impulse response length.\u003c/p\u003e","post_number":3,"post_type":1,"updated_at":"2016-02-03T21:45:24.056Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":40,"incoming_link_count":3,"reads":197,"score":61.4,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5623,"name":null,"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png","created_at":"2016-02-03T22:18:17.071Z","cooked":"\u003cp\u003eOk thanks, Johannes\u003c/p\u003e\n\n\u003cp\u003eStill reading up on it. IIR filters would be needed for the longer relections? And FIR for the early reflections? But for amp modeling, maybe it could be used \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=0\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e  There was just a few things in the link above that caught my eye and made me want to study it a bit further, just as a new approach to do things and reach new areas \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=0\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e \u003c/p\u003e\n\n\u003cp\u003eAlso a piece of the manual for the Axe Fx from Fractal Audio also mentions something about FIR filters being a big part of amp modeling. On FIR and IIR and amp modeling, Page 4, \"simulation basics\":\u003cbr\u003e\u003ca href=\"http://www.fractalaudio.com/downloads/manuals/axe-fx-2/Fractal-Audio-Systems-MIMIC-%28tm%29-Technology.pdf\" class=\"onebox\" target=\"_blank\"\u003ehttp://www.fractalaudio.com/downloads/manuals/axe-fx-2/Fractal-Audio-Systems-MIMIC-%28tm%29-Technology.pdf\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e\"FIR  filters  are  complex  filters  suitable  for  a  wide  range  of  filtering  tasks and  most  products  use  FIR  filters  (commonly  called  IRs)  for  their  speaker  simulations,  \u003cstrong\u003esometimes\u003c/strong\u003e  in  conjunction  with  IIR  filters. \"\u003c/p\u003e\n\n\u003cp\u003eI am focusing on the \"sometimes\": sometimes means it is possible to make amp modeling with FIR alone and will persue that idea \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=0\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e But no idea how complicated we can go or how complicated it would be... BUT there are loads of impulse responses, copyright free that we could use without getting in trouble \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=0\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e Maybe loading impulse respons in a table combined with the FIR filters in some way... Even more options for creativity in Axoloti\u003c/p\u003e\n\n\u003cp\u003eEDIT: ahh yeah I see maybe Impulse Responses are patentet and therefor that technique can only be used if you pay for it?\u003c/p\u003e\n\n\u003cp\u003eMy attention turned to these filters, also the allpass, cause I wanted to create an EQ.. I got a 1 band eq with cut/boost function  working using allpass filter, invertes and bandpass filters and thought I wanted to explore the FIR filter too. I think they can be used for all kinds of things that I am interested in. Like creating all kind of effects from scratch. \u003c/p\u003e\n\n\u003cp\u003eBut now I am out. Second Axoloti boards output just died too \u003cimg src=\"/images/emoji/emoji_one/confounded.png?v=0\" title=\":confounded:\" class=\"emoji\" alt=\":confounded:\"\u003e Have no idea how to fix either of them. \u003c/p\u003e\n\n\u003cp\u003eBut will have to rest on it and see what I can come up with tommorow..\u003c/p\u003e","post_number":4,"post_type":1,"updated_at":"2016-02-03T22:34:32.452Z","reply_count":0,"reply_to_post_number":3,"quote_count":0,"avg_time":29,"incoming_link_count":12,"reads":187,"score":98.85,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":null,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":2,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://www.fractalaudio.com/downloads/manuals/axe-fx-2/Fractal-Audio-Systems-MIMIC-%28tm%29-Technology.pdf","internal":false,"reflection":false,"clicks":48}],"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":48,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5624,"name":"Marlow ","username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png","created_at":"2016-02-04T07:32:47.976Z","cooked":"\u003cp\u003eThanks for the information so far, jaffasplaffa and Johannes.  I'd truly appreciate collaborating in this effort either way!  I have plenty of opensource cabinet impulse responses and use convolution in this way regularly with VSTs and some apps on iOS.  I don't think patents would be an issue, but the size of the impulses would definitely need to be very small.  I have impulses that range in length, but I think 5-20ms would work well for this.  How could we approximate with a FIR?  Or how could we use delayed taps and use biquad filters?  I think some if the opensource CAPS LADSPA plugins might also be a good start.\u003c/p\u003e","post_number":5,"post_type":1,"updated_at":"2016-02-04T07:32:47.976Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":12,"incoming_link_count":0,"reads":168,"score":54.2,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"Marlow ","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":false,"admin":false,"staff":false,"user_id":340,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5626,"name":null,"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png","created_at":"2016-02-04T07:40:31.466Z","cooked":"\u003cp\u003eYeah lets see if we can get anything going. Though again I think i am out for a while cause of the default boards. Two on same day. \u003c/p\u003e\n\n\u003cp\u003eWil have to look into fixing the boards in some way first.\u003c/p\u003e","post_number":6,"post_type":1,"updated_at":"2016-02-04T07:40:31.466Z","reply_count":0,"reply_to_post_number":5,"quote_count":0,"avg_time":11,"incoming_link_count":0,"reads":161,"score":32.75,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":null,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":48,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5630,"name":"","username":"kassu","avatar_template":"/user_avatar/community.axoloti.com/kassu/{size}/936_1.png","created_at":"2016-02-04T09:56:08.021Z","cooked":"\u003cp\u003eI suppose the limit on the FIR filter object (16 coefficients) is the same issue as with longer FFTs: that the sample buffer is 16 samples, so that is the longest you can do \"easily\". 16 samples is 1/3 of a ms, too short even for typical audio frequency filters.\u003c/p\u003e","post_number":7,"post_type":1,"updated_at":"2016-02-04T09:56:08.021Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":11,"incoming_link_count":1,"reads":156,"score":41.75,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":255,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5631,"name":null,"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png","created_at":"2016-02-04T10:00:31.833Z","cooked":"\u003cp\u003eNaive question (again):\u003c/p\u003e\n\n\u003cp\u003eCouldnt you Chain a few of Them for more samples?\u003c/p\u003e","post_number":8,"post_type":1,"updated_at":"2016-02-04T10:00:31.833Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":10,"incoming_link_count":0,"reads":156,"score":31.7,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":null,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":48,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5635,"name":"Marlow ","username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png","created_at":"2016-02-04T11:23:17.940Z","cooked":"\u003cp\u003eKassu, would you know how to use that to create an extremely short convolution capability?  I'd even be willing to try that by slicing the impulse to 16 samples, but I wouldn't know what to do with it.  Also, what do you think about jaffasplaffa's idea of chaining them in serial?\u003c/p\u003e","post_number":9,"post_type":1,"updated_at":"2016-02-04T11:23:17.940Z","reply_count":0,"reply_to_post_number":7,"quote_count":0,"avg_time":10,"incoming_link_count":12,"reads":156,"score":91.7,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"Marlow ","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"kassu","avatar_template":"/user_avatar/community.axoloti.com/kassu/{size}/936_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":340,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5644,"name":"","username":"kassu","avatar_template":"/user_avatar/community.axoloti.com/kassu/{size}/936_1.png","created_at":"2016-02-04T13:52:00.953Z","cooked":"\u003cp\u003eI don't know the best solution to this, but the algorithm linked below might be roughly what you need to do. I'm pretty sure you have to implement this as a custom object to stand a chance, and I'm not able to write it myself.\u003c/p\u003e\n\n\u003cp\u003eThe idea seems to be chopping the input signal in pieces, and convolve each piece with the entire filter kernel (inpulse response). Then you need to add the result for each piece together, with a certain amount of overlap. If I understand the algorithm correctly, you need one extra memory buffer with the length of the impulse response + 16 samples (the piece length), which sounds feasible. I don't know what the limits on axoloti are, basically how big a convolution can you do in the time of 16 samples...\u003c/p\u003e\n\n\u003caside class=\"onebox wikipedia\"\u003e\n  \u003cheader class=\"source\"\u003e\n    \u003ca href=\"https://en.wikipedia.org/wiki/Overlap%E2%80%93add_method\"\u003e\n      \n      en.wikipedia.org\n    \u003c/a\u003e\n  \u003c/header\u003e\n  \u003carticle class=\"onebox-body\"\u003e\n    \u003cimg src=\"//upload.wikimedia.org/wikipedia/commons/7/77/Depiction_of_overlap-add_algorithm.png\" class=\"thumbnail\" width=\"131\" height=\"68\"\u003e\n\n\u003ch3\u003e\u003ca href=\"https://en.wikipedia.org/wiki/Overlap%E2%80%93add_method\"\u003eOverlap–add method\u003c/a\u003e\u003c/h3\u003e\n\n\u003cp\u003eIn signal processing, the overlap–add method (OA, OLA) is an efficient way to evaluate the discrete convolution of a very long signal  with a finite impulse response (FIR) filter : where h[m] = 0 for m outside the region [1, M]. The concept is to divide the problem into multiple convolutions of h[n] with short segments of : where L is an arbitrary segment length. Then:\u003c/p\u003e\n\n  \u003c/article\u003e\n  \u003cdiv style=\"clear: both\"\u003e\u003c/div\u003e\n\u003c/aside\u003e\n","post_number":10,"post_type":1,"updated_at":"2016-02-04T13:52:00.953Z","reply_count":2,"reply_to_post_number":null,"quote_count":0,"avg_time":14,"incoming_link_count":6,"reads":161,"score":72.9,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"https://en.wikipedia.org/wiki/Overlap%E2%80%93add_method","internal":false,"reflection":false,"title":"Overlap–add method - Wikipedia, the free encyclopedia","clicks":22}],"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":255,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5666,"name":null,"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png","created_at":"2016-02-04T17:48:44.238Z","cooked":"\u003cp\u003ethere is an example of an overlap add shifter in Axoloti. \u003c/p\u003e\n\n\u003cp\u003eTutorial 22.\u003c/p\u003e\n\n\u003cp\u003eBut I dont understand what is going on in the patch yet.\u003c/p\u003e","post_number":11,"post_type":1,"updated_at":"2016-02-04T17:48:44.238Z","reply_count":1,"reply_to_post_number":10,"quote_count":0,"avg_time":15,"incoming_link_count":1,"reads":155,"score":41.75,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":null,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"kassu","avatar_template":"/user_avatar/community.axoloti.com/kassu/{size}/936_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":48,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5669,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-02-04T19:57:30.376Z","cooked":"\u003cp\u003e\u003ca class=\"mention\" href=\"/users/kassu\"\u003e@kassu\u003c/a\u003e \"partitioned convolution\" removes the latency inherent to the method described in that wikipedia article. The term \"overlap add\" also covers other things than the FFT convolution described in that article. \u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"11\" data-topic=\"986\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/letter_avatar_proxy/v2/letter/j/7ea924/40.png\" class=\"avatar\"\u003ejaffasplaffa:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003ethere is an example of an overlap add shifter in Axoloti.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eThat's a different \"overlap add\" than in that pitch shifter.\u003c/p\u003e","post_number":12,"post_type":1,"updated_at":"2016-02-04T19:57:30.376Z","reply_count":0,"reply_to_post_number":10,"quote_count":1,"avg_time":22,"incoming_link_count":9,"reads":153,"score":91.7,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"kassu","avatar_template":"/user_avatar/community.axoloti.com/kassu/{size}/936_1.png"},"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5677,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-02-04T22:14:46.697Z","cooked":"\u003cp\u003eA rough estimate - implementing direct convolution (pretty simple, far easier than implementing regular fft convolution or partitioned convolution), should work out up to around a 1600 samples impulse response length, ~ 33 milliseconds) for mono in/out. \u003c/p\u003e\n\n\u003cp\u003e\u003ca href=\"http://www.arm.com/files/pdf/DSPConceptsM4Presentation.pdf\" class=\"onebox\" target=\"_blank\"\u003ehttp://www.arm.com/files/pdf/DSPConceptsM4Presentation.pdf\u003c/a\u003e\u003c/p\u003e","post_number":13,"post_type":1,"updated_at":"2016-02-04T22:14:46.697Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":21,"incoming_link_count":4,"reads":154,"score":71.85,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://www.arm.com/files/pdf/DSPConceptsM4Presentation.pdf","internal":false,"reflection":false,"clicks":52}],"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5713,"name":"Marlow ","username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png","created_at":"2016-02-05T17:17:13.251Z","cooked":"\u003cp\u003eSweet!  So it should be possible as long as the impulse sample is 33ms or less!  Can it be done with current objects, or would this be a future object or addition to the core code?\u003c/p\u003e","post_number":14,"post_type":1,"updated_at":"2016-02-05T17:17:13.251Z","reply_count":1,"reply_to_post_number":13,"quote_count":0,"avg_time":19,"incoming_link_count":1,"reads":155,"score":41.95,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"Marlow ","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://community.axoloti.com/t/reverbs-creation/1071/8","internal":true,"reflection":true,"title":"Reverbs creation","clicks":1}],"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":340,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5751,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-02-07T14:11:46.225Z","cooked":"\u003cp\u003eThis can't be done with current objects, it requires development of a custom object.\u003c/p\u003e","post_number":15,"post_type":1,"updated_at":"2016-02-07T14:11:46.225Z","reply_count":1,"reply_to_post_number":14,"quote_count":0,"avg_time":15,"incoming_link_count":1,"reads":152,"score":41.15,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://community.axoloti.com/t/reverbs-creation/1071/8","internal":true,"reflection":true,"title":"Reverbs creation","clicks":3}],"read":true,"user_title":null,"reply_to_user":{"username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5915,"name":null,"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png","created_at":"2016-02-12T21:56:50.163Z","cooked":"\u003caside class=\"quote\" data-post=\"15\" data-topic=\"986\" data-full=\"true\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png\" class=\"avatar\"\u003ejohannes:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eThis can't be done with current objects, it requires development of a custom object.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003e\u003ca class=\"mention\" href=\"/users/johannes\"\u003e@johannes\u003c/a\u003e \u003c/p\u003e\n\n\u003cp\u003eIs that something you would consider implementing sometime down the road? Would be a great addition to Axoloti. No rush on it. Just curios if you have thought about it \u003cimg src=\"/images/emoji/emoji_one/wink.png?v=0\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e \u003c/p\u003e\n\n\u003cp\u003eThanks.\u003c/p\u003e","post_number":16,"post_type":1,"updated_at":"2016-02-12T21:56:50.163Z","reply_count":1,"reply_to_post_number":15,"quote_count":1,"avg_time":20,"incoming_link_count":10,"reads":153,"score":86.6,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":null,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":48,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":8416,"name":"alx","username":"toneburst","avatar_template":"/letter_avatar_proxy/v2/letter/t/b9e5f3/{size}.png","created_at":"2016-04-08T15:21:21.367Z","cooked":"\u003cp\u003eI'm derailing the topic a little here, but I was just looking through the CMSIS DSP library documentation, and there is an  \u003ca href=\"http://www.keil.com/pack/doc/CMSIS/DSP/html/arm_convolution_example_f32_8c-example.html\" rel=\"nofollow\"\u003eexample\u003c/a\u003e of a convolution setup using the library's FFT functions.\u003c/p\u003e\n\n\u003cp\u003eAssuming CMSIS DSP is available to custom objects, could this example be adapted to make a spectral morph between two s-rate audio inputs? If so, would it work with two 16-sample buffers, or would it be necessary to aggregate several buffers (and increase latency)?\u003c/p\u003e\n\n\u003cp\u003ea|x\u003c/p\u003e","post_number":17,"post_type":1,"updated_at":"2016-04-08T15:29:55.506Z","reply_count":0,"reply_to_post_number":16,"quote_count":0,"avg_time":33,"incoming_link_count":9,"reads":136,"score":73.85,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"alx","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":2,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://www.keil.com/pack/doc/CMSIS/DSP/html/arm_convolution_example_f32_8c-example.html","internal":false,"reflection":false,"title":"arm_convolution_example_f32.c","clicks":28}],"read":true,"user_title":null,"reply_to_user":{"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":379,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":11637,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-07-01T17:20:54.630Z","cooked":"\u003cp\u003eI have pushed a convolution object and help patch to the 1.0.10 factory library, \"filter/convolution\", using version 1.0.10 \"sync libraries\" should get it to you. \u003c/p\u003e\n\n\u003cp\u003eI also added an example synth patch in axoloti-factory/patches/demos/synth/dreamy.axp\u003c/p\u003e\n\n\u003cp\u003eI haven't tried cabinet modelling with it, but should do fine \u003cimg src=\"/images/emoji/emoji_one/slight_smile.png?v=2\" title=\":slight_smile:\" class=\"emoji\" alt=\":slight_smile:\"\u003e\u003c/p\u003e\n\n\u003cp\u003eedit1: OOPS: the length is fixed to 1024 samples, working on a fix...\u003cbr\u003eedit2: fixed...\u003c/p\u003e","post_number":18,"post_type":1,"updated_at":"2016-07-01T19:54:01.823Z","reply_count":3,"reply_to_post_number":null,"quote_count":0,"avg_time":42,"incoming_link_count":5,"reads":123,"score":111.7,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":3,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[{"id":2,"count":3}],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":11650,"name":"Mr. Grimm","username":"jaffasplaffa","avatar_template":"/user_avatar/community.axoloti.com/jaffasplaffa/{size}/5808_1.png","created_at":"2016-07-01T21:51:57.520Z","cooked":"\u003cp\u003eHey \u003ca class=\"mention\" href=\"/users/johannes\"\u003e@johannes\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003eNice. Fun to play with. Thanks \u003cimg src=\"/images/emoji/emoji_one/wink.png?v=2\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e But I think the object would benefint a lot from having a modulation input for the coefficients, like the FIR filter has. I think that will help eliminate some of the \"digitalness\" of the sound of the object.\u003c/p\u003e","post_number":19,"post_type":1,"updated_at":"2016-07-01T21:51:57.520Z","reply_count":0,"reply_to_post_number":18,"quote_count":0,"avg_time":40,"incoming_link_count":7,"reads":123,"score":61.6,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"Mr. Grimm","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":745,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":11863,"name":"Marlow ","username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png","created_at":"2016-07-10T15:47:45.460Z","cooked":"\u003cp\u003eJohannes!\u003c/p\u003e\n\n\u003cp\u003eFantastic work!  THIS was what I was wishing for!  I replaced the noise input sources with various cab impulses and rocked out!  I put an awesome distortion with gate in the front and an eq, delay, and small reverb module in the mix and am running at around 80%.  I actually tried a more lush reverb, but it used too much sdram.\u003c/p\u003e\n\n\u003cp\u003eThe ONLY problem I have is that I have to push the button for the impulse to be read into the table, so it doesn't work in stand alone mode.  Any ideas on how to have an impulse auto load to the table?\u003c/p\u003e","post_number":20,"post_type":1,"updated_at":"2016-07-10T15:47:45.460Z","reply_count":1,"reply_to_post_number":18,"quote_count":0,"avg_time":29,"incoming_link_count":2,"reads":127,"score":41.85,"yours":false,"topic_id":986,"topic_slug":"short-convolution-guitar-cabinet-modeling","display_username":"Marlow ","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":340,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false}],"stream":[5608,5618,5620,5623,5624,5626,5630,5631,5635,5644,5666,5669,5677,5713,5751,5915,8416,11637,11650,11863,14872,14873,14921,14959,38336]},"timeline_lookup":[[1,2057],[5,2056],[14,2055],[15,2053],[16,2048],[17,1992],[18,1908],[20,1899],[21,1804],[23,1801],[24,1799],[25,596]],"id":986,"title":"Short Convolution (Guitar Cabinet Modeling)","fancy_title":"Short Convolution (Guitar Cabinet Modeling)","posts_count":25,"created_at":"2016-02-03T17:47:25.159Z","views":3948,"reply_count":16,"participant_count":9,"like_count":7,"last_posted_at":"2020-02-03T21:36:21.480Z","visible":true,"closed":false,"archived":false,"has_summary":false,"archetype":"regular","slug":"short-convolution-guitar-cabinet-modeling","category_id":7,"word_count":1814,"deleted_at":null,"user_id":340,"pm_with_non_human_user":false,"draft":null,"draft_key":"topic_986","draft_sequence":null,"unpinned":null,"pinned_globally":false,"pinned":false,"pinned_at":null,"pinned_until":null,"details":{"created_by":{"id":340,"username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png"},"last_poster":{"id":2082,"username":"omgzilla","avatar_template":"/letter_avatar_proxy/v2/letter/o/f6c823/{size}.png"},"participants":[{"id":3,"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","post_count":6,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":48,"username":"anon5189335","avatar_template":"/letter_avatar_proxy/v2/letter/a/3e96dc/{size}.png","post_count":6,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":340,"username":"Marlow","avatar_template":"/letter_avatar_proxy/v2/letter/m/96bed5/{size}.png","post_count":5,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":745,"username":"jaffasplaffa","avatar_template":"/user_avatar/community.axoloti.com/jaffasplaffa/{size}/5808_1.png","post_count":2,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":255,"username":"kassu","avatar_template":"/user_avatar/community.axoloti.com/kassu/{size}/936_1.png","post_count":2,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":790,"username":"lokki","avatar_template":"/user_avatar/community.axoloti.com/lokki/{size}/5157_1.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":379,"username":"toneburst","avatar_template":"/letter_avatar_proxy/v2/letter/t/b9e5f3/{size}.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":268,"username":"Jens_Groh","avatar_template":"/letter_avatar_proxy/v2/letter/j/e480ec/{size}.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":2082,"username":"omgzilla","avatar_template":"/letter_avatar_proxy/v2/letter/o/f6c823/{size}.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null}],"suggested_topics":[{"id":6883,"title":"Erro compiling/ making live patch","fancy_title":"Erro compiling/ making live patch","slug":"erro-compiling-making-live-patch","posts_count":7,"reply_count":3,"highest_post_number":7,"image_url":null,"created_at":"2020-10-12T13:59:19.122Z","last_posted_at":"2020-10-12T21:20:00.336Z","bumped":true,"bumped_at":"2020-10-12T21:20:00.336Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":3,"views":195,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":182,"username":"gv2000","avatar_template":"/letter_avatar_proxy/v2/letter/g/779978/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":775,"username":"AndrewChi","avatar_template":"/letter_avatar_proxy/v2/letter/a/4af34b/{size}.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":2111,"username":"tele_player","avatar_template":"/letter_avatar_proxy/v2/letter/t/e47c2d/{size}.png"}}]},{"id":6910,"title":"Time stretching from a buffer","fancy_title":"Time stretching from a buffer","slug":"time-stretching-from-a-buffer","posts_count":5,"reply_count":3,"highest_post_number":6,"image_url":null,"created_at":"2020-10-27T18:12:38.322Z","last_posted_at":"2020-11-15T01:00:07.810Z","bumped":true,"bumped_at":"2020-11-15T01:00:07.810Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":1,"views":314,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":2202,"username":"Agoraphobe","avatar_template":"/letter_avatar_proxy/v2/letter/a/d07c76/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":745,"username":"jaffasplaffa","avatar_template":"/user_avatar/community.axoloti.com/jaffasplaffa/{size}/5808_1.png"}}]},{"id":7004,"title":"Simple midi patch - Usb host midi output ringbuffer overflow","fancy_title":"Simple midi patch - Usb host midi output ringbuffer overflow","slug":"simple-midi-patch-usb-host-midi-output-ringbuffer-overflow","posts_count":7,"reply_count":5,"highest_post_number":7,"image_url":"/uploads/default/original/2X/e/ef6457ee8a4c1334865ca3ba1246450f18cfaa55.png","created_at":"2020-12-10T12:02:06.691Z","last_posted_at":"2020-12-15T09:21:41.852Z","bumped":true,"bumped_at":"2020-12-15T09:21:41.852Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":1,"views":198,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":2671,"username":"gutterne1983","avatar_template":"/letter_avatar_proxy/v2/letter/g/ebca7d/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":337,"username":"Blindsmyth","avatar_template":"/letter_avatar_proxy/v2/letter/b/2acd7d/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1616,"username":"reubenfinger","avatar_template":"/letter_avatar_proxy/v2/letter/r/82dd89/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1880,"username":"MattilynMattroe","avatar_template":"/user_avatar/community.axoloti.com/mattilynmattroe/{size}/7160_1.png"}}]},{"id":7026,"title":"Split one control to more outs, controlled by switches","fancy_title":"Split one control to more outs, controlled by switches","slug":"split-one-control-to-more-outs-controlled-by-switches","posts_count":5,"reply_count":3,"highest_post_number":5,"image_url":null,"created_at":"2020-12-21T20:21:08.797Z","last_posted_at":"2020-12-26T19:52:04.786Z","bumped":true,"bumped_at":"2020-12-26T19:52:04.786Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":232,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":2570,"username":"baxgas","avatar_template":"/letter_avatar_proxy/v2/letter/b/ccd318/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1616,"username":"reubenfinger","avatar_template":"/letter_avatar_proxy/v2/letter/r/82dd89/{size}.png"}}]},{"id":7047,"title":"Need help to understand how to store \u0026 re-use tables","fancy_title":"Need help to understand how to store \u0026amp; re-use tables","slug":"need-help-to-understand-how-to-store-re-use-tables","posts_count":11,"reply_count":5,"highest_post_number":11,"image_url":null,"created_at":"2021-01-04T16:47:27.177Z","last_posted_at":"2021-01-07T13:03:27.877Z","bumped":true,"bumped_at":"2021-01-07T13:03:27.877Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":8,"views":205,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":1743,"username":"chaocrator","avatar_template":"/user_avatar/community.axoloti.com/chaocrator/{size}/5609_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1880,"username":"MattilynMattroe","avatar_template":"/user_avatar/community.axoloti.com/mattilynmattroe/{size}/7160_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1385,"username":"Yot","avatar_template":"/letter_avatar_proxy/v2/letter/y/b9bd4f/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":745,"username":"jaffasplaffa","avatar_template":"/user_avatar/community.axoloti.com/jaffasplaffa/{size}/5808_1.png"}}]}],"links":[{"url":"http://musicweb.ucsd.edu/~sdubnov/Mu172/Lectures/ReverberationDevicesAndGettingStarted.pdf","title":null,"fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":54,"user_id":48,"domain":"musicweb.ucsd.edu"},{"url":"http://www.arm.com/files/pdf/DSPConceptsM4Presentation.pdf","title":null,"fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":52,"user_id":3,"domain":"www.arm.com"},{"url":"http://www.fractalaudio.com/downloads/manuals/axe-fx-2/Fractal-Audio-Systems-MIMIC-%28tm%29-Technology.pdf","title":null,"fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":48,"user_id":48,"domain":"www.fractalaudio.com"},{"url":"http://www.grgr.de/index.html#ir","title":"Gregor Hennig","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":35,"user_id":745,"domain":"www.grgr.de"},{"url":"http://bedroomproducersblog.com/2010/10/01/free-sample-shootout-6-best-free-guitar-cabinet-impulse-responses/","title":"Free Guitar Cabinet Impulse Responses!","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":29,"user_id":745,"domain":"bedroomproducersblog.com"},{"url":"http://www.keil.com/pack/doc/CMSIS/DSP/html/arm_convolution_example_f32_8c-example.html","title":"arm_convolution_example_f32.c","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":28,"user_id":379,"domain":"www.keil.com"},{"url":"https://en.wikipedia.org/wiki/Overlap%E2%80%93add_method","title":"Overlap–add method - Wikipedia, the free encyclopedia","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":22,"user_id":255,"domain":"en.wikipedia.org"},{"url":"http://community.axoloti.com/t/reverbs-creation/1071/8","title":"Reverbs creation","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":4,"user_id":48,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/axoloti-guitar-preamp/6096/2","title":"Axoloti guitar preamp","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":1,"user_id":745,"domain":"community.axoloti.com"}],"notification_level":1,"can_flag_topic":false},"highest_post_number":25,"deleted_by":null,"actions_summary":[{"id":4,"count":0,"hidden":false,"can_act":false},{"id":7,"count":0,"hidden":false,"can_act":false},{"id":8,"count":0,"hidden":false,"can_act":false}],"chunk_size":20,"bookmarked":null,"tags":[],"featured_link":null,"topic_timer":null,"message_bus_last_id":77});
+      })();
+      </script>
+
+    
+
+    <script>
+  Ember.RSVP.configure('onerror', function(e) {
+    // Ignore TransitionAborted exceptions that bubble up
+    if (e && e.message === "TransitionAborted") { return; }
+
+    window.onerror(e && e.message, null,null,null,e);
+  });
+</script>
+
+<script>
+
+  (function() {
+    var ps = require('preload-store').default;
+
+    Discourse.CDN = '';
+    Discourse.BaseUrl = 'community.axoloti.com'.replace(/:[\d]*$/,"");
+    Discourse.BaseUri = '';
+    Discourse.Environment = 'production';
+    Discourse.SiteSettings = ps.get('siteSettings');
+    Discourse.LetterAvatarVersion = '5_9b142ce9460b8c6b265fd9abf598d3fd';
+    I18n.defaultLocale = 'en';
+    Discourse.start();
+    Discourse.set('assetVersion','d1ec72c862674d2eea0eb8ef6fc5934f');
+    Discourse.Session.currentProp("disableCustomCSS", false);
+    Discourse.HighlightJSPath = "/highlight-js/community.axoloti.com/100444ceef8ca161334f64d3ce49fe7a1556f943.js";
+  })();
+</script>
+
+<link rel='preload' href='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js' as='script'/>
+<script src='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js'></script>
+
+
+    
+
+      
+    
+  </body>
+</html>

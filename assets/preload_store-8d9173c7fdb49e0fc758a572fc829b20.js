@@ -1,0 +1,2 @@
+window.PreloadStore={data:{},store:function(t,e){this.data[t]=e},getAndRemove:function(t,e){if(this.data[t]){var n=Em.RSVP.resolve(this.data[t]);return delete this.data[t],n}return e?new Ember.RSVP.Promise(function(t,n){var r=e();r.then?r.then(function(e){return t(e)},function(t){return n(t)}):t(r)}):Ember.RSVP.resolve(null)},get:function(t){return this.data[t]},remove:function(t){this.data[t]&&delete this.data[t]},reset:function(){this.data={}}};
+//# sourceMappingURL=/assets/preload_store-8d9173c7fdb49e0fc758a572fc829b20.js.map

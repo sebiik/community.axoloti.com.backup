@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device  anon">
+  <head>
+    <meta charset="utf-8">
+    <title>Axo delay implementation - AxoObject coding - Axoloti Community</title>
+    <meta name="description" content="Hi there, so for a project i&amp;#39;m doing for university, i am attempting to make a delay among other things (chorus &amp;amp; flanger, but they are derivatives on delay), and have found the way its done in factory objects is rather &amp;hellip;">
+    <meta name="discourse_theme_key" content="b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/axo-delay-implementation/3186?page=2" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+    
+
+      <meta name="fragment" content="!">
+
+
+    <script>
+      window.EmberENV = window.EmberENV || {};
+      window.EmberENV['FORCE_JQUERY'] = true;
+    </script>
+
+    <link rel='preload' href='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js' as='script'/>
+<script src='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js'></script>
+    <link rel='preload' href='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js' as='script'/>
+<script src='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js'></script>
+    <link rel='preload' href='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js' as='script'/>
+<script src='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js'></script>
+    <link rel='preload' href='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js' as='script'/>
+<script src='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js'></script>
+    <link rel='preload' href='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js' as='script'/>
+<script src='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js'></script>
+    <link rel='preload' href='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js' as='script'/>
+<script src='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js'></script>
+    <link rel='preload' href='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js' as='script'/>
+<script src='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js'></script>
+    <link rel='preload' href='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js' as='script'/>
+<script src='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js'></script>
+
+
+      
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+    <link rel="manifest" href="/manifest.json">
+
+
+      <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+
+
+  <link href="/stylesheets/desktop_theme_1_8c71a74fd9227b24e44e6f42af02a696e954cd89.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop_theme"/>
+
+    
+
+<link rel="preload" href="/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0" as="font" type="font/woff2" crossorigin />
+<style>
+  @font-face {
+    font-family: 'FontAwesome';
+    src: url('/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0') format('woff2'),
+         url('/assets/fontawesome-webfont-ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07.woff?http://community.axoloti.com&amp;2&v=4.7.0') format('woff');
+  }
+</style>
+
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Axo delay implementation&#39;" href="http://community.axoloti.com/t/axo-delay-implementation/3186.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/2X/5/52b2c1c7d20ff5d131a5b212ebaa571c4fa62647.jpg" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/2X/5/52b2c1c7d20ff5d131a5b212ebaa571c4fa62647.jpg" />
+<meta property="og:url" content="http://community.axoloti.com/t/axo-delay-implementation/3186?page=2" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/axo-delay-implementation/3186?page=2" />
+<meta property="og:title" content="Axo delay implementation" />
+<meta name="twitter:title" content="Axo delay implementation" />
+<meta property="og:description" content="get the types correct e.g. float array, and using q27_to_float(), float_to_q27()   seriously, don&#39;t get into the (really) bad habit of casting to fix compilation errors, i promise you long term this will cause you real grief... its one of the most common sources of bugs! ( basically, casting is saying to the compiler, im not interested in you telling me about the bugs i have in my code  😉)    ... where casting is required, there are better ways in modern compilers (static_cast, dynamic_cast..." />
+<meta name="twitter:description" content="get the types correct e.g. float array, and using q27_to_float(), float_to_q27()   seriously, don&#39;t get into the (really) bad habit of casting to fix compilation errors, i promise you long term this will cause you real grief... its one of the most common sources of bugs! ( basically, casting is saying to the compiler, im not interested in you telling me about the bugs i have in my code  😉)    ... where casting is required, there are better ways in modern compilers (static_cast, dynamic_cast..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="6 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="2 ❤" />
+
+      <link rel="prev" href="/t/axo-delay-implementation/3186">
+
+
+    
+  </head>
+
+  <body class="">
+    
+
+    <div class='debug-eyeline'></div>
+
+    <noscript data-path="/t/axo-delay-implementation/3186">
+      <header class="d-header">
+  <div class="wrap">
+    <div class="contents">
+      <div class="row">
+        <div class="title span13">
+          <a href="/">
+              <img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo">
+          </a>
+        </div>
+            <div class='panel clearfix'>
+              <a href="/login" class='btn btn-primary btn-small login-button'><i class="fa fa-user"></i> Log In</a>
+            </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div id="main-outlet" class="wrap">
+        <!-- preload-content: -->
+        <h1>
+  <a href="/t/axo-delay-implementation/3186">Axo delay implementation</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/axoobject-code" itemprop="url">
+        <span itemprop="title">AxoObject coding</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-04-09T12:51:59Z' itemprop='datePublished'>
+             2017-04-09 12:51:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#21</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>get the types correct e.g. float array, and using q27_to_float(), float_to_q27()</p>
+
+<p>seriously, don't get into the (really) bad habit of casting to fix compilation errors, i promise you long term this will cause you real grief... its one of the most common sources of bugs!<br>( basically, casting is saying to the compiler, im not interested in you telling me about the bugs i have in my code  <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) </p>
+
+<p>... where casting is required, there are better ways in modern compilers (static_cast, dynamic_cast)</p>
+
+<p>btw, the reason I've pointed you to using floats, is not for the delay,( for that you can simply use int32_t) , but because when the you want to start doing things like 'wet/dry' mixes, or feedback loops, the maths is much easier (/obvious) with floats that using q27 maths.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Axo delay implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Walla'><b itemprop='author'>Walla</b></a>
+           
+           <time datetime='2017-04-09T13:04:13Z' itemprop='datePublished'>
+             2017-04-09 13:04:13 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#22</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>That is what i have been doing, trying to anyway haha.</p>
+
+<p>I will stay away from casting, was just trying out spuntki's solution, but didn't work so back to trying to find a fix with floats.<br>Ye i get your point about using floats, trust! I don't think i could have even got this far with q27 maths as all my uni stuff is in float, so i know that in the short-ish time frame i have left, there is no point trying to get my head around the q27 maths as it's a struggle still with the floating point version!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Axo delay implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Walla'><b itemprop='author'>Walla</b></a>
+           
+           <time datetime='2017-04-12T17:06:02Z' itemprop='datePublished'>
+             2017-04-12 17:06:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#23</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Little update on this one, so far i've managed to configure the buffers correctly (that took a long time!), so i can get audio into and out of a buffer. <br>Then with the delay time, it all complies fine which is great, also took a fair bit of fiddling about but the issue I've come to now, is actually delaying the signal, i really don't understand why the code that used to work doesn't with axoloti, that being.</p>
+
+<blockquote><p>BufferReadPos = BufferWritePos - time;<br>if(BufferReadPos &lt; 0) BufferReadPos = 0;</p></blockquote>
+
+<p>When i run an impulse through, the delayed signal is just the same as the input signal with no change in time, so although time has a value (lets say 10,000), it doesn't do anything to the read pointer for some reason, even though everything is the same type (float) and the code works (on xcode).</p>
+
+<p>Any ideas ? Thanks <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/c/c866e29fd78aa197acf864ff70c0a04745346d29.axo">simple delay.axo</a> (4.8 KB)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Axo delay implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-04-12T19:17:44Z' itemprop='datePublished'>
+             2017-04-12 19:17:44 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#24</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Your original code wouldn't work due to the issue I mentioned. ( uint and not implementing a circular buffer correctly)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Axo delay implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Walla'><b itemprop='author'>Walla</b></a>
+           
+           <time datetime='2017-04-12T20:26:17Z' itemprop='datePublished'>
+             2017-04-12 20:26:17 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#25</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>When i say the code works, i have adapted it so far to work inside axoloti rather than a PC, so i really only mean the flow of things rather than a copy paste job. Those issues have been sorted along the way and are fixed.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Axo delay implementation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-04-12T20:55:20Z' itemprop='datePublished'>
+             2017-04-12 20:55:20 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#26</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>ive just taken a look at your new code, but its still got the same basic issue - this code will not work</p>
+
+<p></p><pre><code class="lang-auto">	readpos = writepos - time;
+	if(readpos &lt; 0)	
+	{
+		readpos = 0;                                 //read pos wrapper
+	}</code></pre>
+
+<p>please see my previous reply for why......<br>(hint, for writepos = 1,2,3,4 you will set readpos to 0, this is incorrect!)</p>
+
+<p>I'm confused you say it works under xcode... to me the algorithm looks wrong.<br>(well to be precise, it would 'appear' to work only under limited circumstances, when the writepos is not near the start of the delay line)</p>
+
+<p>personally, id draw this on a piece of paper, and work thru it, once you have worked out the algorithm its trivial to implement.</p>
+
+<p>the issue, is real time programming (including audio stuff) is tricky to debug, its better to spend more time upfront working out the design/algo .... this is a different 'workflow' for some programmers, who have become reliant on debuggers ( quite common these days with modern IDEs)</p>
+
+<p>EDIT:<br>btw, a tip<br>initially develop objects as embedded objects, its a much quicker workflow.<br>also then you can upload the axp here, and we can look at it with one click.<br>( with axo, I have to save the file, move it into an objects directory, and then reload objects... much more hassle <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Axo delay implementation'>
+      <hr>
+  </div>
+
+  <div role='navigation' itemscope itemtype='http://schema.org/SiteNavigationElement'>
+      <span itemprop='url'><a rel="prev" itemprop="name" href="/t/axo-delay-implementation/3186">← previous page</a></span>
+  </div>
+
+
+
+
+
+        <!-- :preload-content -->
+        <footer>
+          <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+            <a href='/'>Home</a>
+            <a href="/categories">Categories</a>
+            <a href="/guidelines">FAQ/Guidelines</a>
+            <a href="/tos">Terms of Service</a>
+            <a href="/privacy">Privacy Policy</a>
+          </nav>
+        </footer>
+      </div>
+
+      <footer id='noscript-footer'>
+        <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+      </footer>
+    </noscript>
+
+      
+
+    <section id='main'>
+    </section>
+
+    <div id='offscreen-content'>
+    </div>
+
+      <form id='hidden-login-form' method="post" action="/login" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+
+      <script>
+      (function() {
+        var ps = require('preload-store').default;
+          ps.store("site", {"default_archetype":"regular","notification_types":{"mentioned":1,"replied":2,"quoted":3,"edited":4,"liked":5,"private_message":6,"invited_to_private_message":7,"invitee_accepted":8,"posted":9,"moved_post":10,"linked":11,"granted_badge":12,"invited_to_topic":13,"custom":14,"group_mentioned":15,"group_message_summary":16,"watching_first_post":17,"topic_reminder":18},"post_types":{"regular":1,"moderator_action":2,"small_action":3,"whisper":4},"groups":[{"id":1,"name":"admins"},{"id":0,"name":"everyone"},{"id":2,"name":"moderators"},{"id":3,"name":"staff"},{"id":10,"name":"trust_level_0"},{"id":11,"name":"trust_level_1"},{"id":12,"name":"trust_level_2"},{"id":13,"name":"trust_level_3"},{"id":14,"name":"trust_level_4"}],"filters":["latest","unread","new","read","posted","bookmarks"],"periods":["all","yearly","quarterly","monthly","weekly","daily"],"top_menu_items":["latest","unread","new","read","posted","bookmarks","category","categories","top"],"anonymous_top_menu_items":["latest","top","categories","category","categories","top"],"uncategorized_category_id":1,"is_readonly":false,"disabled_plugins":[],"user_field_max_length":2048,"suppressed_from_homepage_category_ids":[],"post_action_types":[{"name_key":"bookmark","name":"Bookmark","description":"Bookmark this post","short_description":"Bookmark this post","long_form":"bookmarked this post","is_flag":false,"icon":null,"id":1,"is_custom_flag":false},{"name_key":"like","name":"Like","description":"Like this post","short_description":"Like this post","long_form":"liked this","is_flag":false,"icon":"heart","id":2,"is_custom_flag":false},{"name_key":"off_topic","name":"Off-Topic","description":"This post is not relevant to the current discussion as defined by the title and first post, and should probably be moved elsewhere.","short_description":"Not relevant to the discussion","long_form":"flagged this as off-topic","is_flag":true,"icon":null,"id":3,"is_custom_flag":false},{"name_key":"inappropriate","name":"Inappropriate","description":"This post contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"A violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"vote","name":"Vote","description":"Vote for this post","short_description":"Vote for this post","long_form":"voted for this post","is_flag":false,"icon":null,"id":5,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This post is an advertisement, or vandalism. It is not useful or relevant to the current topic.","short_description":"This is an advertisement or vandalism","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_user","name":"Send @{{username}} a message","description":"I want to talk to this person directly and privately about their post.","short_description":"I want to talk to this person directly and privately about their post.","long_form":"messaged user","is_flag":true,"icon":null,"id":6,"is_custom_flag":true},{"name_key":"notify_moderators","name":"Something Else","description":"This post requires staff attention for another reason not listed above.","short_description":"Requires staff attention for another reason","long_form":"flagged this for staff attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"topic_flag_types":[{"name_key":"inappropriate","name":"Inappropriate","description":"This topic contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"translation missing: en.topic_flag_types.inappropriate.short_description","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This topic is an advertisement. It is not useful or relevant to this site, but promotional in nature.","short_description":"translation missing: en.topic_flag_types.spam.short_description","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_moderators","name":"Something Else","description":"This topic requires general staff attention based on the \u003ca href=\"/guidelines\"\u003eguidelines\u003c/a\u003e, \u003ca href=\"/tos\"\u003eTOS\u003c/a\u003e, or for another reason not listed above.","short_description":"translation missing: en.topic_flag_types.notify_moderators.short_description","long_form":"flagged this for moderator attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"can_create_tag":null,"can_tag_topics":null,"tags_filter_regexp":"[/\\?#\\[\\]@!\\$\u0026'\\(\\)\\*\\+,;=\\.%\\\\`^\\s|\\{\\}\"\u003c\u003e]+","top_tags":["midi","controllers","1.0.11","modular","linux","macos","windows","usb","challenge","wavetable","current","tips","library"],"topic_featured_link_allowed_category_ids":[2,4,1,5,3,16,12,6,14,11,15,10,8,9,13,7],"user_themes":[{"theme_key":"b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408","name":"Migrated from Site Text","default":true}],"categories":[{"id":1,"name":"Uncategorized","color":"AB9364","text_color":"FFFFFF","slug":"uncategorized","topic_count":-1,"post_count":1,"position":0,"description":"Topics that don't need a category, or don't fit into any other existing category.","description_text":"","topic_url":"/t/","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":10,"name":"User Guide","color":"3AB54A","text_color":"FFFFFF","slug":"user-guide","topic_count":22,"post_count":57,"position":1,"description":"This category contains posts to help users use Axoloti, a dynamic user guide.","description_text":"This category contains posts to help users use Axoloti, a dynamic user guide.","topic_url":"/t/about-the-user-guide-category/51","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":8,"name":"Helpdesk","color":"9EB83B","text_color":"FFFFFF","slug":"helpdesk","topic_count":212,"post_count":1716,"position":2,"description":"This category is for reporting issues and bugs\u003cbr\u003ePlease use other categories for discussions on features or questions or \"how to?\"","description_text":"This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or \"how to?\"","topic_url":"/t/about-the-helpdesk-category/23","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":13,"name":"Community Library","color":"9EB83B","text_color":"FFFFFF","slug":"community-library","topic_count":41,"post_count":1973,"position":3,"description":"Category for the community library","description_text":"Category for the community library","topic_url":"/t/about-the-community-library-category/1005","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":7,"name":"Patching","color":"AB9364","text_color":"FFFFFF","slug":"patching","topic_count":581,"post_count":5129,"position":4,"description":"This category is for discussion about patching Axoloti, and sharing patches.","description_text":"This category is for discussion about patching Axoloti, and sharing patches.","topic_url":"/t/about-the-patching-category/14","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":5,"name":"Hardware","color":"AB9364","text_color":"FFFFFF","slug":"hardware","topic_count":347,"post_count":3874,"position":5,"description":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects. ","description_text":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects.","topic_url":"/t/about-the-hardware-category/12","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":6,"name":"Software","color":"AB9364","text_color":"FFFFFF","slug":"software","topic_count":251,"post_count":2682,"position":6,"description":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. ","description_text":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti.","topic_url":"/t/about-the-software-category/13","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":16,"name":"AxoObject coding","color":"AB9364","text_color":"FFFFFF","slug":"axoobject-code","topic_count":161,"post_count":1385,"position":7,"description":"Category to discuss coding Axoloti Objects.","description_text":"Category to discuss coding Axoloti Objects.","topic_url":"/t/about-the-axoobject-coding-category/1519","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":14,"name":"News/Events","color":"283890","text_color":"FFFFFF","slug":"events","topic_count":17,"post_count":73,"position":8,"description":"Meetups, workshops, presentations, all sort of events.\u003cbr\u003eIt's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.\u003cbr\u003eStart your topic title with the name of the area where your event will happen.","description_text":"Meetups, workshops, presentations, all sort of events.It's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.Start your topic title with the name of the area where your event will happen.","topic_url":"/t/about-the-events-category/1142","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":12,"name":"Challenges","color":"0E76BD","text_color":"FFFFFF","slug":"challenges","topic_count":16,"post_count":245,"position":9,"description":"This category is for challenges, competitions and discussions related to these.\u003cbr\u003eposters are reminded when entering challenges and competitions to not include any copyrighted material","description_text":"This category is for challenges, competitions and discussions related to these.posters are reminded when entering challenges and competitions to not include any copyrighted material","topic_url":"/t/about-the-challenges-category/838","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":9,"name":"Your Music/Projects","color":"0E76BD","text_color":"FFFFFF","slug":"your-music-projects","topic_count":92,"post_count":671,"position":10,"description":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?\u003cbr\u003eTells us about it here.","description_text":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?Tells us about it here.","topic_url":"/t/about-the-your-music-projects-category/25","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":15,"name":"Lounge","color":"AB9364","text_color":"FFFFFF","slug":"lounge","topic_count":47,"post_count":662,"position":11,"description":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.\u003cbr\u003e(please ensure it has some relevance to Axoloti, rather than general discussion) ","description_text":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.(please ensure it has some relevance to Axoloti, rather than general discussion)","topic_url":"/t/about-the-lounge-category/1277","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":11,"name":"Developer","color":"BF1E2E","text_color":"FFFFFF","slug":"developer","topic_count":45,"post_count":394,"position":12,"description":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","description_text":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","topic_url":"/t/about-the-developer-category/735","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"This category is for low level discussion on the development of Axoloti, its is intended for developers/programmers only.","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":3,"name":"Website and Forum","color":"808281","text_color":"FFFFFF","slug":"meta","topic_count":31,"post_count":293,"position":13,"description":"Discussion about this site, its organization, how it works, and how we can improve it.","description_text":"Discussion about this site, its organization, how it works, and how we can improve it.","topic_url":"/t/about-the-meta-category/2","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null}],"trust_levels":[{"id":0,"name":"new user"},{"id":1,"name":"basic user"},{"id":2,"name":"member"},{"id":3,"name":"regular"},{"id":4,"name":"leader"}],"archetypes":[{"id":"regular","name":"Regular Topic","options":[]},{"id":"banner","name":"Banner Topic","options":[]}],"user_fields":[]});
+          ps.store("siteSettings", {"title":"Axoloti Community","contact_email":"johannes.taelman@gmail.com","contact_url":"","logo_url":"/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png","logo_small_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","mobile_logo_url":"","favicon_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","allow_user_locale":false,"suggested_topics":5,"track_external_right_clicks":false,"ga_universal_tracking_code":"UA-56017691-4","ga_universal_domain_name":"auto","ga_tracking_code":"","ga_domain_name":"","gtm_container_id":"","top_menu":"categories|latest|new|unread|top","post_menu":"like-count|like|share|flag|edit|bookmark|delete|admin|reply","post_menu_hidden_items":"flag|bookmark|edit|delete|admin","share_links":"twitter|facebook|email","desktop_category_page_style":"categories_and_latest_topics","category_colors":"BF1E2E|F1592A|F7941D|9EB83B|3AB54A|12A89D|25AAE2|0E76BD|652D90|92278F|ED207B|8C6238|231F20|808281|B3B5B4|283890","category_style":"bullet","enable_mobile_theme":true,"relative_date_duration":30,"fixed_category_positions":true,"fixed_category_positions_on_create":false,"enable_badges":true,"enable_badge_sql":false,"enable_whispers":false,"invite_only":false,"login_required":false,"must_approve_users":false,"enable_local_logins":true,"allow_new_registrations":true,"enable_signup_cta":true,"enable_google_oauth2_logins":false,"enable_yahoo_logins":false,"enable_twitter_logins":false,"enable_instagram_logins":false,"enable_facebook_logins":false,"enable_github_logins":false,"enable_sso":false,"sso_overrides_avatar":false,"min_username_length":3,"max_username_length":20,"min_password_length":10,"min_admin_password_length":15,"logout_redirect":"","full_name_required":false,"enable_names":true,"invites_per_page":40,"delete_user_max_post_age":60,"delete_all_posts_max":15,"show_email_on_profile":false,"prioritize_username_in_ux":true,"enable_user_directory":true,"allow_anonymous_posting":false,"anonymous_posting_min_trust_level":1,"hide_user_profiles_from_public":false,"enable_group_directory":true,"min_post_length":20,"min_first_post_length":20,"min_private_message_post_length":10,"max_post_length":32000,"topic_featured_link_enabled":true,"min_topic_title_length":15,"max_topic_title_length":255,"min_private_message_title_length":2,"allow_uncategorized_topics":false,"min_title_similar_length":10,"min_body_similar_length":15,"enable_private_messages":true,"edit_history_visible_to_public":false,"delete_removed_posts_after":24,"enable_experimental_markdown_it":false,"traditional_markdown_linebreaks":false,"enable_markdown_typographer":false,"allow_html_tables":false,"suppress_reply_directly_below":true,"suppress_reply_directly_above":true,"max_reply_history":1,"newuser_max_images":1,"newuser_max_attachments":2,"show_pinned_excerpt_mobile":true,"show_pinned_excerpt_desktop":true,"display_name_on_posts":false,"show_time_gap_days":7,"short_progress_text_threshold":10000,"default_code_lang":"auto","autohighlight_all_code":false,"highlighted_languages":"apache|bash|cs|cpp|css|coffeescript|diff|xml|http|ini|json|java|javascript|makefile|markdown|nginx|objectivec|ruby|perl|php|python|sql|handlebars","censored_words":"","censored_pattern":"","enable_emoji":true,"emoji_set":"twitter","code_formatting_style":"4-spaces-indent","allowed_href_schemes":"","email_time_window_mins":10,"disable_digest_emails":false,"email_in":false,"disable_emails":false,"bounce_score_threshold":4,"max_image_size_kb":3072,"max_attachment_size_kb":3072,"authorized_extensions":"jpg|jpeg|png|gif|axo|axp|axs|axh|fpd|brd|axt","max_image_width":690,"max_image_height":500,"prevent_anons_from_downloading_files":false,"enable_s3_uploads":false,"allow_profile_backgrounds":true,"allow_uploaded_avatars":true,"allow_animated_avatars":false,"default_avatars":"","external_system_avatars_enabled":true,"external_system_avatars_url":"/letter_avatar_proxy/v2/letter/{first_letter}/{color}/{size}.png","allow_staff_to_upload_any_file_in_pm":true,"tl1_requires_read_posts":30,"tl3_links_no_follow":false,"use_admin_ip_whitelist":false,"max_oneboxes_per_post":50,"alert_admins_if_errors_per_minute":0,"alert_admins_if_errors_per_hour":0,"max_prints_per_hour_per_user":5,"enable_long_polling":true,"long_polling_base_url":"/","background_polling_interval":60000,"polling_interval":3000,"anon_polling_interval":15000,"flush_timings_secs":20,"verbose_localization":false,"max_new_topics":500,"tos_url":"","privacy_policy_url":"","faq_url":"","maximum_backups":5,"min_search_term_length":3,"version_checks":true,"suppress_uncategorized_badge":true,"topic_views_heat_low":1000,"topic_views_heat_medium":2000,"topic_views_heat_high":5000,"topic_post_like_heat_low":0.5,"topic_post_like_heat_medium":1.0,"topic_post_like_heat_high":2.0,"history_hours_low":12,"history_hours_medium":24,"history_hours_high":48,"cold_age_days_low":14,"cold_age_days_medium":90,"cold_age_days_high":180,"global_notice":"","show_create_topics_notice":true,"bootstrap_mode_min_users":50,"bootstrap_mode_enabled":false,"automatically_unpin_topics":true,"read_time_word_count":500,"disable_mailing_list_mode":false,"default_topics_automatic_unpin":true,"tagging_enabled":true,"tag_style":"simple","max_tags_per_topic":5,"max_tag_length":20,"min_trust_level_to_tag_topics":0,"max_tag_search_results":5,"show_filter_by_tag":true,"tags_sort_alphabetically":false,"staff_tags":"","suppress_overlapping_tags_in_list":false,"discourse_narrative_bot_enabled":true,"poll_enabled":true,"poll_maximum_options":20,"details_enabled":true,"available_locales":"ar|bs_BA|cs|da|de|el|en|es|et|fa_IR|fi|fr|gl|he|id|it|ja|ko|nb_NO|nl|pl_PL|pt|pt_BR|ro|ru|sk|sq|sv|te|tr_TR|uk|ur|vi|zh_CN|zh_TW"});
+          ps.store("customHTML", {"top":"","footer":""});
+          ps.store("banner", {});
+          ps.store("customEmoji", []);
+          ps.store("translationOverrides", {});
+          ps.store("topic_3186", {"post_stream":{"posts":[{"id":19563,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-04-09T12:51:59.844Z","cooked":"\u003cp\u003eget the types correct e.g. float array, and using q27_to_float(), float_to_q27()\u003c/p\u003e\n\n\u003cp\u003eseriously, don't get into the (really) bad habit of casting to fix compilation errors, i promise you long term this will cause you real grief... its one of the most common sources of bugs!\u003cbr\u003e( basically, casting is saying to the compiler, im not interested in you telling me about the bugs i have in my code  \u003cimg src=\"//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e) \u003c/p\u003e\n\n\u003cp\u003e... where casting is required, there are better ways in modern compilers (static_cast, dynamic_cast)\u003c/p\u003e\n\n\u003cp\u003ebtw, the reason I've pointed you to using floats, is not for the delay,( for that you can simply use int32_t) , but because when the you want to start doing things like 'wet/dry' mixes, or feedback loops, the maths is much easier (/obvious) with floats that using q27 maths.\u003c/p\u003e","post_number":21,"post_type":1,"updated_at":"2017-04-09T12:53:38.155Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":20,"incoming_link_count":0,"reads":30,"score":7.0,"yours":false,"topic_id":3186,"topic_slug":"axo-delay-implementation","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":19564,"name":"Ben Waller","username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png","created_at":"2017-04-09T13:04:13.171Z","cooked":"\u003cp\u003eThat is what i have been doing, trying to anyway haha.\u003c/p\u003e\n\n\u003cp\u003eI will stay away from casting, was just trying out spuntki's solution, but didn't work so back to trying to find a fix with floats.\u003cbr\u003eYe i get your point about using floats, trust! I don't think i could have even got this far with q27 maths as all my uni stuff is in float, so i know that in the short-ish time frame i have left, there is no point trying to get my head around the q27 maths as it's a struggle still with the floating point version!\u003c/p\u003e","post_number":22,"post_type":1,"updated_at":"2017-04-09T13:04:13.171Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":22,"incoming_link_count":0,"reads":30,"score":7.1,"yours":false,"topic_id":3186,"topic_slug":"axo-delay-implementation","display_username":"Ben Waller","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":905,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":19664,"name":"Ben Waller","username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png","created_at":"2017-04-12T17:06:02.620Z","cooked":"\u003cp\u003eLittle update on this one, so far i've managed to configure the buffers correctly (that took a long time!), so i can get audio into and out of a buffer. \u003cbr\u003eThen with the delay time, it all complies fine which is great, also took a fair bit of fiddling about but the issue I've come to now, is actually delaying the signal, i really don't understand why the code that used to work doesn't with axoloti, that being.\u003c/p\u003e\n\n\u003cblockquote\u003e\u003cp\u003eBufferReadPos = BufferWritePos - time;\u003cbr\u003eif(BufferReadPos \u0026lt; 0) BufferReadPos = 0;\u003c/p\u003e\u003c/blockquote\u003e\n\n\u003cp\u003eWhen i run an impulse through, the delayed signal is just the same as the input signal with no change in time, so although time has a value (lets say 10,000), it doesn't do anything to the read pointer for some reason, even though everything is the same type (float) and the code works (on xcode).\u003c/p\u003e\n\n\u003cp\u003eAny ideas ? Thanks \u003ca class=\"attachment\" href=\"//community.axoloti.com/uploads/default/original/2X/c/c866e29fd78aa197acf864ff70c0a04745346d29.axo\"\u003esimple delay.axo\u003c/a\u003e (4.8 KB)\u003c/p\u003e","post_number":23,"post_type":1,"updated_at":"2017-04-12T17:12:45.767Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":22,"incoming_link_count":0,"reads":28,"score":11.7,"yours":false,"topic_id":3186,"topic_slug":"axo-delay-implementation","display_username":"Ben Waller","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":2,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"//community.axoloti.com/uploads/default/original/2X/c/c866e29fd78aa197acf864ff70c0a04745346d29.axo","internal":true,"reflection":false,"clicks":1}],"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":905,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":19667,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-04-12T19:17:44.071Z","cooked":"\u003cp\u003eYour original code wouldn't work due to the issue I mentioned. ( uint and not implementing a circular buffer correctly)\u003c/p\u003e","post_number":24,"post_type":1,"updated_at":"2017-04-12T19:17:44.071Z","reply_count":1,"reply_to_post_number":23,"quote_count":0,"avg_time":18,"incoming_link_count":0,"reads":26,"score":11.1,"yours":false,"topic_id":3186,"topic_slug":"axo-delay-implementation","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":19670,"name":"Ben Waller","username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png","created_at":"2017-04-12T20:26:17.759Z","cooked":"\u003cp\u003eWhen i say the code works, i have adapted it so far to work inside axoloti rather than a PC, so i really only mean the flow of things rather than a copy paste job. Those issues have been sorted along the way and are fixed.\u003c/p\u003e","post_number":25,"post_type":1,"updated_at":"2017-04-12T20:26:17.759Z","reply_count":1,"reply_to_post_number":24,"quote_count":0,"avg_time":23,"incoming_link_count":0,"reads":25,"score":11.15,"yours":false,"topic_id":3186,"topic_slug":"axo-delay-implementation","display_username":"Ben Waller","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":905,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":19671,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-04-12T20:55:20.156Z","cooked":"\u003cp\u003eive just taken a look at your new code, but its still got the same basic issue - this code will not work\u003c/p\u003e\n\n\u003cp\u003e\u003c/p\u003e\u003cpre\u003e\u003ccode class=\"lang-auto\"\u003e\treadpos = writepos - time;\n\tif(readpos \u0026lt; 0)\t\n\t{\n\t\treadpos = 0;                                 //read pos wrapper\n\t}\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eplease see my previous reply for why......\u003cbr\u003e(hint, for writepos = 1,2,3,4 you will set readpos to 0, this is incorrect!)\u003c/p\u003e\n\n\u003cp\u003eI'm confused you say it works under xcode... to me the algorithm looks wrong.\u003cbr\u003e(well to be precise, it would 'appear' to work only under limited circumstances, when the writepos is not near the start of the delay line)\u003c/p\u003e\n\n\u003cp\u003epersonally, id draw this on a piece of paper, and work thru it, once you have worked out the algorithm its trivial to implement.\u003c/p\u003e\n\n\u003cp\u003ethe issue, is real time programming (including audio stuff) is tricky to debug, its better to spend more time upfront working out the design/algo .... this is a different 'workflow' for some programmers, who have become reliant on debuggers ( quite common these days with modern IDEs)\u003c/p\u003e\n\n\u003cp\u003eEDIT:\u003cbr\u003ebtw, a tip\u003cbr\u003einitially develop objects as embedded objects, its a much quicker workflow.\u003cbr\u003ealso then you can upload the axp here, and we can look at it with one click.\u003cbr\u003e( with axo, I have to save the file, move it into an objects directory, and then reload objects... much more hassle \u003cimg src=\"//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e)\u003c/p\u003e","post_number":26,"post_type":1,"updated_at":"2017-04-12T20:59:37.913Z","reply_count":0,"reply_to_post_number":25,"quote_count":0,"avg_time":34,"incoming_link_count":0,"reads":25,"score":6.7,"yours":false,"topic_id":3186,"topic_slug":"axo-delay-implementation","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false}],"stream":[19428,19436,19437,19438,19439,19440,19441,19443,19445,19509,19513,19532,19553,19556,19557,19558,19559,19560,19561,19562,19563,19564,19664,19667,19670,19671]},"timeline_lookup":[[1,216],[10,214],[12,213],[13,212],[23,209]],"id":3186,"title":"Axo delay implementation","fancy_title":"Axo delay implementation","posts_count":26,"created_at":"2017-04-05T16:35:35.649Z","views":423,"reply_count":17,"participant_count":4,"like_count":2,"last_posted_at":"2017-04-12T20:55:20.156Z","visible":true,"closed":false,"archived":false,"has_summary":false,"archetype":"regular","slug":"axo-delay-implementation","category_id":16,"word_count":3298,"deleted_at":null,"user_id":905,"pm_with_non_human_user":false,"draft":null,"draft_key":"topic_3186","draft_sequence":null,"unpinned":null,"pinned_globally":false,"pinned":false,"pinned_at":null,"pinned_until":null,"details":{"created_by":{"id":905,"username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png"},"last_poster":{"id":5,"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png"},"participants":[{"id":905,"username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png","post_count":13,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":5,"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","post_count":7,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":745,"username":"jaffasplaffa","avatar_template":"/letter_avatar_proxy/v2/letter/j/7ea924/{size}.png","post_count":3,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":28,"username":"Sputnki","avatar_template":"/user_avatar/community.axoloti.com/sputnki/{size}/175_1.png","post_count":3,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null}],"suggested_topics":[{"id":2548,"title":"Horizontal knob position - See this :)","fancy_title":"Horizontal knob position - See this :)","slug":"horizontal-knob-position-see-this","posts_count":4,"reply_count":0,"highest_post_number":4,"image_url":"/uploads/default/optimized/2X/e/e352ccda97125f216fead0f1a1bac797a65abba5_1_690x268.png","created_at":"2016-11-19T17:36:12.533Z","last_posted_at":"2017-01-02T12:25:03.452Z","bumped":true,"bumped_at":"2017-01-02T12:25:03.452Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":273,"category_id":16,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":745,"username":"jaffasplaffa","avatar_template":"/letter_avatar_proxy/v2/letter/j/7ea924/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":28,"username":"Sputnki","avatar_template":"/user_avatar/community.axoloti.com/sputnki/{size}/175_1.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":410,"username":"SirSickSik","avatar_template":"/letter_avatar_proxy/v2/letter/s/3ab097/{size}.png"}}]},{"id":2741,"title":"Creating a single code-source module","fancy_title":"Creating a single code-source module","slug":"creating-a-single-code-source-module","posts_count":1,"reply_count":0,"highest_post_number":1,"image_url":null,"created_at":"2017-01-08T12:20:07.679Z","last_posted_at":"2017-01-08T12:20:08.142Z","bumped":true,"bumped_at":"2017-01-08T12:20:08.142Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":201,"category_id":16,"tags":[],"featured_link":null,"posters":[{"extras":"latest single","description":"Original Poster, Most Recent Poster","user":{"id":410,"username":"SirSickSik","avatar_template":"/letter_avatar_proxy/v2/letter/s/3ab097/{size}.png"}}]},{"id":2875,"title":"Trying to understand the factory dist:soft object","fancy_title":"Trying to understand the factory dist:soft object","slug":"trying-to-understand-the-factory-dist-soft-object","posts_count":5,"reply_count":2,"highest_post_number":5,"image_url":"/uploads/default/original/2X/f/ff2985d6130f885a99a99bf9daaf3609c236cb09.jpg","created_at":"2017-02-10T15:26:54.267Z","last_posted_at":"2017-02-14T17:43:13.404Z","bumped":true,"bumped_at":"2017-02-14T17:43:13.404Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":254,"category_id":16,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":905,"username":"Walla","avatar_template":"/user_avatar/community.axoloti.com/walla/{size}/3814_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":13,"username":"janvantomme","avatar_template":"/user_avatar/community.axoloti.com/janvantomme/{size}/10_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":3,"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":177,"username":"DIYDSP","avatar_template":"/letter_avatar_proxy/v2/letter/d/6de8d8/{size}.png"}}]},{"id":2594,"title":"Recording in 1-bit boolean arrays instead of 8/16/32 bit ints?","fancy_title":"Recording in 1-bit boolean arrays instead of 8/16/32 bit ints?","slug":"recording-in-1-bit-boolean-arrays-instead-of-8-16-32-bit-ints","posts_count":4,"reply_count":1,"highest_post_number":4,"image_url":null,"created_at":"2016-11-30T10:49:17.567Z","last_posted_at":"2016-12-01T11:06:24.454Z","bumped":true,"bumped_at":"2016-12-01T11:06:24.454Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":207,"category_id":16,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":410,"username":"SirSickSik","avatar_template":"/letter_avatar_proxy/v2/letter/s/3ab097/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":337,"username":"Blindsmyth","avatar_template":"/letter_avatar_proxy/v2/letter/b/2acd7d/{size}.png"}}]},{"id":3262,"title":"Arbitrary MIDI Messages","fancy_title":"Arbitrary MIDI Messages","slug":"arbitrary-midi-messages","posts_count":2,"reply_count":0,"highest_post_number":2,"image_url":null,"created_at":"2017-04-28T18:16:07.383Z","last_posted_at":"2017-05-02T08:26:39.587Z","bumped":true,"bumped_at":"2017-05-02T08:26:39.587Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":0,"views":151,"category_id":16,"tags":[],"featured_link":null,"posters":[{"extras":"latest single","description":"Original Poster, Most Recent Poster","user":{"id":379,"username":"toneburst","avatar_template":"/letter_avatar_proxy/v2/letter/t/b9e5f3/{size}.png"}}]}],"links":[{"url":"//community.axoloti.com/t/coding-axoloti-objects","title":null,"fancy_title":null,"internal":true,"attachment":false,"reflection":false,"clicks":2,"user_id":5,"domain":"community.axoloti.com"},{"url":"http://www.cplusplus.com/forum/general/19502/","title":"% operator - C++ Forum","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":2,"user_id":28,"domain":"www.cplusplus.com"},{"url":"//community.axoloti.com/uploads/default/original/2X/c/c866e29fd78aa197acf864ff70c0a04745346d29.axo","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":1,"user_id":905,"domain":"community.axoloti.com"},{"url":"//community.axoloti.com/uploads/default/original/2X/a/ae81b9e1c55549137db9ea63e06749a117d7c07c.axo","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":1,"user_id":905,"domain":"community.axoloti.com"},{"url":"//community.axoloti.com/uploads/default/original/2X/c/c34b07785ae0ea8444d3262a140205731d350a36.axo","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":1,"user_id":905,"domain":"community.axoloti.com"},{"url":"//community.axoloti.com/uploads/default/original/2X/5/540c2f854760d29d787d86c0d0ee409e8b5a8519.png","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":0,"user_id":745,"domain":"community.axoloti.com"}],"notification_level":1,"can_flag_topic":false},"highest_post_number":26,"deleted_by":null,"actions_summary":[{"id":4,"count":0,"hidden":false,"can_act":false},{"id":7,"count":0,"hidden":false,"can_act":false},{"id":8,"count":0,"hidden":false,"can_act":false}],"chunk_size":20,"bookmarked":null,"tags":[],"featured_link":null,"topic_timer":null,"message_bus_last_id":118});
+      })();
+      </script>
+
+    
+
+    <script>
+  Ember.RSVP.configure('onerror', function(e) {
+    // Ignore TransitionAborted exceptions that bubble up
+    if (e && e.message === "TransitionAborted") { return; }
+
+    window.onerror(e && e.message, null,null,null,e);
+  });
+</script>
+
+<script>
+
+  (function() {
+    var ps = require('preload-store').default;
+
+    Discourse.CDN = '';
+    Discourse.BaseUrl = 'community.axoloti.com'.replace(/:[\d]*$/,"");
+    Discourse.BaseUri = '';
+    Discourse.Environment = 'production';
+    Discourse.SiteSettings = ps.get('siteSettings');
+    Discourse.LetterAvatarVersion = '5_9b142ce9460b8c6b265fd9abf598d3fd';
+    I18n.defaultLocale = 'en';
+    Discourse.start();
+    Discourse.set('assetVersion','d1ec72c862674d2eea0eb8ef6fc5934f');
+    Discourse.Session.currentProp("disableCustomCSS", false);
+    Discourse.HighlightJSPath = "/highlight-js/community.axoloti.com/100444ceef8ca161334f64d3ce49fe7a1556f943.js";
+  })();
+</script>
+
+<link rel='preload' href='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js' as='script'/>
+<script src='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js'></script>
+
+
+    
+
+      
+    
+  </body>
+</html>

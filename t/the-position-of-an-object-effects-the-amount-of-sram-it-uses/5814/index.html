@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>The position of an object effects the amount of SRAM it uses? - Patching - Axoloti Community</title>
+    <meta name="description" content="I have a patch that I&amp;#39;ve been optimizing for a few days now. It compiles/loads fine currently, but it is right on the edge of using all of the available SRAM as I remove knobs, etc. in an attempt to eke out as much funct&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/the-position-of-an-object-effects-the-amount-of-sram-it-uses/5814" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+        <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;The position of an object effects the amount of SRAM it uses?&#39;" href="http://community.axoloti.com/t/the-position-of-an-object-effects-the-amount-of-sram-it-uses/5814.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/the-position-of-an-object-effects-the-amount-of-sram-it-uses/5814" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/the-position-of-an-object-effects-the-amount-of-sram-it-uses/5814" />
+<meta property="og:title" content="The position of an object effects the amount of SRAM it uses?" />
+<meta name="twitter:title" content="The position of an object effects the amount of SRAM it uses?" />
+<meta property="og:description" content="I have a patch that I&#39;ve been optimizing for a few days now. It compiles/loads fine currently, but it is right on the edge of using all of the available SRAM as I remove knobs, etc. in an attempt to eke out as much functionality as possible.   So I move a CONST/i up to a different position in my patch and suddenly I&#39;m over the SRAM limit by 32 bytes. I move it back and the patch compiles fine.   Can someone explain this to me as well as best practices to mitigate SRAM usage as it relates to the ..." />
+<meta name="twitter:description" content="I have a patch that I&#39;ve been optimizing for a few days now. It compiles/loads fine currently, but it is right on the edge of using all of the available SRAM as I remove knobs, etc. in an attempt to eke out as much functionality as possible.   So I move a CONST/i up to a different position in my patch and suddenly I&#39;m over the SRAM limit by 32 bytes. I move it back and the patch compiles fine.   Can someone explain this to me as well as best practices to mitigate SRAM usage as it relates to the ..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="3 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="2 ❤" />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="/"><img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="/t/the-position-of-an-object-effects-the-amount-of-sram-it-uses/5814">The position of an object effects the amount of SRAM it uses?</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/patching" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/mypetrobot'><b itemprop='author'>mypetrobot</b></a>
+           
+           <time datetime='2019-06-23T14:54:58Z' itemprop='datePublished'>
+             2019-06-23 14:54:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I have a patch that I've been optimizing for a few days now. It compiles/loads fine currently, but it is right on the edge of using all of the available SRAM as I remove knobs, etc. in an attempt to eke out as much functionality as possible.</p>
+
+<p>So I move a CONST/i up to a different position in my patch and suddenly I'm over the SRAM limit by 32 bytes. I move it back and the patch compiles fine.</p>
+
+<p>Can someone explain this to me as well as best practices to mitigate SRAM usage as it relates to the position of objects in the patcher?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MattilynMattroe'><b itemprop='author'>MattilynMattroe</b></a>
+           
+           <time datetime='2019-06-23T16:20:03Z' itemprop='datePublished'>
+             2019-06-23 16:20:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm not sure. Could it be an execution order thing? Is the const/i object above the object it's connected to?</p>
+
+<p>I'm interested in answers to this because I've had some pretty weird things happen when the patch gets this big. Stuff like I've removed some unused inlets/parameters and it's lowered the sram usage, then done exactly the same thing in a second instance of the same object and the sram overflows. And I've also deleted objects and the sram overflows. How would deleting things use more sram?</p>
+
+<p>I assume it's something I'm not understanding about the way the patch is compiled or processed.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/mypetrobot'><b itemprop='author'>mypetrobot</b></a>
+           
+           <time datetime='2019-06-23T17:19:59Z' itemprop='datePublished'>
+             2019-06-23 17:19:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="2" data-topic="5814"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/m/e8c25b/40.png" class="avatar">MattilynMattroe:</div>
+<blockquote><p>Is the const/i object above the object it's connected to?</p></blockquote></aside>
+
+<p>I don't recall. I believe it was below both times, however both its horizontal position and vertical changed between the working patch and the overflow version.</p>
+
+<p>After encountering this I purposely put the patch over the SRAM limit and then started to move objects around to see how much over the limit I would be with each movement. It definitely changed each time I moved something however I definitely couldn't predict how it would change. Sometimes it appeared as though I bought a couple hundred bytes by moving a group of objects vertically higher, but then if I tried to buy more free memory by moving up similar objects I would lose it all and then some.</p>
+
+<p>Your comment about other weird quirks makes me question if this phase of "optimization" even bought me any memory at all as I deleted the object that put me over the limit, so for all I know that "reset" any gained resources.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/lokki'><b itemprop='author'>lokki</b></a>
+           
+           <time datetime='2019-06-23T19:36:03Z' itemprop='datePublished'>
+             2019-06-23 19:36:03 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>it's "random"... if you hit the sram limit, moving objects around may help.</p>
+
+<p>generally execution order is left to right and top to bottom. so try to avoid upwards connections and right to left connections.</p>
+
+<p>that being said i have seen times when embedding a custom object reduced sram and times where it increased the usage. i removed GUI elements from objects that i did not need and sometimes sram usage increased...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/mypetrobot'><b itemprop='author'>mypetrobot</b></a>
+           
+           <time datetime='2019-06-23T21:38:57Z' itemprop='datePublished'>
+             2019-06-23 21:38:57 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks, hearing that it is "random" and expected behavior actually makes me feel a little better about everything. My takeaway is: Build your patches logically top-bottom/left-right and if you're hitting the SRAM limit, you might be able to jiggle the handle to get over the hump, but don't rely on it.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Captain_Burek'><b itemprop='author'>Captain_Burek</b></a>
+           
+           <time datetime='2019-06-24T06:22:20Z' itemprop='datePublished'>
+             2019-06-24 06:22:20 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Just a quick pointer to <a href="//community.axoloti.com/t/variable-types-their-range-their-sram-consumption/4941">back here</a>. Presumably, if the order of declaring variables <em>within</em> an object can make a  difference, so can ordering of objects that each declare variables. Not helpful in predicting the effects, I know, but maybe helpful to understand the mystery...__</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/ricard'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2019-06-25T05:46:23Z' itemprop='datePublished'>
+             2019-06-25 05:46:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>It's not completely random, but the order of the modules does affect the amount of SRAM used, because with a less ideal ordering of the modules, the patcher may need to add temporary variables to hold the values of the various signals.</p>
+
+<p>Basically, the patcher puts the runtime code for all the objects after each other, which is decided by their graphical position in the patch, and then completes the connections between the inlets and outlets. The code is then run in a loop, one sample at a time (this is a simplification, because the Axoloti actually processes 16 samples (k-rate vs. s-rate) at a time, but for the purposes of this discussion this is not important).</p>
+
+<p>Now, say there are two modules in a patch, one sending to another, like an oscillator to an output module. If the oscillator ends up being placed after the output module in a patch, the patcher has to create a temporary variable to hold the output from the oscillator for the next loop when the output module can pick it up on its inlet. This happens automatically so the user doesn't have to worry about module ordering - until there is a shortage of SRAM, when it becomes a very concrete problem.</p>
+
+<p>Hm, here's a thought, it would be nice if the patcher could output the number of such temporary variables it needs to create when the module order is less than ideal, so that it would be easy to check the efficiency of ones patch. In a real patch, it can be hard to eliminate out-of-order modules, but one could at least try to minimize them.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:3'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/lokki'><b itemprop='author'>lokki</b></a>
+           
+           <time datetime='2019-06-25T06:24:12Z' itemprop='datePublished'>
+             2019-06-25 06:24:12 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="7" data-topic="5814"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>Now, say there are two modules in a patch, one sending to another, like an oscillator to an output module. If the oscillator ends up being placed after the output module in a patch, the patcher has to create a temporary variable to hold the output from the oscillator for the next loop when the output module can pick it up on its inlet. This happens automatically so the user doesn't have to worry about module ordering - until there is a shortage of SRAM, when it becomes a very concrete problem.</p></blockquote></aside>
+
+<p>but.... this should be taken care of by left right top to bottom ordering and no upwards connections. however the "problems" i am seeing are really more "random" than that. moving an object around just a few pixels (preserving the downward connection) can change sram usage significantly. so there must be something else going on.</p>
+
+<p>i have even seen cases, where an upward connection decreased sram usage.</p>
+
+<p>i have to say though that this is all with patches that are hitting the limit of sram. so maybe there is some "bug" when you are near the limit. but that is of course also the one case where it is really frustrating. you try to optimise the patch by removing gui stuff etc. and end up eating up more sram. <img src="//community.axoloti.com/images/emoji/twitter/frowning.png?v=5" title=":frowning:" class="emoji" alt=":frowning:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/mypetrobot'><b itemprop='author'>mypetrobot</b></a>
+           
+           <time datetime='2019-06-25T17:46:23Z' itemprop='datePublished'>
+             2019-06-25 17:46:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="7" data-topic="5814"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>Hm, here's a thought, it would be nice if the patcher could output the number of such temporary variables it needs to create when the module order is less than ideal, so that it would be easy to check the efficiency of ones patch. In a real patch, it can be hard to eliminate out-of-order modules, but one could at least try to minimize them.</p></blockquote></aside>
+
+<p>Is there even any indication of the amount of SRAM being used beyond the overflow message you get when you make a patch "live?" I'd like to know how much SRAM I have to play with even when a patch hasn't hit the limit for example.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/windspace'><b itemprop='author'>windspace</b></a>
+           
+           <time datetime='2019-06-25T23:00:09Z' itemprop='datePublished'>
+             2019-06-25 23:00:09 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>The SRAM used shows in the patcher info window each time you load a patch into Axloti Core - even if you have not reached overflow. But I don't know if it can be seen before loading (trying to load...) a patch.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/mypetrobot'><b itemprop='author'>mypetrobot</b></a>
+           
+           <time datetime='2019-06-26T02:03:44Z' itemprop='datePublished'>
+             2019-06-26 02:03:44 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="10" data-topic="5814" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/windspace/40/4249_1.png" class="avatar">windspace:</div>
+<blockquote><p>The SRAM used shows in the patcher info window each time you load a patch into Axloti Core - even if you have not reached overflow. But I don't know if it can be seen before loading (trying to load...) a patch.</p></blockquote></aside>
+
+<p>Is it this: </p>
+
+<aside class="quote"><div class="title">
+<div class="quote-controls"></div>Axoloti:</div>
+<blockquote><p>block uploaded @ 0x20011000 length 32768<br>block uploaded @ 0x20019000 length 11532</p></blockquote></aside>
+
+<p>And if so, how do I interpret this? What are my limits?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/ricard'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2019-06-26T06:31:56Z' itemprop='datePublished'>
+             2019-06-26 06:31:56 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="8" data-topic="5814" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lokki/40/5157_1.png" class="avatar">lokki:</div>
+<blockquote>
+<aside class="quote" data-post="7" data-topic="5814"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/ricard/40/163_1.png" class="avatar">ricard:</div>
+<blockquote><p>Now, say there are two modules in a patch, one sending to another, like an oscillator to an output module. If the oscillator ends up being placed after the output module in a patch, the patcher has to create a temporary variable to hold the output from the oscillator for the next loop when the output module can pick it up on its inlet. This happens automatically so the user doesn't have to worry about module ordering - until there is a shortage of SRAM, when it becomes a very concrete problem.</p></blockquote></aside><p>but.... this should be taken care of by left right top to bottom ordering and no upwards connections. however the "problems" i am seeing are really more "random" than that. moving an object around just a few pixels (preserving the downward connection) can change sram usage significantly. so there must be something else going on.</p>
+</blockquote></aside>
+
+<p>I could be remembering this incorrectly, but I seem to recall that "above" and "below" refer to where the top left pixel of the objects are located relative to each other, regardless of their left-right orientation. So if two objects are located side by side, and the top left pixel of the right hand one is slightly above the left hand one, it is considered to be 'above' it. But as I say this could be wrong, I can't remember how I arrived at that conclusion or if I read it somewhere.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/lokki'><b itemprop='author'>lokki</b></a>
+           
+           <time datetime='2019-06-26T07:20:51Z' itemprop='datePublished'>
+             2019-06-26 07:20:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>interesting, i will have to tinker with it some more then. i was under the impression that cable connections just have to be downwards i.e. inlet position has to be below outlet position of the other object.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MattilynMattroe'><b itemprop='author'>MattilynMattroe</b></a>
+           
+           <time datetime='2019-06-26T08:15:25Z' itemprop='datePublished'>
+             2019-06-26 08:15:25 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Yeah, i'm pretty sure I read about the top left pixel thing. I've always thought of execution order as being from the very top of the object, not from where the inlets and outlets themselves are.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/ricard'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2019-06-26T09:21:31Z' itemprop='datePublished'>
+             2019-06-26 09:21:31 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/u/mattilynmattroe">@MattilynMattroe</a>: Yeah, that's been my impression too.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Pygmy'><b itemprop='author'>Pygmy</b></a>
+           
+           <time datetime='2019-10-05T21:27:00Z' itemprop='datePublished'>
+             2019-10-05 21:27:00 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm fairly new to the Axoloti, but the way I understand it is that it executes (as mentioned before) from left to right, top to bottom, with the top-left pixel of the object as the determining point.  </p>
+
+<p>Based on that the code is generated, the code will be compiled and optimized accordingly.<br>The optimization step is the tricky part, because that determines what needs to be stored where and for how long / in what scope. (Optimization tries to keep local things local - unless your specified execution order tells it it can't do that)</p>
+
+<p>Thus, changing the position of objects determines how the compiler optimizes the code.<br>Changing the position of an object can mean variables have to be stored on the stack respectively in or outside other code blocks, changing the memory usage accordingly.  </p>
+
+<p>As it's pretty hard to predict the final optimized compiled byte code from the wysiwyg ui, it will be a matter of trial and error repositioning objects - unless you want to take the effort to dig down into the compiled code to see what's going on.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/JonasBers'><b itemprop='author'>JonasBers</b></a>
+           
+           <time datetime='2019-10-05T23:35:26Z' itemprop='datePublished'>
+             2019-10-05 23:35:26 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>When I learned this, I started making all of my patches long horizontal rows.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='The position of an object effects the amount of SRAM it uses?'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='/'>Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/guidelines">FAQ/Guidelines</a>
+        <a href="/tos">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+</html>

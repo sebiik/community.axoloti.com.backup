@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Understanding MICBIAS (+axo fix) - Hardware - Axoloti Community</title>
+    <meta name="description" content="I read that the inputs can be biased for using an electret mic. I was confused on how to use the biasing. 
+
+I&amp;#39;m measuring 0V at the input jack between any of the pins, so the input jack doesn&amp;#39;t seem to be biased. 
+
+I fou&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.5.0.beta6 - https://github.com/discourse/discourse version fbffe287724f663d3fda72b8d37d6ae8a5552d11">
+<link rel="icon" type="image/png" href="/images/default-favicon.ico">
+<link rel="apple-touch-icon" type="image/png" href="/images/default-apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332" />
+
+      
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+  ga('send', 'pageview');
+
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Understanding MICBIAS (+axo fix)&#39;" href="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta property="og:url" content="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/understanding-micbias-axo-fix/1332" />
+<meta property="og:title" content="Understanding MICBIAS (+axo fix)" />
+<meta name="twitter:title" content="Understanding MICBIAS (+axo fix)" />
+<meta property="og:description" content="I read that the inputs can be biased for using an electret mic. I was confused on how to use the biasing.   I&#39;m measuring 0V at the input jack between any of the pins, so the input jack doesn&#39;t seem to be biased.   I found the &quot;audio/inconfic mic&quot; object. From what I can tell from the object definition, this simply sets the values of the audio codec&#39;s 0x4010 register. Looking at the datasheet, that should control the voltage &amp; max current on the codec&#39;s MICBIAS pin.    While looking into this, I..." />
+<meta name="twitter:description" content="I read that the inputs can be biased for using an electret mic. I was confused on how to use the biasing.   I&#39;m measuring 0V at the input jack between any of the pins, so the input jack doesn&#39;t seem to be biased.   I found the &quot;audio/inconfic mic&quot; object. From what I can tell from the object definition, this simply sets the values of the audio codec&#39;s 0x4010 register. Looking at the datasheet, that should control the voltage &amp; max current on the codec&#39;s MICBIAS pin.    While looking into this, I..." />
+
+    <style>
+        img { max-width: 100%; width: auto; height: auto; }
+    </style>
+  </head>
+  <body>
+      
+    <header>
+      <a href="/"><img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="/t/understanding-micbias-axo-fix/1332">Understanding MICBIAS (+axo fix)</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/hardware" itemprop="url">
+        <span itemprop="title">Hardware</span>
+      </a>
+    </div>
+</div>
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/BambiF'><b itemprop='author'>BambiF</b></a>
+           
+           <time datetime='2016-03-20T14:01:56Z' itemprop='datePublished'>
+             2016-03-20 14:01:56 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I read that the inputs can be biased for using an electret mic. I was confused on how to use the biasing.</p>
+
+<p>I'm measuring 0V at the input jack between any of the pins, so the input jack doesn't seem to be biased.</p>
+
+<p>I found the "audio/inconfic mic" object. From what I can tell from the object definition, this simply sets the values of the audio codec's 0x4010 register. Looking at the <a href="http://www.analog.com/media/en/technical-documentation/data-sheets/ADAU1961.pdf" rel="nofollow">datasheet</a>, that should control the voltage &amp; max current on the codec's MICBIAS pin. </p>
+
+<p>While looking into this, I found a bug in the implementation of audio/inconfig mic.axo:</p>
+
+<p>The 0x4010 register is a bitfield. See datasheet. In the .axo, the values are combined like this:<br><code>ADAU1961_WriteRegister(0x4010,attr_bias+attr_mperf+1);</code><br>where <code>mperf</code> is 0 or 1, and <code>bias</code> is 0 or 4 (from the dropdown controls).<br>This means that selecting "Normal" in the mperf dropdown turns bit 0 off, which disables the bias, and flips bit 1 (which is undefined). (1 + 1 = 0b10)<br>MPERF, which is bit 3, is never touched by the code.</p>
+
+<p>I corrected this by </p>
+
+<ul>
+<li>including bit 0 in the <code>bias</code> field, adding a third value to disable the bias</li>
+<li>correcting the <code>mperf</code> values (MPERF is bit 3, not bit 0)</li>
+<li>ORing the values together instead of adding them</li>
+</ul>
+
+<p>I tested the modified axo and measured the bias voltage, it works as intended. <a class="mention" href="/users/johannes">@johannes</a> or whoever maintains such things, could you have a look and include the fixed object: <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/d/df246c30514465bd5012a0bfd0390829670d963e.axo">inconfig mic.axo</a> (1.3 KB)</p>
+
+<p>So, looking at the <a href="http://www.axoloti.com/wp-content/uploads/2013/12/axoloti-core-sch-v10.pdf" rel="nofollow">Axoloti Schematic</a> on page 4 and on my board... R17 and R18 are unpopulated so it is clear to me now why there is no bias voltage on the input jack. I guess I should just solder in two 1K resistors then.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-03-21T18:00:50Z' itemprop='datePublished'>
+             2016-03-21 18:00:50 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks for the corrections, will integrate them.<br>I did not have the time to test electret microphone configurations - and that is also why R17/R18 are unpopulated. <br>Please share your experience with electret microphones!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/BambiF'><b itemprop='author'>BambiF</b></a>
+           
+           <time datetime='2016-03-22T21:35:23Z' itemprop='datePublished'>
+             2016-03-22 21:35:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="2" data-topic="1332" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Thanks for the corrections, will integrate them.</p></blockquote></aside>
+
+<p>Cool.</p>
+
+<p><aside class="quote"><blockquote><p>I did not have the time to test electret microphone configurations - and that is also why R17/R18 are unpopulated. <br>Please share your experience with electret microphones!</p></blockquote></aside></p>
+
+<p>I salvaged 2 1K resistors from an old computer mainboard and soldered them onto the Axoloti. Behold my mad SMD hand soldering skills... Not:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/46e10517059ad489452461b672a09e9a4dab91e4" href="//community.axoloti.com/uploads/default/original/2X/4/46e10517059ad489452461b672a09e9a4dab91e4.JPG" class="lightbox" title="IMG_2801_sm.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/4/46e10517059ad489452461b672a09e9a4dab91e4_1_679x500.JPG" width="679" height="500"><div class="meta">
+<span class="filename">IMG_2801_sm.JPG</span><span class="informations">1009x742 118 KB</span><span class="expand"></span>
+</div></a></div><br>They ended up pretty crooked... It works though. I turned on the bias and set the gain to 33db with the inconfig object, then connected a cheap electret capsule mic:<br><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/6bcdf614dc75c7771564c4f6fbc953ad0a060061" href="//community.axoloti.com/uploads/default/original/2X/6/6bcdf614dc75c7771564c4f6fbc953ad0a060061.JPG" class="lightbox" title="IMG_2766_sm.JPG"><img src="//community.axoloti.com/uploads/default/optimized/2X/6/6bcdf614dc75c7771564c4f6fbc953ad0a060061_1_666x500.JPG" width="666" height="500"><div class="meta">
+<span class="filename">IMG_2766_sm.JPG</span><span class="informations">800x600 55.9 KB</span><span class="expand"></span>
+</div></a></div><br>The quality isn't great of course, but it is OK for inputting speech and such. So I can use those mics now without any preamp, which is nice.</p>
+
+<p>One question remains though: Won't those resistors generate cross-talk between the left&amp;right channels? I only used a mono mic so far, in that case it doesn't matter. But what if I connected a stereo mic?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-03-23T00:07:32Z' itemprop='datePublished'>
+             2016-03-23 00:07:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="3" data-topic="1332"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/b/848f3c/40.png" class="avatar">BambiF:</div>
+<blockquote><p>One question remains though: Won't those resistors generate cross-talk between the left&amp;right channels? I only used a mono mic so far, in that case it doesn't matter. But what if I connected a stereo mic?</p></blockquote></aside>
+
+<p>Oh now I recall, that was one of the reasons to not populate these resistors in production, but leaving the resistor footprints for hackability.<br>Well if MICBIAS is on, it is a voltage source so crosstalk will be small. But if it's off, the datasheet is not clear what impedance MICBIAS will be. If it's high impedance, it 'd cause crosstalk, if it's low, it 'd lower the input impedance a lot...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/BambiF'><b itemprop='author'>BambiF</b></a>
+           
+           <time datetime='2016-03-23T01:21:54Z' itemprop='datePublished'>
+             2016-03-23 01:21:54 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="4" data-topic="1332" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>Well if MICBIAS is on, it is a voltage source so crosstalk will be small. But if it's off, the datasheet is not clear what impedance MICBIAS will be. If it's high impedance, it 'd cause crosstalk, if it's low, it 'd lower the input impedance a lot...</p></blockquote></aside>
+
+<p>Not sure I understand... What I meant was, soldering in R17+R18 would create a connection between the left&amp;right channels. I mean this signal path:</p>
+
+<p>Right In (Ring) - R18 - R17 - R19 - C44 - LIN-<br>and<br>Left In (Tip) - R17 - R18 - R20 - C45 - RIN-</p>
+
+<p>So that would be 2k of resistance between the channels, plus the capacitors (but an audio signal would pass the caps). Allowing signal intended for one input to pass to the other.</p>
+
+<p>That would be independent of the MICBIAS state, right?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='/'>Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/guidelines">FAQ/Guidelines</a>
+        <a href="/tos">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="http://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+      
+  </body>
+</html>

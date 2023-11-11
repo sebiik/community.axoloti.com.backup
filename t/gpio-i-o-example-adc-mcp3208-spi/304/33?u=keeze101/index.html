@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device  anon">
+  <head>
+    <meta charset="utf-8">
+    <title>[GPIO I/O] Example ADC MCP3208 &amp; SPI - Patching - Axoloti Community</title>
+    <meta name="description" content="Hi everyone, this example should show, how a MCP3208 can be used to read eight analog sources. The MCP3208 is connected to axoloti SPI port. This ADC method is much faster then the 4051 method and the MCP3208 has an inpu&amp;hellip;">
+    <meta name="discourse_theme_key" content="b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304?page=2" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+    
+
+      <meta name="fragment" content="!">
+
+
+    <script>
+      window.EmberENV = window.EmberENV || {};
+      window.EmberENV['FORCE_JQUERY'] = true;
+    </script>
+
+    <link rel='preload' href='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js' as='script'/>
+<script src='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js'></script>
+    <link rel='preload' href='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js' as='script'/>
+<script src='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js'></script>
+    <link rel='preload' href='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js' as='script'/>
+<script src='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js'></script>
+    <link rel='preload' href='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js' as='script'/>
+<script src='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js'></script>
+    <link rel='preload' href='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js' as='script'/>
+<script src='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js'></script>
+    <link rel='preload' href='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js' as='script'/>
+<script src='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js'></script>
+    <link rel='preload' href='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js' as='script'/>
+<script src='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js'></script>
+    <link rel='preload' href='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js' as='script'/>
+<script src='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js'></script>
+
+
+      
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+    <link rel="manifest" href="/manifest.json">
+
+
+      <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+
+
+  <link href="/stylesheets/desktop_theme_1_6c5f8f7f5e6a154a9f0dfd7aedf04bae4b669f17.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop_theme"/>
+
+    
+
+<link rel="preload" href="/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0" as="font" type="font/woff2" crossorigin />
+<style>
+  @font-face {
+    font-family: 'FontAwesome';
+    src: url('/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0') format('woff2'),
+         url('/assets/fontawesome-webfont-ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07.woff?http://community.axoloti.com&amp;2&v=4.7.0') format('woff');
+  }
+</style>
+
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;[GPIO I/O] Example ADC MCP3208 &amp; SPI&#39;" href="http://community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/optimized/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e_1_550x500.jpg" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/optimized/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e_1_550x500.jpg" />
+<meta property="og:url" content="http://community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304/33?u=keeze101" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/gpio-i-o-example-adc-mcp3208-spi/304/33?u=keeze101" />
+<meta property="og:title" content="[GPIO I/O] Example ADC MCP3208 &amp; SPI" />
+<meta name="twitter:title" content="[GPIO I/O] Example ADC MCP3208 &amp; SPI" />
+<meta property="og:description" content="Hi all,   I cascaded 3 MCP3008&#39;s and added some series resistors  (47Ohm) in the CLK/MISO and MOSI lines to get the reading stable. This seems to work, but now the readings are fine till a potmeter passes half the range. Where am I missing a point...     BTW, when lowering the potmeter below the half-point, readings get stable again...   Patch used: mcp3208 tripple channel example.axp (13.2 KB)    [image][image]" />
+<meta name="twitter:description" content="Hi all,   I cascaded 3 MCP3008&#39;s and added some series resistors  (47Ohm) in the CLK/MISO and MOSI lines to get the reading stable. This seems to work, but now the readings are fine till a potmeter passes half the range. Where am I missing a point...     BTW, when lowering the potmeter below the half-point, readings get stable again...   Patch used: mcp3208 tripple channel example.axp (13.2 KB)    [image][image]" />
+
+
+
+    
+  </head>
+
+  <body class="">
+    
+
+    <div class='debug-eyeline'></div>
+
+    <noscript data-path="/t/gpio-i-o-example-adc-mcp3208-spi/304/33">
+      <header class="d-header">
+  <div class="wrap">
+    <div class="contents">
+      <div class="row">
+        <div class="title span13">
+          <a href="/">
+              <img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo">
+          </a>
+        </div>
+            <div class='panel clearfix'>
+              <a href="/login" class='btn btn-primary btn-small login-button'><i class="fa fa-user"></i> Log In</a>
+            </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div id="main-outlet" class="wrap">
+        <!-- preload-content: -->
+        <h1>
+  <a href="/t/gpio-i-o-example-adc-mcp3208-spi/304">[GPIO I/O] Example ADC MCP3208 &amp; SPI</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/patching" itemprop="url">
+        <span itemprop="title">Patching</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T19:06:02Z' itemprop='datePublished'>
+             2016-01-19 19:06:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ok I'm hoping this is a software problem. I get accurate readings on 16 pots using 2 MCP3208 if, and here's the catch...</p>
+
+<p>I always get accurate readings from MCP3208 #1, the one connected to axoloti PA4<br>I only get accurate readings from MCP3208 #2, connected to PA3 if the pot on the same pin number on the other MCP3208 is turned to the maximum, otherwise I get some sort of average. If I turn the pot down, I get no reading at all..<br>I'm guessing somewhere in my script I multiply the values, <br>- but I reinitialised the vars,<br>- I increased the sleeptime between polling (thought it was some overflow)<br>- I renamed the z var in the second loop</p>
+
+<p>It took me quite a while to figure out why everything was dancing and then not, I thought it was hardware, so I resoldered a lot of things... apparently for nothing, or not? a bit puzzled.</p>
+
+<p>below is my version of the script</p>
+
+<pre><code>/*
+MCP3208 script2 code
+by paul
+adapted by kaos, this script is not working, there is problem...
+
+Connect the MCP3208 CS pin to the NSS(PA4) or any other digital out pin of axoloti.
+In this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.
+
+If you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. 
+*/
+
+uint8_t *txbuf;
+uint8_t *rxbuf;
+const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4
+const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3
+
+
+
+
+void setup(void){
+	static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+	static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+	rxbuf = _rxbuf;
+
+	palSetPadMode(GPIOA,4,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	palSetPadMode(GPIOA,3,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	//changes
+	palWritePad(GPIOA,4,1);								// pull high to disable first MCP3208
+	palWritePad(GPIOA,3,1);								// pull high to disable second MCP3208
+}
+
+void loop(void){
+	// txtbuf[0] = txtbuf[1] = txtbuf[2] = 0b00000000;
+   	txbuf[2] = 0b00000000;
+ 	
+    	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+			
+
+		palWritePad(GPIOA,4,0);		// enable MCP3208 #1
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,4,1);		// disable MCP3208 #1
+				
+		int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c0_value],z,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c1_value],z,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c2_value],z,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c3_value],z,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c4_value],z,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c5_value],z,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c6_value],z,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c7_value],z,0xFFFD);
+		}
+	
+	}
+	chThdSleepMilliseconds(10);
+	txbuf[2] = 0b00000000;
+
+	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+
+		palWritePad(GPIOA,3,0);		// enable MCP3208  #2
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,3,1);		// disable MCP3208 #2
+				
+		int zz = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d0_value],zz,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d1_value],zz,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d2_value],zz,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d3_value],zz,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d4_value],zz,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d5_value],zz,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d6_value],zz,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d7_value],zz,0xFFFD);
+		}	
+	}
+	chThdSleepMilliseconds(10);
+}</code></pre>
+
+<p>Kaos</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-01-19T19:19:27Z' itemprop='datePublished'>
+             2016-01-19 19:19:27 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="13" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>I only get accurate readings from MCP3208 #2, connected to PA3 if the pot on the same pin number on the other MCP3208 is turned to the maximum, otherwise I get some sort of average. If I turn the pot down, I get no reading at all..</p></blockquote></aside>
+
+<p>Sounds like #1 is replying too when you try to address only #2, and you get a "bitwise and" of the two pots as a result...<br>Looks like you're not using spicfg_a/spicfg_b configs, and you should...</p>
+
+<p>Let me also suggest to try sending and receiving all channel data in a single spiExchange() call, way more efficient...</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T19:32:27Z' itemprop='datePublished'>
+             2016-01-19 19:32:27 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="14" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>spicfg_a/spicfg_b configs, and you should...</p></blockquote></aside>
+
+<p>I am, in the script it says<br></p>
+
+<aside class="quote" data-post="13" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4<br>const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3</p></blockquote></aside>
+
+<p>I guess I have to reset the rxbuf somewhere? It just gets copied over<br></p>
+
+<aside class="quote" data-post="13" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>int zz = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;</p></blockquote></aside>
+
+<p>I'll google the spiExchange, makes sense to me to make it more efficient, not done adding stuff here <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>K</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-01-19T19:37:19Z' itemprop='datePublished'>
+             2016-01-19 19:37:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="15" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png" class="avatar">kaos:</div>
+<blockquote><p>I am</p></blockquote></aside>
+
+<p>err, no, that's only the declaration.<br>spiStart() takes it as an argument.<br>No need to reset rxbuf.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T20:29:19Z' itemprop='datePublished'>
+             2016-01-19 20:29:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>right, so I call it in the setup routine as something like this:</p>
+
+<blockquote>
+<pre><code>palWritePad(GPIOA,4,0);		// enable MCP3208 #1</code></pre>
+<p><strong>&gt;     	spiStart(&amp;spicfg_a);</strong><br>    	spiSelect(&amp;SPID1);			// START SPI<br>    	spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]<br>    	spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208<br>    	spiUnselect(&amp;SPID1);		// STOP SPI<br>    	palWritePad(GPIOA,4,1);		// disable MCP3208 #1</p>
+</blockquote>
+
+<p>but that fails. looking in the SPI<a href="http://chibios.sourceforge.net/html/group___s_p_i.html#ga6752c9f736f8de774a5bef6dfe2aae2e" rel="nofollow"> Chibios Docs</a> i need to call it as</p>
+
+<pre><code>void spiStart	(	
+   SPIDriver * 	spip,
+const SPIConfig * 	config 
+)</code></pre>
+
+<p> but I have no clue on the SPIdriver, no pointers defined in the example code...</p>
+
+<p>K</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-01-19T20:33:11Z' itemprop='datePublished'>
+             2016-01-19 20:33:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>scroll up a bit here<br><aside class="quote" data-topic="304" data-slug="gpio-i-o-example-adc-mcp3208-spi" data-post="3"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/matthewcieplak/40/280_1.png" class="avatar">matthewcieplak:</div>
+<blockquote><p>I had a closer look at some of the code used for SPI configuration and it seems like this would be theoretically possible, but maybe not with the provided objects. For example, the gpio/spi/config object initializes a named static "spicfg" constant that would conflict other config objects.     Nonetheless, ChibiOS does support sequential spiStart() calls with different config objects, according to this thread: <a href="http://forum.chibios.org/phpbb/viewtopic.php?f=2&amp;t=676" class="onebox" target="_blank" rel="nofollow"></a><a href="http://forum.chibios.org/phpbb/viewtopic.php?f=2&amp;amp;t=676" rel="nofollow">http://forum.chibios.org/phpbb/viewtopic.php?f=2&amp;t=676</a>   An example is given as:   if …</p></blockquote></aside></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/kaos'><b itemprop='author'>kaos</b></a>
+           
+           <time datetime='2016-01-19T20:42:56Z' itemprop='datePublished'>
+             2016-01-19 20:42:56 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>OK it works!</p>
+
+<p><code>&gt; spiStart(&amp;SPID1, &amp;spicfg_b);</code></p>
+
+<p>16 pots using only 5 pins...optimising will be for some other time!<br>onto the next challenge <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt=":smile:"></p>
+
+<p>Thanks!</p>
+
+<pre><code>/*
+MCP3208 script2 code
+by paul
+adapted by kaos, this script is not optimized, but it works!
+Connect the MCP3208 CS pin to the NSS(PA4) or any other digital out pin of axoloti.
+In this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.
+
+If you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. 
+*/
+
+uint8_t *txbuf;
+uint8_t *rxbuf;
+const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4
+const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3
+
+
+
+
+void setup(void){
+	static uint8_t _txbuf[8] __attribute__ ((section (".sram2")));
+	static uint8_t _rxbuf[8] __attribute__ ((section (".sram2")));
+	txbuf = _txbuf;
+	rxbuf = _rxbuf;
+
+	palSetPadMode(GPIOA,4,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	palSetPadMode(GPIOA,3,PAL_MODE_OUTPUT_PUSHPULL);	// MCP3208
+	//changes
+	palWritePad(GPIOA,4,1);								// pull high to disable first MCP3208
+	palWritePad(GPIOA,3,1);								// pull high to disable second MCP3208
+}
+
+void loop(void){
+	// txtbuf[0] = txtbuf[1] = txtbuf[2] = 0b00000000;
+   	txbuf[2] = 0b00000000;
+ 	
+    	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+			
+
+		palWritePad(GPIOA,4,0);		// enable MCP3208 #1
+		spiStart(&amp;SPID1, &amp;spicfg_a);
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,4,1);		// disable MCP3208 #1
+				
+		int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c0_value],z,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c1_value],z,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c2_value],z,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c3_value],z,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c4_value],z,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c5_value],z,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c6_value],z,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_c7_value],z,0xFFFD);
+		}
+	
+	}
+	chThdSleepMilliseconds(10);
+	txbuf[2] = 0b00000000;
+
+	for(int pin=0; pin&lt;8; pin++){
+ 
+	        txbuf[0] = pin &lt; 4 ? 0b01100000 : 0b11100000;
+	 
+	        if (pin % 4 == 0) { // pin == 0 || pin == 4
+	            txbuf[1] = 0b00000000;
+	        } else if (pin % 4 == 1) { // pin == 1 || pin == 5
+	            txbuf[1] = 0b00000010;
+	        } else if (pin % 4 == 2) { // pin == 2 || pin == 6
+	            txbuf[1] = 0b00000001;
+	        } else {
+	            txbuf[1] = 0b00000011;
+	        }
+
+		palWritePad(GPIOA,3,0);		// enable MCP3208  #2
+		spiStart(&amp;SPID1, &amp;spicfg_b);
+		spiSelect(&amp;SPID1);			// START SPI
+		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]
+		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208
+		spiUnselect(&amp;SPID1);		// STOP SPI
+		palWritePad(GPIOA,3,1);		// disable MCP3208 #2
+				
+		int zz = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16;
+
+		if (pin == 0){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d0_value],zz,0xFFFD);
+		}
+		else if (pin == 1){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d1_value],zz,0xFFFD); 
+		}
+		else if (pin == 2){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d2_value],zz,0xFFFD);
+		}
+		else if (pin == 3){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d3_value],zz,0xFFFD);
+		}
+		else if (pin == 4){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d4_value],zz,0xFFFD);
+		}
+		else if (pin == 5){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d5_value],zz,0xFFFD);
+		}
+		else if (pin == 6){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d6_value],zz,0xFFFD);
+		}
+		else if (pin == 7){
+			PExParameterChange(&amp;parent-&gt;PExch[PARAM_INDEX_d7_value],zz,0xFFFD);
+		}	
+	}
+	chThdSleepMilliseconds(10);
+}</code></pre>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:5'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/gagarin'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-09-14T07:00:34Z' itemprop='datePublished'>
+             2016-09-14 07:00:34 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>How many MCP3208 devices is possible to use with axoloti or what is the max number of pots is posible to connect to axoloti using mcp chips? Do they intorduce aditional cpu load?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-09-16T07:54:28Z' itemprop='datePublished'>
+             2016-09-16 07:54:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#21</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>My not the best to answer this BUT I think the max is 8 per 3208 , so that gives 128<br>Load I'd assume with increase linearly per 3208, as each is streated separately </p>
+
+<p>Note: if not tried this, as I don't have any 3208s, this is based on the code and circuits I've seen here</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-09-19T14:55:49Z' itemprop='datePublished'>
+             2016-09-19 14:55:49 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#22</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Yes, 8 MCP3208 devices is the maximum that can be addressed.<br>The main concern is not CPU load, but the update rate. If a single conversion is scheduled every millisecond, at 128 channels that gets you 8 samples per second. Scheduling conversions at 3kHz (control rate), gets you 24 samples per second. Scheduling faster gets tricky, as it will start to interfere with control rate.<br>The MCP3208 protocol requires to setup a data transaction for each conversion, it would be much nicer if it could read out its 8 channels in a single data transaction. Perhaps some other converter exists that can do this, but don't know a widely available cheap part number that can do this, but I have not searched extensively.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+            <a href="http://community.axoloti.com/t/the-xylobox-wavetable-synthesizer-hardware-patches/1353/35">The Xylobox Wavetable Synthesizer (hardware + patches)</a>
+            <hr>
+            <a href="http://community.axoloti.com/t/which-potentiometers-should-i-buy/3777/18">Which potentiometers should I buy?</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-09-19T15:35:28Z' itemprop='datePublished'>
+             2016-09-19 15:35:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#23</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="22" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>the update rate. If a single conversion is scheduled every millisecond, at 128 channels that gets you 8 samples per second. Scheduling conversions at 3kHz (control rate), gets you 24 samples per second.</p></blockquote></aside>
+
+<p>can I just understand this correctly?<br>so basically, because they share the same spi port, you can only address one 3208 (and one pin of it) on each cycle, and you have to issue the send and receive on different cycles. </p>
+
+<p>also quick wiring question...<br>on the above diagram the first 3208 has a cap between pins  2 and 3, is this also required for the second (and subsequent) 3208s?</p>
+
+<p>(I'll note for my usage I'm not planning on that many pots ...  but thought I might have some analogue inputs that I want a high sample rates, e.g. ribbon but a fews pots that could be lower if necessary)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-09-19T18:49:51Z' itemprop='datePublished'>
+             2016-09-19 18:49:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#24</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>After setup, for every transaction, you need these calls:</p>
+
+<p><code>		spiSelect(&amp;SPID1);			// START SPI<br>		spiSend(&amp;SPID1,3,txbuf);	// send SPI data txbuf[]<br>		spiReceive(&amp;SPID1,3,rxbuf);	// receive SPI data from MCP3208<br>		spiUnselect(&amp;SPID1);</code></p>
+
+<p>I think <code>spiSend()</code> and <code>spiReceive()</code> can be merged in one call of <code>spiExchange</code>. But the chip select input must see a high pulse between transactions. The data sheet shows DIN is "don't care" after the first transaction.</p>
+
+<p>The <code>spiSend()</code>, <code>spiReceive()</code> and <code>spiExchange()</code> function calls setup the transaction (using DMA), suspends the current thread so other threads can do useful work in the meantime, and when the transaction is finished, it resumes the original thread.</p>
+
+<p>There are several option to schedule the transactions:</p>
+
+<ul>
+<li>Making a thread with a tight loop with <code>spiX..()</code> is a bit too aggressive, perhaps with the spi bitrate set to the slowest possible. I would not recommend.</li>
+<li>Creating a thread with chThdSleepMilliseconds() in the loop is fine, but has a 1 millisecond timing granularity (as configured in firmware: chconfig.h). This is what I'd recommend</li>
+<li>Calling <code>spiX..()</code> at k-rate (from the dsp thread), I would not recommend as that makes the time during the transaction unavailable for audio processing... It is possible to do SPI without the <code>spiX..()</code> calls, by manipulating the memory-mapped IO registers defined in stm32fxxx.h, within k-rate and poll for the result at the next k-rate interval. But such an implementation is very unportable.</li>
+</ul>
+
+<p>The capacitor between pin 2 and 3, I think you're referring to pin 14 and 15. Pin numbering start at a "mark", often a dot, then go around counter-clock-wise. As a starting point I'd suggest a 100nF capacitor across every GND/VDD pair of pins of every chip, close to each pin pair. In this case, pin 15 is the voltage reference input, I'd give it a 100nF capacitor too on each chip. The <a href="http://ww1.microchip.com/downloads/en/DeviceDoc/21298c.pdf" rel="nofollow">mcp3208 datasheet</a> has a chapter on Layout Considerations, they recommend a 1uF capacitor "placed as close as possible to the device pin". Such layout considerations are not supercritical to get it to work, but certainly useful to reach best possible performance. But I would not be surprised if it also works fine without any respect for the layout recommendations.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/gagarin'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-10-04T06:43:06Z' itemprop='datePublished'>
+             2016-10-04 06:43:06 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#25</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>What potentiometer values I should use with MCP3208? The same as for axoloti analog inputs?<br>Can I use 74HC4051 or 74HC4067 multiplexer, wil the script code wil be the same?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/gagarin'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-11-25T09:11:32Z' itemprop='datePublished'>
+             2016-11-25 09:11:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#26</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Can I connect MOSI, MISO, SCK, NSS/CS of MCP3208 to pins PB6-PB9?<br>Then it will be possible to use all 15 analog inputs of axoloti and 8 additional from MCP3208, so in total 23 ins?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-11-25T14:25:58Z' itemprop='datePublished'>
+             2016-11-25 14:25:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#27</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Sorry, it is not possible to move the pin assignments for MOSI, MISO and SCK.<br></p>
+
+<aside class="quote" data-post="25" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/g/e9a140/40.png" class="avatar">gagarin:</div>
+<blockquote><p>Can I use 74HC4051 or 74HC4067 multiplexer, wil the script code wil be the same?</p></blockquote></aside>
+
+<p>I have not studied those, I guess it will be the same or very similar.<br></p>
+
+<aside class="quote" data-post="25" data-topic="304"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/g/e9a140/40.png" class="avatar">gagarin:</div>
+<blockquote><p>potentiometer values</p></blockquote></aside>
+
+<p>yeah, use the same.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/gagarin'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2016-11-26T10:39:24Z' itemprop='datePublished'>
+             2016-11-26 10:39:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#28</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thank you Johannes.</p>
+
+<p>I have one more question:</p>
+
+<p>In this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.</p>
+
+<p>If you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. <br>*/</p>
+
+<p>uint8_t *txbuf;<br>uint8_t *rxbuf;<br>const SPIConfig spicfg_a = {NULL, GPIOA, 4, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4<br>const SPIConfig spicfg_b = {NULL, GPIOA, 3, 3&lt;&lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3</p>
+
+<p>Does this mean that second mcp3208 CS pin connected to PA3, but not to B0(GPIOB,0) pin? Or there is somewhere mismatch in axoloti labels?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/gagarin'><b itemprop='author'>gagarin</b></a>
+           
+           <time datetime='2017-01-05T20:06:24Z' itemprop='datePublished'>
+             2017-01-05 20:06:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#30</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Somehow I find the answer</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/MC_DETH'><b itemprop='author'>MC_DETH</b></a>
+           
+           <time datetime='2017-10-01T17:10:00Z' itemprop='datePublished'>
+             2017-10-01 17:10:00 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#31</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Does that mean 8 mpc3208's can be connected directly to axoloti? Or do they need to be chained? I am building an enclosure with 48 pots, 6 tact buttons, 6 leds, a 4 digit LCD display and a rotary encoder and I am trying to find out the best strategy to approach this.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Ac-tone'><b itemprop='author'>Ac-tone</b></a>
+           
+           <time datetime='2019-10-12T16:55:08Z' itemprop='datePublished'>
+             2019-10-12 16:55:08 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#32</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hello ! <br>I've wired my MCP3008 and seem to get an accurate reading, but like matthewcleplak a few post earlier, I can't get a value more than 3.97 and cannot figure out why..<br>I'm not that good with coding so i'm having troubles figuring out if it is in the script or due to the 10-bit depth of the MCP3008,  or if it's a VREF problem...<br>I've used a 100nf cap beetwen pin 2 and 3 and a 100uf beetween the main Vdda and GND, it seem to work as there is almost no jitter. I'm using 100k pot, that works fine when connected into the Axo's DAC. <br>Any ideas ? I couldn't find a simple answer in that post, even though I think matthewcleplak figured it out...</p>
+
+<p>EDIT : SOMEHOW, I FOUND THE ANSWER WHILE TRYING TO FIGURE OUT THE CODE; YOU NEED TO CHANGE THIS LINE, that is in the first example script : <br> int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 16; <br>to<br> int z = (rxbuf[1] &lt;&lt; 8| rxbuf[0]) &lt;&lt; 20;</p>
+
+<p>The value now goes to 63.50... that'll do it for me, although I did It kinda randomly, if somebody could explain a little bit how this work and get that last 0.50...</p>
+
+<p>Hope this will be useful to someone <img src="//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5" title=":slight_smile:" class="emoji" alt=":slight_smile:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Keeze101'><b itemprop='author'>Keeze101</b></a>
+           
+           <time datetime='2020-05-04T13:07:46Z' itemprop='datePublished'>
+             2020-05-04 13:07:46 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#33</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi all,</p>
+
+<p>I cascaded 3 MCP3008's and added some series resistors  (47Ohm) in the CLK/MISO and MOSI lines to get the reading stable. This seems to work, but now the readings are fine till a potmeter passes half the range. Where am I missing a point...</p>
+
+<div class="lazyYT" data-youtube-id="0w140a2NcQ0" data-youtube-title="" data-width="480" data-height="270" data-parameters="feature=oembed&amp;wmode=opaque"></div>
+
+<p>BTW, when lowering the potmeter below the half-point, readings get stable again...</p>
+
+<p>Patch used: <a class="attachment" href="//community.axoloti.com/uploads/default/original/2X/6/6a122d535583e9fa0eb15c3a9e4b48be6eff746e.axp">mcp3208 tripple channel example.axp</a> (13.2 KB)</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/79bf79b750d4b76c3d5f6332d0f67c062252f42e" href="//community.axoloti.com/uploads/default/original/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e.jpg" class="lightbox" title="3mcp3008-2.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e_1_550x500.jpg" width="550" height="500"><div class="meta">
+<span class="filename">3mcp3008-2.jpg</span><span class="informations">550x1200 206 KB</span><span class="expand"></span>
+</div></a></div><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/7f040ee9926d6484e4262ea50d88bbacde198161" href="//community.axoloti.com/uploads/default/original/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161.jpg" class="lightbox" title="3mcp3008-1.jpg"><img src="//community.axoloti.com/uploads/default/optimized/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161_1_550x500.jpg" width="550" height="500"><div class="meta">
+<span class="filename">3mcp3008-1.jpg</span><span class="informations">550x1200 241 KB</span><span class="expand"></span>
+</div></a></div></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='[GPIO I/O] Example ADC MCP3208 &amp; SPI'>
+      <hr>
+            <a href="http://community.axoloti.com/t/spi-problems-with-mcp3008-and-mcp23s17/6614">SPI Problems with MCP3008 and MCP23s17</a>
+            <hr>
+  </div>
+
+
+
+
+
+
+        <!-- :preload-content -->
+        <footer>
+          <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+            <a href='/'>Home</a>
+            <a href="/categories">Categories</a>
+            <a href="/guidelines">FAQ/Guidelines</a>
+            <a href="/tos">Terms of Service</a>
+            <a href="/privacy">Privacy Policy</a>
+          </nav>
+        </footer>
+      </div>
+
+      <footer id='noscript-footer'>
+        <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+      </footer>
+    </noscript>
+
+      
+
+    <section id='main'>
+    </section>
+
+    <div id='offscreen-content'>
+    </div>
+
+      <form id='hidden-login-form' method="post" action="/login" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+
+      <script>
+      (function() {
+        var ps = require('preload-store').default;
+          ps.store("site", {"default_archetype":"regular","notification_types":{"mentioned":1,"replied":2,"quoted":3,"edited":4,"liked":5,"private_message":6,"invited_to_private_message":7,"invitee_accepted":8,"posted":9,"moved_post":10,"linked":11,"granted_badge":12,"invited_to_topic":13,"custom":14,"group_mentioned":15,"group_message_summary":16,"watching_first_post":17,"topic_reminder":18},"post_types":{"regular":1,"moderator_action":2,"small_action":3,"whisper":4},"groups":[{"id":1,"name":"admins"},{"id":0,"name":"everyone"},{"id":2,"name":"moderators"},{"id":3,"name":"staff"},{"id":10,"name":"trust_level_0"},{"id":11,"name":"trust_level_1"},{"id":12,"name":"trust_level_2"},{"id":13,"name":"trust_level_3"},{"id":14,"name":"trust_level_4"}],"filters":["latest","unread","new","read","posted","bookmarks"],"periods":["all","yearly","quarterly","monthly","weekly","daily"],"top_menu_items":["latest","unread","new","read","posted","bookmarks","category","categories","top"],"anonymous_top_menu_items":["latest","top","categories","category","categories","top"],"uncategorized_category_id":1,"is_readonly":false,"disabled_plugins":[],"user_field_max_length":2048,"suppressed_from_homepage_category_ids":[],"post_action_types":[{"name_key":"bookmark","name":"Bookmark","description":"Bookmark this post","short_description":"Bookmark this post","long_form":"bookmarked this post","is_flag":false,"icon":null,"id":1,"is_custom_flag":false},{"name_key":"like","name":"Like","description":"Like this post","short_description":"Like this post","long_form":"liked this","is_flag":false,"icon":"heart","id":2,"is_custom_flag":false},{"name_key":"off_topic","name":"Off-Topic","description":"This post is not relevant to the current discussion as defined by the title and first post, and should probably be moved elsewhere.","short_description":"Not relevant to the discussion","long_form":"flagged this as off-topic","is_flag":true,"icon":null,"id":3,"is_custom_flag":false},{"name_key":"inappropriate","name":"Inappropriate","description":"This post contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"A violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"vote","name":"Vote","description":"Vote for this post","short_description":"Vote for this post","long_form":"voted for this post","is_flag":false,"icon":null,"id":5,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This post is an advertisement, or vandalism. It is not useful or relevant to the current topic.","short_description":"This is an advertisement or vandalism","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_user","name":"Send @{{username}} a message","description":"I want to talk to this person directly and privately about their post.","short_description":"I want to talk to this person directly and privately about their post.","long_form":"messaged user","is_flag":true,"icon":null,"id":6,"is_custom_flag":true},{"name_key":"notify_moderators","name":"Something Else","description":"This post requires staff attention for another reason not listed above.","short_description":"Requires staff attention for another reason","long_form":"flagged this for staff attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"topic_flag_types":[{"name_key":"inappropriate","name":"Inappropriate","description":"This topic contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"translation missing: en.topic_flag_types.inappropriate.short_description","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This topic is an advertisement. It is not useful or relevant to this site, but promotional in nature.","short_description":"translation missing: en.topic_flag_types.spam.short_description","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_moderators","name":"Something Else","description":"This topic requires general staff attention based on the \u003ca href=\"/guidelines\"\u003eguidelines\u003c/a\u003e, \u003ca href=\"/tos\"\u003eTOS\u003c/a\u003e, or for another reason not listed above.","short_description":"translation missing: en.topic_flag_types.notify_moderators.short_description","long_form":"flagged this for moderator attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"can_create_tag":null,"can_tag_topics":null,"tags_filter_regexp":"[/\\?#\\[\\]@!\\$\u0026'\\(\\)\\*\\+,;=\\.%\\\\`^\\s|\\{\\}\"\u003c\u003e]+","top_tags":["midi","controllers","modular","linux","1.0.11","macos","windows","troubleshooting","usb","challenge","wavetable","library","math","faust","dsp","out","tips","current","14bit"],"topic_featured_link_allowed_category_ids":[4,12,1,15,6,2,5,10,8,16,14,3,9,13,7,11],"user_themes":[{"theme_key":"b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408","name":"Migrated from Site Text","default":true}],"categories":[{"id":1,"name":"Uncategorized","color":"AB9364","text_color":"FFFFFF","slug":"uncategorized","topic_count":-1,"post_count":1,"position":0,"description":"Topics that don't need a category, or don't fit into any other existing category.","description_text":"","topic_url":"/t/","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":10,"name":"User Guide","color":"3AB54A","text_color":"FFFFFF","slug":"user-guide","topic_count":24,"post_count":102,"position":1,"description":"This category contains posts to help users use Axoloti, a dynamic user guide.","description_text":"This category contains posts to help users use Axoloti, a dynamic user guide.","topic_url":"/t/about-the-user-guide-category/51","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":8,"name":"Helpdesk","color":"9EB83B","text_color":"FFFFFF","slug":"helpdesk","topic_count":374,"post_count":3008,"position":2,"description":"This category is for reporting issues and bugs\u003cbr\u003ePlease use other categories for discussions on features or questions or \"how to?\"","description_text":"This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or \"how to?\"","topic_url":"/t/about-the-helpdesk-category/23","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":13,"name":"Community Library","color":"9EB83B","text_color":"FFFFFF","slug":"community-library","topic_count":54,"post_count":2919,"position":3,"description":"Category for the community library","description_text":"Category for the community library","topic_url":"/t/about-the-community-library-category/1005","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":7,"name":"Patching","color":"AB9364","text_color":"FFFFFF","slug":"patching","topic_count":993,"post_count":8114,"position":4,"description":"This category is for discussion about patching Axoloti, and sharing patches.","description_text":"This category is for discussion about patching Axoloti, and sharing patches.","topic_url":"/t/about-the-patching-category/14","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":5,"name":"Hardware","color":"AB9364","text_color":"FFFFFF","slug":"hardware","topic_count":659,"post_count":7211,"position":5,"description":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects. ","description_text":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects.","topic_url":"/t/about-the-hardware-category/12","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":6,"name":"Software","color":"AB9364","text_color":"FFFFFF","slug":"software","topic_count":329,"post_count":3333,"position":6,"description":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. ","description_text":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti.","topic_url":"/t/about-the-software-category/13","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":16,"name":"AxoObject coding","color":"AB9364","text_color":"FFFFFF","slug":"axoobject-code","topic_count":265,"post_count":2158,"position":7,"description":"Category to discuss coding Axoloti Objects.","description_text":"Category to discuss coding Axoloti Objects.","topic_url":"/t/about-the-axoobject-coding-category/1519","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":14,"name":"News/Events","color":"283890","text_color":"FFFFFF","slug":"events","topic_count":30,"post_count":106,"position":8,"description":"Meetups, workshops, presentations, all sort of events.\u003cbr\u003eIt's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.\u003cbr\u003eStart your topic title with the name of the area where your event will happen.","description_text":"Meetups, workshops, presentations, all sort of events.It's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.Start your topic title with the name of the area where your event will happen.","topic_url":"/t/about-the-events-category/1142","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":12,"name":"Challenges","color":"0E76BD","text_color":"FFFFFF","slug":"challenges","topic_count":19,"post_count":266,"position":9,"description":"This category is for challenges, competitions and discussions related to these.\u003cbr\u003eposters are reminded when entering challenges and competitions to not include any copyrighted material","description_text":"This category is for challenges, competitions and discussions related to these.posters are reminded when entering challenges and competitions to not include any copyrighted material","topic_url":"/t/about-the-challenges-category/838","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":9,"name":"Your Music/Projects","color":"0E76BD","text_color":"FFFFFF","slug":"your-music-projects","topic_count":180,"post_count":1263,"position":10,"description":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?\u003cbr\u003eTells us about it here.","description_text":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?Tells us about it here.","topic_url":"/t/about-the-your-music-projects-category/25","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":15,"name":"Lounge","color":"AB9364","text_color":"FFFFFF","slug":"lounge","topic_count":101,"post_count":1693,"position":11,"description":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.\u003cbr\u003e(please ensure it has some relevance to Axoloti, rather than general discussion) ","description_text":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.(please ensure it has some relevance to Axoloti, rather than general discussion)","topic_url":"/t/about-the-lounge-category/1277","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":11,"name":"Developer","color":"BF1E2E","text_color":"FFFFFF","slug":"developer","topic_count":66,"post_count":645,"position":12,"description":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","description_text":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","topic_url":"/t/about-the-developer-category/735","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"This category is for low level discussion on the development of Axoloti, its is intended for developers/programmers only.","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":3,"name":"Website and Forum","color":"808281","text_color":"FFFFFF","slug":"meta","topic_count":45,"post_count":410,"position":13,"description":"Discussion about this site, its organization, how it works, and how we can improve it.","description_text":"Discussion about this site, its organization, how it works, and how we can improve it.","topic_url":"/t/about-the-meta-category/2","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null}],"trust_levels":[{"id":0,"name":"new user"},{"id":1,"name":"basic user"},{"id":2,"name":"member"},{"id":3,"name":"regular"},{"id":4,"name":"leader"}],"archetypes":[{"id":"regular","name":"Regular Topic","options":[]},{"id":"banner","name":"Banner Topic","options":[]}],"user_fields":[]});
+          ps.store("siteSettings", {"title":"Axoloti Community","contact_email":"johannes.taelman@gmail.com","contact_url":"","logo_url":"/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png","logo_small_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","mobile_logo_url":"","favicon_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","allow_user_locale":false,"suggested_topics":5,"track_external_right_clicks":false,"ga_universal_tracking_code":"UA-56017691-4","ga_universal_domain_name":"auto","ga_tracking_code":"","ga_domain_name":"","gtm_container_id":"","top_menu":"categories|latest|new|unread|top","post_menu":"like-count|like|share|flag|edit|bookmark|delete|admin|reply","post_menu_hidden_items":"flag|bookmark|edit|delete|admin","share_links":"twitter|facebook|email","desktop_category_page_style":"categories_and_latest_topics","category_colors":"BF1E2E|F1592A|F7941D|9EB83B|3AB54A|12A89D|25AAE2|0E76BD|652D90|92278F|ED207B|8C6238|231F20|808281|B3B5B4|283890","category_style":"bullet","enable_mobile_theme":true,"relative_date_duration":30,"fixed_category_positions":true,"fixed_category_positions_on_create":false,"enable_badges":true,"enable_badge_sql":false,"enable_whispers":false,"invite_only":false,"login_required":false,"must_approve_users":false,"enable_local_logins":true,"allow_new_registrations":true,"enable_signup_cta":true,"enable_google_oauth2_logins":false,"enable_yahoo_logins":false,"enable_twitter_logins":false,"enable_instagram_logins":false,"enable_facebook_logins":false,"enable_github_logins":false,"enable_sso":false,"sso_overrides_avatar":false,"min_username_length":3,"max_username_length":20,"min_password_length":10,"min_admin_password_length":15,"logout_redirect":"","full_name_required":false,"enable_names":true,"invites_per_page":40,"delete_user_max_post_age":60,"delete_all_posts_max":15,"show_email_on_profile":false,"prioritize_username_in_ux":true,"enable_user_directory":true,"allow_anonymous_posting":false,"anonymous_posting_min_trust_level":1,"hide_user_profiles_from_public":false,"enable_group_directory":true,"min_post_length":20,"min_first_post_length":20,"min_private_message_post_length":10,"max_post_length":32000,"topic_featured_link_enabled":true,"min_topic_title_length":15,"max_topic_title_length":255,"min_private_message_title_length":2,"allow_uncategorized_topics":false,"min_title_similar_length":10,"min_body_similar_length":15,"enable_private_messages":true,"edit_history_visible_to_public":false,"delete_removed_posts_after":24,"enable_experimental_markdown_it":false,"traditional_markdown_linebreaks":false,"enable_markdown_typographer":false,"allow_html_tables":false,"suppress_reply_directly_below":true,"suppress_reply_directly_above":true,"max_reply_history":1,"newuser_max_images":1,"newuser_max_attachments":2,"show_pinned_excerpt_mobile":true,"show_pinned_excerpt_desktop":true,"display_name_on_posts":false,"show_time_gap_days":7,"short_progress_text_threshold":10000,"default_code_lang":"auto","autohighlight_all_code":false,"highlighted_languages":"apache|bash|cs|cpp|css|coffeescript|diff|xml|http|ini|json|java|javascript|makefile|markdown|nginx|objectivec|ruby|perl|php|python|sql|handlebars","censored_words":"","censored_pattern":"","enable_emoji":true,"emoji_set":"twitter","code_formatting_style":"4-spaces-indent","allowed_href_schemes":"","email_time_window_mins":10,"disable_digest_emails":false,"email_in":false,"disable_emails":false,"bounce_score_threshold":4,"max_image_size_kb":3072,"max_attachment_size_kb":3072,"authorized_extensions":"jpg|jpeg|png|gif|axo|axp|axs|axh|fpd|brd|axt","max_image_width":690,"max_image_height":500,"prevent_anons_from_downloading_files":false,"enable_s3_uploads":false,"allow_profile_backgrounds":true,"allow_uploaded_avatars":true,"allow_animated_avatars":false,"default_avatars":"","external_system_avatars_enabled":true,"external_system_avatars_url":"/letter_avatar_proxy/v2/letter/{first_letter}/{color}/{size}.png","allow_staff_to_upload_any_file_in_pm":true,"tl1_requires_read_posts":30,"tl3_links_no_follow":false,"use_admin_ip_whitelist":false,"max_oneboxes_per_post":50,"alert_admins_if_errors_per_minute":0,"alert_admins_if_errors_per_hour":0,"max_prints_per_hour_per_user":5,"enable_long_polling":true,"long_polling_base_url":"/","background_polling_interval":60000,"polling_interval":3000,"anon_polling_interval":15000,"flush_timings_secs":20,"verbose_localization":false,"max_new_topics":500,"tos_url":"","privacy_policy_url":"","faq_url":"","maximum_backups":5,"min_search_term_length":3,"version_checks":true,"suppress_uncategorized_badge":true,"topic_views_heat_low":1000,"topic_views_heat_medium":2000,"topic_views_heat_high":5000,"topic_post_like_heat_low":0.5,"topic_post_like_heat_medium":1.0,"topic_post_like_heat_high":2.0,"history_hours_low":12,"history_hours_medium":24,"history_hours_high":48,"cold_age_days_low":14,"cold_age_days_medium":90,"cold_age_days_high":180,"global_notice":"","show_create_topics_notice":true,"bootstrap_mode_min_users":50,"bootstrap_mode_enabled":false,"automatically_unpin_topics":true,"read_time_word_count":500,"disable_mailing_list_mode":false,"default_topics_automatic_unpin":true,"tagging_enabled":true,"tag_style":"simple","max_tags_per_topic":5,"max_tag_length":20,"min_trust_level_to_tag_topics":0,"max_tag_search_results":5,"show_filter_by_tag":true,"tags_sort_alphabetically":false,"staff_tags":"","suppress_overlapping_tags_in_list":false,"discourse_narrative_bot_enabled":true,"poll_enabled":true,"poll_maximum_options":20,"details_enabled":true,"available_locales":"ar|bs_BA|cs|da|de|el|en|es|et|fa_IR|fi|fr|gl|he|id|it|ja|ko|nb_NO|nl|pl_PL|pt|pt_BR|ro|ru|sk|sq|sv|te|tr_TR|uk|ur|vi|zh_CN|zh_TW"});
+          ps.store("customHTML", {"top":"","footer":""});
+          ps.store("banner", {});
+          ps.store("customEmoji", []);
+          ps.store("translationOverrides", {});
+          ps.store("topic_304", {"post_stream":{"posts":[{"id":5082,"name":"Kasper Jordaens","username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png","created_at":"2016-01-19T19:06:02.586Z","cooked":"\u003cp\u003eOk I'm hoping this is a software problem. I get accurate readings on 16 pots using 2 MCP3208 if, and here's the catch...\u003c/p\u003e\n\n\u003cp\u003eI always get accurate readings from MCP3208 #1, the one connected to axoloti PA4\u003cbr\u003eI only get accurate readings from MCP3208 #2, connected to PA3 if the pot on the same pin number on the other MCP3208 is turned to the maximum, otherwise I get some sort of average. If I turn the pot down, I get no reading at all..\u003cbr\u003eI'm guessing somewhere in my script I multiply the values, \u003cbr\u003e- but I reinitialised the vars,\u003cbr\u003e- I increased the sleeptime between polling (thought it was some overflow)\u003cbr\u003e- I renamed the z var in the second loop\u003c/p\u003e\n\n\u003cp\u003eIt took me quite a while to figure out why everything was dancing and then not, I thought it was hardware, so I resoldered a lot of things... apparently for nothing, or not? a bit puzzled.\u003c/p\u003e\n\n\u003cp\u003ebelow is my version of the script\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003e/*\nMCP3208 script2 code\nby paul\nadapted by kaos, this script is not working, there is problem...\n\nConnect the MCP3208 CS pin to the NSS(PA4) or any other digital out pin of axoloti.\nIn this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.\n\nIf you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. \n*/\n\nuint8_t *txbuf;\nuint8_t *rxbuf;\nconst SPIConfig spicfg_a = {NULL, GPIOA, 4, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4\nconst SPIConfig spicfg_b = {NULL, GPIOA, 3, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3\n\n\n\n\nvoid setup(void){\n\tstatic uint8_t _txbuf[8] __attribute__ ((section (\".sram2\")));\n\tstatic uint8_t _rxbuf[8] __attribute__ ((section (\".sram2\")));\n\ttxbuf = _txbuf;\n\trxbuf = _rxbuf;\n\n\tpalSetPadMode(GPIOA,4,PAL_MODE_OUTPUT_PUSHPULL);\t// MCP3208\n\tpalSetPadMode(GPIOA,3,PAL_MODE_OUTPUT_PUSHPULL);\t// MCP3208\n\t//changes\n\tpalWritePad(GPIOA,4,1);\t\t\t\t\t\t\t\t// pull high to disable first MCP3208\n\tpalWritePad(GPIOA,3,1);\t\t\t\t\t\t\t\t// pull high to disable second MCP3208\n}\n\nvoid loop(void){\n\t// txtbuf[0] = txtbuf[1] = txtbuf[2] = 0b00000000;\n   \ttxbuf[2] = 0b00000000;\n \t\n    \tfor(int pin=0; pin\u0026lt;8; pin++){\n \n\t        txbuf[0] = pin \u0026lt; 4 ? 0b01100000 : 0b11100000;\n\t \n\t        if (pin % 4 == 0) { // pin == 0 || pin == 4\n\t            txbuf[1] = 0b00000000;\n\t        } else if (pin % 4 == 1) { // pin == 1 || pin == 5\n\t            txbuf[1] = 0b00000010;\n\t        } else if (pin % 4 == 2) { // pin == 2 || pin == 6\n\t            txbuf[1] = 0b00000001;\n\t        } else {\n\t            txbuf[1] = 0b00000011;\n\t        }\n\t\t\t\n\n\t\tpalWritePad(GPIOA,4,0);\t\t// enable MCP3208 #1\n\t\tspiSelect(\u0026amp;SPID1);\t\t\t// START SPI\n\t\tspiSend(\u0026amp;SPID1,3,txbuf);\t// send SPI data txbuf[]\n\t\tspiReceive(\u0026amp;SPID1,3,rxbuf);\t// receive SPI data from MCP3208\n\t\tspiUnselect(\u0026amp;SPID1);\t\t// STOP SPI\n\t\tpalWritePad(GPIOA,4,1);\t\t// disable MCP3208 #1\n\t\t\t\t\n\t\tint z = (rxbuf[1] \u0026lt;\u0026lt; 8| rxbuf[0]) \u0026lt;\u0026lt; 16;\n\n\t\tif (pin == 0){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c0_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 1){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c1_value],z,0xFFFD); \n\t\t}\n\t\telse if (pin == 2){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c2_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 3){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c3_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 4){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c4_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 5){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c5_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 6){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c6_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 7){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c7_value],z,0xFFFD);\n\t\t}\n\t\n\t}\n\tchThdSleepMilliseconds(10);\n\ttxbuf[2] = 0b00000000;\n\n\tfor(int pin=0; pin\u0026lt;8; pin++){\n \n\t        txbuf[0] = pin \u0026lt; 4 ? 0b01100000 : 0b11100000;\n\t \n\t        if (pin % 4 == 0) { // pin == 0 || pin == 4\n\t            txbuf[1] = 0b00000000;\n\t        } else if (pin % 4 == 1) { // pin == 1 || pin == 5\n\t            txbuf[1] = 0b00000010;\n\t        } else if (pin % 4 == 2) { // pin == 2 || pin == 6\n\t            txbuf[1] = 0b00000001;\n\t        } else {\n\t            txbuf[1] = 0b00000011;\n\t        }\n\n\t\tpalWritePad(GPIOA,3,0);\t\t// enable MCP3208  #2\n\t\tspiSelect(\u0026amp;SPID1);\t\t\t// START SPI\n\t\tspiSend(\u0026amp;SPID1,3,txbuf);\t// send SPI data txbuf[]\n\t\tspiReceive(\u0026amp;SPID1,3,rxbuf);\t// receive SPI data from MCP3208\n\t\tspiUnselect(\u0026amp;SPID1);\t\t// STOP SPI\n\t\tpalWritePad(GPIOA,3,1);\t\t// disable MCP3208 #2\n\t\t\t\t\n\t\tint zz = (rxbuf[1] \u0026lt;\u0026lt; 8| rxbuf[0]) \u0026lt;\u0026lt; 16;\n\n\t\tif (pin == 0){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d0_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 1){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d1_value],zz,0xFFFD); \n\t\t}\n\t\telse if (pin == 2){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d2_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 3){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d3_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 4){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d4_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 5){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d5_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 6){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d6_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 7){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d7_value],zz,0xFFFD);\n\t\t}\t\n\t}\n\tchThdSleepMilliseconds(10);\n}\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eKaos\u003c/p\u003e","post_number":13,"post_type":1,"updated_at":"2016-01-19T19:06:02.586Z","reply_count":2,"reply_to_post_number":12,"quote_count":0,"avg_time":14,"incoming_link_count":11,"reads":189,"score":103.5,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Kasper Jordaens","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":103,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5084,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-01-19T19:19:27.918Z","cooked":"\u003caside class=\"quote\" data-post=\"13\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png\" class=\"avatar\"\u003ekaos:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eI only get accurate readings from MCP3208 #2, connected to PA3 if the pot on the same pin number on the other MCP3208 is turned to the maximum, otherwise I get some sort of average. If I turn the pot down, I get no reading at all..\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eSounds like #1 is replying too when you try to address only #2, and you get a \"bitwise and\" of the two pots as a result...\u003cbr\u003eLooks like you're not using spicfg_a/spicfg_b configs, and you should...\u003c/p\u003e\n\n\u003cp\u003eLet me also suggest to try sending and receiving all channel data in a single spiExchange() call, way more efficient...\u003c/p\u003e","post_number":14,"post_type":1,"updated_at":"2016-01-19T19:19:27.918Z","reply_count":1,"reply_to_post_number":13,"quote_count":1,"avg_time":10,"incoming_link_count":1,"reads":163,"score":43.1,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5086,"name":"Kasper Jordaens","username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png","created_at":"2016-01-19T19:32:27.932Z","cooked":"\u003caside class=\"quote\" data-post=\"14\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png\" class=\"avatar\"\u003ejohannes:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003espicfg_a/spicfg_b configs, and you should...\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eI am, in the script it says\u003cbr\u003e\u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"13\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png\" class=\"avatar\"\u003ekaos:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003econst SPIConfig spicfg_a = {NULL, GPIOA, 4, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4\u003cbr\u003econst SPIConfig spicfg_b = {NULL, GPIOA, 3, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eI guess I have to reset the rxbuf somewhere? It just gets copied over\u003cbr\u003e\u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"13\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png\" class=\"avatar\"\u003ekaos:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eint zz = (rxbuf[1] \u0026lt;\u0026lt; 8| rxbuf[0]) \u0026lt;\u0026lt; 16;\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eI'll google the spiExchange, makes sense to me to make it more efficient, not done adding stuff here \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=0\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e\u003c/p\u003e\n\n\u003cp\u003eK\u003c/p\u003e","post_number":15,"post_type":1,"updated_at":"2016-01-19T19:32:27.932Z","reply_count":1,"reply_to_post_number":14,"quote_count":2,"avg_time":10,"incoming_link_count":2,"reads":171,"score":49.7,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Kasper Jordaens","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":103,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5087,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-01-19T19:37:19.780Z","cooked":"\u003caside class=\"quote\" data-post=\"15\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/kaos/40/147_1.png\" class=\"avatar\"\u003ekaos:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eI am\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eerr, no, that's only the declaration.\u003cbr\u003espiStart() takes it as an argument.\u003cbr\u003eNo need to reset rxbuf.\u003c/p\u003e","post_number":16,"post_type":1,"updated_at":"2016-01-19T19:37:19.780Z","reply_count":1,"reply_to_post_number":15,"quote_count":1,"avg_time":8,"incoming_link_count":1,"reads":163,"score":43.0,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5090,"name":"Kasper Jordaens","username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png","created_at":"2016-01-19T20:29:19.320Z","cooked":"\u003cp\u003eright, so I call it in the setup routine as something like this:\u003c/p\u003e\n\n\u003cblockquote\u003e\n\u003cpre\u003e\u003ccode\u003epalWritePad(GPIOA,4,0);\t\t// enable MCP3208 #1\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003cstrong\u003e\u0026gt;     \tspiStart(\u0026amp;spicfg_a);\u003c/strong\u003e\u003cbr\u003e    \tspiSelect(\u0026amp;SPID1);\t\t\t// START SPI\u003cbr\u003e    \tspiSend(\u0026amp;SPID1,3,txbuf);\t// send SPI data txbuf[]\u003cbr\u003e    \tspiReceive(\u0026amp;SPID1,3,rxbuf);\t// receive SPI data from MCP3208\u003cbr\u003e    \tspiUnselect(\u0026amp;SPID1);\t\t// STOP SPI\u003cbr\u003e    \tpalWritePad(GPIOA,4,1);\t\t// disable MCP3208 #1\u003c/p\u003e\n\u003c/blockquote\u003e\n\n\u003cp\u003ebut that fails. looking in the SPI\u003ca href=\"http://chibios.sourceforge.net/html/group___s_p_i.html#ga6752c9f736f8de774a5bef6dfe2aae2e\" rel=\"nofollow\"\u003e Chibios Docs\u003c/a\u003e i need to call it as\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003evoid spiStart\t(\t\n   SPIDriver * \tspip,\nconst SPIConfig * \tconfig \n)\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003e but I have no clue on the SPIdriver, no pointers defined in the example code...\u003c/p\u003e\n\n\u003cp\u003eK\u003c/p\u003e","post_number":17,"post_type":1,"updated_at":"2016-01-19T20:29:19.320Z","reply_count":1,"reply_to_post_number":16,"quote_count":0,"avg_time":11,"incoming_link_count":16,"reads":169,"score":119.35,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Kasper Jordaens","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://chibios.sourceforge.net/html/group___s_p_i.html#ga6752c9f736f8de774a5bef6dfe2aae2e","internal":false,"reflection":false,"title":"ChibiOS/RT: SPI Driver","clicks":3}],"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":103,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5091,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-01-19T20:33:11.941Z","cooked":"\u003cp\u003escroll up a bit here\u003cbr\u003e\u003caside class=\"quote\" data-topic=\"304\" data-slug=\"gpio-i-o-example-adc-mcp3208-spi\" data-post=\"3\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/matthewcieplak/40/280_1.png\" class=\"avatar\"\u003ematthewcieplak:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eI had a closer look at some of the code used for SPI configuration and it seems like this would be theoretically possible, but maybe not with the provided objects. For example, the gpio/spi/config object initializes a named static \"spicfg\" constant that would conflict other config objects.     Nonetheless, ChibiOS does support sequential spiStart() calls with different config objects, according to this thread: \u003ca href=\"http://forum.chibios.org/phpbb/viewtopic.php?f=2\u0026amp;t=676\" class=\"onebox\" target=\"_blank\" rel=\"nofollow\"\u003e\u003c/a\u003e\u003ca href=\"http://forum.chibios.org/phpbb/viewtopic.php?f=2\u0026amp;amp;t=676\" rel=\"nofollow\"\u003ehttp://forum.chibios.org/phpbb/viewtopic.php?f=2\u0026amp;t=676\u003c/a\u003e   An example is given as:   if …\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\u003c/p\u003e","post_number":18,"post_type":1,"updated_at":"2016-01-19T20:33:11.941Z","reply_count":1,"reply_to_post_number":17,"quote_count":0,"avg_time":14,"incoming_link_count":5,"reads":159,"score":62.5,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":5092,"name":"Kasper Jordaens","username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png","created_at":"2016-01-19T20:42:56.899Z","cooked":"\u003cp\u003eOK it works!\u003c/p\u003e\n\n\u003cp\u003e\u003ccode\u003e\u0026gt; spiStart(\u0026amp;SPID1, \u0026amp;spicfg_b);\u003c/code\u003e\u003c/p\u003e\n\n\u003cp\u003e16 pots using only 5 pins...optimising will be for some other time!\u003cbr\u003eonto the next challenge \u003cimg src=\"/images/emoji/emoji_one/smile.png?v=0\" title=\":smile:\" class=\"emoji\" alt=\":smile:\"\u003e\u003c/p\u003e\n\n\u003cp\u003eThanks!\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003e/*\nMCP3208 script2 code\nby paul\nadapted by kaos, this script is not optimized, but it works!\nConnect the MCP3208 CS pin to the NSS(PA4) or any other digital out pin of axoloti.\nIn this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.\n\nIf you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. \n*/\n\nuint8_t *txbuf;\nuint8_t *rxbuf;\nconst SPIConfig spicfg_a = {NULL, GPIOA, 4, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4\nconst SPIConfig spicfg_b = {NULL, GPIOA, 3, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3\n\n\n\n\nvoid setup(void){\n\tstatic uint8_t _txbuf[8] __attribute__ ((section (\".sram2\")));\n\tstatic uint8_t _rxbuf[8] __attribute__ ((section (\".sram2\")));\n\ttxbuf = _txbuf;\n\trxbuf = _rxbuf;\n\n\tpalSetPadMode(GPIOA,4,PAL_MODE_OUTPUT_PUSHPULL);\t// MCP3208\n\tpalSetPadMode(GPIOA,3,PAL_MODE_OUTPUT_PUSHPULL);\t// MCP3208\n\t//changes\n\tpalWritePad(GPIOA,4,1);\t\t\t\t\t\t\t\t// pull high to disable first MCP3208\n\tpalWritePad(GPIOA,3,1);\t\t\t\t\t\t\t\t// pull high to disable second MCP3208\n}\n\nvoid loop(void){\n\t// txtbuf[0] = txtbuf[1] = txtbuf[2] = 0b00000000;\n   \ttxbuf[2] = 0b00000000;\n \t\n    \tfor(int pin=0; pin\u0026lt;8; pin++){\n \n\t        txbuf[0] = pin \u0026lt; 4 ? 0b01100000 : 0b11100000;\n\t \n\t        if (pin % 4 == 0) { // pin == 0 || pin == 4\n\t            txbuf[1] = 0b00000000;\n\t        } else if (pin % 4 == 1) { // pin == 1 || pin == 5\n\t            txbuf[1] = 0b00000010;\n\t        } else if (pin % 4 == 2) { // pin == 2 || pin == 6\n\t            txbuf[1] = 0b00000001;\n\t        } else {\n\t            txbuf[1] = 0b00000011;\n\t        }\n\t\t\t\n\n\t\tpalWritePad(GPIOA,4,0);\t\t// enable MCP3208 #1\n\t\tspiStart(\u0026amp;SPID1, \u0026amp;spicfg_a);\n\t\tspiSelect(\u0026amp;SPID1);\t\t\t// START SPI\n\t\tspiSend(\u0026amp;SPID1,3,txbuf);\t// send SPI data txbuf[]\n\t\tspiReceive(\u0026amp;SPID1,3,rxbuf);\t// receive SPI data from MCP3208\n\t\tspiUnselect(\u0026amp;SPID1);\t\t// STOP SPI\n\t\tpalWritePad(GPIOA,4,1);\t\t// disable MCP3208 #1\n\t\t\t\t\n\t\tint z = (rxbuf[1] \u0026lt;\u0026lt; 8| rxbuf[0]) \u0026lt;\u0026lt; 16;\n\n\t\tif (pin == 0){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c0_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 1){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c1_value],z,0xFFFD); \n\t\t}\n\t\telse if (pin == 2){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c2_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 3){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c3_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 4){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c4_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 5){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c5_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 6){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c6_value],z,0xFFFD);\n\t\t}\n\t\telse if (pin == 7){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_c7_value],z,0xFFFD);\n\t\t}\n\t\n\t}\n\tchThdSleepMilliseconds(10);\n\ttxbuf[2] = 0b00000000;\n\n\tfor(int pin=0; pin\u0026lt;8; pin++){\n \n\t        txbuf[0] = pin \u0026lt; 4 ? 0b01100000 : 0b11100000;\n\t \n\t        if (pin % 4 == 0) { // pin == 0 || pin == 4\n\t            txbuf[1] = 0b00000000;\n\t        } else if (pin % 4 == 1) { // pin == 1 || pin == 5\n\t            txbuf[1] = 0b00000010;\n\t        } else if (pin % 4 == 2) { // pin == 2 || pin == 6\n\t            txbuf[1] = 0b00000001;\n\t        } else {\n\t            txbuf[1] = 0b00000011;\n\t        }\n\n\t\tpalWritePad(GPIOA,3,0);\t\t// enable MCP3208  #2\n\t\tspiStart(\u0026amp;SPID1, \u0026amp;spicfg_b);\n\t\tspiSelect(\u0026amp;SPID1);\t\t\t// START SPI\n\t\tspiSend(\u0026amp;SPID1,3,txbuf);\t// send SPI data txbuf[]\n\t\tspiReceive(\u0026amp;SPID1,3,rxbuf);\t// receive SPI data from MCP3208\n\t\tspiUnselect(\u0026amp;SPID1);\t\t// STOP SPI\n\t\tpalWritePad(GPIOA,3,1);\t\t// disable MCP3208 #2\n\t\t\t\t\n\t\tint zz = (rxbuf[1] \u0026lt;\u0026lt; 8| rxbuf[0]) \u0026lt;\u0026lt; 16;\n\n\t\tif (pin == 0){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d0_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 1){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d1_value],zz,0xFFFD); \n\t\t}\n\t\telse if (pin == 2){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d2_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 3){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d3_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 4){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d4_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 5){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d5_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 6){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d6_value],zz,0xFFFD);\n\t\t}\n\t\telse if (pin == 7){\n\t\t\tPExParameterChange(\u0026amp;parent-\u0026gt;PExch[PARAM_INDEX_d7_value],zz,0xFFFD);\n\t\t}\t\n\t}\n\tchThdSleepMilliseconds(10);\n}\u003c/code\u003e\u003c/pre\u003e","post_number":19,"post_type":1,"updated_at":"2016-01-19T20:42:56.899Z","reply_count":1,"reply_to_post_number":18,"quote_count":0,"avg_time":22,"incoming_link_count":19,"reads":168,"score":239.7,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Kasper Jordaens","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[{"id":2,"count":5}],"moderator":false,"admin":false,"staff":false,"user_id":103,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":13815,"name":"","username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png","created_at":"2016-09-14T07:00:34.884Z","cooked":"\u003cp\u003eHow many MCP3208 devices is possible to use with axoloti or what is the max number of pots is posible to connect to axoloti using mcp chips? Do they intorduce aditional cpu load?\u003c/p\u003e","post_number":20,"post_type":1,"updated_at":"2016-09-14T07:00:34.884Z","reply_count":1,"reply_to_post_number":19,"quote_count":0,"avg_time":18,"incoming_link_count":9,"reads":145,"score":79.9,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":519,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":13857,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2016-09-16T07:54:28.082Z","cooked":"\u003cp\u003eMy not the best to answer this BUT I think the max is 8 per 3208 , so that gives 128\u003cbr\u003eLoad I'd assume with increase linearly per 3208, as each is streated separately \u003c/p\u003e\n\n\u003cp\u003eNote: if not tried this, as I don't have any 3208s, this is based on the code and circuits I've seen here\u003c/p\u003e","post_number":21,"post_type":1,"updated_at":"2016-09-16T07:54:28.082Z","reply_count":0,"reply_to_post_number":20,"quote_count":0,"avg_time":25,"incoming_link_count":0,"reads":143,"score":29.85,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":13948,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-09-19T14:55:49.413Z","cooked":"\u003cp\u003eYes, 8 MCP3208 devices is the maximum that can be addressed.\u003cbr\u003eThe main concern is not CPU load, but the update rate. If a single conversion is scheduled every millisecond, at 128 channels that gets you 8 samples per second. Scheduling conversions at 3kHz (control rate), gets you 24 samples per second. Scheduling faster gets tricky, as it will start to interfere with control rate.\u003cbr\u003eThe MCP3208 protocol requires to setup a data transaction for each conversion, it would be much nicer if it could read out its 8 channels in a single data transaction. Perhaps some other converter exists that can do this, but don't know a widely available cheap part number that can do this, but I have not searched extensively.\u003c/p\u003e","post_number":22,"post_type":1,"updated_at":"2016-09-19T14:55:49.413Z","reply_count":2,"reply_to_post_number":null,"quote_count":0,"avg_time":28,"incoming_link_count":1,"reads":148,"score":93.0,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://community.axoloti.com/t/the-xylobox-wavetable-synthesizer-hardware-patches/1353/35","internal":true,"reflection":true,"title":"The Xylobox Wavetable Synthesizer (hardware + patches)","clicks":2},{"url":"http://community.axoloti.com/t/which-potentiometers-should-i-buy/3777/18","internal":true,"reflection":true,"title":"Which potentiometers should I buy?","clicks":1}],"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":13950,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2016-09-19T15:35:28.539Z","cooked":"\u003caside class=\"quote\" data-post=\"22\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png\" class=\"avatar\"\u003ejohannes:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003ethe update rate. If a single conversion is scheduled every millisecond, at 128 channels that gets you 8 samples per second. Scheduling conversions at 3kHz (control rate), gets you 24 samples per second.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003ecan I just understand this correctly?\u003cbr\u003eso basically, because they share the same spi port, you can only address one 3208 (and one pin of it) on each cycle, and you have to issue the send and receive on different cycles. \u003c/p\u003e\n\n\u003cp\u003ealso quick wiring question...\u003cbr\u003eon the above diagram the first 3208 has a cap between pins  2 and 3, is this also required for the second (and subsequent) 3208s?\u003c/p\u003e\n\n\u003cp\u003e(I'll note for my usage I'm not planning on that many pots ...  but thought I might have some analogue inputs that I want a high sample rates, e.g. ribbon but a fews pots that could be lower if necessary)\u003c/p\u003e","post_number":23,"post_type":1,"updated_at":"2016-09-19T15:35:28.539Z","reply_count":0,"reply_to_post_number":22,"quote_count":1,"avg_time":27,"incoming_link_count":2,"reads":155,"score":42.35,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":13987,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-09-19T18:49:51.325Z","cooked":"\u003cp\u003eAfter setup, for every transaction, you need these calls:\u003c/p\u003e\n\n\u003cp\u003e\u003ccode\u003e\t\tspiSelect(\u0026amp;SPID1);\t\t\t// START SPI\u003cbr\u003e\t\tspiSend(\u0026amp;SPID1,3,txbuf);\t// send SPI data txbuf[]\u003cbr\u003e\t\tspiReceive(\u0026amp;SPID1,3,rxbuf);\t// receive SPI data from MCP3208\u003cbr\u003e\t\tspiUnselect(\u0026amp;SPID1);\u003c/code\u003e\u003c/p\u003e\n\n\u003cp\u003eI think \u003ccode\u003espiSend()\u003c/code\u003e and \u003ccode\u003espiReceive()\u003c/code\u003e can be merged in one call of \u003ccode\u003espiExchange\u003c/code\u003e. But the chip select input must see a high pulse between transactions. The data sheet shows DIN is \"don't care\" after the first transaction.\u003c/p\u003e\n\n\u003cp\u003eThe \u003ccode\u003espiSend()\u003c/code\u003e, \u003ccode\u003espiReceive()\u003c/code\u003e and \u003ccode\u003espiExchange()\u003c/code\u003e function calls setup the transaction (using DMA), suspends the current thread so other threads can do useful work in the meantime, and when the transaction is finished, it resumes the original thread.\u003c/p\u003e\n\n\u003cp\u003eThere are several option to schedule the transactions:\u003c/p\u003e\n\n\u003cul\u003e\n\u003cli\u003eMaking a thread with a tight loop with \u003ccode\u003espiX..()\u003c/code\u003e is a bit too aggressive, perhaps with the spi bitrate set to the slowest possible. I would not recommend.\u003c/li\u003e\n\u003cli\u003eCreating a thread with chThdSleepMilliseconds() in the loop is fine, but has a 1 millisecond timing granularity (as configured in firmware: chconfig.h). This is what I'd recommend\u003c/li\u003e\n\u003cli\u003eCalling \u003ccode\u003espiX..()\u003c/code\u003e at k-rate (from the dsp thread), I would not recommend as that makes the time during the transaction unavailable for audio processing... It is possible to do SPI without the \u003ccode\u003espiX..()\u003c/code\u003e calls, by manipulating the memory-mapped IO registers defined in stm32fxxx.h, within k-rate and poll for the result at the next k-rate interval. But such an implementation is very unportable.\u003c/li\u003e\n\u003c/ul\u003e\n\n\u003cp\u003eThe capacitor between pin 2 and 3, I think you're referring to pin 14 and 15. Pin numbering start at a \"mark\", often a dot, then go around counter-clock-wise. As a starting point I'd suggest a 100nF capacitor across every GND/VDD pair of pins of every chip, close to each pin pair. In this case, pin 15 is the voltage reference input, I'd give it a 100nF capacitor too on each chip. The \u003ca href=\"http://ww1.microchip.com/downloads/en/DeviceDoc/21298c.pdf\" rel=\"nofollow\"\u003emcp3208 datasheet\u003c/a\u003e has a chapter on Layout Considerations, they recommend a 1uF capacitor \"placed as close as possible to the device pin\". Such layout considerations are not supercritical to get it to work, but certainly useful to reach best possible performance. But I would not be surprised if it also works fine without any respect for the layout recommendations.\u003c/p\u003e","post_number":24,"post_type":1,"updated_at":"2016-09-19T18:49:51.325Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":26,"incoming_link_count":2,"reads":151,"score":91.5,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://ww1.microchip.com/downloads/en/DeviceDoc/21298c.pdf","internal":false,"reflection":false,"clicks":5}],"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":14520,"name":"","username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png","created_at":"2016-10-04T06:43:06.757Z","cooked":"\u003cp\u003eWhat potentiometer values I should use with MCP3208? The same as for axoloti analog inputs?\u003cbr\u003eCan I use 74HC4051 or 74HC4067 multiplexer, wil the script code wil be the same?\u003c/p\u003e","post_number":25,"post_type":1,"updated_at":"2016-10-04T06:43:06.757Z","reply_count":1,"reply_to_post_number":24,"quote_count":0,"avg_time":15,"incoming_link_count":1,"reads":136,"score":37.95,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":519,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":15899,"name":"","username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png","created_at":"2016-11-25T09:11:32.332Z","cooked":"\u003cp\u003eCan I connect MOSI, MISO, SCK, NSS/CS of MCP3208 to pins PB6-PB9?\u003cbr\u003eThen it will be possible to use all 15 analog inputs of axoloti and 8 additional from MCP3208, so in total 23 ins?\u003c/p\u003e","post_number":26,"post_type":1,"updated_at":"2016-11-25T09:11:32.332Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":15,"incoming_link_count":1,"reads":131,"score":31.95,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":519,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":15910,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2016-11-25T14:25:58.198Z","cooked":"\u003cp\u003eSorry, it is not possible to move the pin assignments for MOSI, MISO and SCK.\u003cbr\u003e\u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"25\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/letter_avatar_proxy/v2/letter/g/e9a140/40.png\" class=\"avatar\"\u003egagarin:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eCan I use 74HC4051 or 74HC4067 multiplexer, wil the script code wil be the same?\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eI have not studied those, I guess it will be the same or very similar.\u003cbr\u003e\u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"25\" data-topic=\"304\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/letter_avatar_proxy/v2/letter/g/e9a140/40.png\" class=\"avatar\"\u003egagarin:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003epotentiometer values\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eyeah, use the same.\u003c/p\u003e","post_number":27,"post_type":1,"updated_at":"2016-11-25T14:25:58.198Z","reply_count":0,"reply_to_post_number":null,"quote_count":1,"avg_time":22,"incoming_link_count":2,"reads":129,"score":36.9,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":15911,"name":"","username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png","created_at":"2016-11-26T10:39:24.555Z","cooked":"\u003cp\u003eThank you Johannes.\u003c/p\u003e\n\n\u003cp\u003eI have one more question:\u003c/p\u003e\n\n\u003cp\u003eIn this example, the MCP3208 CS pin is connected to axoloti B0(GPIOB,0) pin.\u003c/p\u003e\n\n\u003cp\u003eIf you use more then one spi device, it's importent to disable every other spi device by switching their cs pin. \u003cbr\u003e*/\u003c/p\u003e\n\n\u003cp\u003euint8_t *txbuf;\u003cbr\u003euint8_t *rxbuf;\u003cbr\u003econst SPIConfig spicfg_a = {NULL, GPIOA, 4, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA4\u003cbr\u003econst SPIConfig spicfg_b = {NULL, GPIOA, 3, 3\u0026lt;\u0026lt;3  | SPI_CR1_LSBFIRST }; //MCP3208 pin PA3\u003c/p\u003e\n\n\u003cp\u003eDoes this mean that second mcp3208 CS pin connected to PA3, but not to B0(GPIOB,0) pin? Or there is somewhere mismatch in axoloti labels?\u003c/p\u003e","post_number":28,"post_type":1,"updated_at":"2016-11-26T10:42:24.155Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":23,"incoming_link_count":1,"reads":130,"score":32.15,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":519,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":16810,"name":"","username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png","created_at":"2017-01-05T20:06:24.779Z","cooked":"\u003cp\u003eSomehow I find the answer\u003c/p\u003e","post_number":30,"post_type":1,"updated_at":"2017-01-05T20:06:24.779Z","reply_count":0,"reply_to_post_number":29,"quote_count":0,"avg_time":18,"incoming_link_count":2,"reads":118,"score":34.5,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":519,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":23959,"name":"","username":"MC_DETH","avatar_template":"/user_avatar/community.axoloti.com/mc_deth/{size}/4489_1.png","created_at":"2017-10-01T17:10:00.030Z","cooked":"\u003cp\u003eDoes that mean 8 mpc3208's can be connected directly to axoloti? Or do they need to be chained? I am building an enclosure with 48 pots, 6 tact buttons, 6 leds, a 4 digit LCD display and a rotary encoder and I am trying to find out the best strategy to approach this.\u003c/p\u003e","post_number":31,"post_type":1,"updated_at":"2017-10-01T17:10:00.030Z","reply_count":0,"reply_to_post_number":22,"quote_count":0,"avg_time":22,"incoming_link_count":3,"reads":98,"score":35.7,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1416,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":36457,"name":"Ac-tone","username":"Ac-tone","avatar_template":"/letter_avatar_proxy/v2/letter/a/f4b2a3/{size}.png","created_at":"2019-10-12T16:55:08.434Z","cooked":"\u003cp\u003eHello ! \u003cbr\u003eI've wired my MCP3008 and seem to get an accurate reading, but like matthewcleplak a few post earlier, I can't get a value more than 3.97 and cannot figure out why..\u003cbr\u003eI'm not that good with coding so i'm having troubles figuring out if it is in the script or due to the 10-bit depth of the MCP3008,  or if it's a VREF problem...\u003cbr\u003eI've used a 100nf cap beetwen pin 2 and 3 and a 100uf beetween the main Vdda and GND, it seem to work as there is almost no jitter. I'm using 100k pot, that works fine when connected into the Axo's DAC. \u003cbr\u003eAny ideas ? I couldn't find a simple answer in that post, even though I think matthewcleplak figured it out...\u003c/p\u003e\n\n\u003cp\u003eEDIT : SOMEHOW, I FOUND THE ANSWER WHILE TRYING TO FIGURE OUT THE CODE; YOU NEED TO CHANGE THIS LINE, that is in the first example script : \u003cbr\u003e int z = (rxbuf[1] \u0026lt;\u0026lt; 8| rxbuf[0]) \u0026lt;\u0026lt; 16; \u003cbr\u003eto\u003cbr\u003e int z = (rxbuf[1] \u0026lt;\u0026lt; 8| rxbuf[0]) \u0026lt;\u0026lt; 20;\u003c/p\u003e\n\n\u003cp\u003eThe value now goes to 63.50... that'll do it for me, although I did It kinda randomly, if somebody could explain a little bit how this work and get that last 0.50...\u003c/p\u003e\n\n\u003cp\u003eHope this will be useful to someone \u003cimg src=\"//community.axoloti.com/images/emoji/twitter/slight_smile.png?v=5\" title=\":slight_smile:\" class=\"emoji\" alt=\":slight_smile:\"\u003e\u003c/p\u003e","post_number":32,"post_type":1,"updated_at":"2019-10-12T18:05:29.797Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":35,"incoming_link_count":1,"reads":65,"score":19.75,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Ac-tone","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":2,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":2333,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":39663,"name":"Kees","username":"Keeze101","avatar_template":"/user_avatar/community.axoloti.com/keeze101/{size}/3413_1.png","created_at":"2020-05-04T13:07:46.029Z","cooked":"\u003cp\u003eHi all,\u003c/p\u003e\n\n\u003cp\u003eI cascaded 3 MCP3008's and added some series resistors  (47Ohm) in the CLK/MISO and MOSI lines to get the reading stable. This seems to work, but now the readings are fine till a potmeter passes half the range. Where am I missing a point...\u003c/p\u003e\n\n\u003cdiv class=\"lazyYT\" data-youtube-id=\"0w140a2NcQ0\" data-youtube-title=\"\" data-width=\"480\" data-height=\"270\" data-parameters=\"feature=oembed\u0026amp;wmode=opaque\"\u003e\u003c/div\u003e\n\n\u003cp\u003eBTW, when lowering the potmeter below the half-point, readings get stable again...\u003c/p\u003e\n\n\u003cp\u003ePatch used: \u003ca class=\"attachment\" href=\"//community.axoloti.com/uploads/default/original/2X/6/6a122d535583e9fa0eb15c3a9e4b48be6eff746e.axp\"\u003emcp3208 tripple channel example.axp\u003c/a\u003e (13.2 KB)\u003c/p\u003e\n\n\u003cp\u003e\u003cdiv class=\"lightbox-wrapper\"\u003e\u003ca data-download-href=\"//community.axoloti.com/uploads/default/79bf79b750d4b76c3d5f6332d0f67c062252f42e\" href=\"//community.axoloti.com/uploads/default/original/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e.jpg\" class=\"lightbox\" title=\"3mcp3008-2.jpg\"\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/optimized/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e_1_550x500.jpg\" width=\"550\" height=\"500\"\u003e\u003cdiv class=\"meta\"\u003e\n\u003cspan class=\"filename\"\u003e3mcp3008-2.jpg\u003c/span\u003e\u003cspan class=\"informations\"\u003e550x1200 206 KB\u003c/span\u003e\u003cspan class=\"expand\"\u003e\u003c/span\u003e\n\u003c/div\u003e\u003c/a\u003e\u003c/div\u003e\u003cdiv class=\"lightbox-wrapper\"\u003e\u003ca data-download-href=\"//community.axoloti.com/uploads/default/7f040ee9926d6484e4262ea50d88bbacde198161\" href=\"//community.axoloti.com/uploads/default/original/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161.jpg\" class=\"lightbox\" title=\"3mcp3008-1.jpg\"\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/optimized/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161_1_550x500.jpg\" width=\"550\" height=\"500\"\u003e\u003cdiv class=\"meta\"\u003e\n\u003cspan class=\"filename\"\u003e3mcp3008-1.jpg\u003c/span\u003e\u003cspan class=\"informations\"\u003e550x1200 241 KB\u003c/span\u003e\u003cspan class=\"expand\"\u003e\u003c/span\u003e\n\u003c/div\u003e\u003c/a\u003e\u003c/div\u003e\u003c/p\u003e","post_number":33,"post_type":1,"updated_at":"2020-05-04T13:55:38.695Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":48,"incoming_link_count":84,"reads":41,"score":415.6,"yours":false,"topic_id":304,"topic_slug":"gpio-i-o-example-adc-mcp3208-spi","display_username":"Kees","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":2,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"//community.axoloti.com/uploads/default/original/2X/6/6a122d535583e9fa0eb15c3a9e4b48be6eff746e.axp","internal":true,"reflection":false,"clicks":5},{"url":"https://www.youtube.com/watch?v=0w140a2NcQ0","internal":false,"reflection":false,"title":"YouTube","clicks":2},{"url":"//community.axoloti.com/uploads/default/original/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161.jpg","internal":true,"reflection":false,"clicks":0},{"url":"//community.axoloti.com/uploads/default/original/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e.jpg","internal":true,"reflection":false,"clicks":0},{"url":"http://community.axoloti.com/t/spi-problems-with-mcp3008-and-mcp23s17/6614","internal":true,"reflection":true,"title":"SPI Problems with MCP3008 and MCP23s17","clicks":4}],"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1063,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":"added info","can_view_edit_history":false,"wiki":false}],"stream":[1099,2350,2421,2527,2551,4417,4420,4421,4437,4443,5053,5054,5082,5084,5086,5087,5090,5091,5092,13815,13857,13948,13950,13987,14520,15899,15910,15911,16810,23959,36457,39663]},"timeline_lookup":[[1,2015],[2,1985],[3,1983],[4,1979],[5,1978],[6,1889],[7,1888],[11,1866],[13,1865],[20,1627],[21,1625],[22,1622],[24,1621],[25,1607],[26,1555],[28,1554],[29,1513],[30,1245],[31,504],[32,299]],"id":304,"title":"[GPIO I/O] Example ADC MCP3208 \u0026 SPI","fancy_title":"[GPIO I/O] Example ADC MCP3208 \u0026amp; SPI","posts_count":32,"created_at":"2015-08-23T12:06:48.565Z","views":5589,"reply_count":21,"participant_count":9,"like_count":18,"last_posted_at":"2020-05-04T13:07:46.029Z","visible":true,"closed":false,"archived":false,"has_summary":false,"archetype":"regular","slug":"gpio-i-o-example-adc-mcp3208-spi","category_id":7,"word_count":4867,"deleted_at":null,"user_id":56,"pm_with_non_human_user":false,"draft":null,"draft_key":"topic_304","draft_sequence":null,"unpinned":null,"pinned_globally":false,"pinned":false,"pinned_at":null,"pinned_until":null,"details":{"created_by":{"id":56,"username":"paul","avatar_template":"/user_avatar/community.axoloti.com/paul/{size}/53_1.png"},"last_poster":{"id":1063,"username":"Keeze101","avatar_template":"/user_avatar/community.axoloti.com/keeze101/{size}/3413_1.png"},"participants":[{"id":103,"username":"kaos","avatar_template":"/user_avatar/community.axoloti.com/kaos/{size}/147_1.png","post_count":8,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":3,"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","post_count":7,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":519,"username":"gagarin","avatar_template":"/letter_avatar_proxy/v2/letter/g/e9a140/{size}.png","post_count":5,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":149,"username":"matthewcieplak","avatar_template":"/user_avatar/community.axoloti.com/matthewcieplak/{size}/280_1.png","post_count":5,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":5,"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","post_count":2,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":56,"username":"paul","avatar_template":"/user_avatar/community.axoloti.com/paul/{size}/53_1.png","post_count":2,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":2333,"username":"Ac-tone","avatar_template":"/letter_avatar_proxy/v2/letter/a/f4b2a3/{size}.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":1063,"username":"Keeze101","avatar_template":"/user_avatar/community.axoloti.com/keeze101/{size}/3413_1.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":1416,"username":"MC_DETH","avatar_template":"/user_avatar/community.axoloti.com/mc_deth/{size}/4489_1.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null}],"suggested_topics":[{"id":6951,"title":"Multi-instrument patches?","fancy_title":"Multi-instrument patches?","slug":"multi-instrument-patches","posts_count":1,"reply_count":0,"highest_post_number":1,"image_url":null,"created_at":"2020-11-22T02:04:13.107Z","last_posted_at":"2020-11-22T02:04:13.434Z","bumped":true,"bumped_at":"2020-11-22T02:04:13.434Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":2,"views":129,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest single","description":"Original Poster, Most Recent Poster","user":{"id":2600,"username":"hitachii","avatar_template":"/user_avatar/community.axoloti.com/hitachii/{size}/7348_1.png"}}]},{"id":7064,"title":"Can I use audio in as high resolution ADC inputs?","fancy_title":"Can I use audio in as high resolution ADC inputs?","slug":"can-i-use-audio-in-as-high-resolution-adc-inputs","posts_count":4,"reply_count":0,"highest_post_number":4,"image_url":null,"created_at":"2021-01-10T15:58:50.742Z","last_posted_at":"2021-02-01T18:27:48.796Z","bumped":true,"bumped_at":"2021-02-01T18:27:48.796Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":1,"views":129,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":635,"username":"kjw","avatar_template":"/letter_avatar_proxy/v2/letter/k/e79b87/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1633,"username":"korb","avatar_template":"/user_avatar/community.axoloti.com/korb/{size}/6109_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2111,"username":"tele_player","avatar_template":"/letter_avatar_proxy/v2/letter/t/e47c2d/{size}.png"}}]},{"id":6722,"title":"Midi CC Mapping Limit?","fancy_title":"Midi CC Mapping Limit?","slug":"midi-cc-mapping-limit","posts_count":9,"reply_count":4,"highest_post_number":9,"image_url":null,"created_at":"2020-07-09T16:24:39.179Z","last_posted_at":"2020-07-13T04:07:21.724Z","bumped":true,"bumped_at":"2020-07-13T04:07:21.724Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":1,"views":232,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":1178,"username":"KF78","avatar_template":"/user_avatar/community.axoloti.com/kf78/{size}/3799_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":745,"username":"jaffasplaffa","avatar_template":"/user_avatar/community.axoloti.com/jaffasplaffa/{size}/5808_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2028,"username":"cire","avatar_template":"/user_avatar/community.axoloti.com/cire/{size}/5927_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":790,"username":"lokki","avatar_template":"/user_avatar/community.axoloti.com/lokki/{size}/5157_1.png"}}]},{"id":6504,"title":"Ciat-Lonbarde Cocoquantus","fancy_title":"Ciat-Lonbarde Cocoquantus","slug":"ciat-lonbarde-cocoquantus","posts_count":4,"reply_count":0,"highest_post_number":4,"image_url":null,"created_at":"2020-03-25T08:18:42.024Z","last_posted_at":"2020-03-27T14:45:28.931Z","bumped":true,"bumped_at":"2020-03-27T14:45:28.931Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":6,"views":354,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":2205,"username":"oedeland","avatar_template":"/letter_avatar_proxy/v2/letter/o/a6a055/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1616,"username":"reubenfinger","avatar_template":"/letter_avatar_proxy/v2/letter/r/82dd89/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2111,"username":"tele_player","avatar_template":"/letter_avatar_proxy/v2/letter/t/e47c2d/{size}.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":2037,"username":"Martin","avatar_template":"/user_avatar/community.axoloti.com/martin/{size}/6965_1.png"}}]},{"id":7101,"title":"Polyphonic voice allocation from subpatch?","fancy_title":"Polyphonic voice allocation from subpatch?","slug":"polyphonic-voice-allocation-from-subpatch","posts_count":2,"reply_count":0,"highest_post_number":2,"image_url":"/uploads/default/original/2X/8/845bb347435a857a2dc18a9592f1aff86689099b.png","created_at":"2021-01-28T10:25:39.893Z","last_posted_at":"2021-01-28T11:23:27.802Z","bumped":true,"bumped_at":"2021-01-28T11:23:27.802Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":1,"views":57,"category_id":7,"tags":[],"featured_link":null,"posters":[{"extras":"latest single","description":"Original Poster, Most Recent Poster","user":{"id":2600,"username":"hitachii","avatar_template":"/user_avatar/community.axoloti.com/hitachii/{size}/7348_1.png"}}]}],"links":[{"url":"http://pastebin.com/E0dPe2zb","title":"[C] mcp3208 \u0026 SPI axoloti - Pastebin.com","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":158,"user_id":56,"domain":"pastebin.com"},{"url":"/uploads/default/original/1X/7c4b2e2b37b6f385361ddcf8480d2c8c307ef623.axp","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":133,"user_id":56,"domain":"community.axoloti.com"},{"url":"http://ww1.microchip.com/downloads/en/DeviceDoc/21298e.pdf","title":null,"fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":62,"user_id":56,"domain":"ww1.microchip.com"},{"url":"http://ucapps.de/mbhp_ainser64.html","title":"MBHP_AINSER64 Module","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":54,"user_id":56,"domain":"ucapps.de"},{"url":"http://community.axoloti.com/t/how-to-get-a-maximum-of-knobs-on-a-axoloti-core/830","title":"How to get a maximum of knobs on a axoloti core?","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":39,"user_id":118,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/gpio-i-o-example-4051-de-multiplexer-reads-8-analog-sources/133/32","title":"[GPIO I/O] Example 4051 de/multiplexer reads 8 analog sources","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":16,"user_id":56,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/adding-more-analog-inputs-using-a-multiplex-breakout-board/3805","title":"Adding more analog inputs using a multiplex breakout board","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":11,"user_id":1393,"domain":"community.axoloti.com"},{"url":"https://github.com/axoloti/axoloti/blob/master/objects/gpio/spi/config.axo","title":"axoloti/config.axo at master · axoloti/axoloti · GitHub","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":8,"user_id":149,"domain":"github.com"},{"url":"http://forum.chibios.org/phpbb/viewtopic.php?f=2\u0026t=676","title":"ChibiOS Free Embedded RTOS • View topic - Back to back SPI transfers","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":8,"user_id":149,"domain":"forum.chibios.org"},{"url":"//community.axoloti.com/uploads/default/original/2X/6/6a122d535583e9fa0eb15c3a9e4b48be6eff746e.axp","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":5,"user_id":1063,"domain":"community.axoloti.com"},{"url":"http://ww1.microchip.com/downloads/en/DeviceDoc/21298c.pdf","title":null,"fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":5,"user_id":3,"domain":"ww1.microchip.com"},{"url":"http://community.axoloti.com/t/spi-problems-with-mcp3008-and-mcp23s17/6614","title":"SPI Problems with MCP3008 and MCP23s17","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":4,"user_id":1063,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/semi-modular-hardware-patch-bay/3962/18","title":"Semi-modular hardware patch bay?","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":3,"user_id":558,"domain":"community.axoloti.com"},{"url":"http://chibios.sourceforge.net/html/group___s_p_i.html#ga6752c9f736f8de774a5bef6dfe2aae2e","title":"ChibiOS/RT: SPI Driver","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":3,"user_id":103,"domain":"chibios.sourceforge.net"},{"url":"http://community.axoloti.com/t/the-xylobox-wavetable-synthesizer-hardware-patches/1353/35","title":"The Xylobox Wavetable Synthesizer (hardware + patches)","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":2,"user_id":1416,"domain":"community.axoloti.com"},{"url":"https://www.youtube.com/watch?v=0w140a2NcQ0","title":"YouTube","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":2,"user_id":1063,"domain":"www.youtube.com"},{"url":"http://community.axoloti.com/t/which-potentiometers-should-i-buy/3777/18","title":"Which potentiometers should I buy?","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":1,"user_id":1416,"domain":"community.axoloti.com"},{"url":"//community.axoloti.com/uploads/default/original/2X/7/7f040ee9926d6484e4262ea50d88bbacde198161.jpg","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":0,"user_id":1063,"domain":"community.axoloti.com"},{"url":"//community.axoloti.com/uploads/default/original/2X/7/79bf79b750d4b76c3d5f6332d0f67c062252f42e.jpg","title":null,"fancy_title":null,"internal":true,"attachment":true,"reflection":false,"clicks":0,"user_id":1063,"domain":"community.axoloti.com"},{"url":"http://community.axoloti.com/t/driving-seven-segment-display-with-mcp23s17-io-expander/","title":null,"fancy_title":null,"internal":true,"attachment":false,"reflection":false,"clicks":0,"user_id":149,"domain":"community.axoloti.com"}],"notification_level":1,"can_flag_topic":false},"highest_post_number":33,"deleted_by":null,"actions_summary":[{"id":4,"count":0,"hidden":false,"can_act":false},{"id":7,"count":0,"hidden":false,"can_act":false},{"id":8,"count":0,"hidden":false,"can_act":false}],"chunk_size":20,"bookmarked":null,"tags":[],"featured_link":null,"topic_timer":null,"message_bus_last_id":135});
+      })();
+      </script>
+
+    
+
+    <script>
+  Ember.RSVP.configure('onerror', function(e) {
+    // Ignore TransitionAborted exceptions that bubble up
+    if (e && e.message === "TransitionAborted") { return; }
+
+    window.onerror(e && e.message, null,null,null,e);
+  });
+</script>
+
+<script>
+
+  (function() {
+    var ps = require('preload-store').default;
+
+    Discourse.CDN = '';
+    Discourse.BaseUrl = 'community.axoloti.com'.replace(/:[\d]*$/,"");
+    Discourse.BaseUri = '';
+    Discourse.Environment = 'production';
+    Discourse.SiteSettings = ps.get('siteSettings');
+    Discourse.LetterAvatarVersion = '5_9b142ce9460b8c6b265fd9abf598d3fd';
+    I18n.defaultLocale = 'en';
+    Discourse.start();
+    Discourse.set('assetVersion','d1ec72c862674d2eea0eb8ef6fc5934f');
+    Discourse.Session.currentProp("disableCustomCSS", false);
+    Discourse.HighlightJSPath = "/highlight-js/community.axoloti.com/100444ceef8ca161334f64d3ce49fe7a1556f943.js";
+  })();
+</script>
+
+<link rel='preload' href='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js' as='script'/>
+<script src='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js'></script>
+
+
+    
+
+      
+    
+  </body>
+</html>

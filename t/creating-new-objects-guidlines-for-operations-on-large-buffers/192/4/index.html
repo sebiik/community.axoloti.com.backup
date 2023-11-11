@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Creating new objects - Guidlines for operations on large buffers? - Software - Axoloti Community</title>
+    <meta name="description" content="Hi, 
+
+I am porting a monophonic pitch detection algorithm to an Axoloti object. The object does more ore less what it needs to do: it detects pitch in a buffer of 1024 samples. There are however a few things unclear to m&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.5.0.beta6 - https://github.com/discourse/discourse version fbffe287724f663d3fda72b8d37d6ae8a5552d11">
+<link rel="icon" type="image/png" href="/images/default-favicon.ico">
+<link rel="apple-touch-icon" type="image/png" href="/images/default-apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/creating-new-objects-guidlines-for-operations-on-large-buffers/192" />
+
+      
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+  ga('send', 'pageview');
+
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Creating new objects - Guidlines for operations on large buffers?&#39;" href="http://community.axoloti.com/t/creating-new-objects-guidlines-for-operations-on-large-buffers/192.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta property="og:url" content="http://community.axoloti.com/t/creating-new-objects-guidlines-for-operations-on-large-buffers/192/4" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/creating-new-objects-guidlines-for-operations-on-large-buffers/192/4" />
+<meta property="og:title" content="Creating new objects - Guidlines for operations on large buffers?" />
+<meta name="twitter:title" content="Creating new objects - Guidlines for operations on large buffers?" />
+<meta property="og:description" content="Hi Johannes,    I have tried a few things but returning a float does not yield the expected results. If I understand correctly I need to convert the float to a fixed point int. I declare an output as follows:   &lt;frac32 name=&quot;out&quot; description=&quot;out&quot;/&gt;   And the only thing in my krate code is this:   float f = 12.345;  outlet_out = (int)(f*(1&lt;4));   if I display this with a disp/dial p (or scope or bar or..) it shows zero. What do I need to do to show the expected 12.345?" />
+<meta name="twitter:description" content="Hi Johannes,    I have tried a few things but returning a float does not yield the expected results. If I understand correctly I need to convert the float to a fixed point int. I declare an output as follows:   &lt;frac32 name=&quot;out&quot; description=&quot;out&quot;/&gt;   And the only thing in my krate code is this:   float f = 12.345;  outlet_out = (int)(f*(1&lt;4));   if I display this with a disp/dial p (or scope or bar or..) it shows zero. What do I need to do to show the expected 12.345?" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ac907dfa54bd6ee9e5af55f2b0a59e6f5c9fd3f7.png" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ac907dfa54bd6ee9e5af55f2b0a59e6f5c9fd3f7.png" />
+
+    <style>
+        img { max-width: 100%; width: auto; height: auto; }
+    </style>
+  </head>
+  <body>
+      
+    <header>
+      <a href="/"><img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="/t/creating-new-objects-guidlines-for-operations-on-large-buffers/192">Creating new objects - Guidlines for operations on large buffers?</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/software" itemprop="url">
+        <span itemprop="title">Software</span>
+      </a>
+    </div>
+</div>
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Joren'><b itemprop='author'>Joren</b></a>
+           
+           <time datetime='2015-08-11T11:34:59Z' itemprop='datePublished'>
+             2015-08-11 11:34:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi,</p>
+
+<p>I am porting a monophonic pitch detection algorithm to an Axoloti object. The object does more ore less what it needs to do: it detects pitch in a buffer of 1024 samples. There are however a few things unclear to me:</p>
+
+<p>1) What is the best way to execute operations on large buffers? I need 1024 samples, to I currently create an array and fill it with the incoming samples. After 1024/16=64 blocks of audio I do some pitch estimation calculation. Since audio starts to stutter i think this takes longer than 1/3000th of a second. I'm not sure how to handle this: do I create a thread as in the ifft object? Is that a good pattern to follow? <code>chThdCreateStatic(waThreadX, sizeof(waThreadX), NORMALPRIO, ThreadX, (void *)this);</code></p>
+
+<p>2) To organize the code I have introduced some methods in the declaration part of the object. Since I had not seen this in any other place I'm not sure if this is a good idea. Are there any provisions to create methods?</p>
+
+<p>3) I want to return a fractional midi number that is compatible with the rest of the axoloti objects. So ranging from -64 to 63. I do not really understand the conventions that use fixed point math as fractional numbers as in the <code>axoloti_math.h</code> functions. Any guidlines there? How do i return a float? For the moment I this as outlet: <code>&lt;frac32 name="out" description="out"/&gt;</code>. </p>
+
+<p>4) I used floating point math in my code. This has a performance penalty. Any idea how much there is to gain when converting the code to fixed point?</p>
+
+<p>5) Is there a repository where i can publish objects that are perhaps of interest to others but too experimental/unstable/underperforming to include in the main distribution? </p>
+
+<p><a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/63a0968bf8f7287b42982f42652f92082a3c7e04.axp">yin_test.axp</a> (2.0 KB) <a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/b34e2414509a0545eaf9bca22d76f36a6128e101.axo">yin.axo</a> (9.3 KB) <img src="//community.axoloti.com/uploads/default/original/1X/ac907dfa54bd6ee9e5af55f2b0a59e6f5c9fd3f7.png" width="532" height="245"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-08-11T14:09:32Z' itemprop='datePublished'>
+             2015-08-11 14:09:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>this could turn into an interesting thread <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile" width="20" height="20"><br>1) large buffers - I'll leave that for <a class="mention" href="/users/johannes">@johannes</a></p>
+
+<p>2) there is an includes tag, which allows you to include header files, I usually use that to included a header, which then includes a c file, with the methods. (in case we later support separate source compiling)</p>
+
+<p>3) have a look at the midi/in objects they show it reasonably clearly.</p>
+
+<p>4) interesting topic as F4 has an FPU, and mutable instruments implied floats are actually better than used fixed ints BUT it will really depend on your code. (go check the MI forum search Axoloti to see their comments on this)</p>
+
+<p>5) if you fork the axoloti repo, then you can issue pull requests. currently we have weeded out experimental stuff, as it just confuses users ... what does experimental mean? it works or not? what are the limitations?  but perhaps we can add it back again (we have some objects in archive, that fall into this category)<br>theres also some idea of having a 'contributors' archive, as this might help with ownership issues.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2015-08-11T17:09:14Z' itemprop='datePublished'>
+             2015-08-11 17:09:14 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Interesting, pitch detection is still a uncovered in the object set.<br>A quick reply:<br>1) check the spectral/rfft 128 object for an example<br>2) you can declare local methods in sLocalData. <br>3) <code>float f = 12.345; outlet_out = (int)(f*(1&lt;&lt;21));</code><br>4) comparing float versus integer dsp performance, is a complex equation, really depending on the nature of the algorithm. Sometimes float32 is not accurate enough where int32 is more accurate. Float32 allows extremely wide dynamics, over 1500dB, this is far beyond useful, some bits would have been better "spend" on precision. <br>Float64 is accurate enough for "everything" but has a big performance impact.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Joren'><b itemprop='author'>Joren</b></a>
+           
+           <time datetime='2015-08-14T11:47:21Z' itemprop='datePublished'>
+             2015-08-14 11:47:21 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi Johannes, </p>
+
+<p>I have tried a few things but returning a float does not yield the expected results. If I understand correctly I need to convert the float to a fixed point int. I declare an output as follows:</p>
+
+<p><code>&lt;frac32 name="out" description="out"/&gt;</code></p>
+
+<p>And the only thing in my krate code is this:</p>
+
+<p><code>float f = 12.345; <br>outlet_out = (int)(f*(1&lt;4));</code></p>
+
+<p>if I display this with a <code>disp/dial p</code> (or scope or bar or..) it shows zero. What do I need to do to show the expected 12.345?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2015-08-14T11:52:54Z' itemprop='datePublished'>
+             2015-08-14 11:52:54 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>sorry there went a mistake in there<br>try </p>
+
+<pre><code>outlet_out = (int)(f*(1&lt;&lt;21));</code></pre>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Joren'><b itemprop='author'>Joren</b></a>
+           
+           <time datetime='2015-08-14T12:14:33Z' itemprop='datePublished'>
+             2015-08-14 12:14:33 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ok,</p>
+
+<p>That seems to work! An update version with working pitch detection: <a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/dc1d8612ad8c59b3d9afce5f1fdcc379f7a633b9.axo">yin.axo</a> (9.3 KB)</p>
+
+<p>Next up: threading to play nice with the audio pipeline.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Joren'><b itemprop='author'>Joren</b></a>
+           
+           <time datetime='2015-08-14T15:12:15Z' itemprop='datePublished'>
+             2015-08-14 15:12:15 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>An update to enable choosing the buffer size <a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/487502303f03f00aa9f2d4364e2a6d5f9fcc3c50.axo">yin.axo</a> (10.4 KB)  via attributes. The buffer size determines the delay, computational load and the minimum frequency that can be detected. I was hoping that it could prevent audio glitches with lower buffer sizes, but it doesn't.  </p>
+
+<p>I'll really need to look into <a href="http://www.chibios.org/dokuwiki/doku.php?id=chibios:howtos:createthread" title="creating threads" rel="nofollow">creating threads</a>.</p>
+
+<p>The object also returns a periodicity value. A number between 0 and 64 to determine the certainty of the estimation, the periodicity of the input signal. An example patch can be seen below or downloaded here <a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/5321d06625ad23e5b1db1dd1058f569245e9b346.axp">yin_test.axp</a> (2.7 KB) :</p>
+
+<p><div class="lightbox-wrapper"><a data-download-href="//community.axoloti.com/uploads/default/8f8c464af8e5779e51831bf6d87fe33537ec91cd" href="//community.axoloti.com/uploads/default/original/1X/8f8c464af8e5779e51831bf6d87fe33537ec91cd.png" class="lightbox" title="pitch_detection_v2.png"><img src="//community.axoloti.com/uploads/default/optimized/1X/8f8c464af8e5779e51831bf6d87fe33537ec91cd_1_690x482.png" width="690" height="482"><div class="meta">
+<span class="filename">pitch_detection_v2.png</span><span class="informations">730x510 32.4 KB</span><span class="expand"></span>
+</div></a></div> </p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Joren'><b itemprop='author'>Joren</b></a>
+           
+           <time datetime='2015-08-17T10:37:36Z' itemprop='datePublished'>
+             2015-08-17 10:37:36 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I have updated the <a class="attachment" href="//community.axoloti.com/uploads/default/original/1X/80cc9581d59d48d716850337a19a2c7ffc84f2f2.axo">yin.axo</a> (10.9 KB)  object to use threads. It also has correct hashes, so the patcher does not complain about that any more.</p>
+
+<p> Two things are still unclear to me. One: it uses the following as working area: <code>WORKING_AREA(waThreadX, 512);</code>. The ChibiOS documentation tells me the following, but I'm not sure how to measure stack size. Any tips here <a class="mention" href="/users/johannes">@johannes</a>?</p>
+
+<blockquote><p>This macro reserves x bytes of stack for the thread and space for all the required thread related  structures. The total size and the alignment problems are handled inside the macro, you only need to specify the pure and simple desired stack size.</p></blockquote>
+
+<p>Two: I want to have a low latency pitch tracker. The buffer size is one limiting factor but another one is the thread sleep command <code>chThdSleepMilliseconds(10);</code> Which adds another 10ms in the worst case. So with a buffer of 1024 samples you get: 21.33ms (1024 samples) + 10ms (worst case thread sleep) + 1ms (estimation of the pitch detection calculation) = +- 33ms. If I go below 10ms of thread sleep, it seems that the whole Axoloti environment is getting less reliable (connection timeouts). Is there a hard lower bound there?</p>
+
+<p>I also wanted to comment that the Axoloti environment is a very nice environment to create objects for!</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2015-08-17T12:04:29Z' itemprop='datePublished'>
+             2015-08-17 12:04:29 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="8" data-topic="192"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar/joren/40/5_fcf819f9b3791cb8c87edf29c8984f83.png" class="avatar">Joren:</div>
+<blockquote><p>I also wanted to comment that the Axoloti environment is a very nice environment to create objects for!</p></blockquote></aside>
+
+<p>yeah I like it too...<br>a couple of suggestions</p>
+
+<ul>
+<li>I tend to keep all my C code in a separate file, (.c/h) which I then include via <br>(this opens up some testing possibilities)</li>
+<li>one thing I notice yesterday, is we are using -O3, and including your C code as you do, we tend to make this code 'inline', sometimes this is what you want, but it can lead to unexpected bloat... and you'll start (unexpectedly) running out of SRAM.</li>
+</ul>
+
+<p>im not sure either is relevant for this project, but thought id mention it... as when the code increases in size, I found the above useful.</p>
+
+<p>as for threading, this is an interesting 'development' topic... I use threading a lot on 'normal computers', but Im hesitating on the STMF4, its only single core, so there is no parallelisation... so whilst conceptually tidy, I wonder if it comes at a (performance) cost. <br>e.g. what the difference between doing this, and using your audio callback, and 'chunking' the work appropriately.</p>
+
+<p>Id be interested in thoughts from those more familiar with micro controller programming... to thread or not to thread that is the question <img src="/images/emoji/emoji_one/smile.png?v=0" title=":smile:" class="emoji" alt="smile"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:2'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Blindsmyth'><b itemprop='author'>Blindsmyth</b></a>
+           
+           <time datetime='2016-03-18T18:38:48Z' itemprop='datePublished'>
+             2016-03-18 18:38:48 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hey there! I want to use the Yin object for creating some kind of guitar bass synthesizer. Unfortunately I behaves a bit buggy. When I first load it into a project it works fine. But when I change something in the patch it won't work anymore. I try to go in live mode and takes some seconds and then disconnects axoloti. When I reconnect then, sometimes I am able to go live. <br>With bigger patches nothing works like it should anymore...<br>This is the axoloti log when I try to use Yin:</p>
+
+<p>instance added, type yin<br>Generate code complete<br>Start creating directory on sdcard : /untitled<br>creating dir: /untitled<br>Done creating directory<br>Changing working directory on sdcard : /untitled<br>Change working directory: /untitled<br>Done changing working directory<br>Start compiling patch<br>Compiling patch... with /Applications/Axoloti.app/Contents/Java/firmware<br>BDIR = /Users/Simon/Documents/axoloti/build<br>FIRMWARE = .<br>RM<br>rm -f /Users/Simon/Documents/axoloti/build/xpatch.o /Users/Simon/Documents/axoloti/build/xpatch.elf /Users/Simon/Documents/axoloti/build/xpatch.bin /Users/Simon/Documents/axoloti/build/xpatch.d /Users/Simon/Documents/axoloti/build/xpatch.map /Users/Simon/Documents/axoloti/build/xpatch.lst<br>APP<br>arm-none-eabi-g++ -nostdlib -fno-exceptions -fno-rtti -mcpu=cortex-m4 -O3 -fomit-frame-pointer -falign-functions=16 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Wunused-parameter -DCORTEX_USE_FPU=TRUE -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -mthumb -DTHUMB -std=c++11 -DARM_MATH_CM4 -D__FPU_PRESENT -H -I/Applications/Axoloti.app/Contents/Java/CMSIS/Include -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/common/ARMCMx/CMSIS/include -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/common/ARMCMx -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/GCC/ARMCMx -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/GCC/ARMCMx/STM32F4xx -I/Applications/Axoloti.app/Contents/Java/chibios/os/kernel/include -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/include -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32F4xx -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/GPIOv2 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/I2Cv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/OTGv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/RTCv2 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/SPIv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/TIMv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/USARTv1 -I/Applications/Axoloti.app/Contents/Java/chibios/boards/ST_STM32F4_DISCOVERY -I/Applications/Axoloti.app/Contents/Java/chibios/ext/fatfs/src -I. -I/Applications/Axoloti.app/Contents/Java/chibios -Winvalid-pch -MD -MP --include /Users/Simon/Documents/axoloti/build/xpatch.h -c /Users/Simon/Documents/axoloti/build/xpatch.cpp -o /Users/Simon/Documents/axoloti/build/xpatch.o <br>! /Users/Simon/Documents/axoloti/build/xpatch.h.gch<br>LINK<br>arm-none-eabi-gcc -nostartfiles -Tramlink.ld -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb  -mno-thumb-interwork /Users/Simon/Documents/axoloti/build/xpatch.o -Wl,-Map=/Users/Simon/Documents/axoloti/build/xpatch.map,--cref,--just-symbols=./build/axoloti.elf -o /Users/Simon/Documents/axoloti/build/xpatch.elf<br>BIN<br>arm-none-eabi-objcopy -O binary /Users/Simon/Documents/axoloti/build/xpatch.elf /Users/Simon/Documents/axoloti/build/xpatch.bin<br>Done compiling patch<br>Start uploading patch<br>bin path: /Users/Simon/Documents/axoloti/build/xpatch.bin<br>block uploaded @ 0x20011000 length 4116<br>Done uploading patch<br>Start starting patch<br>Done starting patch<br>Start locking<br>Done locking<br>Generate code complete<br>Start creating directory on sdcard : /untitled<br>creating dir: /untitled<br>Done creating directory<br>Changing working directory on sdcard : /untitled<br>Change working directory: /untitled<br>Done changing working directory<br>Start compiling patch<br>Compiling patch... with /Applications/Axoloti.app/Contents/Java/firmware<br>BDIR = /Users/Simon/Documents/axoloti/build<br>FIRMWARE = .<br>RM<br>rm -f /Users/Simon/Documents/axoloti/build/xpatch.o /Users/Simon/Documents/axoloti/build/xpatch.elf /Users/Simon/Documents/axoloti/build/xpatch.bin /Users/Simon/Documents/axoloti/build/xpatch.d /Users/Simon/Documents/axoloti/build/xpatch.map /Users/Simon/Documents/axoloti/build/xpatch.lst<br>APP<br>arm-none-eabi-g++ -nostdlib -fno-exceptions -fno-rtti -mcpu=cortex-m4 -O3 -fomit-frame-pointer -falign-functions=16 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Wunused-parameter -DCORTEX_USE_FPU=TRUE -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -mthumb -DTHUMB -std=c++11 -DARM_MATH_CM4 -D__FPU_PRESENT -H -I/Applications/Axoloti.app/Contents/Java/CMSIS/Include -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/common/ARMCMx/CMSIS/include -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/common/ARMCMx -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/GCC/ARMCMx -I/Applications/Axoloti.app/Contents/Java/chibios/os/ports/GCC/ARMCMx/STM32F4xx -I/Applications/Axoloti.app/Contents/Java/chibios/os/kernel/include -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/include -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32F4xx -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/GPIOv2 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/I2Cv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/OTGv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/RTCv2 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/SPIv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/TIMv1 -I/Applications/Axoloti.app/Contents/Java/chibios/os/hal/platforms/STM32/USARTv1 -I/Applications/Axoloti.app/Contents/Java/chibios/boards/ST_STM32F4_DISCOVERY -I/Applications/Axoloti.app/Contents/Java/chibios/ext/fatfs/src -I. -I/Applications/Axoloti.app/Contents/Java/chibios -Winvalid-pch -MD -MP --include /Users/Simon/Documents/axoloti/build/xpatch.h -c /Users/Simon/Documents/axoloti/build/xpatch.cpp -o /Users/Simon/Documents/axoloti/build/xpatch.o <br>! /Users/Simon/Documents/axoloti/build/xpatch.h.gch<br>LINK<br>arm-none-eabi-gcc -nostartfiles -Tramlink.ld -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb  -mno-thumb-interwork /Users/Simon/Documents/axoloti/build/xpatch.o -Wl,-Map=/Users/Simon/Documents/axoloti/build/xpatch.map,--cref,--just-symbols=./build/axoloti.elf -o /Users/Simon/Documents/axoloti/build/xpatch.elf<br>BIN<br>arm-none-eabi-objcopy -O binary /Users/Simon/Documents/axoloti/build/xpatch.elf /Users/Simon/Documents/axoloti/build/xpatch.bin<br>Done compiling patch<br>Start uploading patch<br>bin path: /Users/Simon/Documents/axoloti/build/xpatch.bin<br>block uploaded @ 0x20011000 length 4116<br>Done uploading patch<br>Start starting patch<br>patch start taking too long, disconnecting<br>Disconnect request<br>Done starting patch<br>USB device found<br>connected<br>invalid CPU serial number, invalid protocol?, update firmware<br>Cannot obtain signature, upgrade firmware?<br>Ping: WaitSync Timeout, disconnecting now<br>Disconnect request<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>Ping: WaitSync Timeout, disconnecting now<br>USB device found<br>connected<br>java.lang.Exception: cpuserial has wrong length<br>java.lang.Exception: cpuserial has wrong length<br>    at axoloti.HWSignature.Verify(HWSignature.java:96)<br>    at axoloti.USBBulkConnection.connect(USBBulkConnection.java:316)<br>    at axoloti.MainFrame.jCheckBoxConnectActionPerformed(MainFrame.java:651)<br>    at axoloti.MainFrame.access$400(MainFrame.java:79)<br>    at axoloti.MainFrame$6.actionPerformed(MainFrame.java:427)<br>    at javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:2022)<br>    at javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2348)<br>    at javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:402)<br>    at javax.swing.JToggleButton$ToggleButtonModel.setPressed(JToggleButton.java:308)<br>    at javax.swing.plaf.basic.BasicButtonListener.mouseReleased(BasicButtonListener.java:252)<br>    at java.awt.Component.processMouseEvent(Component.java:6535)<br>    at javax.swing.JComponent.processMouseEvent(JComponent.java:3324)<br>    at java.awt.Component.processEvent(Component.java:6300)<br>    at java.awt.Container.processEvent(Container.java:2236)<br>    at java.awt.Component.dispatchEventImpl(Component.java:4891)<br>    at java.awt.Container.dispatchEventImpl(Container.java:2294)<br>    at java.awt.Component.dispatchEvent(Component.java:4713)<br>    at java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4888)<br>    at java.awt.LightweightDispatcher.processMouseEvent(Container.java:4525)<br>    at java.awt.LightweightDispatcher.dispatchEvent(Container.java:4466)<br>    at java.awt.Container.dispatchEventImpl(Container.java:2280)<br>    at java.awt.Window.dispatchEventImpl(Window.java:2750)<br>    at java.awt.Component.dispatchEvent(Component.java:4713)<br>    at java.awt.EventQueue.dispatchEventImpl(EventQueue.java:758)<br>    at java.awt.EventQueue.access$500(EventQueue.java:97)<br>    at java.awt.EventQueue$3.run(EventQueue.java:709)<br>    at java.awt.EventQueue$3.run(EventQueue.java:703)<br>    at java.security.AccessController.doPrivileged(Native Method)<br>    at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:76)<br>    at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)<br>    at java.awt.EventQueue$4.run(EventQueue.java:731)<br>    at java.awt.EventQueue$4.run(EventQueue.java:729)<br>    at java.security.AccessController.doPrivileged(Native Method)<br>    at java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:76)<br>    at java.awt.EventQueue.dispatchEvent(EventQueue.java:728)<br>    at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:201)<br>    at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:116)<br>    at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:105)<br>    at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)<br>    at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:93)<br>    at java.awt.EventDispatchThread.run(EventDispatchThread.java:82)</p>
+
+<p>Ping: WaitSync Timeout, disconnecting now<br>Disconnect request<br>Ping: WaitSync Timeout, disconnecting now</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Joren'><b itemprop='author'>Joren</b></a>
+           
+           <time datetime='2016-03-21T08:48:32Z' itemprop='datePublished'>
+             2016-03-21 08:48:32 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks for the report.I know that the object still needs some work. Especially when multiple are combined in a patch. The code needs to be updated so that it is more efficient and memory friendly. Certainly doable but it takes time. </p>
+
+<p>The following is a link to a YIN implementation on the teensy, a less powerfull device. It could be give some inspiration about optimizations... <a href="https://github.com/PaulStoffregen/Audio/blob/master/analyze_notefreq.cpp" rel="nofollow">https://github.com/PaulStoffregen/Audio/blob/master/analyze_notefreq.cpp</a></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Blindsmyth'><b itemprop='author'>Blindsmyth</b></a>
+           
+           <time datetime='2016-03-21T16:10:24Z' itemprop='datePublished'>
+             2016-03-21 16:10:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Hi Joren,</p>
+
+<p>Thanks for the reply. Unfortunately I am not capabable of programming something like this but thanks for sharing this here anyway!<br>The problem with the object is that even with just one Yin axolot might not be able to load the patch. But I guess I have to wait until you or somebody else has the time to work on this.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/Article'>
+      <div class='creator'>
+        <span>
+          <a href='/users/Jan'><b itemprop='author'>Jan</b></a>
+           
+           <time datetime='2016-03-21T20:43:38Z' itemprop='datePublished'>
+             2016-03-21 20:43:38 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="9" data-topic="192"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>I tend to keep all my C code in a separate file, (.c/h) which I then include via (this opens up some testing possibilities)</p></blockquote></aside>
+
+<p>This is interesting. How do these tests look like? E.g. unit tests running on an STM-Evaluation board?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <hr>
+  </div>
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='/'>Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/guidelines">FAQ/Guidelines</a>
+        <a href="/tos">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="http://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+      
+  </body>
+</html>

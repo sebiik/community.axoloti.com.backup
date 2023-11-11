@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Memory allocation - Developer - Axoloti Community</title>
+    <meta name="description" content="While working on a patching problem (http://community.axoloti.com/t/maximum-patch-size/1483/9) I&amp;#39;ve been studying how the Axoloti Core allocates its memory, and there are some things that I don&amp;#39;t understand in the .ld fi&amp;hellip;">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/memory-allocation/1492" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+        <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+    
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Memory allocation&#39;" href="http://community.axoloti.com/t/memory-allocation/1492.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/memory-allocation/1492" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/memory-allocation/1492" />
+<meta property="og:title" content="Memory allocation" />
+<meta name="twitter:title" content="Memory allocation" />
+<meta property="og:description" content="While working on a patching problem (http://community.axoloti.com/t/maximum-patch-size/1483/9) I&#39;ve been studying how the Axoloti Core allocates its memory, and there are some things that I don&#39;t understand in the .ld files.   In the firmware .ld file STM32F407xG.ld 44 k (from address 0x2000000, i.e. 0x2000000..0x2000B000) is allocated as RAM, with the rest of the internal SRAM presumable intended for patch storage. However in ramlink.ld which defines the allocation of the patch code itself, the..." />
+<meta name="twitter:description" content="While working on a patching problem (http://community.axoloti.com/t/maximum-patch-size/1483/9) I&#39;ve been studying how the Axoloti Core allocates its memory, and there are some things that I don&#39;t understand in the .ld files.   In the firmware .ld file STM32F407xG.ld 44 k (from address 0x2000000, i.e. 0x2000000..0x2000B000) is allocated as RAM, with the rest of the internal SRAM presumable intended for patch storage. However in ramlink.ld which defines the allocation of the patch code itself, the..." />
+
+
+  </head>
+  <body class="crawler">
+    
+    <header>
+      <a href="/"><img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo" style="max-width: 150px;"></a>
+    </header>
+    <div id="main-outlet" class="wrap">
+      <h1>
+  <a href="/t/memory-allocation/1492">Memory allocation</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/developer" itemprop="url">
+        <span itemprop="title">Developer</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/ricard'><b itemprop='author'>ricard</b></a>
+           
+           <time datetime='2016-04-13T09:57:25Z' itemprop='datePublished'>
+             2016-04-13 09:57:25 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>While working on a patching problem (http://community.axoloti.com/t/maximum-patch-size/1483/9) I've been studying how the Axoloti Core allocates its memory, and there are some things that I don't understand in the .ld files.</p>
+
+<p>In the firmware .ld file STM32F407xG.ld 44 k (from address 0x2000000, i.e. 0x2000000..0x2000B000) is allocated as RAM, with the rest of the internal SRAM presumable intended for patch storage. However in ramlink.ld which defines the allocation of the patch code itself, the defined SRAM for the patch starts at 0x000110000 (again with a length of 0xB000). I assume this RAM is a mapped mirror of the true SRAM at 0x20000000, but why is there an offset between the end of the area defined in STM32F407xG (0x2000B000) and the start in ramlink.ld ? (There is a definition of a PATCHMAINLOC in patch.h, which is 0x20011000).</p>
+
+<p>Also, why is the patch code linked to start at 0x00011000 rather than in the SRAM proper, so that its starting address would be 0x20011000 ? When the patch is initialized, the Axoloti Core calls to 0x20011000, so this would imply that the patch code is compiled to be position independent. The patch initialization code then returns (among other things) the address to the DSP function to be called from the Core, which is in the 0x000..... segment.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Memory allocation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2016-04-13T10:49:47Z' itemprop='datePublished'>
+             2016-04-13 10:49:47 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ive moved this to the developer section, as its pretty low level... I think I'll move your other topic too</p>
+
+<p>I think these are great discussions to have, lots to learn... but possibly daunting for many users.</p>
+
+<p>hmm, what I think would be a good idea is to perhaps 'draw' these regions, so we get a clearer picture.<br>(to be honest, this is what I will have to do to have any chance of answering the above) </p>
+
+<p>also would obviously be best to get <a class="mention" href="/users/johannes">@johannes</a> input (actually, he may even have a picture of this, as he set it all up)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Memory allocation'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2016-04-13T12:48:11Z' itemprop='datePublished'>
+             2016-04-13 12:48:11 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thanks for reviewing this!</p>
+
+<p>SRAM1 at address 0x20000000 is remapped to 0x00000000.<br>The reference manual (RM0090) shows in figure 2 that SRAM1 (but not SRAM2 or SRAM3) can be accessed through the I-Bus and the D-Bus. That looks like it 'd have better performance than using only the S-Bus.</p>
+
+<p>Section 2.3.1 says:</p>
+
+<blockquote><p>The CPU can access the SRAM1, SRAM2, and SRAM3 through the System Bus or through<br>the I-Code/D-Code buses when boot from SRAM is selected or when physical remap is<br>selected (Section 9.2.1: SYSCFG memory remap register (SYSCFG_MEMRMP) in the<br>SYSCFG controller). To get the max performance on SRAM execution, physical remap<br>should be selected (boot or software selection).</p></blockquote>
+
+<p>That contradicts figure 2. Execution from the remapped memory area was chosen to enable max performance, but it is not clear if just remapping 'd be enough, or if it needs to address the remapped area. I can't remember if this had an effect on performance.</p>
+
+<p>The memory remap table (Table 4) shows only SRAM1 remapped to 0x00000000. </p>
+
+<p>I'm not sure what the reason is for the gap between SRAM1 for firmware 0x200000000 to 0x2000B000 and SRAM1 for patch starting at 0x20011000.  I think I started to squeeze firmware usage of SRAM1, since code can only execute from SRAM1 at full speed it is a precious resource, but then did not close the gap to avoid hard crashes when transitioning to a new patch entry point - loading old patches at a new location. I believe the first check (matching firmware crc) in xpatch_init2 does not depend on absolute code location, but I'm not sure that I verified that this is indeed the case.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Memory allocation'>
+      <hr>
+  </div>
+
+
+
+
+
+
+    </div>
+    <footer class="container">
+      <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <a href='/'>Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/guidelines">FAQ/Guidelines</a>
+        <a href="/tos">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </nav>
+      <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+    </footer>
+    
+    
+  </body>
+  
+</html>

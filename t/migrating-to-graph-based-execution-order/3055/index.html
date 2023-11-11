@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device  anon">
+  <head>
+    <meta charset="utf-8">
+    <title>Migrating to graph-based execution order - Developer - Axoloti Community</title>
+    <meta name="description" content="Axoloti user community">
+    <meta name="discourse_theme_key" content="b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408">
+    <meta name="author" content="">
+<meta name="generator" content="Discourse 1.9.0.beta3 - https://github.com/discourse/discourse version 13f3de4bf673802eb8ec595d36587b4524773209">
+<link rel="icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="apple-touch-icon" type="image/png" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<link rel="icon" sizes="144x144" href="/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<link rel="canonical" href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055" />
+<script type="application/ld+json">{"@context":"http://schema.org","@type":"WebSite","url":"http://community.axoloti.com","potentialAction":{"@type":"SearchAction","target":"http://community.axoloti.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<link rel="search" type="application/opensearchdescription+xml" href="http://community.axoloti.com/opensearch.xml" title="Axoloti Community Search">
+
+    
+
+      <meta name="fragment" content="!">
+
+
+    <script>
+      window.EmberENV = window.EmberENV || {};
+      window.EmberENV['FORCE_JQUERY'] = true;
+    </script>
+
+    <link rel='preload' href='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js' as='script'/>
+<script src='/assets/locales/en-5bbc8626277bd471a9fcd063411070c515cad1a78c86a38ad27792a513f11bd4.js'></script>
+    <link rel='preload' href='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js' as='script'/>
+<script src='/assets/ember_jquery-a8dcbd325e04410f036f2a791d66d8316c48c5387acdd914de99a5dd6afb3cd3.js'></script>
+    <link rel='preload' href='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js' as='script'/>
+<script src='/assets/preload-store-ec90ffab9d7a6d9e507dda7cf7343e9d50b8bce624f7f44486ac8fd6b9814309.js'></script>
+    <link rel='preload' href='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js' as='script'/>
+<script src='/assets/vendor-199fce5a9e9895329b51b04605f1f5061951acb488baa6b2ea2fc2ae36def529.js'></script>
+    <link rel='preload' href='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js' as='script'/>
+<script src='/assets/pretty-text-bundle-e888dd08c05658b05da2124dd56955aa8fe94225d532fb8bfa3264a3eb2aa581.js'></script>
+    <link rel='preload' href='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js' as='script'/>
+<script src='/assets/application-13a284a273d9247cd8b3d19ae7d053297aeb5b3eabaa9a901c9fd236fb7dfe60.js'></script>
+    <link rel='preload' href='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js' as='script'/>
+<script src='/assets/plugin-3a5d56cbe920ebb10de8abd59e839cf2d48d598ca07a267327f96e3fec534065.js'></script>
+    <link rel='preload' href='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js' as='script'/>
+<script src='/assets/plugin-third-party-346f0166b34a16f0ac66ea388d925068ee8f76267dc167ac7173785ea046f465.js'></script>
+
+
+      
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56017691-4', {"cookieDomain":"auto"});
+</script>
+
+    <link rel="manifest" href="/manifest.json">
+
+
+      <link href="/stylesheets/desktop_d93a33ca8617326fe353f80e6ab865188244d48c.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop"/>
+
+
+  <link href="/stylesheets/desktop_theme_1_6c5f8f7f5e6a154a9f0dfd7aedf04bae4b669f17.css?__ws=community.axoloti.com" media="all" rel="stylesheet" data-target="desktop_theme"/>
+
+    
+
+<link rel="preload" href="/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0" as="font" type="font/woff2" crossorigin />
+<style>
+  @font-face {
+    font-family: 'FontAwesome';
+    src: url('/assets/fontawesome-webfont-2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe.woff2?http://community.axoloti.com&2&v=4.7.0') format('woff2'),
+         url('/assets/fontawesome-webfont-ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07.woff?http://community.axoloti.com&amp;2&v=4.7.0') format('woff');
+  }
+</style>
+
+
+      <link rel="alternate" type="application/rss+xml" title="RSS feed of &#39;Migrating to graph-based execution order&#39;" href="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055.rss" />
+  <meta property="og:site_name" content="Axoloti Community" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:image" content="http://community.axoloti.com/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png" />
+<meta property="og:url" content="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055" />
+<meta name="twitter:url" content="http://community.axoloti.com/t/migrating-to-graph-based-execution-order/3055" />
+<meta property="og:title" content="Migrating to graph-based execution order" />
+<meta name="twitter:title" content="Migrating to graph-based execution order" />
+<meta property="og:description" content="I&#39;ve been thinking about this a little more. To be honest, I don&#39;t like how it&#39;s done right now, as it is really unintuitive.     Depending on the patch, you can get all kinds of weird phasing issues (including the one with my reverb, that initially started this thread). The biggest problem to me is that shifting objects around without changing any of the cables can actually drastically alter the sound (which you just wouldn&#39;t expect to happen!). You might find your patch doesn&#39;t work anymore af..." />
+<meta name="twitter:description" content="I&#39;ve been thinking about this a little more. To be honest, I don&#39;t like how it&#39;s done right now, as it is really unintuitive.     Depending on the patch, you can get all kinds of weird phasing issues (including the one with my reverb, that initially started this thread). The biggest problem to me is that shifting objects around without changing any of the cables can actually drastically alter the sound (which you just wouldn&#39;t expect to happen!). You might find your patch doesn&#39;t work anymore af..." />
+<meta name="twitter:label1" value="Reading time" />
+<meta name="twitter:data1" value="8 mins 🕑" />
+<meta name="twitter:label2" value="Likes" />
+<meta name="twitter:data2" value="5 ❤" />
+
+
+
+    
+  </head>
+
+  <body class="">
+    
+
+    <div class='debug-eyeline'></div>
+
+    <noscript data-path="/t/migrating-to-graph-based-execution-order/3055">
+      <header class="d-header">
+  <div class="wrap">
+    <div class="contents">
+      <div class="row">
+        <div class="title span13">
+          <a href="/">
+              <img src="/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png" alt="Axoloti Community" id="site-logo">
+          </a>
+        </div>
+            <div class='panel clearfix'>
+              <a href="/login" class='btn btn-primary btn-small login-button'><i class="fa fa-user"></i> Log In</a>
+            </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div id="main-outlet" class="wrap">
+        <!-- preload-content: -->
+        <h1>
+  <a href="/t/migrating-to-graph-based-execution-order/3055">Migrating to graph-based execution order</a>
+</h1>
+
+<div id='breadcrumbs'>
+    <div id="breadcrumb-0" itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+>
+      <a href="/c/developer" itemprop="url">
+        <span itemprop="title">Developer</span>
+      </a>
+    </div>
+</div>
+
+
+
+
+
+<hr>
+
+
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-02T09:46:51Z' itemprop='datePublished'>
+             2017-03-02 09:46:51 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#1</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I've been thinking about this a little more. To be honest, I don't like how it's done right now, as it is really unintuitive. </p>
+
+<ul>
+<li>Depending on the patch, you can get all kinds of weird phasing issues (including the one with my reverb, that initially started this thread). The biggest problem to me is that shifting objects around without changing any of the cables can actually drastically alter the sound (which you just wouldn't expect to happen!). You might find your patch doesn't work anymore after "cleaning" it up.</li>
+<li>Everytime a patch cable goes up/left it will create a 16-sample/1-block delay (<code>z^-16</code>). You can get quite a significant overall delay with this and there is currently no indication that this happens. Not only does it create 0,33ms delay per cable, it also eats up significant amounts of memory for larger patches (64 bytes per cable).</li>
+</ul>
+
+<p><strong>One possible short-term solution</strong> could be to allow users to see and manually specify the processing order.  The GUI could display a number indicating the order of execution in the top right corner of each object. With a right-click, the user could move the object up/down in the processing tree. All of this could be hidden by default and enabled upon request (e.g. by adding a menu option "show processing order" in the titel menu of the window that the user can tick to enable this).</p>
+
+<p><strong>In the long term</strong>, I think it would be best to apply some graph theory to this. What we really want is to do a <a href="https://en.wikipedia.org/wiki/Topological_sorting" rel="nofollow">topological sort</a> of the graph. This, however requires the graph to be a <a href="https://en.wikipedia.org/wiki/Directed_acyclic_graph" rel="nofollow">directed acyclic graph</a> which is almost certainly not applying here. IMO it would be best to identify the bottlenecks in the graph (portions of the directed graph that have the least parallel edges) and insert the <code>z^-16</code> delay there but I'm not entirely sure what algorithm to choose for this. In Native Instruments Reaktor, unit delays are added whenever the user adds a connection that creates feedback. The delay is indicated by a little z symbol next to the input of the node where the feedback path ends.<br><img src="//community.axoloti.com/uploads/default/original/2X/4/46c5ed8192b7b60957a66366694a076c3dd111dc.png" width="128" height="106"> <br>This could be translated to the axoloti patcher as well, but it would require to somehow convert existing patches and that leaves us with the same problem of not knowing where to add the delays.</p>
+
+<p>The JUCE class <code>juce::AudioProcessorGraph</code> does the same thing. It builds up a ordered graph and inserts unit delays on the feedback edges. It also does latency compensation, which would be super neat as well. It defines rendering operations (clear buffer, copy buffer, delay buffer, execute node, etc.) and then iterates over the nodes in the graph and builds up a list of rendering operations that define which node to execute when, which buffers can be used multiple times and where to insert delays to compensate for processing latency of the nodes or to allow feedback. The order of processing is updated <a href="https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L1337" rel="nofollow">with this function</a>, the details about the sorting are <a href="https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L393" rel="nofollow">in this function</a>.</p>
+
+<p>I know, this is a lot to ask, and those are some pretty substantial changes, but the overall positive effect could be very significant.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+            <a href="http://community.axoloti.com/t/processing-order-issue/2985/11">Processing order issue?</a>
+            <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-03-02T09:50:52Z' itemprop='datePublished'>
+             2017-03-02 09:50:52 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#2</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Agreed <br>and it's going to change , as you say it's not simple, and we also need to ensure old patches are unaffected - so it cannot be rushed in.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-02T10:02:20Z' itemprop='datePublished'>
+             2017-03-02 10:02:20 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#3</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm skimming the web for what might be useful for this. I found <a href="http://jgrapht.org/" rel="nofollow">JGraphT, a Java-Graph library</a>. I don't know if the patcher is currently using this, but it might offer some good tools for sorting, iterating and converting the graph.<br>I think the hardest part is identifying which edges in the graph represent a feedback path == where to insert the <code>z^-16</code> delays. Here, the x,y position of the objects could indeed be a good indication of where the user thinks the feedback is.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-03-02T10:41:01Z' itemprop='datePublished'>
+             2017-03-02 10:41:01 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#4</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p><a class="mention" href="/users/lis0r">@lis0r</a> has already kindly produced an implementation which we have merged into a branch. <br>you can also see some comments on the PR <a href="https://github.com/axoloti/axoloti/pull/380">here</a></p>
+
+<p>current thoughts are to use a graph, and then allow the user to 'override' execution order specifically.<br>(this will also allow the user to explicitly see execution order too, which helps alot) </p>
+
+<p>there are quite a few 'edge cases' , and things that need to be considered.. e<br>.g. currently things like tables often 'imply' an order of execution requirement, but these are not coded as connections currently.<br>(Im also familar with Reaktor, and even that has issues, e.g. the 'mess' around initialisation) </p>
+
+<p>anyway, we cannot rush into this.. the current model has its flaws, but most users know how to use it and you can patch accordingly (I have for, nearly 2 years now <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:">) ... so there we can replace this with a 'half backed' solution, or one that means users have to rewrite existing patches. it has to be done properly.</p>
+
+<p>so I dont really think its how to do it, or even if/when, so much as as 'development time', johannes is already busy on things for the next release, and so I am -  so this has to join the queue, of course, if other developers what to contribute that will speed things along, which is why pull requests are so welcome.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-02T11:34:35Z' itemprop='datePublished'>
+             2017-03-02 11:34:35 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#5</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Ah, I see. Good to know this is going to happen someday. I fixed my patches now by shifting the objects around. It works now, but it looks really messy, so any future improvements are very welcome. I considered actually making my own branch and trying to implement the graph sorting, etc. but while I'm fluent with C/C++, I'm not very experienced with Java so I'm probably the wrong person to tackle this.</p>
+
+<p>Just to be clear: I'm really enjoying the axoloti platform, so any criticism is meant positively. I very much appreciate the time that went into making axoloti what it is and I'm hoping to be able to contribute something aswell.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-03-02T11:38:22Z' itemprop='datePublished'>
+             2017-03-02 11:38:22 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#6</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="16" data-topic="2985" data-full="true"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>It should be noted there's a flaw in the version currently merged - I discussed the fix in my fork ( 8e4a27d , 24 Jan) with Johannes, but I don't think it made it in.</p></blockquote></aside>
+
+<p>can you PM me, I did put in the changes you made in your last PR (i.e. the changes you made to Patch.java that were UI unrelated)... you can check if its correct, its on the experimental branch, and its now in PatchModel.java)<br>also Id really love to hear any ideas you have for taking this forward.<br>thanks again<br>Mark</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-02T11:49:19Z' itemprop='datePublished'>
+             2017-03-02 11:49:19 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#7</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="17" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>also Id really love to hear any ideas you have for taking this forward.</p></blockquote></aside>
+
+<p>I know that this was addressed towards <a class="mention" href="/users/lis0r">@lis0r</a>, but I would really suggest taking a look at the JUCE class from my previous post. It is very readable and does exactly what we want (+latency compensation as well! which is super handy to have), only in C++. JUCE is available under the GPL, so converting the code to Java straight away should actually be possible, even from a licensing standpoint.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/lis0r'><b itemprop='author'>lis0r</b></a>
+           
+           <time datetime='2017-03-02T12:22:29Z' itemprop='datePublished'>
+             2017-03-02 12:22:29 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#8</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I personally don't find those JUCE functions at all readable - hey mostly seem to be driver functions, palming off the real guts of the algorithm onto other methods and constructors. Then again, I think C++ is an abomination that should be abandoned in a ditch, doused in diesel, and set on fire, so I would say that!</p>
+
+<p>It also seems over complex - axoloti buffers are a fixed size, and it's easy to locate the needs where feedback paths originate, so it should be pretty simple to insert a fixed delay. I just can't quite get my head round which part of the path the have to be placed on to make it work. Intuitively, it feels like the non-feedback path should get the delay, in order to sync up with the feedback, but I have a head full of DeviceTree details right now, and can't flush the caches to think about it properly.</p>
+
+<p>I'd also worry that the memory and latency overheads might surprise the user. It's not like we have the same resources as a PC to throw at this.</p>
+
+<p>Lisa</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-02T12:42:28Z' itemprop='datePublished'>
+             2017-03-02 12:42:28 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#9</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="19" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>I'd also worry that the memory and latency overheads might surprise the user. It's not like we have the same resources as a PC to throw at this.</p></blockquote></aside>
+
+<p>The actual graph re-organization happens on the PC, not on the axoloti. And a properly organized graph with only a few <code>z^-16</code> delays is actually mroe memory and CPU efficient than the current, unoptimized version. I'm not talking about latency compensation here, that would of course add additional buffers. But only, if objects actually specify a latency, so right now, it would simply create zero overhead. For some stuff, latency compensation is acutally pretty vital.</p>
+
+<aside class="quote" data-post="19" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>it's easy to locate the needs where feedback paths originate, so it should be pretty simple to insert a fixed delay.</p></blockquote></aside>
+
+<p>Do you think so? I'd say that is actually the main problem. Sorting a acyclic gaph of processing nodes is not a problem. The problem is to find out where in the cyclic graph the delays should be inserted in order to turn it into an acyclic graph. When you have feedback somewhere in the graph, that means there is one/more loops. Detecting the loops is easy, when you iterate over the graph and put a mark on already visited nodes. But how do you know where to actually put the delay in? Lets consider this (stupid) patch:</p>
+
+<pre><code>Audio In |----------&gt;| Compressor   |--------------+--------&gt;| Audio out
+                 +--&gt;| Sidechain in |              |
+                 |                                 |
+                 +---| EQ |&lt;----| Echo Delay |&lt;----+</code></pre>
+
+<p>Where would you put the <code>z^-16</code> delay? I would say: preserve the direct audio path and put the delay in the feedback loop. But to an algorithm that patch is just a cyclic graph of 5 nodes connected by 5 edges and none of them has any property to it that makes the position of the <code>z^-16</code> delay obvious. The delay could be added right on the compressor output - that would split the loop as well, but it would delay the audio output uneccesarily and hence it is not desireable from the users view.</p>
+
+<p>My idea would be to identify loops and take the graphical direction and the length of the wires in the patcher as a guide to where to place the delay. That is a good chance of actually inserting it into the "true" feedback path.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/lis0r'><b itemprop='author'>lis0r</b></a>
+           
+           <time datetime='2017-03-02T12:51:58Z' itemprop='datePublished'>
+             2017-03-02 12:51:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#10</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>The current implementation of graph-ordered execution ordering happens PC side. It doesn't latency compensate - pretty difficult to be less resource intensive than not doing something!</p>
+
+<p>The system already works out which objects need feedback, since it stores a 16 (I think) sample buffer between iterations, that gets used as input for the next block.</p>
+
+<p>This means feedback paths are are inherently delayed by 16 samples. I see no way of compensating for that without putting an additional delay on the non-fed back path to synchronise them. That, or redesign the axoloti firmware from the ground up, I guess?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-02T13:38:23Z' itemprop='datePublished'>
+             2017-03-02 13:38:23 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#11</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="21" data-topic="2985"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png" class="avatar">lis0r:</div>
+<blockquote><p>The system already works out which objects need feedback,</p></blockquote></aside>
+
+<p>You are referring to the current system? Yes, it does that, but it fails for the xfade axample at the beginning of this thread and it inserts delays where they aren't neccessary. <br><img src="//community.axoloti.com/uploads/default/original/2X/7/7589fe70ef1c48ffdd87a6a2bc0835d62fb06231.png" width="186" height="148">  <img src="//community.axoloti.com/uploads/default/original/2X/3/335265d6321f0596d88c0896cc0622d1ba579ecb.png" width="232" height="83"><br>The left version creates an additional 16 sample delay between the input and the output, even though that's not neccessary. The right version does not.</p>
+
+<p>Delays are only neccessary to split the cyclic processign graph into an acyclic processing graph.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/lis0r'><b itemprop='author'>lis0r</b></a>
+           
+           <time datetime='2017-03-02T13:42:50Z' itemprop='datePublished'>
+             2017-03-02 13:42:50 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#12</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'm talking about the experimental branch, with my graph-ordering patch.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2017-03-13T21:14:59Z' itemprop='datePublished'>
+             2017-03-13 21:14:59 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#13</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I'd like to move towards graph-ordering, my key concerns are:</p>
+
+<ul>
+<li>Being able to migrate patches from position-based execution order to graph-based execution order without a patch-setting switch (that 'd add a parallel universe but not migrate, and is a potential source of user confusion), and without changing the behavior of old patches.</li>
+<li>Being able to explicitly specify execution order. Object benchmarking via <code>patch/cyclecounter</code> is one example where this is useful.</li>
+</ul>
+
+<p>I think it can be addressed by adding a "object instance reference" inlet and outlet on every object (in the title bar of the object). A connection of this type from one object to another would express fixing their execution order. <br>For the algorithm sorting the object order, I think we need to introduce "net class priorities":</p>
+
+<ul>
+<li>highest sorting priority for the "object instance reference connections"</li>
+<li>high sorting priority for the audio connections, k-rate connections</li>
+<li>(perhaps in the future, low sorting priority for midi connections)</li>
+</ul>
+
+<p>A "brute" way to migrate old patches is by adding "object instance reference connections" to every object in position order when opening (but possibly redundant connections could be removed).</p>
+
+<p>Thoughts?</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-14T06:30:52Z' itemprop='datePublished'>
+             2017-03-14 06:30:52 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#14</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Those "object reference connections" are IMO the best way to specify extection order and deal with references to delays, etc. The currently used text entry fields for object references would of course have to be removed. That is what reaktor does for its arrays and it is a tidy concept. More importantly, users will stumble across those connections and start wondering what they do. Effectively that will introduce them to the whole execution order topic at a point where they are ready to understand it. It saves you from over-complicating the first steps with axoloti (you don't even have to mention it). They will eventually stumble unpon the topic when they need it.<br></p>
+
+<aside class="quote" data-post="13" data-topic="3055"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png" class="avatar">johannes:</div>
+<blockquote><p>adding "object instance reference connections" to every object in position order when opening (but possibly redundant connections could be removed)</p></blockquote></aside>
+
+<p>Yes, I think that is pretty much the only way to convert patches to the new system without breaking them. IMO is very important to remove redundant connections and keep them only where they actually make a difference. Otherwise, patches will be extremely messy after the conversion.</p>
+
+<p>Nevertheless, there is a need to explain to users why their patches suddenly contain those magical, new connections that apparently don't do anything but are needed for a reason that most users won't be able to understand immediately. I guess that is un-avoidable. I guess what I'm trying to say is, it is important to have a well structured tutorial at hand. I would even add a little popup message to the patcher that says: Hey, your new version of the patcher intruduces a new type of object connection. Click here to open an example patch. Or: Click here for more information (link leading to a forum post, etc.)<br>This mesage would only appear to users upgrading their patcher. Fresh installs should not show this, as to not over complicate things at the start.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-03-14T09:26:24Z' itemprop='datePublished'>
+             2017-03-14 09:26:24 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#15</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Whilst it's 'neat' to represent the ordering as connections ( possibly ok internally) , <br>it'll make the UI overly fussy.  also it's mixing metaphors , which tends to lead to confusion. </p>
+
+<p>If they are used, I think they should be on a different layer, a different view. But this breaks your screenshot ideal. </p>
+
+<p>schemes used by others : <br>- numbers on title bar ( toggled on/off) - Reaktor<br>- ordering objects (trigger) - max</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-14T18:28:02Z' itemprop='datePublished'>
+             2017-03-14 18:28:02 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#16</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <aside class="quote" data-post="15" data-topic="3055"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png" class="avatar">thetechnobear:</div>
+<blockquote><p>it'll make the UI overly fussy.</p></blockquote></aside>
+
+<p>If I undestand johannes correctly, that won't happen. The new connection will only be needed for two use cases:</p>
+
+<ol>
+<li>To "transport" references from one object to another, e.g. a delayline read object needs a reference to a delayline write object - this reference is right now defined by entering the name of the write object into the read object. In the future, the "object instance reference connection" could define this relation, where the reader reads from the writer it is patched to via its "object instance reference" terminals (the details of that should be</li>
+<li>To overwrite the execution order that would otherwise be defined by the audio and modulation connections in the processing graph.</li>
+</ol>
+
+<p>With this in mind, most patches won't need any "object instance reference connections" at all and would look exactly like they look right now.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:1'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/thetechnobear'><b itemprop='author'>thetechnobear</b></a>
+           
+           <time datetime='2017-03-14T18:53:58Z' itemprop='datePublished'>
+             2017-03-14 18:53:58 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#17</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I think I understand what the idea is, and yes the idea is these execution order wires are not really need most of the time.  </p>
+
+<p>But given there is little 'cable management' in Axoloti it's already an untidy mess with complex patches, adding more is not going to help this <img src="//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3" title=":wink:" class="emoji" alt=":wink:"></p>
+
+<p>Also as I said execution order wiring is a mixed metaphor, it's not a data wire - and besides things like trigger/order objects and the numeric numbering I think are more obvious/explicit. <br>(They also have an established presence in some other environments)</p>
+
+<p>I've no issue with object ref wiring e.g. for tables , also midi wiring make sense , as they are linking data together<br>( I think things like tables should be presented as conventional inlets/outlets , so it's possible for example to have an object with 2 table outlets)</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/johannes'><b itemprop='author'>johannes</b></a>
+           
+           <time datetime='2017-03-14T20:33:16Z' itemprop='datePublished'>
+             2017-03-14 20:33:16 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#18</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Execution order number on the title bar: I think it is hard to define the renumbering behavior when coping one patch into another, and hard to keep an overview. As a read-only indicator certainly useful when implementing and debugging graph-based sorting, could be kept as a diagnostic option.</p>
+
+<p>Max/pd has distinctly different semantics for audio wires and event message-wires.<br>The trigger approach in Max/pd for event message-wires does not adapt well to simple lfo's/envelopes. Bang~'ing messages can easily lead to unintentional event doubling.<br>Max/pd audio wiring is strict graph-based. I vaguely recall an example in Pd how to force an alternate execution order, I think it was for a thru-zero flanger, using dummy audio wires to/from a subpatch, with a delayread in the subpatch, not extremely elegant.</p>
+
+<p>In terms of cable mess: hiding certain cable type(s) is already implemented, could hide the "object reference" cables, turn on the "show execution order index", and then the only thing missing compared to a pure "execution order index label"-based approach is a way to manipulate execution order that does not involve wires. </p>
+
+<aside class="quote" data-post="14" data-topic="3055"><div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="20" height="20" src="//community.axoloti.com/letter_avatar_proxy/v2/letter/t/90db22/40.png" class="avatar">TheSlowGrowth:</div>
+<blockquote><p>Nevertheless, there is a need to explain to users why their patches suddenly contain those magical, new connections that apparently don't do anything but are needed for a reason that most users won't be able to understand immediately. I guess that is un-avoidable.</p></blockquote></aside>
+
+<p>Sure, such a change needs to align with a major release, like "2.0".</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:0'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/TheSlowGrowth'><b itemprop='author'>TheSlowGrowth</b></a>
+           
+           <time datetime='2017-03-14T20:38:42Z' itemprop='datePublished'>
+             2017-03-14 20:38:42 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#19</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>Thinking about this a little more... <br>If I understand johannes correctly, that new connection is supposed to serve two tasks: A) transmitting references B) Allowing to overwrite execution orders. I wonder if it is clever to use a single connection type for both, as B) imposes restrictions and odd problems for A) that can only be solved by adding additional rules (which is not ideal). Sometimes A) and B) can even be conflicting.</p>
+
+<p>Lets consider a reader/writer relation between objects (like the delayline read/write objects - basically it's a supply/use relation that applies to all object references, like tables, memory, etc.). The reader reads from a writer that's patched on the same net via object instance reference connections. Lets imagine the bool connection in the following screenshots is the proposed object instance reference connection.</p>
+
+<p>In this first patch, the the transmission of the reference from the writer to the reader is simple.<br><img src="//community.axoloti.com/uploads/default/original/2X/1/1f55f77c05cf93c4d826378901bfcd3cee51eb0f.png" width="189" height="85"><br>In the second patch, we have two readers reading from the same writer. As they are parallel, it is undefined which one is executed first. But they are always executed after the writer.<br><img src="//community.axoloti.com/uploads/default/original/2X/5/57e88bb9268bbc0c42d55275a92d6f125e8d24ff.png" width="208" height="176"><br>If it is important that one reader is executed before the other, we could do this: There is just one writer on the net, so both readers know where to read from.<br><img src="//community.axoloti.com/uploads/default/original/2X/3/3a884b0e1aaedcb4412c970c4c95806b01239c7a.png" width="264" height="88"></p>
+
+<p>Lets consider this patch: B) requires each object to have a object instance reference input and an object instance reference output. However, that means we can have two writers on the same net like on this patch here:<br><img src="//community.axoloti.com/uploads/default/original/2X/c/c017df38e9f9b69203073a07763a1070e1f1f6f8.png" width="256" height="81"> <br>How does the reader know which writer to read from? The problem can be resolved by adding a new rule: A reader reads from the writer patched upstream. (but I think additional rules are always uncool and make things more complicated)</p>
+
+<p>Now we come to the next weird case: Here, each reader will find two writers upstream. We will have modify the rule so that each reader reads from the <strong>first</strong> writer upstream. Now both readers will read from writer2.<br><img src="//community.axoloti.com/uploads/default/original/2X/0/0151feb6d3f370b5ee68b26063d26877513e7de0.png" width="344" height="90"><br>If we want to have reader 1 reading from writer 1 and reader 2 reading from writer 2, we have to choose this topology:<br><img src="//community.axoloti.com/uploads/default/original/2X/7/76a365b722bc6f3ca1e54630f4a1a9e8b9c357ef.png" width="341" height="154"><br>Now it is undefined, if reader1 or reader2 is executed first. Reader 1 could even be executed before writer2. As we can see from the last two examples, it is not possible to have all execution orders and still correctly transmit all object references. This is a case, where A) and B) conflict each other.</p>
+
+<p>Also: What would you do, if you want to have the reader executed before its corresponding writer? </p>
+
+<p>I think this can only be solved by separating the reference transmission (A) and the ordering (B) into two different wires. Why would they be on the same wire after all? A) and B) are two very different things. Here's my proposal:</p>
+
+<h4>Order wire</h4>
+
+<p>Each object has an order input and an order output in its title bar. Order wires are patched bewteen those terminals to define the execution order. Upstream objects are executed first. Order wires can be split (one output can be routed to two inputs) and merged (two outputs can be patched to one single input). That way, all possible execution orders can be realized.</p>
+
+<h4>resource wire</h4>
+
+<p>A resource wire is a wire like any other (bool, srate frac, krate frac, ...). Objects can have outputs if they define a resource (e.g. a table or a memory block). Objects can have inputs to make use of a resource. Now it is possible to have a single object define or use mutiple resources.<br>Resource wires (or reference wires if that sounds better) can be split (one output to two inputs) but not merged. Just like all other wires we have right now.<br>Resource wires don't have a datatype. Internally, a resource wire could simply be the string of the C++ instance defining the resource, just like we have now for tables and delaylines.</p>
+
+<h4>hierarchy</h4>
+
+<p>The hierarchy that defines the execution order would be like this (lower index = higher priority). </p>
+
+<ol>
+<li>order wire</li>
+<li>conventional wire (bool int, frac, audio, resource, etc.)</li>
+<li>maybe midi wires?</li>
+</ol>
+
+<p>If 1 is not present, 2 defines the order. And so on. <br>The final execution order is defined by this rule: An object is executed once all upstream objects are already executed.</p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+  <div itemscope itemtype='http://schema.org/DiscussionForumPosting'>
+      <div class='creator'>
+        <span>
+          <a href='/u/Gavin'><b itemprop='author'>Gavin</b></a>
+           
+           <time datetime='2017-03-14T22:24:22Z' itemprop='datePublished'>
+             2017-03-14 22:24:22 UTC
+           </time>
+        </span>
+        <span itemprop='position'>#20</span>
+      </div>
+      <div class='post' itemprop='articleBody'>
+        <p>I know from a technical standpoint this topic is way out of my depth, however one of things I have found when adding and or coding objects for a patch, that you end up with a mix of objects in your patch where some that have a large scale influence on a patch, and some only a small scale influence. Yet be it all are needed. Would it not be easier to have something that is a bit like a subpatch setup in the patching screen that creates blocks around objects, all the objects in the block are executed in the current way but only within the block, then when it gets to the last object of the block, it goes to the next block that exists in the current order setup. Kind of like a patch of say 5 subpatches, each subpatch is subject to the current standard processing order, but within the subpatch, it has its own order. But instead without subpatches, but creating blocks to contain the objects. This way the blocks can contain as many or as few objects as you want. You may even want blocks in blocks etc.. I guess the idea is that there is something nice about the current setup, but can get a bit messy. !<img src="//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3" title=":grin:" class="emoji" alt=":grin:"></p>
+      </div>
+      <meta itemprop='interactionCount' content='UserLikes:1'>
+      <meta itemprop='interactionCount' content='UserComments:0'>
+      <meta itemprop='headline' content='Migrating to graph-based execution order'>
+      <hr>
+  </div>
+
+
+
+
+
+
+        <!-- :preload-content -->
+        <footer>
+          <nav itemscope itemtype='http://schema.org/SiteNavigationElement'>
+            <a href='/'>Home</a>
+            <a href="/categories">Categories</a>
+            <a href="/guidelines">FAQ/Guidelines</a>
+            <a href="/tos">Terms of Service</a>
+            <a href="/privacy">Privacy Policy</a>
+          </nav>
+        </footer>
+      </div>
+
+      <footer id='noscript-footer'>
+        <p>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+      </footer>
+    </noscript>
+
+      
+
+    <section id='main'>
+    </section>
+
+    <div id='offscreen-content'>
+    </div>
+
+      <form id='hidden-login-form' method="post" action="/login" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+
+      <script>
+      (function() {
+        var ps = require('preload-store').default;
+          ps.store("site", {"default_archetype":"regular","notification_types":{"mentioned":1,"replied":2,"quoted":3,"edited":4,"liked":5,"private_message":6,"invited_to_private_message":7,"invitee_accepted":8,"posted":9,"moved_post":10,"linked":11,"granted_badge":12,"invited_to_topic":13,"custom":14,"group_mentioned":15,"group_message_summary":16,"watching_first_post":17,"topic_reminder":18},"post_types":{"regular":1,"moderator_action":2,"small_action":3,"whisper":4},"groups":[{"id":1,"name":"admins"},{"id":0,"name":"everyone"},{"id":2,"name":"moderators"},{"id":3,"name":"staff"},{"id":10,"name":"trust_level_0"},{"id":11,"name":"trust_level_1"},{"id":12,"name":"trust_level_2"},{"id":13,"name":"trust_level_3"},{"id":14,"name":"trust_level_4"}],"filters":["latest","unread","new","read","posted","bookmarks"],"periods":["all","yearly","quarterly","monthly","weekly","daily"],"top_menu_items":["latest","unread","new","read","posted","bookmarks","category","categories","top"],"anonymous_top_menu_items":["latest","top","categories","category","categories","top"],"uncategorized_category_id":1,"is_readonly":false,"disabled_plugins":[],"user_field_max_length":2048,"suppressed_from_homepage_category_ids":[],"post_action_types":[{"name_key":"bookmark","name":"Bookmark","description":"Bookmark this post","short_description":"Bookmark this post","long_form":"bookmarked this post","is_flag":false,"icon":null,"id":1,"is_custom_flag":false},{"name_key":"like","name":"Like","description":"Like this post","short_description":"Like this post","long_form":"liked this","is_flag":false,"icon":"heart","id":2,"is_custom_flag":false},{"name_key":"off_topic","name":"Off-Topic","description":"This post is not relevant to the current discussion as defined by the title and first post, and should probably be moved elsewhere.","short_description":"Not relevant to the discussion","long_form":"flagged this as off-topic","is_flag":true,"icon":null,"id":3,"is_custom_flag":false},{"name_key":"inappropriate","name":"Inappropriate","description":"This post contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"A violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"vote","name":"Vote","description":"Vote for this post","short_description":"Vote for this post","long_form":"voted for this post","is_flag":false,"icon":null,"id":5,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This post is an advertisement, or vandalism. It is not useful or relevant to the current topic.","short_description":"This is an advertisement or vandalism","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_user","name":"Send @{{username}} a message","description":"I want to talk to this person directly and privately about their post.","short_description":"I want to talk to this person directly and privately about their post.","long_form":"messaged user","is_flag":true,"icon":null,"id":6,"is_custom_flag":true},{"name_key":"notify_moderators","name":"Something Else","description":"This post requires staff attention for another reason not listed above.","short_description":"Requires staff attention for another reason","long_form":"flagged this for staff attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"topic_flag_types":[{"name_key":"inappropriate","name":"Inappropriate","description":"This topic contains content that a reasonable person would consider offensive, abusive, or a violation of \u003ca href=\"/guidelines\"\u003eour community guidelines\u003c/a\u003e.","short_description":"translation missing: en.topic_flag_types.inappropriate.short_description","long_form":"flagged this as inappropriate","is_flag":true,"icon":null,"id":4,"is_custom_flag":false},{"name_key":"spam","name":"Spam","description":"This topic is an advertisement. It is not useful or relevant to this site, but promotional in nature.","short_description":"translation missing: en.topic_flag_types.spam.short_description","long_form":"flagged this as spam","is_flag":true,"icon":null,"id":8,"is_custom_flag":false},{"name_key":"notify_moderators","name":"Something Else","description":"This topic requires general staff attention based on the \u003ca href=\"/guidelines\"\u003eguidelines\u003c/a\u003e, \u003ca href=\"/tos\"\u003eTOS\u003c/a\u003e, or for another reason not listed above.","short_description":"translation missing: en.topic_flag_types.notify_moderators.short_description","long_form":"flagged this for moderator attention","is_flag":true,"icon":null,"id":7,"is_custom_flag":true}],"can_create_tag":null,"can_tag_topics":null,"tags_filter_regexp":"[/\\?#\\[\\]@!\\$\u0026'\\(\\)\\*\\+,;=\\.%\\\\`^\\s|\\{\\}\"\u003c\u003e]+","top_tags":["midi","controllers","modular","linux","1.0.11","macos","windows","troubleshooting","usb","challenge","wavetable","library","math","faust","dsp","out","tips","current","14bit"],"topic_featured_link_allowed_category_ids":[10,4,6,12,1,5,15,2,14,3,9,8,16,7,11,13],"user_themes":[{"theme_key":"b5ce34aa-3ee1-4d3e-b190-0a2ab62c7408","name":"Migrated from Site Text","default":true}],"categories":[{"id":1,"name":"Uncategorized","color":"AB9364","text_color":"FFFFFF","slug":"uncategorized","topic_count":-1,"post_count":1,"position":0,"description":"Topics that don't need a category, or don't fit into any other existing category.","description_text":"","topic_url":"/t/","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":10,"name":"User Guide","color":"3AB54A","text_color":"FFFFFF","slug":"user-guide","topic_count":24,"post_count":102,"position":1,"description":"This category contains posts to help users use Axoloti, a dynamic user guide.","description_text":"This category contains posts to help users use Axoloti, a dynamic user guide.","topic_url":"/t/about-the-user-guide-category/51","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":8,"name":"Helpdesk","color":"9EB83B","text_color":"FFFFFF","slug":"helpdesk","topic_count":397,"post_count":3144,"position":2,"description":"This category is for reporting issues and bugs\u003cbr\u003ePlease use other categories for discussions on features or questions or \"how to?\"","description_text":"This category is for reporting issues and bugsPlease use other categories for discussions on features or questions or \"how to?\"","topic_url":"/t/about-the-helpdesk-category/23","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":13,"name":"Community Library","color":"9EB83B","text_color":"FFFFFF","slug":"community-library","topic_count":54,"post_count":2955,"position":3,"description":"Category for the community library","description_text":"Category for the community library","topic_url":"/t/about-the-community-library-category/1005","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":7,"name":"Patching","color":"AB9364","text_color":"FFFFFF","slug":"patching","topic_count":1051,"post_count":8571,"position":4,"description":"This category is for discussion about patching Axoloti, and sharing patches.","description_text":"This category is for discussion about patching Axoloti, and sharing patches.","topic_url":"/t/about-the-patching-category/14","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":5,"name":"Hardware","color":"AB9364","text_color":"FFFFFF","slug":"hardware","topic_count":747,"post_count":7779,"position":5,"description":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects. ","description_text":"This category is intended for discussion about the Axoloti hardware and connecting to other hardware, including , connecting midi controllers and other hardware, related hardware projects.","topic_url":"/t/about-the-hardware-category/12","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":6,"name":"Software","color":"AB9364","text_color":"FFFFFF","slug":"software","topic_count":341,"post_count":3414,"position":6,"description":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti. ","description_text":"This category is for posts regarding the software of Axoloti, this includes the Axoloti patching GUI, Axoloti Objects (axo) and firmware. Please use the Patching category to discuss patching Axoloti.","topic_url":"/t/about-the-software-category/13","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":16,"name":"AxoObject coding","color":"AB9364","text_color":"FFFFFF","slug":"axoobject-code","topic_count":277,"post_count":2257,"position":7,"description":"Category to discuss coding Axoloti Objects.","description_text":"Category to discuss coding Axoloti Objects.","topic_url":"/t/about-the-axoobject-coding-category/1519","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":14,"name":"News/Events","color":"283890","text_color":"FFFFFF","slug":"events","topic_count":32,"post_count":112,"position":8,"description":"Meetups, workshops, presentations, all sort of events.\u003cbr\u003eIt's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.\u003cbr\u003eStart your topic title with the name of the area where your event will happen.","description_text":"Meetups, workshops, presentations, all sort of events.It's perfectly fine for users to announce and discuss their own events, as long as it is related to Axoloti somehow.Start your topic title with the name of the area where your event will happen.","topic_url":"/t/about-the-events-category/1142","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":12,"name":"Challenges","color":"0E76BD","text_color":"FFFFFF","slug":"challenges","topic_count":19,"post_count":277,"position":9,"description":"This category is for challenges, competitions and discussions related to these.\u003cbr\u003eposters are reminded when entering challenges and competitions to not include any copyrighted material","description_text":"This category is for challenges, competitions and discussions related to these.posters are reminded when entering challenges and competitions to not include any copyrighted material","topic_url":"/t/about-the-challenges-category/838","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":9,"name":"Your Music/Projects","color":"0E76BD","text_color":"FFFFFF","slug":"your-music-projects","topic_count":198,"post_count":1402,"position":10,"description":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?\u003cbr\u003eTells us about it here.","description_text":"Have some music that you have made with Axoloti? or an interesting project you would like to share the communities?Tells us about it here.","topic_url":"/t/about-the-your-music-projects-category/25","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":15,"name":"Lounge","color":"AB9364","text_color":"FFFFFF","slug":"lounge","topic_count":107,"post_count":1736,"position":11,"description":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.\u003cbr\u003e(please ensure it has some relevance to Axoloti, rather than general discussion) ","description_text":"This category is for discussions that are related to Axoloti generally but are not specifically about Axoloti.(please ensure it has some relevance to Axoloti, rather than general discussion)","topic_url":"/t/about-the-lounge-category/1277","read_restricted":false,"permission":null,"notification_level":1,"topic_template":null,"has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":11,"name":"Developer","color":"BF1E2E","text_color":"FFFFFF","slug":"developer","topic_count":69,"post_count":673,"position":12,"description":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","description_text":"This category is for discussion about the development of Axoloti at a low level, its intended only for developers/programmers.","topic_url":"/t/about-the-developer-category/735","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"This category is for low level discussion on the development of Axoloti, its is intended for developers/programmers only.","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null},{"id":3,"name":"Website and Forum","color":"808281","text_color":"FFFFFF","slug":"meta","topic_count":46,"post_count":416,"position":13,"description":"Discussion about this site, its organization, how it works, and how we can improve it.","description_text":"Discussion about this site, its organization, how it works, and how we can improve it.","topic_url":"/t/about-the-meta-category/2","read_restricted":false,"permission":null,"notification_level":1,"topic_template":"","has_children":false,"sort_order":null,"sort_ascending":null,"show_subcategory_list":false,"num_featured_topics":3,"default_view":null,"subcategory_list_style":"rows_with_featured_topics","default_top_period":"all","uploaded_logo":null,"uploaded_background":null}],"trust_levels":[{"id":0,"name":"new user"},{"id":1,"name":"basic user"},{"id":2,"name":"member"},{"id":3,"name":"regular"},{"id":4,"name":"leader"}],"archetypes":[{"id":"regular","name":"Regular Topic","options":[]},{"id":"banner","name":"Banner Topic","options":[]}],"user_fields":[]});
+          ps.store("siteSettings", {"title":"Axoloti Community","contact_email":"johannes.taelman@gmail.com","contact_url":"","logo_url":"/uploads/default/original/1X/b22e6e9ef608f1e17a1de19b733d043beff77f05.png","logo_small_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","mobile_logo_url":"","favicon_url":"/uploads/default/original/1X/ffed196003990f0e5c2a0f8227fc977345cd68be.png","allow_user_locale":false,"suggested_topics":5,"track_external_right_clicks":false,"ga_universal_tracking_code":"UA-56017691-4","ga_universal_domain_name":"auto","ga_tracking_code":"","ga_domain_name":"","gtm_container_id":"","top_menu":"categories|latest|new|unread|top","post_menu":"like-count|like|share|flag|edit|bookmark|delete|admin|reply","post_menu_hidden_items":"flag|bookmark|edit|delete|admin","share_links":"twitter|facebook|email","desktop_category_page_style":"categories_and_latest_topics","category_colors":"BF1E2E|F1592A|F7941D|9EB83B|3AB54A|12A89D|25AAE2|0E76BD|652D90|92278F|ED207B|8C6238|231F20|808281|B3B5B4|283890","category_style":"bullet","enable_mobile_theme":true,"relative_date_duration":30,"fixed_category_positions":true,"fixed_category_positions_on_create":false,"enable_badges":true,"enable_badge_sql":false,"enable_whispers":false,"invite_only":false,"login_required":false,"must_approve_users":false,"enable_local_logins":true,"allow_new_registrations":true,"enable_signup_cta":true,"enable_google_oauth2_logins":false,"enable_yahoo_logins":false,"enable_twitter_logins":false,"enable_instagram_logins":false,"enable_facebook_logins":false,"enable_github_logins":false,"enable_sso":false,"sso_overrides_avatar":false,"min_username_length":3,"max_username_length":20,"min_password_length":10,"min_admin_password_length":15,"logout_redirect":"","full_name_required":false,"enable_names":true,"invites_per_page":40,"delete_user_max_post_age":60,"delete_all_posts_max":15,"show_email_on_profile":false,"prioritize_username_in_ux":true,"enable_user_directory":true,"allow_anonymous_posting":false,"anonymous_posting_min_trust_level":1,"hide_user_profiles_from_public":false,"enable_group_directory":true,"min_post_length":20,"min_first_post_length":20,"min_private_message_post_length":10,"max_post_length":32000,"topic_featured_link_enabled":true,"min_topic_title_length":15,"max_topic_title_length":255,"min_private_message_title_length":2,"allow_uncategorized_topics":false,"min_title_similar_length":10,"min_body_similar_length":15,"enable_private_messages":true,"edit_history_visible_to_public":false,"delete_removed_posts_after":24,"enable_experimental_markdown_it":false,"traditional_markdown_linebreaks":false,"enable_markdown_typographer":false,"allow_html_tables":false,"suppress_reply_directly_below":true,"suppress_reply_directly_above":true,"max_reply_history":1,"newuser_max_images":1,"newuser_max_attachments":2,"show_pinned_excerpt_mobile":true,"show_pinned_excerpt_desktop":true,"display_name_on_posts":false,"show_time_gap_days":7,"short_progress_text_threshold":10000,"default_code_lang":"auto","autohighlight_all_code":false,"highlighted_languages":"apache|bash|cs|cpp|css|coffeescript|diff|xml|http|ini|json|java|javascript|makefile|markdown|nginx|objectivec|ruby|perl|php|python|sql|handlebars","censored_words":"","censored_pattern":"","enable_emoji":true,"emoji_set":"twitter","code_formatting_style":"4-spaces-indent","allowed_href_schemes":"","email_time_window_mins":10,"disable_digest_emails":false,"email_in":false,"disable_emails":false,"bounce_score_threshold":4,"max_image_size_kb":3072,"max_attachment_size_kb":3072,"authorized_extensions":"jpg|jpeg|png|gif|axo|axp|axs|axh|fpd|brd|axt","max_image_width":690,"max_image_height":500,"prevent_anons_from_downloading_files":false,"enable_s3_uploads":false,"allow_profile_backgrounds":true,"allow_uploaded_avatars":true,"allow_animated_avatars":false,"default_avatars":"","external_system_avatars_enabled":true,"external_system_avatars_url":"/letter_avatar_proxy/v2/letter/{first_letter}/{color}/{size}.png","allow_staff_to_upload_any_file_in_pm":true,"tl1_requires_read_posts":30,"tl3_links_no_follow":false,"use_admin_ip_whitelist":false,"max_oneboxes_per_post":50,"alert_admins_if_errors_per_minute":0,"alert_admins_if_errors_per_hour":0,"max_prints_per_hour_per_user":5,"enable_long_polling":true,"long_polling_base_url":"/","background_polling_interval":60000,"polling_interval":3000,"anon_polling_interval":15000,"flush_timings_secs":20,"verbose_localization":false,"max_new_topics":500,"tos_url":"","privacy_policy_url":"","faq_url":"","maximum_backups":5,"min_search_term_length":3,"version_checks":true,"suppress_uncategorized_badge":true,"topic_views_heat_low":1000,"topic_views_heat_medium":2000,"topic_views_heat_high":5000,"topic_post_like_heat_low":0.5,"topic_post_like_heat_medium":1.0,"topic_post_like_heat_high":2.0,"history_hours_low":12,"history_hours_medium":24,"history_hours_high":48,"cold_age_days_low":14,"cold_age_days_medium":90,"cold_age_days_high":180,"global_notice":"","show_create_topics_notice":true,"bootstrap_mode_min_users":50,"bootstrap_mode_enabled":false,"automatically_unpin_topics":true,"read_time_word_count":500,"disable_mailing_list_mode":false,"default_topics_automatic_unpin":true,"tagging_enabled":true,"tag_style":"simple","max_tags_per_topic":5,"max_tag_length":20,"min_trust_level_to_tag_topics":0,"max_tag_search_results":5,"show_filter_by_tag":true,"tags_sort_alphabetically":false,"staff_tags":"","suppress_overlapping_tags_in_list":false,"discourse_narrative_bot_enabled":true,"poll_enabled":true,"poll_maximum_options":20,"details_enabled":true,"available_locales":"ar|bs_BA|cs|da|de|el|en|es|et|fa_IR|fi|fr|gl|he|id|it|ja|ko|nb_NO|nl|pl_PL|pt|pt_BR|ro|ru|sk|sq|sv|te|tr_TR|uk|ur|vi|zh_CN|zh_TW"});
+          ps.store("customHTML", {"top":"","footer":""});
+          ps.store("banner", {});
+          ps.store("customEmoji", []);
+          ps.store("translationOverrides", {});
+          ps.store("topic_3055", {"post_stream":{"posts":[{"id":18217,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-02T09:46:51.087Z","cooked":"\u003cp\u003eI've been thinking about this a little more. To be honest, I don't like how it's done right now, as it is really unintuitive. \u003c/p\u003e\n\n\u003cul\u003e\n\u003cli\u003eDepending on the patch, you can get all kinds of weird phasing issues (including the one with my reverb, that initially started this thread). The biggest problem to me is that shifting objects around without changing any of the cables can actually drastically alter the sound (which you just wouldn't expect to happen!). You might find your patch doesn't work anymore after \"cleaning\" it up.\u003c/li\u003e\n\u003cli\u003eEverytime a patch cable goes up/left it will create a 16-sample/1-block delay (\u003ccode\u003ez^-16\u003c/code\u003e). You can get quite a significant overall delay with this and there is currently no indication that this happens. Not only does it create 0,33ms delay per cable, it also eats up significant amounts of memory for larger patches (64 bytes per cable).\u003c/li\u003e\n\u003c/ul\u003e\n\n\u003cp\u003e\u003cstrong\u003eOne possible short-term solution\u003c/strong\u003e could be to allow users to see and manually specify the processing order.  The GUI could display a number indicating the order of execution in the top right corner of each object. With a right-click, the user could move the object up/down in the processing tree. All of this could be hidden by default and enabled upon request (e.g. by adding a menu option \"show processing order\" in the titel menu of the window that the user can tick to enable this).\u003c/p\u003e\n\n\u003cp\u003e\u003cstrong\u003eIn the long term\u003c/strong\u003e, I think it would be best to apply some graph theory to this. What we really want is to do a \u003ca href=\"https://en.wikipedia.org/wiki/Topological_sorting\" rel=\"nofollow\"\u003etopological sort\u003c/a\u003e of the graph. This, however requires the graph to be a \u003ca href=\"https://en.wikipedia.org/wiki/Directed_acyclic_graph\" rel=\"nofollow\"\u003edirected acyclic graph\u003c/a\u003e which is almost certainly not applying here. IMO it would be best to identify the bottlenecks in the graph (portions of the directed graph that have the least parallel edges) and insert the \u003ccode\u003ez^-16\u003c/code\u003e delay there but I'm not entirely sure what algorithm to choose for this. In Native Instruments Reaktor, unit delays are added whenever the user adds a connection that creates feedback. The delay is indicated by a little z symbol next to the input of the node where the feedback path ends.\u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/4/46c5ed8192b7b60957a66366694a076c3dd111dc.png\" width=\"128\" height=\"106\"\u003e \u003cbr\u003eThis could be translated to the axoloti patcher as well, but it would require to somehow convert existing patches and that leaves us with the same problem of not knowing where to add the delays.\u003c/p\u003e\n\n\u003cp\u003eThe JUCE class \u003ccode\u003ejuce::AudioProcessorGraph\u003c/code\u003e does the same thing. It builds up a ordered graph and inserts unit delays on the feedback edges. It also does latency compensation, which would be super neat as well. It defines rendering operations (clear buffer, copy buffer, delay buffer, execute node, etc.) and then iterates over the nodes in the graph and builds up a list of rendering operations that define which node to execute when, which buffers can be used multiple times and where to insert delays to compensate for processing latency of the nodes or to allow feedback. The order of processing is updated \u003ca href=\"https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L1337\" rel=\"nofollow\"\u003ewith this function\u003c/a\u003e, the details about the sorting are \u003ca href=\"https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L393\" rel=\"nofollow\"\u003ein this function\u003c/a\u003e.\u003c/p\u003e\n\n\u003cp\u003eI know, this is a lot to ask, and those are some pretty substantial changes, but the overall positive effect could be very significant.\u003c/p\u003e","post_number":1,"post_type":1,"updated_at":"2017-03-02T09:46:51.087Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":55,"incoming_link_count":141,"reads":93,"score":743.35,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L1337","internal":false,"reflection":false,"title":"JUCE/juce_AudioProcessorGraph.cpp at master · julianstorer/JUCE · GitHub","clicks":6},{"url":"https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L393","internal":false,"reflection":false,"title":"JUCE/juce_AudioProcessorGraph.cpp at master · julianstorer/JUCE · GitHub","clicks":5},{"url":"https://en.wikipedia.org/wiki/Directed_acyclic_graph","internal":false,"reflection":false,"title":"Directed acyclic graph - Wikipedia","clicks":4},{"url":"https://en.wikipedia.org/wiki/Topological_sorting","internal":false,"reflection":false,"title":"Topological sorting - Wikipedia","clicks":2},{"url":"http://community.axoloti.com/t/processing-order-issue/2985/11","internal":true,"reflection":true,"title":"Processing order issue?","clicks":1}],"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18218,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-03-02T09:50:52.833Z","cooked":"\u003cp\u003eAgreed \u003cbr\u003eand it's going to change , as you say it's not simple, and we also need to ensure old patches are unaffected - so it cannot be rushed in.\u003c/p\u003e","post_number":2,"post_type":1,"updated_at":"2017-03-02T09:51:55.280Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":18,"incoming_link_count":2,"reads":85,"score":42.9,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18219,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-02T10:02:20.080Z","cooked":"\u003cp\u003eI'm skimming the web for what might be useful for this. I found \u003ca href=\"http://jgrapht.org/\" rel=\"nofollow\"\u003eJGraphT, a Java-Graph library\u003c/a\u003e. I don't know if the patcher is currently using this, but it might offer some good tools for sorting, iterating and converting the graph.\u003cbr\u003eI think the hardest part is identifying which edges in the graph represent a feedback path == where to insert the \u003ccode\u003ez^-16\u003c/code\u003e delays. Here, the x,y position of the objects could indeed be a good indication of where the user thinks the feedback is.\u003c/p\u003e","post_number":3,"post_type":1,"updated_at":"2017-03-02T10:02:20.080Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":19,"incoming_link_count":1,"reads":86,"score":23.15,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"http://jgrapht.org/","internal":false,"reflection":false,"title":"Welcome to JGraphT - a free Java Graph Library","clicks":4}],"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18222,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-03-02T10:41:01.602Z","cooked":"\u003cp\u003e\u003ca class=\"mention\" href=\"/users/lis0r\"\u003e@lis0r\u003c/a\u003e has already kindly produced an implementation which we have merged into a branch. \u003cbr\u003eyou can also see some comments on the PR \u003ca href=\"https://github.com/axoloti/axoloti/pull/380\"\u003ehere\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003ecurrent thoughts are to use a graph, and then allow the user to 'override' execution order specifically.\u003cbr\u003e(this will also allow the user to explicitly see execution order too, which helps alot) \u003c/p\u003e\n\n\u003cp\u003ethere are quite a few 'edge cases' , and things that need to be considered.. e\u003cbr\u003e.g. currently things like tables often 'imply' an order of execution requirement, but these are not coded as connections currently.\u003cbr\u003e(Im also familar with Reaktor, and even that has issues, e.g. the 'mess' around initialisation) \u003c/p\u003e\n\n\u003cp\u003eanyway, we cannot rush into this.. the current model has its flaws, but most users know how to use it and you can patch accordingly (I have for, nearly 2 years now \u003cimg src=\"//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e) ... so there we can replace this with a 'half backed' solution, or one that means users have to rewrite existing patches. it has to be done properly.\u003c/p\u003e\n\n\u003cp\u003eso I dont really think its how to do it, or even if/when, so much as as 'development time', johannes is already busy on things for the next release, and so I am -  so this has to join the queue, of course, if other developers what to contribute that will speed things along, which is why pull requests are so welcome.\u003c/p\u003e","post_number":4,"post_type":1,"updated_at":"2017-03-02T10:41:23.843Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":17,"incoming_link_count":0,"reads":87,"score":18.25,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"link_counts":[{"url":"https://github.com/axoloti/axoloti/pull/380","internal":false,"reflection":false,"title":"GUI: Add patch setting to allow graphed execution order to be selected by lis0r · Pull Request #380 · axoloti/axoloti · GitHub","clicks":10}],"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18225,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-02T11:34:35.660Z","cooked":"\u003cp\u003eAh, I see. Good to know this is going to happen someday. I fixed my patches now by shifting the objects around. It works now, but it looks really messy, so any future improvements are very welcome. I considered actually making my own branch and trying to implement the graph sorting, etc. but while I'm fluent with C/C++, I'm not very experienced with Java so I'm probably the wrong person to tackle this.\u003c/p\u003e\n\n\u003cp\u003eJust to be clear: I'm really enjoying the axoloti platform, so any criticism is meant positively. I very much appreciate the time that went into making axoloti what it is and I'm hoping to be able to contribute something aswell.\u003c/p\u003e","post_number":5,"post_type":1,"updated_at":"2017-03-02T11:34:35.660Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":10,"incoming_link_count":0,"reads":78,"score":16.1,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18227,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-03-02T11:38:22.263Z","cooked":"\u003caside class=\"quote\" data-post=\"16\" data-topic=\"2985\" data-full=\"true\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png\" class=\"avatar\"\u003elis0r:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eIt should be noted there's a flaw in the version currently merged - I discussed the fix in my fork ( 8e4a27d , 24 Jan) with Johannes, but I don't think it made it in.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003ecan you PM me, I did put in the changes you made in your last PR (i.e. the changes you made to Patch.java that were UI unrelated)... you can check if its correct, its on the experimental branch, and its now in PatchModel.java)\u003cbr\u003ealso Id really love to hear any ideas you have for taking this forward.\u003cbr\u003ethanks again\u003cbr\u003eMark\u003c/p\u003e","post_number":6,"post_type":1,"updated_at":"2017-03-02T11:38:22.263Z","reply_count":0,"reply_to_post_number":null,"quote_count":1,"avg_time":8,"incoming_link_count":0,"reads":80,"score":16.4,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"lis0r","avatar_template":"/user_avatar/community.axoloti.com/lis0r/{size}/3462_1.png"},"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18229,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-02T11:49:19.814Z","cooked":"\u003caside class=\"quote\" data-post=\"17\" data-topic=\"2985\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png\" class=\"avatar\"\u003ethetechnobear:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003ealso Id really love to hear any ideas you have for taking this forward.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eI know that this was addressed towards \u003ca class=\"mention\" href=\"/users/lis0r\"\u003e@lis0r\u003c/a\u003e, but I would really suggest taking a look at the JUCE class from my previous post. It is very readable and does exactly what we want (+latency compensation as well! which is super handy to have), only in C++. JUCE is available under the GPL, so converting the code to Java straight away should actually be possible, even from a licensing standpoint.\u003c/p\u003e","post_number":7,"post_type":1,"updated_at":"2017-03-02T11:49:19.814Z","reply_count":0,"reply_to_post_number":null,"quote_count":1,"avg_time":8,"incoming_link_count":0,"reads":77,"score":15.8,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18233,"name":"","username":"lis0r","avatar_template":"/user_avatar/community.axoloti.com/lis0r/{size}/3462_1.png","created_at":"2017-03-02T12:22:29.304Z","cooked":"\u003cp\u003eI personally don't find those JUCE functions at all readable - hey mostly seem to be driver functions, palming off the real guts of the algorithm onto other methods and constructors. Then again, I think C++ is an abomination that should be abandoned in a ditch, doused in diesel, and set on fire, so I would say that!\u003c/p\u003e\n\n\u003cp\u003eIt also seems over complex - axoloti buffers are a fixed size, and it's easy to locate the needs where feedback paths originate, so it should be pretty simple to insert a fixed delay. I just can't quite get my head round which part of the path the have to be placed on to make it work. Intuitively, it feels like the non-feedback path should get the delay, in order to sync up with the feedback, but I have a head full of DeviceTree details right now, and can't flush the caches to think about it properly.\u003c/p\u003e\n\n\u003cp\u003eI'd also worry that the memory and latency overheads might surprise the user. It's not like we have the same resources as a PC to throw at this.\u003c/p\u003e\n\n\u003cp\u003eLisa\u003c/p\u003e","post_number":8,"post_type":1,"updated_at":"2017-03-02T12:22:29.304Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":10,"incoming_link_count":0,"reads":74,"score":65.3,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":false,"admin":false,"staff":false,"user_id":1064,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18236,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-02T12:42:28.962Z","cooked":"\u003caside class=\"quote\" data-post=\"19\" data-topic=\"2985\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png\" class=\"avatar\"\u003elis0r:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eI'd also worry that the memory and latency overheads might surprise the user. It's not like we have the same resources as a PC to throw at this.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eThe actual graph re-organization happens on the PC, not on the axoloti. And a properly organized graph with only a few \u003ccode\u003ez^-16\u003c/code\u003e delays is actually mroe memory and CPU efficient than the current, unoptimized version. I'm not talking about latency compensation here, that would of course add additional buffers. But only, if objects actually specify a latency, so right now, it would simply create zero overhead. For some stuff, latency compensation is acutally pretty vital.\u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"19\" data-topic=\"2985\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png\" class=\"avatar\"\u003elis0r:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eit's easy to locate the needs where feedback paths originate, so it should be pretty simple to insert a fixed delay.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eDo you think so? I'd say that is actually the main problem. Sorting a acyclic gaph of processing nodes is not a problem. The problem is to find out where in the cyclic graph the delays should be inserted in order to turn it into an acyclic graph. When you have feedback somewhere in the graph, that means there is one/more loops. Detecting the loops is easy, when you iterate over the graph and put a mark on already visited nodes. But how do you know where to actually put the delay in? Lets consider this (stupid) patch:\u003c/p\u003e\n\n\u003cpre\u003e\u003ccode\u003eAudio In |----------\u0026gt;| Compressor   |--------------+--------\u0026gt;| Audio out\n                 +--\u0026gt;| Sidechain in |              |\n                 |                                 |\n                 +---| EQ |\u0026lt;----| Echo Delay |\u0026lt;----+\u003c/code\u003e\u003c/pre\u003e\n\n\u003cp\u003eWhere would you put the \u003ccode\u003ez^-16\u003c/code\u003e delay? I would say: preserve the direct audio path and put the delay in the feedback loop. But to an algorithm that patch is just a cyclic graph of 5 nodes connected by 5 edges and none of them has any property to it that makes the position of the \u003ccode\u003ez^-16\u003c/code\u003e delay obvious. The delay could be added right on the compressor output - that would split the loop as well, but it would delay the audio output uneccesarily and hence it is not desireable from the users view.\u003c/p\u003e\n\n\u003cp\u003eMy idea would be to identify loops and take the graphical direction and the length of the wires in the patcher as a guide to where to place the delay. That is a good chance of actually inserting it into the \"true\" feedback path.\u003c/p\u003e","post_number":9,"post_type":1,"updated_at":"2017-03-02T12:42:28.962Z","reply_count":0,"reply_to_post_number":8,"quote_count":1,"avg_time":18,"incoming_link_count":5,"reads":76,"score":41.1,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"lis0r","avatar_template":"/user_avatar/community.axoloti.com/lis0r/{size}/3462_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18237,"name":"","username":"lis0r","avatar_template":"/user_avatar/community.axoloti.com/lis0r/{size}/3462_1.png","created_at":"2017-03-02T12:51:58.097Z","cooked":"\u003cp\u003eThe current implementation of graph-ordered execution ordering happens PC side. It doesn't latency compensate - pretty difficult to be less resource intensive than not doing something!\u003c/p\u003e\n\n\u003cp\u003eThe system already works out which objects need feedback, since it stores a 16 (I think) sample buffer between iterations, that gets used as input for the next block.\u003c/p\u003e\n\n\u003cp\u003eThis means feedback paths are are inherently delayed by 16 samples. I see no way of compensating for that without putting an additional delay on the non-fed back path to synchronise them. That, or redesign the axoloti firmware from the ground up, I guess?\u003c/p\u003e","post_number":10,"post_type":1,"updated_at":"2017-03-02T12:51:58.097Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":15,"incoming_link_count":3,"reads":75,"score":35.75,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1064,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18239,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-02T13:38:23.706Z","cooked":"\u003caside class=\"quote\" data-post=\"21\" data-topic=\"2985\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/lis0r/40/3462_1.png\" class=\"avatar\"\u003elis0r:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eThe system already works out which objects need feedback,\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eYou are referring to the current system? Yes, it does that, but it fails for the xfade axample at the beginning of this thread and it inserts delays where they aren't neccessary. \u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/7/7589fe70ef1c48ffdd87a6a2bc0835d62fb06231.png\" width=\"186\" height=\"148\"\u003e  \u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/3/335265d6321f0596d88c0896cc0622d1ba579ecb.png\" width=\"232\" height=\"83\"\u003e\u003cbr\u003eThe left version creates an additional 16 sample delay between the input and the output, even though that's not neccessary. The right version does not.\u003c/p\u003e\n\n\u003cp\u003eDelays are only neccessary to split the cyclic processign graph into an acyclic processing graph.\u003c/p\u003e","post_number":11,"post_type":1,"updated_at":"2017-03-02T13:42:26.830Z","reply_count":1,"reply_to_post_number":10,"quote_count":1,"avg_time":29,"incoming_link_count":0,"reads":74,"score":21.25,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"lis0r","avatar_template":"/user_avatar/community.axoloti.com/lis0r/{size}/3462_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18240,"name":"","username":"lis0r","avatar_template":"/user_avatar/community.axoloti.com/lis0r/{size}/3462_1.png","created_at":"2017-03-02T13:42:50.255Z","cooked":"\u003cp\u003eI'm talking about the experimental branch, with my graph-ordering patch.\u003c/p\u003e","post_number":12,"post_type":1,"updated_at":"2017-03-02T13:42:50.255Z","reply_count":0,"reply_to_post_number":11,"quote_count":0,"avg_time":34,"incoming_link_count":0,"reads":73,"score":16.3,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1064,"hidden":false,"hidden_reason_id":null,"trust_level":1,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18660,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2017-03-13T21:14:59.771Z","cooked":"\u003cp\u003eI'd like to move towards graph-ordering, my key concerns are:\u003c/p\u003e\n\n\u003cul\u003e\n\u003cli\u003eBeing able to migrate patches from position-based execution order to graph-based execution order without a patch-setting switch (that 'd add a parallel universe but not migrate, and is a potential source of user confusion), and without changing the behavior of old patches.\u003c/li\u003e\n\u003cli\u003eBeing able to explicitly specify execution order. Object benchmarking via \u003ccode\u003epatch/cyclecounter\u003c/code\u003e is one example where this is useful.\u003c/li\u003e\n\u003c/ul\u003e\n\n\u003cp\u003eI think it can be addressed by adding a \"object instance reference\" inlet and outlet on every object (in the title bar of the object). A connection of this type from one object to another would express fixing their execution order. \u003cbr\u003eFor the algorithm sorting the object order, I think we need to introduce \"net class priorities\":\u003c/p\u003e\n\n\u003cul\u003e\n\u003cli\u003ehighest sorting priority for the \"object instance reference connections\"\u003c/li\u003e\n\u003cli\u003ehigh sorting priority for the audio connections, k-rate connections\u003c/li\u003e\n\u003cli\u003e(perhaps in the future, low sorting priority for midi connections)\u003c/li\u003e\n\u003c/ul\u003e\n\n\u003cp\u003eA \"brute\" way to migrate old patches is by adding \"object instance reference connections\" to every object in position order when opening (but possibly redundant connections could be removed).\u003c/p\u003e\n\n\u003cp\u003eThoughts?\u003c/p\u003e","post_number":13,"post_type":1,"updated_at":"2017-03-13T21:14:59.771Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":38,"incoming_link_count":0,"reads":54,"score":17.7,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18671,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-14T06:30:52.295Z","cooked":"\u003cp\u003eThose \"object reference connections\" are IMO the best way to specify extection order and deal with references to delays, etc. The currently used text entry fields for object references would of course have to be removed. That is what reaktor does for its arrays and it is a tidy concept. More importantly, users will stumble across those connections and start wondering what they do. Effectively that will introduce them to the whole execution order topic at a point where they are ready to understand it. It saves you from over-complicating the first steps with axoloti (you don't even have to mention it). They will eventually stumble unpon the topic when they need it.\u003cbr\u003e\u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"13\" data-topic=\"3055\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/johannes/40/8_1.png\" class=\"avatar\"\u003ejohannes:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eadding \"object instance reference connections\" to every object in position order when opening (but possibly redundant connections could be removed)\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eYes, I think that is pretty much the only way to convert patches to the new system without breaking them. IMO is very important to remove redundant connections and keep them only where they actually make a difference. Otherwise, patches will be extremely messy after the conversion.\u003c/p\u003e\n\n\u003cp\u003eNevertheless, there is a need to explain to users why their patches suddenly contain those magical, new connections that apparently don't do anything but are needed for a reason that most users won't be able to understand immediately. I guess that is un-avoidable. I guess what I'm trying to say is, it is important to have a well structured tutorial at hand. I would even add a little popup message to the patcher that says: Hey, your new version of the patcher intruduces a new type of object connection. Click here to open an example patch. Or: Click here for more information (link leading to a forum post, etc.)\u003cbr\u003eThis mesage would only appear to users upgrading their patcher. Fresh installs should not show this, as to not over complicate things at the start.\u003c/p\u003e","post_number":14,"post_type":1,"updated_at":"2017-03-14T06:30:52.295Z","reply_count":1,"reply_to_post_number":null,"quote_count":1,"avg_time":29,"incoming_link_count":0,"reads":51,"score":16.65,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18675,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-03-14T09:26:24.751Z","cooked":"\u003cp\u003eWhilst it's 'neat' to represent the ordering as connections ( possibly ok internally) , \u003cbr\u003eit'll make the UI overly fussy.  also it's mixing metaphors , which tends to lead to confusion. \u003c/p\u003e\n\n\u003cp\u003eIf they are used, I think they should be on a different layer, a different view. But this breaks your screenshot ideal. \u003c/p\u003e\n\n\u003cp\u003eschemes used by others : \u003cbr\u003e- numbers on title bar ( toggled on/off) - Reaktor\u003cbr\u003e- ordering objects (trigger) - max\u003c/p\u003e","post_number":15,"post_type":1,"updated_at":"2017-03-14T09:26:24.751Z","reply_count":1,"reply_to_post_number":null,"quote_count":0,"avg_time":17,"incoming_link_count":0,"reads":45,"score":14.85,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18704,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-14T18:28:02.951Z","cooked":"\u003caside class=\"quote\" data-post=\"15\" data-topic=\"3055\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/user_avatar/community.axoloti.com/thetechnobear/40/6_1.png\" class=\"avatar\"\u003ethetechnobear:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eit'll make the UI overly fussy.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eIf I undestand johannes correctly, that won't happen. The new connection will only be needed for two use cases:\u003c/p\u003e\n\n\u003col\u003e\n\u003cli\u003eTo \"transport\" references from one object to another, e.g. a delayline read object needs a reference to a delayline write object - this reference is right now defined by entering the name of the write object into the read object. In the future, the \"object instance reference connection\" could define this relation, where the reader reads from the writer it is patched to via its \"object instance reference\" terminals (the details of that should be\u003c/li\u003e\n\u003cli\u003eTo overwrite the execution order that would otherwise be defined by the audio and modulation connections in the processing graph.\u003c/li\u003e\n\u003c/ol\u003e\n\n\u003cp\u003eWith this in mind, most patches won't need any \"object instance reference connections\" at all and would look exactly like they look right now.\u003c/p\u003e","post_number":16,"post_type":1,"updated_at":"2017-03-14T18:28:02.951Z","reply_count":1,"reply_to_post_number":15,"quote_count":1,"avg_time":22,"incoming_link_count":0,"reads":45,"score":15.1,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png"},"actions_summary":[],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18705,"name":"Mark Harris","username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","created_at":"2017-03-14T18:53:58.905Z","cooked":"\u003cp\u003eI think I understand what the idea is, and yes the idea is these execution order wires are not really need most of the time.  \u003c/p\u003e\n\n\u003cp\u003eBut given there is little 'cable management' in Axoloti it's already an untidy mess with complex patches, adding more is not going to help this \u003cimg src=\"//community.axoloti.com/images/emoji/emoji_one/wink.png?v=3\" title=\":wink:\" class=\"emoji\" alt=\":wink:\"\u003e\u003c/p\u003e\n\n\u003cp\u003eAlso as I said execution order wiring is a mixed metaphor, it's not a data wire - and besides things like trigger/order objects and the numeric numbering I think are more obvious/explicit. \u003cbr\u003e(They also have an established presence in some other environments)\u003c/p\u003e\n\n\u003cp\u003eI've no issue with object ref wiring e.g. for tables , also midi wiring make sense , as they are linking data together\u003cbr\u003e( I think things like tables should be presented as conventional inlets/outlets , so it's possible for example to have an object with 2 table outlets)\u003c/p\u003e","post_number":17,"post_type":1,"updated_at":"2017-03-14T19:03:06.622Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":23,"incoming_link_count":1,"reads":46,"score":15.35,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"Mark Harris","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":2,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":5,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18713,"name":"johannes","username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","created_at":"2017-03-14T20:33:16.048Z","cooked":"\u003cp\u003eExecution order number on the title bar: I think it is hard to define the renumbering behavior when coping one patch into another, and hard to keep an overview. As a read-only indicator certainly useful when implementing and debugging graph-based sorting, could be kept as a diagnostic option.\u003c/p\u003e\n\n\u003cp\u003eMax/pd has distinctly different semantics for audio wires and event message-wires.\u003cbr\u003eThe trigger approach in Max/pd for event message-wires does not adapt well to simple lfo's/envelopes. Bang~'ing messages can easily lead to unintentional event doubling.\u003cbr\u003eMax/pd audio wiring is strict graph-based. I vaguely recall an example in Pd how to force an alternate execution order, I think it was for a thru-zero flanger, using dummy audio wires to/from a subpatch, with a delayread in the subpatch, not extremely elegant.\u003c/p\u003e\n\n\u003cp\u003eIn terms of cable mess: hiding certain cable type(s) is already implemented, could hide the \"object reference\" cables, turn on the \"show execution order index\", and then the only thing missing compared to a pure \"execution order index label\"-based approach is a way to manipulate execution order that does not involve wires. \u003c/p\u003e\n\n\u003caside class=\"quote\" data-post=\"14\" data-topic=\"3055\"\u003e\u003cdiv class=\"title\"\u003e\n\u003cdiv class=\"quote-controls\"\u003e\u003c/div\u003e\n\u003cimg alt=\"\" width=\"20\" height=\"20\" src=\"//community.axoloti.com/letter_avatar_proxy/v2/letter/t/90db22/40.png\" class=\"avatar\"\u003eTheSlowGrowth:\u003c/div\u003e\n\u003cblockquote\u003e\u003cp\u003eNevertheless, there is a need to explain to users why their patches suddenly contain those magical, new connections that apparently don't do anything but are needed for a reason that most users won't be able to understand immediately. I guess that is un-avoidable.\u003c/p\u003e\u003c/blockquote\u003e\u003c/aside\u003e\n\n\u003cp\u003eSure, such a change needs to align with a major release, like \"2.0\".\u003c/p\u003e","post_number":18,"post_type":1,"updated_at":"2017-03-14T20:33:16.048Z","reply_count":0,"reply_to_post_number":null,"quote_count":1,"avg_time":30,"incoming_link_count":0,"reads":47,"score":10.9,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"johannes","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[],"moderator":true,"admin":true,"staff":true,"user_id":3,"hidden":false,"hidden_reason_id":null,"trust_level":4,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18714,"name":"","username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","created_at":"2017-03-14T20:38:42.367Z","cooked":"\u003cp\u003eThinking about this a little more... \u003cbr\u003eIf I understand johannes correctly, that new connection is supposed to serve two tasks: A) transmitting references B) Allowing to overwrite execution orders. I wonder if it is clever to use a single connection type for both, as B) imposes restrictions and odd problems for A) that can only be solved by adding additional rules (which is not ideal). Sometimes A) and B) can even be conflicting.\u003c/p\u003e\n\n\u003cp\u003eLets consider a reader/writer relation between objects (like the delayline read/write objects - basically it's a supply/use relation that applies to all object references, like tables, memory, etc.). The reader reads from a writer that's patched on the same net via object instance reference connections. Lets imagine the bool connection in the following screenshots is the proposed object instance reference connection.\u003c/p\u003e\n\n\u003cp\u003eIn this first patch, the the transmission of the reference from the writer to the reader is simple.\u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/1/1f55f77c05cf93c4d826378901bfcd3cee51eb0f.png\" width=\"189\" height=\"85\"\u003e\u003cbr\u003eIn the second patch, we have two readers reading from the same writer. As they are parallel, it is undefined which one is executed first. But they are always executed after the writer.\u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/5/57e88bb9268bbc0c42d55275a92d6f125e8d24ff.png\" width=\"208\" height=\"176\"\u003e\u003cbr\u003eIf it is important that one reader is executed before the other, we could do this: There is just one writer on the net, so both readers know where to read from.\u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/3/3a884b0e1aaedcb4412c970c4c95806b01239c7a.png\" width=\"264\" height=\"88\"\u003e\u003c/p\u003e\n\n\u003cp\u003eLets consider this patch: B) requires each object to have a object instance reference input and an object instance reference output. However, that means we can have two writers on the same net like on this patch here:\u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/c/c017df38e9f9b69203073a07763a1070e1f1f6f8.png\" width=\"256\" height=\"81\"\u003e \u003cbr\u003eHow does the reader know which writer to read from? The problem can be resolved by adding a new rule: A reader reads from the writer patched upstream. (but I think additional rules are always uncool and make things more complicated)\u003c/p\u003e\n\n\u003cp\u003eNow we come to the next weird case: Here, each reader will find two writers upstream. We will have modify the rule so that each reader reads from the \u003cstrong\u003efirst\u003c/strong\u003e writer upstream. Now both readers will read from writer2.\u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/0/0151feb6d3f370b5ee68b26063d26877513e7de0.png\" width=\"344\" height=\"90\"\u003e\u003cbr\u003eIf we want to have reader 1 reading from writer 1 and reader 2 reading from writer 2, we have to choose this topology:\u003cbr\u003e\u003cimg src=\"//community.axoloti.com/uploads/default/original/2X/7/76a365b722bc6f3ca1e54630f4a1a9e8b9c357ef.png\" width=\"341\" height=\"154\"\u003e\u003cbr\u003eNow it is undefined, if reader1 or reader2 is executed first. Reader 1 could even be executed before writer2. As we can see from the last two examples, it is not possible to have all execution orders and still correctly transmit all object references. This is a case, where A) and B) conflict each other.\u003c/p\u003e\n\n\u003cp\u003eAlso: What would you do, if you want to have the reader executed before its corresponding writer? \u003c/p\u003e\n\n\u003cp\u003eI think this can only be solved by separating the reference transmission (A) and the ordering (B) into two different wires. Why would they be on the same wire after all? A) and B) are two very different things. Here's my proposal:\u003c/p\u003e\n\n\u003ch4\u003eOrder wire\u003c/h4\u003e\n\n\u003cp\u003eEach object has an order input and an order output in its title bar. Order wires are patched bewteen those terminals to define the execution order. Upstream objects are executed first. Order wires can be split (one output can be routed to two inputs) and merged (two outputs can be patched to one single input). That way, all possible execution orders can be realized.\u003c/p\u003e\n\n\u003ch4\u003eresource wire\u003c/h4\u003e\n\n\u003cp\u003eA resource wire is a wire like any other (bool, srate frac, krate frac, ...). Objects can have outputs if they define a resource (e.g. a table or a memory block). Objects can have inputs to make use of a resource. Now it is possible to have a single object define or use mutiple resources.\u003cbr\u003eResource wires (or reference wires if that sounds better) can be split (one output to two inputs) but not merged. Just like all other wires we have right now.\u003cbr\u003eResource wires don't have a datatype. Internally, a resource wire could simply be the string of the C++ instance defining the resource, just like we have now for tables and delaylines.\u003c/p\u003e\n\n\u003ch4\u003ehierarchy\u003c/h4\u003e\n\n\u003cp\u003eThe hierarchy that defines the execution order would be like this (lower index = higher priority). \u003c/p\u003e\n\n\u003col\u003e\n\u003cli\u003eorder wire\u003c/li\u003e\n\u003cli\u003econventional wire (bool int, frac, audio, resource, etc.)\u003c/li\u003e\n\u003cli\u003emaybe midi wires?\u003c/li\u003e\n\u003c/ol\u003e\n\n\u003cp\u003eIf 1 is not present, 2 defines the order. And so on. \u003cbr\u003eThe final execution order is defined by this rule: An object is executed once all upstream objects are already executed.\u003c/p\u003e","post_number":19,"post_type":1,"updated_at":"2017-03-14T20:56:12.502Z","reply_count":0,"reply_to_post_number":16,"quote_count":0,"avg_time":59,"incoming_link_count":0,"reads":46,"score":57.15,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":2,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"reply_to_user":{"username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png"},"actions_summary":[{"id":2,"count":1}],"moderator":false,"admin":false,"staff":false,"user_id":1129,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false},{"id":18721,"name":"Gavin","username":"Gavin","avatar_template":"/user_avatar/community.axoloti.com/gavin/{size}/5153_1.png","created_at":"2017-03-14T22:24:22.588Z","cooked":"\u003cp\u003eI know from a technical standpoint this topic is way out of my depth, however one of things I have found when adding and or coding objects for a patch, that you end up with a mix of objects in your patch where some that have a large scale influence on a patch, and some only a small scale influence. Yet be it all are needed. Would it not be easier to have something that is a bit like a subpatch setup in the patching screen that creates blocks around objects, all the objects in the block are executed in the current way but only within the block, then when it gets to the last object of the block, it goes to the next block that exists in the current order setup. Kind of like a patch of say 5 subpatches, each subpatch is subject to the current standard processing order, but within the subpatch, it has its own order. But instead without subpatches, but creating blocks to contain the objects. This way the blocks can contain as many or as few objects as you want. You may even want blocks in blocks etc.. I guess the idea is that there is something nice about the current setup, but can get a bit messy. !\u003cimg src=\"//community.axoloti.com/images/emoji/emoji_one/grin.png?v=3\" title=\":grin:\" class=\"emoji\" alt=\":grin:\"\u003e\u003c/p\u003e","post_number":20,"post_type":1,"updated_at":"2017-03-14T22:24:22.588Z","reply_count":0,"reply_to_post_number":null,"quote_count":0,"avg_time":17,"incoming_link_count":0,"reads":40,"score":23.85,"yours":false,"topic_id":3055,"topic_slug":"migrating-to-graph-based-execution-order","display_username":"Gavin","primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_bg_color":null,"primary_group_flair_color":null,"version":1,"can_edit":false,"can_delete":false,"can_recover":false,"can_wiki":false,"read":true,"user_title":null,"actions_summary":[{"id":2,"count":1}],"moderator":false,"admin":false,"staff":false,"user_id":558,"hidden":false,"hidden_reason_id":null,"trust_level":2,"deleted_at":null,"user_deleted":false,"edit_reason":null,"can_view_edit_history":false,"wiki":false}],"stream":[18217,18218,18219,18222,18225,18227,18229,18233,18236,18237,18239,18240,18660,18671,18675,18704,18705,18713,18714,18721]},"timeline_lookup":[[1,2162],[13,2151],[14,2150]],"id":3055,"title":"Migrating to graph-based execution order","fancy_title":"Migrating to graph-based execution order","posts_count":20,"created_at":"2017-03-02T09:46:51.087Z","views":2140,"reply_count":2,"participant_count":5,"like_count":5,"last_posted_at":"2017-03-14T22:24:22.588Z","visible":true,"closed":false,"archived":false,"has_summary":false,"archetype":"regular","slug":"migrating-to-graph-based-execution-order","category_id":11,"word_count":4251,"deleted_at":null,"user_id":1129,"pm_with_non_human_user":false,"draft":null,"draft_key":"topic_3055","draft_sequence":null,"unpinned":null,"pinned_globally":false,"pinned":false,"pinned_at":null,"pinned_until":null,"details":{"created_by":{"id":1129,"username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png"},"last_poster":{"id":558,"username":"Gavin","avatar_template":"/user_avatar/community.axoloti.com/gavin/{size}/5153_1.png"},"participants":[{"id":1129,"username":"TheSlowGrowth","avatar_template":"/letter_avatar_proxy/v2/letter/t/90db22/{size}.png","post_count":9,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":5,"username":"thetechnobear","avatar_template":"/user_avatar/community.axoloti.com/thetechnobear/{size}/6_1.png","post_count":5,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":1064,"username":"lis0r","avatar_template":"/user_avatar/community.axoloti.com/lis0r/{size}/3462_1.png","post_count":3,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":3,"username":"johannes","avatar_template":"/user_avatar/community.axoloti.com/johannes/{size}/8_1.png","post_count":2,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null},{"id":558,"username":"Gavin","avatar_template":"/user_avatar/community.axoloti.com/gavin/{size}/5153_1.png","post_count":1,"primary_group_name":null,"primary_group_flair_url":null,"primary_group_flair_color":null,"primary_group_flair_bg_color":null}],"suggested_topics":[{"id":7786,"title":"Anyone tried editing/adding custom controls?","fancy_title":"Anyone tried editing/adding custom controls?","slug":"anyone-tried-editing-adding-custom-controls","posts_count":8,"reply_count":4,"highest_post_number":8,"image_url":null,"created_at":"2022-09-12T12:18:01.091Z","last_posted_at":"2022-09-27T05:18:06.593Z","bumped":true,"bumped_at":"2022-09-27T05:18:06.593Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":3,"views":173,"category_id":11,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":410,"username":"SirSickSik","avatar_template":"/user_avatar/community.axoloti.com/sirsicksik/{size}/5014_1.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":139,"username":"sebiiksbcs","avatar_template":"/user_avatar/community.axoloti.com/sebiiksbcs/{size}/6295_1.png"}}]},{"id":7648,"title":"I2c or midi for Tesseract Sweet Sixteen to Axoloti","fancy_title":"I2c or midi for Tesseract Sweet Sixteen to Axoloti","slug":"i2c-or-midi-for-tesseract-sweet-sixteen-to-axoloti","posts_count":4,"reply_count":1,"highest_post_number":5,"image_url":null,"created_at":"2022-03-10T00:59:21.207Z","last_posted_at":"2022-03-11T14:50:07.248Z","bumped":true,"bumped_at":"2022-03-11T14:50:07.248Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":1,"views":210,"category_id":5,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":735,"username":"Dolphinwolf","avatar_template":"/user_avatar/community.axoloti.com/dolphinwolf/{size}/4470_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2111,"username":"tele_player","avatar_template":"/letter_avatar_proxy/v2/letter/t/e47c2d/{size}.png"}}]},{"id":7686,"title":"Drone Engine powered by Axoloti","fancy_title":"Drone Engine powered by Axoloti","slug":"drone-engine-powered-by-axoloti","posts_count":5,"reply_count":2,"highest_post_number":5,"image_url":null,"created_at":"2022-04-11T20:09:21.099Z","last_posted_at":"2022-04-21T04:13:38.157Z","bumped":true,"bumped_at":"2022-04-21T04:13:38.157Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":6,"views":257,"category_id":9,"tags":["midi"],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":2867,"username":"gui7","avatar_template":"/user_avatar/community.axoloti.com/gui7/{size}/8158_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2730,"username":"domo_o","avatar_template":"/letter_avatar_proxy/v2/letter/d/8e8cbc/{size}.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":2600,"username":"hitachii","avatar_template":"/user_avatar/community.axoloti.com/hitachii/{size}/7348_1.png"}}]},{"id":7644,"title":"Axowl - OpenWare port for Axoloti + Axocontrol","fancy_title":"Axowl - OpenWare port for Axoloti + Axocontrol","slug":"axowl-openware-port-for-axoloti-axocontrol","posts_count":15,"reply_count":10,"highest_post_number":15,"image_url":null,"created_at":"2022-03-06T20:40:09.996Z","last_posted_at":"2022-03-14T22:29:20.770Z","bumped":true,"bumped_at":"2022-03-14T22:29:20.770Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":16,"views":429,"category_id":9,"tags":[],"featured_link":null,"posters":[{"extras":null,"description":"Original Poster","user":{"id":1328,"username":"antisvin","avatar_template":"/user_avatar/community.axoloti.com/antisvin/{size}/4247_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":521,"username":"tekknovator","avatar_template":"/user_avatar/community.axoloti.com/tekknovator/{size}/7986_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":139,"username":"sebiiksbcs","avatar_template":"/user_avatar/community.axoloti.com/sebiiksbcs/{size}/6295_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":41,"username":"TTotelka","avatar_template":"/user_avatar/community.axoloti.com/ttotelka/{size}/4787_1.png"}},{"extras":"latest","description":"Most Recent Poster","user":{"id":86,"username":"dreamer","avatar_template":"/user_avatar/community.axoloti.com/dreamer/{size}/397_1.png"}}]},{"id":7800,"title":"2 axoloti boards for sale in EU (sold)","fancy_title":"2 axoloti boards for sale in EU (sold)","slug":"2-axoloti-boards-for-sale-in-eu-sold","posts_count":7,"reply_count":2,"highest_post_number":7,"image_url":null,"created_at":"2022-09-28T07:51:02.482Z","last_posted_at":"2022-10-03T15:53:19.916Z","bumped":true,"bumped_at":"2022-10-03T15:53:19.916Z","unseen":false,"pinned":false,"unpinned":null,"visible":true,"closed":false,"archived":false,"bookmarked":null,"liked":null,"archetype":"regular","like_count":3,"views":235,"category_id":5,"tags":[],"featured_link":null,"posters":[{"extras":"latest","description":"Original Poster, Most Recent Poster","user":{"id":870,"username":"valmir","avatar_template":"/letter_avatar_proxy/v2/letter/v/f19dbf/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":337,"username":"Blindsmyth","avatar_template":"/letter_avatar_proxy/v2/letter/b/2acd7d/{size}.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":2123,"username":"Paulus","avatar_template":"/user_avatar/community.axoloti.com/paulus/{size}/6075_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":639,"username":"UHOH","avatar_template":"/user_avatar/community.axoloti.com/uhoh/{size}/2821_1.png"}},{"extras":null,"description":"Frequent Poster","user":{"id":1714,"username":"Ldebeck","avatar_template":"/letter_avatar_proxy/v2/letter/l/c5a1d2/{size}.png"}}]}],"links":[{"url":"https://github.com/axoloti/axoloti/pull/380","title":"GUI: Add patch setting to allow graphed execution order to be selected by lis0r · Pull Request #380 · axoloti/axoloti · GitHub","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":10,"user_id":5,"domain":"github.com"},{"url":"https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L1337","title":"JUCE/juce_AudioProcessorGraph.cpp at master · julianstorer/JUCE · GitHub","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":6,"user_id":1129,"domain":"github.com"},{"url":"https://github.com/julianstorer/JUCE/blob/master/modules/juce_audio_processors/processors/juce_AudioProcessorGraph.cpp#L393","title":"JUCE/juce_AudioProcessorGraph.cpp at master · julianstorer/JUCE · GitHub","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":5,"user_id":1129,"domain":"github.com"},{"url":"https://en.wikipedia.org/wiki/Directed_acyclic_graph","title":"Directed acyclic graph - Wikipedia","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":4,"user_id":1129,"domain":"en.wikipedia.org"},{"url":"http://jgrapht.org/","title":"Welcome to JGraphT - a free Java Graph Library","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":4,"user_id":1129,"domain":"jgrapht.org"},{"url":"https://en.wikipedia.org/wiki/Topological_sorting","title":"Topological sorting - Wikipedia","fancy_title":null,"internal":false,"attachment":false,"reflection":false,"clicks":2,"user_id":1129,"domain":"en.wikipedia.org"},{"url":"http://community.axoloti.com/t/processing-order-issue/2985/11","title":"Processing order issue?","fancy_title":null,"internal":true,"attachment":false,"reflection":true,"clicks":1,"user_id":3,"domain":"community.axoloti.com"}],"notification_level":1,"can_flag_topic":false},"highest_post_number":20,"deleted_by":null,"actions_summary":[{"id":4,"count":0,"hidden":false,"can_act":false},{"id":7,"count":0,"hidden":false,"can_act":false},{"id":8,"count":0,"hidden":false,"can_act":false}],"chunk_size":20,"bookmarked":null,"tags":[],"featured_link":null,"topic_timer":null,"message_bus_last_id":74});
+      })();
+      </script>
+
+    
+
+    <script>
+  Ember.RSVP.configure('onerror', function(e) {
+    // Ignore TransitionAborted exceptions that bubble up
+    if (e && e.message === "TransitionAborted") { return; }
+
+    window.onerror(e && e.message, null,null,null,e);
+  });
+</script>
+
+<script>
+
+  (function() {
+    var ps = require('preload-store').default;
+
+    Discourse.CDN = '';
+    Discourse.BaseUrl = 'community.axoloti.com'.replace(/:[\d]*$/,"");
+    Discourse.BaseUri = '';
+    Discourse.Environment = 'production';
+    Discourse.SiteSettings = ps.get('siteSettings');
+    Discourse.LetterAvatarVersion = '5_9b142ce9460b8c6b265fd9abf598d3fd';
+    I18n.defaultLocale = 'en';
+    Discourse.start();
+    Discourse.set('assetVersion','d1ec72c862674d2eea0eb8ef6fc5934f');
+    Discourse.Session.currentProp("disableCustomCSS", false);
+    Discourse.HighlightJSPath = "/highlight-js/community.axoloti.com/100444ceef8ca161334f64d3ce49fe7a1556f943.js";
+  })();
+</script>
+
+<link rel='preload' href='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js' as='script'/>
+<script src='/assets/browser-update-f57286e74ddbc53aa899689b01ef467078911e4138050c561939955849af35dd.js'></script>
+
+
+    
+
+      
+    
+  </body>
+</html>
